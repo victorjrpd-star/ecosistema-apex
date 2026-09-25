@@ -59,14 +59,21 @@
     /* SUGERENCIAS PREDICTIVAS */
     .suggestions-box {
       position: absolute; top: calc(100% + 2px); left: 0; right: 0; background: #141418;
-      border: 1px solid var(--border-focus); border-radius: 5px; max-height: 180px; overflow-y: auto;
+      border: 1px solid var(--border-focus); border-radius: 5px; max-height: 220px; overflow-y: auto;
       z-index: 50; display: none; box-shadow: 0 8px 24px rgba(0,0,0,0.8);
     }
-    .suggestion-item { padding: 10px 12px; border-bottom: 1px solid var(--border); cursor: pointer; font-size: 0.78rem; }
+    .suggestion-item { padding: 10px 12px; border-bottom: 1px solid var(--border); cursor: pointer; font-size: 0.78rem; display: flex; align-items: center; gap: 10px; }
     .suggestion-item:last-child { border-bottom: none; }
     .suggestion-item:hover, .suggestion-item:active { background: #1c1c22; }
-    .suggestion-item strong { color: #fff; display: block; font-size: 0.8rem; }
-    .suggestion-item span { color: var(--text-muted); font-size: 0.7rem; }
+
+    /* AVATARES */
+    .avatar-circle {
+      width: 42px; height: 42px; border-radius: 50%; object-fit: cover;
+      border: 1px solid var(--border); background: #1c1c22; display: flex;
+      align-items: center; justify-content: center; font-weight: 800; font-size: 0.8rem; color: #fff;
+      flex-shrink: 0;
+    }
+    .avatar-sm { width: 34px; height: 34px; font-size: 0.75rem; }
 
     /* FICHA DEL STRIKER */
     .striker-summary-card { background: var(--card-sub); border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-top: 10px; display: none; }
@@ -76,7 +83,10 @@
     .info-box-val { font-size: 0.85rem; font-weight: 800; color: #fff; margin-top: 2px; }
 
     /* TARJETAS CHECK-INS */
-    .checkin-card { background: var(--card-sub); border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-bottom: 12px; }
+    .checkin-card { background: var(--card-sub); border: 1px solid var(--border); border-radius: 6px; padding: 14px; margin-bottom: 14px; }
+    .checkin-profile-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #1a1a1e; padding-bottom: 10px; margin-bottom: 10px; gap: 10px; }
+    .checkin-profile-left { display: flex; align-items: center; gap: 12px; }
+    
     .metrics-grid {
       display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #0a0a0c;
       border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin: 10px 0;
@@ -146,8 +156,14 @@
 
         <!-- Ficha de Confirmación -->
         <div class="striker-summary-card" id="strikerCard">
-          <div style="display: flex; justify-content: space-between; align-items: baseline;">
-            <strong id="strikerName" style="color: #fff; font-size: 0.85rem;">-</strong>
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div id="strikerCardAvatar" class="avatar-circle avatar-sm">AP</div>
+              <div>
+                <strong id="strikerName" style="color: #fff; font-size: 0.85rem; display: block;">-</strong>
+                <span id="strikerEmailTxt" style="font-size: 0.65rem; color: var(--text-muted);">-</span>
+              </div>
+            </div>
             <span id="strikerStatusBadge" style="font-size: 0.65rem; font-weight: 800; padding: 2px 6px; border-radius: 3px;">-</span>
           </div>
           <div class="striker-summary-grid">
@@ -240,7 +256,7 @@
     }
 
     /* ==========================================================================
-       3. GESTIÓN DE CHECK-INS & CALIBRACIÓN
+       3. GESTIÓN DE CHECK-INS CON FOTO Y NOMBRE
        ========================================================================== */
     const METRIC_KEYS = [
       { key: 'rendimiento', label: 'Rendimiento' },
@@ -252,6 +268,7 @@
     ];
 
     let pendingRecords = [];
+    let registeredUsersCache = [];
 
     const ApexCheckins = {
       cargar: async function() {
@@ -262,6 +279,15 @@
         }
 
         try {
+          // 1. Asegurar usuarios en memoria para cruzar foto y nombre
+          if (registeredUsersCache.length === 0) {
+            const { data: usersData } = await supabaseClient
+              .from('apex_users')
+              .select('id, email, name, avatar_url, photo_url');
+            if (usersData) registeredUsersCache = usersData;
+          }
+
+          // 2. Traer check-ins pendientes
           const { data, error } = await supabaseClient
             .from('apex_checkins')
             .select('*')
@@ -287,7 +313,20 @@
               orig[m.key] = num;
               curr[m.key] = num;
             });
-            return { ...item, original: orig, current: curr };
+
+            // Encontrar perfil de usuario
+            const user = registeredUsersCache.find(u => 
+              (u.id && u.id === item.user_id) || 
+              (u.email && u.email.toLowerCase() === (item.user_email || '').toLowerCase())
+            );
+
+            return {
+              ...item,
+              original: orig,
+              current: curr,
+              userName: user?.name || null,
+              userAvatar: user?.avatar_url || user?.photo_url || null
+            };
           });
 
           this.render();
@@ -296,11 +335,38 @@
         }
       },
 
+      formatearFecha: function(fechaStr) {
+        if (!fechaStr) return 'Sin fecha';
+        try {
+          const d = new Date(fechaStr);
+          return d.toLocaleDateString('es-CO', { 
+            day: '2-digit', 
+            month: 'short', 
+            year: 'numeric' 
+          }) + ' - ' + d.toLocaleTimeString('es-CO', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: true 
+          });
+        } catch(e) {
+          return fechaStr;
+        }
+      },
+
+      renderAvatar: function(name, email, avatarUrl) {
+        if (avatarUrl) {
+          return `<img src="${avatarUrl}" class="avatar-circle" alt="Striker" onerror="this.outerHTML='<div class=\\'avatar-circle\\'>AP</div>'">`;
+        }
+        const ref = name || email || 'ST';
+        const iniciales = ref.substring(0, 2).toUpperCase();
+        return `<div class="avatar-circle">${iniciales}</div>`;
+      },
+
       render: function() {
         const container = document.getElementById('checkinsList');
         container.innerHTML = '';
 
-        pendingRecords.forEach((rec, idx) => {
+        pendingRecords.forEach((rec) => {
           let totalPenalty = 0;
           METRIC_KEYS.forEach(m => {
             if (rec.current[m.key] < rec.original[m.key]) totalPenalty += 1;
@@ -320,49 +386,58 @@
               <div class="metric-row">
                 <div class="metric-label">${m.label} <span style="color:#555;">(Orig: ${orig})</span></div>
                 <div class="metric-control">
-                  <button class="metric-btn" onclick="ApexCheckins.ajustar(${idx}, '${m.key}', -1)">-</button>
+                  <button class="metric-btn" onclick="ApexCheckins.ajustar('${rec.id}', '${m.key}', -1)">-</button>
                   <div style="display:flex; align-items:center;">
-                    <span class="metric-val" id="val_${idx}_${m.key}">${curr}</span>
-                    <span class="metric-penalty-tag" id="tag_${idx}_${m.key}" style="display: ${isPenalized ? 'inline' : 'none'};">-1p</span>
+                    <span class="metric-val" id="val_${rec.id}_${m.key}">${curr}</span>
+                    <span class="metric-penalty-tag" id="tag_${rec.id}_${m.key}" style="display: ${isPenalized ? 'inline' : 'none'};">-1p</span>
                   </div>
-                  <button class="metric-btn" onclick="ApexCheckins.ajustar(${idx}, '${m.key}', 1)">+</button>
+                  <button class="metric-btn" onclick="ApexCheckins.ajustar('${rec.id}', '${m.key}', 1)">+</button>
                 </div>
               </div>
             `;
           });
 
-          const emailMostrado = rec.user_email || 'correo@estudiante.com';
+          const nombreMostrado = rec.userName || 'Striker';
+          const emailMostrado = rec.user_email || 'Sin correo';
+          const fechaMostrada = this.formatearFecha(rec.created_at);
           const focusTag = rec.focus ? `<div style="font-size:0.65rem; color:var(--accent); text-transform:uppercase; font-weight:800; margin-top:2px;">Enfoque: ${rec.focus}</div>` : '';
+          const avatarHtml = this.renderAvatar(rec.userName, rec.user_email, rec.userAvatar);
 
           card.innerHTML = `
-            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-              <div>
-                <strong style="font-size:0.85rem; color:#fff;">${emailMostrado}</strong>
-                ${focusTag}
+            <div class="checkin-profile-header">
+              <div class="checkin-profile-left">
+                ${avatarHtml}
+                <div>
+                  <strong style="font-size:0.9rem; color:#fff; display:block;">${nombreMostrado}</strong>
+                  <span style="font-size:0.65rem; color:var(--text-muted); display:block;">${emailMostrado} • ${fechaMostrada}</span>
+                  ${focusTag}
+                </div>
               </div>
-              <span style="font-size:0.65rem; color:var(--accent); font-weight:800;" id="sum_${idx}">
-                ${totalPenalty > 0 ? `-${totalPenalty} pts` : ''}
+              <span style="font-size:0.68rem; color:var(--accent); font-weight:900; background:rgba(229,9,20,0.1); padding:3px 7px; border-radius:3px; border:1px solid rgba(229,9,20,0.3); white-space:nowrap;" id="sum_${rec.id}">
+                ${totalPenalty > 0 ? `-${totalPenalty} pts` : 'Sin penalización'}
               </span>
             </div>
             <div class="metrics-grid">${metricsHtml}</div>
             <div style="display:flex; gap:8px;">
-              <button class="btn-main btn-danger" style="flex:1;" onclick="ApexCheckins.resolver(${idx}, 'rechazado')">Rechazar</button>
-              <button class="btn-main" style="flex:2;" onclick="ApexCheckins.resolver(${idx}, 'aprobado')">Aprobar Check-in</button>
+              <button class="btn-main btn-danger" style="flex:1;" onclick="ApexCheckins.resolver('${rec.id}', 'rechazado')">Rechazar</button>
+              <button class="btn-main" style="flex:2;" onclick="ApexCheckins.resolver('${rec.id}', 'aprobado')">Aprobar Check-in</button>
             </div>
           `;
           container.appendChild(card);
         });
       },
 
-      ajustar: function(idx, key, delta) {
-        const rec = pendingRecords[idx];
+      ajustar: function(recId, key, delta) {
+        const rec = pendingRecords.find(r => r.id === recId);
+        if (!rec) return;
+
         let val = rec.current[key] + delta;
         if (val < 1) val = 1;
         if (val > 10) val = 10;
         rec.current[key] = val;
 
-        const valEl = document.getElementById(`val_${idx}_${key}`);
-        const tagEl = document.getElementById(`tag_${idx}_${key}`);
+        const valEl = document.getElementById(`val_${recId}_${key}`);
+        const tagEl = document.getElementById(`tag_${recId}_${key}`);
         if (valEl) valEl.textContent = val;
         if (tagEl) tagEl.style.display = (val < rec.original[key]) ? 'inline' : 'none';
 
@@ -370,16 +445,31 @@
         METRIC_KEYS.forEach(m => {
           if (rec.current[m.key] < rec.original[m.key]) totalPenalty += 1;
         });
-        const sumEl = document.getElementById(`sum_${idx}`);
-        if (sumEl) sumEl.textContent = totalPenalty > 0 ? `-${totalPenalty} pts` : '';
+        const sumEl = document.getElementById(`sum_${recId}`);
+        if (sumEl) {
+          sumEl.textContent = totalPenalty > 0 ? `-${totalPenalty} pts` : 'Sin penalización';
+        }
       },
 
-      resolver: async function(idx, status) {
-        const rec = pendingRecords[idx];
+      resolver: async function(recId, status) {
+        const rec = pendingRecords.find(r => r.id === recId);
+        if (!rec) return;
+
         let penalty = 0;
-        const updates = { status: status, coach_id: 'coach' };
+        let coachUuid = null;
+
+        try {
+          if (supabaseClient && supabaseClient.auth) {
+            const { data: authData } = await supabaseClient.auth.getUser();
+            if (authData?.user?.id) coachUuid = authData.user.id;
+          }
+        } catch (e) {}
+
+        const updates = { status: status };
+        if (coachUuid) updates.coach_id = coachUuid;
 
         if (status === 'aprobado') {
+          let sumaMetricas = 0;
           METRIC_KEYS.forEach(m => {
             const orig = rec.original[m.key];
             let curr = rec.current[m.key];
@@ -388,18 +478,45 @@
               curr = Math.max(0, curr - 1);
             }
             updates[m.key] = curr;
+            sumaMetricas += curr;
           });
           updates.coach_point_mod = penalty;
           updates.coach_tech_score = updates.student_tech_score ?? 7;
+          updates.final_score = Math.max(0, sumaMetricas - penalty);
+        } else {
+          updates.final_score = 0;
         }
 
         if (supabaseClient) {
-          await supabaseClient.from('apex_checkins').update(updates).eq('id', rec.id);
+          const { error } = await supabaseClient.from('apex_checkins').update(updates).eq('id', rec.id);
+          if (error) {
+            alert('Error guardando en base de datos: ' + error.message);
+            return;
+          }
+
+          // Enviar notificación técnica al Striker (máx 7 días vigencia)
+          try {
+            const notifTitle = status === 'aprobado' ? 'Check-in Calibrado' : 'Check-in No Aprobado';
+            const notifMsg = status === 'aprobado'
+              ? `Tu sesión de ${rec.focus || 'entrenamiento'} fue aprobada. Score final: ${updates.final_score} pts.${penalty > 0 ? ` (Ajuste técnico: -${penalty} pts).` : ''}`
+              : `Tu check-in de ${rec.focus || 'entrenamiento'} no pudo ser validado por el coach.`;
+
+            await supabaseClient.from('apex_notifications').insert({
+              user_email: rec.user_email,
+              title: notifTitle,
+              message: notifMsg,
+              type: penalty > 0 ? 'calibracion' : 'observacion_tecnica'
+            });
+          } catch (notifErr) {
+            console.warn("Notificación omitida:", notifErr);
+          }
         }
 
-        alert(status === 'aprobado' ? 'Check-in aprobado y calibrado.' : 'Check-in rechazado.');
+        alert(status === 'aprobado' ? `Check-in aprobado con éxito (Penalización: -${penalty} pts).` : 'Check-in desestimado.');
+        
         document.getElementById(`rec_${rec.id}`)?.remove();
-        pendingRecords.splice(idx, 1);
+        pendingRecords = pendingRecords.filter(r => r.id !== recId);
+
         if (pendingRecords.length === 0) {
           document.getElementById('checkinsList').innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); text-align:center; padding:16px;">No hay check-ins pendientes por validar.</div>';
         }
@@ -407,10 +524,9 @@
     };
 
     /* ==========================================================================
-       4. GESTIÓN DE MEMBRESÍAS
+       4. GESTIÓN DE MEMBRESÍAS CON BÚSQUEDA VISUAL
        ========================================================================== */
     let selectedStriker = null;
-    let registeredUsersCache = [];
 
     const ApexMembresias = {
       cargarDirectorio: async function() {
@@ -418,7 +534,7 @@
         try {
           const { data } = await supabaseClient
             .from('apex_users')
-            .select('id, email, name, subscription_status, membership_start, membership_end');
+            .select('id, email, name, avatar_url, photo_url, subscription_status, membership_start, membership_end');
           if (data) registeredUsersCache = data;
         } catch (e) {
           console.warn("Directorio en espera.");
@@ -451,7 +567,18 @@
           const item = document.createElement('div');
           item.className = 'suggestion-item';
           const displayName = user.name || 'Sin nombre registrado';
-          item.innerHTML = `<strong>${displayName}</strong><span>${user.email}</span>`;
+          const avatarUrl = user.avatar_url || user.photo_url;
+          const avatarImg = avatarUrl 
+            ? `<img src="${avatarUrl}" class="avatar-circle avatar-sm" alt="Foto">` 
+            : `<div class="avatar-circle avatar-sm">${displayName.substring(0,2).toUpperCase()}</div>`;
+
+          item.innerHTML = `
+            ${avatarImg}
+            <div>
+              <strong style="color:#fff;">${displayName}</strong>
+              <span style="color:var(--text-muted); font-size:0.7rem;">${user.email}</span>
+            </div>
+          `;
           item.onclick = () => this.seleccionar(user);
           box.appendChild(item);
         });
@@ -474,8 +601,18 @@
         }
 
         const card = document.getElementById('strikerCard');
-        document.getElementById('strikerName').textContent = `${user.name || 'Striker'} (${user.email})`;
+        document.getElementById('strikerName').textContent = user.name || 'Striker';
+        document.getElementById('strikerEmailTxt').textContent = user.email;
         document.getElementById('strikerEndVal').textContent = user.membership_end || 'Sin registro';
+
+        // Avatar de la tarjeta
+        const avatarContainer = document.getElementById('strikerCardAvatar');
+        const avatarUrl = user.avatar_url || user.photo_url;
+        if (avatarUrl) {
+          avatarContainer.outerHTML = `<img id="strikerCardAvatar" src="${avatarUrl}" class="avatar-circle avatar-sm" alt="Striker">`;
+        } else {
+          avatarContainer.outerHTML = `<div id="strikerCardAvatar" class="avatar-circle avatar-sm">${(user.name || 'ST').substring(0,2).toUpperCase()}</div>`;
+        }
 
         const daysVal = document.getElementById('strikerDaysVal');
         const statusBadge = document.getElementById('strikerStatusBadge');
@@ -522,7 +659,6 @@
         const baseDate = dateVal ? new Date(dateVal + 'T00:00:00') : new Date();
         baseDate.setHours(0,0,0,0);
 
-        // Regla: fecha a fecha menos uno
         const expDate = new Date(baseDate);
         expDate.setDate(expDate.getDate() + (planDays - 1));
 
@@ -559,6 +695,14 @@
               membership_start: startDateStr,
               membership_end: expDateStr
             }).eq('email', selectedStriker.email);
+
+            // Notificación al Striker de membresía activa
+            await supabaseClient.from('apex_notifications').insert({
+              user_email: selectedStriker.email,
+              title: 'Membresía Activada',
+              message: `Tu acceso fue habilitado hasta el ${expDateStr}. ¡A entrenar!`,
+              type: 'membresia'
+            });
           }
 
           alert(`Membresía activada:\n${selectedStriker.email}\nVence: ${expDateStr}`);
