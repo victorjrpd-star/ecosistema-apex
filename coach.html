@@ -17,7 +17,6 @@
       --text-main: #f5f5f7;
       --text-muted: #73737a;
       --status-ok: #22c55e;
-      --status-warn: #eab308;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     html, body { background: var(--bg); color: var(--text-main); width: 100vw; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
@@ -25,7 +24,7 @@
     /* NAVEGACIÓN SUPERIOR ENTRE MÓDULOS */
     .coach-nav-bar {
       display: flex; height: 48px; background: var(--card-bg); border-bottom: 1px solid var(--border);
-      align-items: center; padding: 0 12px; gap: 8px; flex-shrink: 0;
+      align-items: center; padding: 0 12px; gap: 8px; flex-shrink: 0; z-index: 100;
     }
     .nav-tab-btn {
       background: #121214; border: 1px solid var(--border); color: var(--text-muted);
@@ -71,7 +70,7 @@
     .suggestion-item strong { color: #fff; display: block; font-size: 0.8rem; }
     .suggestion-item span { color: var(--text-muted); font-size: 0.7rem; }
 
-    /* TARJETA DE CONFIRMACIÓN DEL STRIKER */
+    /* FICHA DE CONFIRMACIÓN DEL STRIKER */
     .striker-summary-card {
       background: var(--card-sub); border: 1px solid var(--border); border-radius: 6px;
       padding: 12px; margin-top: 10px; display: none;
@@ -110,8 +109,8 @@
 
   <!-- PESTAÑAS DEL COACH -->
   <nav class="coach-nav-bar">
-    <button class="nav-tab-btn active" onclick="cambiarModulo('modulo_checkins', this)">Validación Check-ins</button>
-    <button class="nav-tab-btn" onclick="cambiarModulo('modulo_membresias', this)">Gestión Membresías</button>
+    <button class="nav-tab-btn active" id="tab_checkins" onclick="cambiarModulo('modulo_checkins', this)">Validación Check-ins</button>
+    <button class="nav-tab-btn" id="tab_membresias" onclick="cambiarModulo('modulo_membresias', this)">Gestión Membresías</button>
   </nav>
 
   <div class="coach-viewport">
@@ -124,7 +123,6 @@
       </div>
       <div class="card">
         <div class="card-title">Sesiones en Espera</div>
-        <div class="card-desc">Toda corrección a la baja aplica -1 punto de penalización automática por métrica.</div>
         <div id="checkinsList">
           <div style="font-size: 0.75rem; color: var(--text-muted); text-align: center; padding: 16px;">
             Consultando registros en base de datos...
@@ -202,12 +200,27 @@
   </div>
 
   <script>
-    // Inicialización de Supabase usando credenciales almacenadas o definidas en el proyecto
-    const SUPABASE_URL = localStorage.getItem('supabase_url') || 'https://TU_PROYECTO.supabase.co';
-    const SUPABASE_KEY = localStorage.getItem('supabase_anon_key') || 'TU_ANON_KEY';
-    const supabase = (window.supabase && SUPABASE_URL.startsWith('http')) 
-      ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) 
-      : null;
+    // Recuperar credenciales desde window.parent o localStorage
+    function getSupabaseConfig() {
+      try {
+        let url = localStorage.getItem('supabase_url') || (window.parent && window.parent.localStorage.getItem('supabase_url'));
+        let key = localStorage.getItem('supabase_anon_key') || (window.parent && window.parent.localStorage.getItem('supabase_anon_key'));
+        return { url, key };
+      } catch (e) {
+        return { url: null, key: null };
+      }
+    }
+
+    const { url: SUPABASE_URL, key: SUPABASE_KEY } = getSupabaseConfig();
+    let supabase = null;
+
+    if (window.supabase && SUPABASE_URL && SUPABASE_URL.startsWith('http') && SUPABASE_KEY) {
+      try {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      } catch (err) {
+        console.warn("Error inicializando Supabase client:", err);
+      }
+    }
 
     let selectedStriker = null;
     let registeredUsersCache = [];
@@ -222,21 +235,26 @@
       { key: 'recuperacion', label: 'Recuperación' }
     ];
 
+    // CAMBIO DE PESTAÑAS (Garantizado)
     function cambiarModulo(moduloId, btn) {
       document.querySelectorAll('.coach-nav-bar .nav-tab-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.panel-view').forEach(p => p.classList.remove('active'));
-      btn.classList.add('active');
-      document.getElementById(moduloId).classList.add('active');
+      
+      if (btn) btn.classList.add('active');
+      const target = document.getElementById(moduloId);
+      if (target) target.classList.add('active');
     }
 
-    // --- SUBMÓDULO MEMBRESÍAS & BUSCADOR PREDICTIVO ---
+    // --- SUBMÓDULO MEMBRESÍAS ---
     async function cargarDirectorioUsuarios() {
       if (!supabase) return;
       try {
-        const { data } = await supabase.from('apex_users').select('id, email, name, subscription_status, membership_start, membership_end');
-        if (data) registeredUsersCache = data;
+        const { data, error } = await supabase
+          .from('apex_users')
+          .select('id, email, name, subscription_status, membership_start, membership_end');
+        if (!error && data) registeredUsersCache = data;
       } catch (e) {
-        console.warn("Directorio en espera de conectividad.");
+        console.warn("Fallo cargando directorio:", e);
       }
     }
 
@@ -276,7 +294,6 @@
       document.getElementById('studentEmailSearch').value = user.email;
       document.getElementById('suggestionsBox').style.display = 'none';
 
-      // Cálculo de vigencia fecha a fecha
       const hoy = new Date();
       hoy.setHours(0,0,0,0);
       let diasRestantes = 0;
@@ -335,11 +352,9 @@
       const planDays = parseInt(document.getElementById('membershipPlan').value, 10);
       const dateVal = document.getElementById('paymentDateInput').value;
 
-      // Base: fecha seleccionada o fecha actual
       const baseDate = dateVal ? new Date(dateVal + 'T00:00:00') : new Date();
       baseDate.setHours(0,0,0,0);
 
-      // Regla de vigencia real: Fecha Inicio + (Plan Días - 1)
       const expDate = new Date(baseDate);
       expDate.setDate(expDate.getDate() + (planDays - 1));
 
@@ -363,7 +378,6 @@
             receiptUrl = urlData.publicUrl;
           }
 
-          // Guardar registro en historial de pagos
           const { data: authUser } = await supabase.auth.getUser();
           await supabase.from('apex_payments').insert({
             student_email: selectedStriker.email,
@@ -373,7 +387,6 @@
             registered_by: authUser?.user?.email || 'coach'
           });
 
-          // Actualizar estado y fechas en apex_users
           await supabase.from('apex_users').update({
             subscription_status: 'activo',
             is_active: true,
@@ -384,7 +397,6 @@
 
         alert(`Membresía habilitada con éxito.\nStriker: ${selectedStriker.email}\nInicio: ${startDateStr}\nVence: ${expDateStr}`);
         
-        // Reset de campos
         document.getElementById('studentEmailSearch').value = '';
         document.getElementById('paymentDateInput').value = '';
         document.getElementById('strikerCard').style.display = 'none';
@@ -399,43 +411,65 @@
       }
     }
 
-    // --- SUBMÓDULO CHECK-INS (ANTIFRAUDE) ---
+    // --- SUBMÓDULO CHECK-INS CON PROTECCIÓN DE CONEXIÓN ---
     async function cargarCheckins() {
       const container = document.getElementById('checkinsList');
-      if (!supabase) return;
 
-      // Consulta flexible para atrapar 'pendiente_coach', 'pendiente/coach' o 'pendiente'
-      const { data, error } = await supabase
-        .from('apex_checkins')
-        .select('*')
-        .ilike('status', '%pendiente%')
-        .order('created_at', { ascending: false });
-
-      if (error || !data || data.length === 0) {
-        container.innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); text-align:center; padding:16px;">No hay check-ins pendientes por validar.</div>';
+      if (!supabase) {
+        container.innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); text-align:center; padding:16px;">Esperando autenticación de Supabase...</div>';
         return;
       }
 
-      pendingRecords = data.map(item => ({
-        ...item,
-        original: {
-          rendimiento: item.rendimiento ?? 7,
-          rpe: item.rpe ?? 7,
-          soltura: item.soltura ?? 6,
-          fluidez: item.fluidez ?? 5,
-          diversion: item.diversion ?? 8,
-          recuperacion: item.recuperacion ?? 7
-        },
-        current: {
-          rendimiento: item.rendimiento ?? 7,
-          rpe: item.rpe ?? 7,
-          soltura: item.soltura ?? 6,
-          fluidez: item.fluidez ?? 5,
-          diversion: item.diversion ?? 8,
-          recuperacion: item.recuperacion ?? 7
+      try {
+        // Intentar consulta directa con timeout
+        const queryPromise = supabase
+          .from('apex_checkins')
+          .select('*')
+          .ilike('status', '%pendiente%')
+          .order('created_at', { ascending: false });
+
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error("Timeout")), 6000)
+        );
+
+        const { data, error } = await Promise.race([queryPromise, timeoutPromise]);
+
+        if (error) {
+          console.error("Error al consultar apex_checkins:", error);
+          container.innerHTML = `<div style="font-size:0.75rem; color:var(--accent); text-align:center; padding:16px;">Error de acceso: ${error.message}</div>`;
+          return;
         }
-      }));
-      renderCheckins();
+
+        if (!data || data.length === 0) {
+          container.innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); text-align:center; padding:16px;">No hay check-ins pendientes por validar.</div>';
+          return;
+        }
+
+        pendingRecords = data.map(item => ({
+          ...item,
+          original: {
+            rendimiento: item.rendimiento ?? 7,
+            rpe: item.rpe ?? 7,
+            soltura: item.soltura ?? 6,
+            fluidez: item.fluidez ?? 5,
+            diversion: item.diversion ?? 8,
+            recuperacion: item.recuperacion ?? 7
+          },
+          current: {
+            rendimiento: item.rendimiento ?? 7,
+            rpe: item.rpe ?? 7,
+            soltura: item.soltura ?? 6,
+            fluidez: item.fluidez ?? 5,
+            diversion: item.diversion ?? 8,
+            recuperacion: item.recuperacion ?? 7
+          }
+        }));
+
+        renderCheckins();
+      } catch (err) {
+        console.warn("Excepción en checkins:", err);
+        container.innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); text-align:center; padding:16px;">No se pudo conectar a la base de datos (Verifica RLS o conexión).</div>';
+      }
     }
 
     function renderCheckins() {
@@ -528,7 +562,7 @@
         let curr = rec.current[m.key];
         if (curr < orig) {
           penalty += 1;
-          curr = Math.max(0, curr - 1); // Descuento efectivo de 1 punto adicional
+          curr = Math.max(0, curr - 1);
         }
         finalVals[m.key] = curr;
       });
