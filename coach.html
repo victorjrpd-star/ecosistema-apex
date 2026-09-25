@@ -21,7 +21,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     html, body { background: var(--bg); color: var(--text-main); width: 100vw; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
-    /* NAVEGACIÓN SUPERIOR ENTRE MÓDULOS */
+    /* NAVEGACIÓN SUPERIOR */
     .coach-nav-bar {
       display: flex; height: 48px; background: var(--card-bg); border-bottom: 1px solid var(--border);
       align-items: center; padding: 0 12px; gap: 8px; flex-shrink: 0; z-index: 100;
@@ -33,7 +33,7 @@
     }
     .nav-tab-btn.active { background: #fff; color: #000; border-color: #fff; }
 
-    /* VIEWPORT Y PANELES */
+    /* CONTENEDOR PRINCIPAL */
     .coach-viewport { flex: 1; width: 100%; position: relative; overflow-y: auto; padding: 16px; max-width: 600px; margin: 0 auto; }
     .panel-view { display: none; }
     .panel-view.active { display: block; }
@@ -47,7 +47,7 @@
     .card-title { font-size: 0.74rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #fff; margin-bottom: 4px; }
     .card-desc { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 12px; }
 
-    /* FORMULARIO & INPUTS */
+    /* BUSCADOR PREDICTIVO */
     .form-group { margin-bottom: 12px; position: relative; }
     .form-label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; display: block; }
     .input-apex {
@@ -56,32 +56,25 @@
     }
     .input-apex:focus { border-color: var(--border-focus); }
 
-    /* SUGERENCIAS PREDICTIVAS */
     .suggestions-box {
       position: absolute; top: calc(100% + 2px); left: 0; right: 0; background: #141418;
       border: 1px solid var(--border-focus); border-radius: 5px; max-height: 180px; overflow-y: auto;
       z-index: 50; display: none; box-shadow: 0 8px 24px rgba(0,0,0,0.8);
     }
-    .suggestion-item {
-      padding: 10px 12px; border-bottom: 1px solid var(--border); cursor: pointer; font-size: 0.78rem;
-    }
+    .suggestion-item { padding: 10px 12px; border-bottom: 1px solid var(--border); cursor: pointer; font-size: 0.78rem; }
     .suggestion-item:last-child { border-bottom: none; }
     .suggestion-item:hover, .suggestion-item:active { background: #1c1c22; }
     .suggestion-item strong { color: #fff; display: block; font-size: 0.8rem; }
     .suggestion-item span { color: var(--text-muted); font-size: 0.7rem; }
 
-    /* FICHA DE CONFIRMACIÓN DEL STRIKER */
-    .striker-summary-card {
-      background: var(--card-sub); border: 1px solid var(--border); border-radius: 6px;
-      padding: 12px; margin-top: 10px; display: none;
-    }
+    .striker-summary-card { background: var(--card-sub); border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-top: 10px; display: none; }
     .striker-summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
     .info-box { background: #0a0a0c; border: 1px solid var(--border); padding: 8px 10px; border-radius: 4px; }
     .info-box-label { font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; }
     .info-box-val { font-size: 0.85rem; font-weight: 800; color: #fff; margin-top: 2px; }
 
-    /* CHECK-INS LIST */
-    .checkin-card { background: var(--card-sub); border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-bottom: 10px; }
+    /* TARJETAS DE CHECK-INS */
+    .checkin-card { background: var(--card-sub); border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-bottom: 12px; }
     .metrics-grid {
       display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #0a0a0c;
       border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin: 10px 0;
@@ -107,7 +100,7 @@
 </head>
 <body>
 
-  <!-- PESTAÑAS DEL COACH -->
+  <!-- PESTAÑAS -->
   <nav class="coach-nav-bar">
     <button class="nav-tab-btn active" id="tab_checkins" onclick="cambiarModulo('modulo_checkins', this)">Validación Check-ins</button>
     <button class="nav-tab-btn" id="tab_membresias" onclick="cambiarModulo('modulo_membresias', this)">Gestión Membresías</button>
@@ -115,7 +108,7 @@
 
   <div class="coach-viewport">
     
-    <!-- SUBMÓDULO 1: VALIDACIÓN CHECK-INS -->
+    <!-- MÓDULO 1: CHECK-INS -->
     <div class="panel-view active" id="modulo_checkins">
       <div class="header">
         <div class="title">Apex <span>Check-ins</span></div>
@@ -131,7 +124,7 @@
       </div>
     </div>
 
-    <!-- SUBMÓDULO 2: GESTIÓN DE MEMBRESÍAS -->
+    <!-- MÓDULO 2: MEMBRESÍAS -->
     <div class="panel-view" id="modulo_membresias">
       <div class="header">
         <div class="title">Apex <span>Membresías</span></div>
@@ -140,16 +133,14 @@
 
       <div class="card">
         <div class="card-title">Habilitación y Control</div>
-        <div class="card-desc">Buscador predictivo de Strikers. La evidencia visual es obligatoria.</div>
+        <div class="card-desc">Buscador predictivo de Strikers. Evidencia visual obligatoria.</div>
 
-        <!-- Buscador Predictivo -->
         <div class="form-group">
-          <label class="form-label">Striker (Buscar por correo o nombre)</label>
+          <label class="form-label">Striker (Correo o Nombre)</label>
           <input type="text" id="studentEmailSearch" placeholder="Escribe para buscar..." class="input-apex" autocomplete="off" oninput="buscarSugerencias(this.value)">
           <div class="suggestions-box" id="suggestionsBox"></div>
         </div>
 
-        <!-- Ficha de Confirmación del Striker Seleccionado -->
         <div class="striker-summary-card" id="strikerCard">
           <div style="display: flex; justify-content: space-between; align-items: baseline;">
             <strong id="strikerName" style="color: #fff; font-size: 0.85rem;">-</strong>
@@ -167,10 +158,9 @@
           </div>
         </div>
 
-        <!-- Parámetros de la Membresía -->
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px;">
           <div class="form-group">
-            <label class="form-label">Fecha de Pago (Opcional - Hoy por defecto)</label>
+            <label class="form-label">Fecha de Pago (Opcional)</label>
             <input type="date" id="paymentDateInput" class="input-apex" style="color-scheme: dark;">
           </div>
           <div class="form-group">
@@ -184,13 +174,11 @@
           </div>
         </div>
 
-        <!-- Evidencia Fotográfica Obligatoria -->
         <div class="form-group">
           <label class="form-label">Evidencia Obligatoria (Cámara o Galería)</label>
           <input type="file" id="evidenceFileInput" accept="image/*" class="input-apex" onchange="validarEvidencia()" style="font-size: 0.72rem;">
         </div>
 
-        <!-- Botón de Habilitación -->
         <button class="btn-main" id="btnSubmitMembership" disabled onclick="procesarHabilitacion()">
           Adjunta Evidencia Para Habilitar
         </button>
@@ -200,7 +188,6 @@
   </div>
 
   <script>
-    // Recuperar credenciales desde window.parent o localStorage
     function getSupabaseConfig() {
       try {
         let url = localStorage.getItem('supabase_url') || (window.parent && window.parent.localStorage.getItem('supabase_url'));
@@ -218,7 +205,7 @@
       try {
         supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
       } catch (err) {
-        console.warn("Error inicializando Supabase client:", err);
+        console.warn("Error iniciando Supabase:", err);
       }
     }
 
@@ -226,16 +213,16 @@
     let registeredUsersCache = [];
     let pendingRecords = [];
 
+    // Mapeo exacto de las columnas reales en apex_checkins
     const METRIC_KEYS = [
       { key: 'rendimiento', label: 'Rendimiento' },
-      { key: 'rpe', label: 'RPE' },
+      { key: 'rpe', label: 'RPE / Esfuerzo' },
       { key: 'soltura', label: 'Soltura / Flex' },
-      { key: 'fluidez', label: 'Fluidez Técnica' },
-      { key: 'diversion', label: 'Diversión' },
-      { key: 'recuperacion', label: 'Recuperación' }
+      { key: 'student_tech_score', label: 'Técnica' },
+      { key: 'ram', label: 'RAM / Asimilación' },
+      { key: 'divertiste', label: 'Disfrute / Flow' }
     ];
 
-    // CAMBIO DE PESTAÑAS (Garantizado)
     function cambiarModulo(moduloId, btn) {
       document.querySelectorAll('.coach-nav-bar .nav-tab-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.panel-view').forEach(p => p.classList.remove('active'));
@@ -245,16 +232,183 @@
       if (target) target.classList.add('active');
     }
 
-    // --- SUBMÓDULO MEMBRESÍAS ---
+    // --- CHECK-INS (LECTURA Y CALIBRACIÓN) ---
+    async function cargarCheckins() {
+      const container = document.getElementById('checkinsList');
+
+      if (!supabase) {
+        container.innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); text-align:center; padding:16px;">Conexión a Supabase no configurada.</div>';
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('apex_checkins')
+          .select('*')
+          .ilike('status', '%pendiente%')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          container.innerHTML = `<div style="font-size:0.75rem; color:var(--accent); text-align:center; padding:16px;">Error de acceso: ${error.message}</div>`;
+          return;
+        }
+
+        if (!data || data.length === 0) {
+          container.innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); text-align:center; padding:16px;">No hay check-ins pendientes por validar.</div>';
+          return;
+        }
+
+        pendingRecords = data.map(item => {
+          const orig = {};
+          const curr = {};
+          METRIC_KEYS.forEach(m => {
+            const rawVal = parseFloat(item[m.key]);
+            const val = isNaN(rawVal) ? 7 : Math.round(rawVal);
+            orig[m.key] = val;
+            curr[m.key] = val;
+          });
+          return {
+            ...item,
+            original: orig,
+            current: curr
+          };
+        });
+
+        renderCheckins();
+      } catch (err) {
+        container.innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); text-align:center; padding:16px;">Error conectando a la base de datos.</div>';
+      }
+    }
+
+    function renderCheckins() {
+      const container = document.getElementById('checkinsList');
+      container.innerHTML = '';
+
+      pendingRecords.forEach((rec, idx) => {
+        let totalPenalty = 0;
+        METRIC_KEYS.forEach(m => {
+          if (rec.current[m.key] < rec.original[m.key]) totalPenalty += 1;
+        });
+
+        const card = document.createElement('div');
+        card.className = 'checkin-card';
+        card.id = `rec_${rec.id}`;
+
+        let metricsHtml = '';
+        METRIC_KEYS.forEach(m => {
+          const orig = rec.original[m.key];
+          const curr = rec.current[m.key];
+          const isPenalized = curr < orig;
+
+          metricsHtml += `
+            <div class="metric-row">
+              <div class="metric-label">${m.label} <span style="color:#555;">(Orig: ${orig})</span></div>
+              <div class="metric-control">
+                <button class="metric-btn" onclick="ajustarMetrica(${idx}, '${m.key}', -1)">-</button>
+                <div style="display:flex; align-items:center;">
+                  <span class="metric-val" id="val_${idx}_${m.key}">${curr}</span>
+                  <span class="metric-penalty-tag" id="tag_${idx}_${m.key}" style="display: ${isPenalized ? 'inline' : 'none'};">-1p</span>
+                </div>
+                <button class="metric-btn" onclick="ajustarMetrica(${idx}, '${m.key}', 1)">+</button>
+              </div>
+            </div>
+          `;
+        });
+
+        const emailMostrado = rec.user_email || 'correo@estudiante.com';
+        const focusTag = rec.focus ? `<div style="font-size:0.65rem; color:var(--accent); text-transform:uppercase; font-weight:800; margin-top:2px;">Enfoque: ${rec.focus}</div>` : '';
+
+        card.innerHTML = `
+          <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+            <div>
+              <strong style="font-size:0.85rem; color:#fff;">${emailMostrado}</strong>
+              ${focusTag}
+            </div>
+            <span style="font-size:0.65rem; color:var(--accent); font-weight:800;" id="sum_${idx}">
+              ${totalPenalty > 0 ? `-${totalPenalty} pts` : ''}
+            </span>
+          </div>
+          <div class="metrics-grid">${metricsHtml}</div>
+          <div style="display:flex; gap:8px;">
+            <button class="btn-main btn-danger" style="flex:1;" onclick="resolverCheckin(${idx}, 'rechazado')">Rechazar</button>
+            <button class="btn-main" style="flex:2;" onclick="resolverCheckin(${idx}, 'aprobado')">Aprobar Check-in</button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function ajustarMetrica(idx, key, delta) {
+      const rec = pendingRecords[idx];
+      let val = rec.current[key] + delta;
+      if (val < 1) val = 1;
+      if (val > 10) val = 10;
+      rec.current[key] = val;
+
+      const valEl = document.getElementById(`val_${idx}_${key}`);
+      const tagEl = document.getElementById(`tag_${idx}_${key}`);
+      const isPenalized = val < rec.original[key];
+
+      if (valEl) valEl.textContent = val;
+      if (tagEl) tagEl.style.display = isPenalized ? 'inline' : 'none';
+
+      let totalPenalty = 0;
+      METRIC_KEYS.forEach(m => {
+        if (rec.current[m.key] < rec.original[m.key]) totalPenalty += 1;
+      });
+      const sumEl = document.getElementById(`sum_${idx}`);
+      if (sumEl) sumEl.textContent = totalPenalty > 0 ? `-${totalPenalty} pts` : '';
+    }
+
+    async function resolverCheckin(idx, status) {
+      const rec = pendingRecords[idx];
+      let penalty = 0;
+      const updates = {
+        status: status,
+        coach_id: 'coach'
+      };
+
+      if (status === 'aprobado') {
+        METRIC_KEYS.forEach(m => {
+          const orig = rec.original[m.key];
+          let curr = rec.current[m.key];
+          if (curr < orig) {
+            penalty += 1;
+            curr = Math.max(0, curr - 1);
+          }
+          updates[m.key] = curr;
+        });
+        updates.coach_point_mod = penalty;
+        updates.coach_tech_score = updates.student_tech_score ?? 7;
+      }
+
+      if (supabase) {
+        await supabase.from('apex_checkins').update(updates).eq('id', rec.id);
+      }
+
+      alert(status === 'aprobado' 
+        ? `Check-in aprobado.${penalty > 0 ? ' Penalización aplicada: -' + penalty + ' pts.' : ''}` 
+        : 'Check-in desestimado.');
+
+      const el = document.getElementById(`rec_${rec.id}`);
+      if (el) el.remove();
+
+      pendingRecords.splice(idx, 1);
+      if (pendingRecords.length === 0) {
+        document.getElementById('checkinsList').innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); text-align:center; padding:16px;">No hay check-ins pendientes por validar.</div>';
+      }
+    }
+
+    // --- GESTIÓN DE MEMBRESÍAS ---
     async function cargarDirectorioUsuarios() {
       if (!supabase) return;
       try {
-        const { data, error } = await supabase
+        const { data } = await supabase
           .from('apex_users')
           .select('id, email, name, subscription_status, membership_start, membership_end');
-        if (!error && data) registeredUsersCache = data;
+        if (data) registeredUsersCache = data;
       } catch (e) {
-        console.warn("Fallo cargando directorio:", e);
+        console.warn("Directorio en espera.");
       }
     }
 
@@ -355,6 +509,7 @@
       const baseDate = dateVal ? new Date(dateVal + 'T00:00:00') : new Date();
       baseDate.setHours(0,0,0,0);
 
+      // Fecha a fecha menos uno
       const expDate = new Date(baseDate);
       expDate.setDate(expDate.getDate() + (planDays - 1));
 
@@ -408,184 +563,6 @@
       } catch (err) {
         alert("Error procesando membresía: " + err.message);
         validarEvidencia();
-      }
-    }
-
-    // --- SUBMÓDULO CHECK-INS CON PROTECCIÓN DE CONEXIÓN ---
-    async function cargarCheckins() {
-      const container = document.getElementById('checkinsList');
-
-      if (!supabase) {
-        container.innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); text-align:center; padding:16px;">Esperando autenticación de Supabase...</div>';
-        return;
-      }
-
-      try {
-        // Intentar consulta directa con timeout
-        const queryPromise = supabase
-          .from('apex_checkins')
-          .select('*')
-          .ilike('status', '%pendiente%')
-          .order('created_at', { ascending: false });
-
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error("Timeout")), 6000)
-        );
-
-        const { data, error } = await Promise.race([queryPromise, timeoutPromise]);
-
-        if (error) {
-          console.error("Error al consultar apex_checkins:", error);
-          container.innerHTML = `<div style="font-size:0.75rem; color:var(--accent); text-align:center; padding:16px;">Error de acceso: ${error.message}</div>`;
-          return;
-        }
-
-        if (!data || data.length === 0) {
-          container.innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); text-align:center; padding:16px;">No hay check-ins pendientes por validar.</div>';
-          return;
-        }
-
-        pendingRecords = data.map(item => ({
-          ...item,
-          original: {
-            rendimiento: item.rendimiento ?? 7,
-            rpe: item.rpe ?? 7,
-            soltura: item.soltura ?? 6,
-            fluidez: item.fluidez ?? 5,
-            diversion: item.diversion ?? 8,
-            recuperacion: item.recuperacion ?? 7
-          },
-          current: {
-            rendimiento: item.rendimiento ?? 7,
-            rpe: item.rpe ?? 7,
-            soltura: item.soltura ?? 6,
-            fluidez: item.fluidez ?? 5,
-            diversion: item.diversion ?? 8,
-            recuperacion: item.recuperacion ?? 7
-          }
-        }));
-
-        renderCheckins();
-      } catch (err) {
-        console.warn("Excepción en checkins:", err);
-        container.innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); text-align:center; padding:16px;">No se pudo conectar a la base de datos (Verifica RLS o conexión).</div>';
-      }
-    }
-
-    function renderCheckins() {
-      const container = document.getElementById('checkinsList');
-      container.innerHTML = '';
-
-      pendingRecords.forEach((rec, idx) => {
-        let totalPenalty = 0;
-        METRIC_KEYS.forEach(m => {
-          if (rec.current[m.key] < rec.original[m.key]) totalPenalty += 1;
-        });
-
-        const card = document.createElement('div');
-        card.className = 'checkin-card';
-        card.id = `rec_${rec.id}`;
-
-        let metricsHtml = '';
-        METRIC_KEYS.forEach(m => {
-          const orig = rec.original[m.key];
-          const curr = rec.current[m.key];
-          const isPenalized = curr < orig;
-
-          metricsHtml += `
-            <div class="metric-row">
-              <div class="metric-label">${m.label} <span style="color:#555;">(Orig: ${orig})</span></div>
-              <div class="metric-control">
-                <button class="metric-btn" onclick="ajustarMetrica(${idx}, '${m.key}', -1)">-</button>
-                <div style="display:flex; align-items:center;">
-                  <span class="metric-val" id="val_${idx}_${m.key}">${curr}</span>
-                  <span class="metric-penalty-tag" id="tag_${idx}_${m.key}" style="display: ${isPenalized ? 'inline' : 'none'};">-1p</span>
-                </div>
-                <button class="metric-btn" onclick="ajustarMetrica(${idx}, '${m.key}', 1)">+</button>
-              </div>
-            </div>
-          `;
-        });
-
-        const emailMostrado = rec.student_email || rec.user_email || 'correo@estudiante.com';
-        const nombreMostrado = rec.student_name || emailMostrado;
-
-        card.innerHTML = `
-          <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-            <div>
-              <strong style="font-size:0.85rem; color:#fff;">${nombreMostrado}</strong>
-              <div style="font-size:0.68rem; color:var(--text-muted);">${emailMostrado}</div>
-            </div>
-            <span style="font-size:0.65rem; color:var(--accent); font-weight:800;" id="sum_${idx}">
-              ${totalPenalty > 0 ? `-${totalPenalty} pts` : ''}
-            </span>
-          </div>
-          <div class="metrics-grid">${metricsHtml}</div>
-          <div style="display:flex; gap:8px;">
-            <button class="btn-main btn-danger" style="flex:1;" onclick="resolverCheckin(${idx}, 'rechazado')">Rechazar</button>
-            <button class="btn-main" style="flex:2;" onclick="resolverCheckin(${idx}, 'aprobado')">Aprobar Check-in</button>
-          </div>
-        `;
-        container.appendChild(card);
-      });
-    }
-
-    function ajustarMetrica(idx, key, delta) {
-      const rec = pendingRecords[idx];
-      let val = rec.current[key] + delta;
-      if (val < 1) val = 1;
-      if (val > 10) val = 10;
-      rec.current[key] = val;
-
-      const valEl = document.getElementById(`val_${idx}_${key}`);
-      const tagEl = document.getElementById(`tag_${idx}_${key}`);
-      const isPenalized = val < rec.original[key];
-
-      if (valEl) valEl.textContent = val;
-      if (tagEl) tagEl.style.display = isPenalized ? 'inline' : 'none';
-
-      let totalPenalty = 0;
-      METRIC_KEYS.forEach(m => {
-        if (rec.current[m.key] < rec.original[m.key]) totalPenalty += 1;
-      });
-      const sumEl = document.getElementById(`sum_${idx}`);
-      if (sumEl) sumEl.textContent = totalPenalty > 0 ? `-${totalPenalty} pts` : '';
-    }
-
-    async function resolverCheckin(idx, status) {
-      const rec = pendingRecords[idx];
-      let penalty = 0;
-      const finalVals = {};
-
-      METRIC_KEYS.forEach(m => {
-        const orig = rec.original[m.key];
-        let curr = rec.current[m.key];
-        if (curr < orig) {
-          penalty += 1;
-          curr = Math.max(0, curr - 1);
-        }
-        finalVals[m.key] = curr;
-      });
-
-      if (supabase) {
-        await supabase.from('apex_checkins').update({
-          status: status,
-          coach_validated_at: new Date().toISOString(),
-          penalty_points: penalty,
-          ...finalVals
-        }).eq('id', rec.id);
-      }
-
-      alert(status === 'aprobado' 
-        ? `Check-in aprobado y calibrado.${penalty > 0 ? ' Penalización aplicada: -' + penalty + ' pts.' : ''}` 
-        : 'Check-in desestimado.');
-
-      const el = document.getElementById(`rec_${rec.id}`);
-      if (el) el.remove();
-
-      pendingRecords.splice(idx, 1);
-      if (pendingRecords.length === 0) {
-        document.getElementById('checkinsList').innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); text-align:center; padding:16px;">No hay check-ins pendientes por validar.</div>';
       }
     }
 
