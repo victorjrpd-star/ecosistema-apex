@@ -23,20 +23,22 @@
 
     /* NAVEGACIÓN SUPERIOR */
     .coach-nav-bar {
-      display: flex; height: 48px; background: var(--card-bg); border-bottom: 1px solid var(--border);
+      display: flex; height: 50px; background: var(--card-bg); border-bottom: 1px solid var(--border);
       align-items: center; padding: 0 12px; gap: 8px; flex-shrink: 0; z-index: 100;
     }
     .nav-tab-btn {
       background: #121214; border: 1px solid var(--border); color: var(--text-muted);
-      padding: 7px 14px; border-radius: 4px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase;
-      letter-spacing: 0.6px; cursor: pointer; transition: 0.2s;
+      padding: 8px 14px; border-radius: 4px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.6px; cursor: pointer; transition: 0.2s; user-select: none;
     }
     .nav-tab-btn.active { background: #fff; color: #000; border-color: #fff; }
 
-    /* CONTENEDOR PRINCIPAL */
+    /* VIEWPORT Y PANELES */
     .coach-viewport { flex: 1; width: 100%; position: relative; overflow-y: auto; padding: 16px; max-width: 600px; margin: 0 auto; }
+    
+    /* El switch de visibilidad ahora se rige por display directo */
     .panel-view { display: none; }
-    .panel-view.active { display: block; }
+    .panel-view.is-visible { display: block; }
 
     .header { border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
     .title { font-size: 1rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px; }
@@ -47,7 +49,7 @@
     .card-title { font-size: 0.74rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #fff; margin-bottom: 4px; }
     .card-desc { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 12px; }
 
-    /* BUSCADOR PREDICTIVO */
+    /* FORMULARIO & INPUTS */
     .form-group { margin-bottom: 12px; position: relative; }
     .form-label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; display: block; }
     .input-apex {
@@ -56,6 +58,7 @@
     }
     .input-apex:focus { border-color: var(--border-focus); }
 
+    /* SUGERENCIAS PREDICTIVAS */
     .suggestions-box {
       position: absolute; top: calc(100% + 2px); left: 0; right: 0; background: #141418;
       border: 1px solid var(--border-focus); border-radius: 5px; max-height: 180px; overflow-y: auto;
@@ -67,13 +70,14 @@
     .suggestion-item strong { color: #fff; display: block; font-size: 0.8rem; }
     .suggestion-item span { color: var(--text-muted); font-size: 0.7rem; }
 
+    /* FICHA DEL STRIKER */
     .striker-summary-card { background: var(--card-sub); border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-top: 10px; display: none; }
     .striker-summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
     .info-box { background: #0a0a0c; border: 1px solid var(--border); padding: 8px 10px; border-radius: 4px; }
     .info-box-label { font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; }
     .info-box-val { font-size: 0.85rem; font-weight: 800; color: #fff; margin-top: 2px; }
 
-    /* TARJETAS DE CHECK-INS */
+    /* TARJETAS CHECK-INS */
     .checkin-card { background: var(--card-sub); border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-bottom: 12px; }
     .metrics-grid {
       display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #0a0a0c;
@@ -100,16 +104,16 @@
 </head>
 <body>
 
-  <!-- PESTAÑAS -->
+  <!-- PESTAÑAS: Eventos onclick directos y robustos -->
   <nav class="coach-nav-bar">
-    <button class="nav-tab-btn active" id="tab_checkins" onclick="cambiarModulo('modulo_checkins', this)">Validación Check-ins</button>
-    <button class="nav-tab-btn" id="tab_membresias" onclick="cambiarModulo('modulo_membresias', this)">Gestión Membresías</button>
+    <button class="nav-tab-btn active" id="btn_nav_checkins" onclick="ApexNav.irA('modulo_checkins')">Validación Check-ins</button>
+    <button class="nav-tab-btn" id="btn_nav_membresias" onclick="ApexNav.irA('modulo_membresias')">Gestión Membresías</button>
   </nav>
 
   <div class="coach-viewport">
     
-    <!-- MÓDULO 1: CHECK-INS -->
-    <div class="panel-view active" id="modulo_checkins">
+    <!-- SUBMÓDULO 1: VALIDACIÓN CHECK-INS -->
+    <div class="panel-view is-visible" id="modulo_checkins">
       <div class="header">
         <div class="title">Apex <span>Check-ins</span></div>
         <div class="badge-coach">Antifraude</div>
@@ -124,7 +128,7 @@
       </div>
     </div>
 
-    <!-- MÓDULO 2: MEMBRESÍAS -->
+    <!-- SUBMÓDULO 2: GESTIÓN DE MEMBRESÍAS -->
     <div class="panel-view" id="modulo_membresias">
       <div class="header">
         <div class="title">Apex <span>Membresías</span></div>
@@ -135,12 +139,14 @@
         <div class="card-title">Habilitación y Control</div>
         <div class="card-desc">Buscador predictivo de Strikers. Evidencia visual obligatoria.</div>
 
+        <!-- Buscador Predictivo -->
         <div class="form-group">
           <label class="form-label">Striker (Correo o Nombre)</label>
-          <input type="text" id="studentEmailSearch" placeholder="Escribe para buscar..." class="input-apex" autocomplete="off" oninput="buscarSugerencias(this.value)">
+          <input type="text" id="studentEmailSearch" placeholder="Escribe para buscar..." class="input-apex" autocomplete="off" oninput="ApexMembresias.buscar(this.value)">
           <div class="suggestions-box" id="suggestionsBox"></div>
         </div>
 
+        <!-- Ficha de Confirmación -->
         <div class="striker-summary-card" id="strikerCard">
           <div style="display: flex; justify-content: space-between; align-items: baseline;">
             <strong id="strikerName" style="color: #fff; font-size: 0.85rem;">-</strong>
@@ -158,6 +164,7 @@
           </div>
         </div>
 
+        <!-- Fechas y Plan -->
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px;">
           <div class="form-group">
             <label class="form-label">Fecha de Pago (Opcional)</label>
@@ -174,12 +181,13 @@
           </div>
         </div>
 
+        <!-- Evidencia Obligatoria -->
         <div class="form-group">
           <label class="form-label">Evidencia Obligatoria (Cámara o Galería)</label>
-          <input type="file" id="evidenceFileInput" accept="image/*" class="input-apex" onchange="validarEvidencia()" style="font-size: 0.72rem;">
+          <input type="file" id="evidenceFileInput" accept="image/*" class="input-apex" onchange="ApexMembresias.validarEvidencia()" style="font-size: 0.72rem;">
         </div>
 
-        <button class="btn-main" id="btnSubmitMembership" disabled onclick="procesarHabilitacion()">
+        <button class="btn-main" id="btnSubmitMembership" disabled onclick="ApexMembresias.procesar()">
           Adjunta Evidencia Para Habilitar
         </button>
       </div>
@@ -188,32 +196,77 @@
   </div>
 
   <script>
-    function getSupabaseConfig() {
+    /* ==========================================================================
+       1. NAVEGADOR BLINDADO (No depende de Supabase ni de scripts externos)
+       ========================================================================== */
+    const ApexNav = {
+      irA: function(panelId) {
+        // Ocultar todos los paneles
+        document.querySelectorAll('.panel-view').forEach(p => {
+          p.classList.remove('is-visible');
+        });
+        
+        // Quitar estado activo de pestañas
+        document.querySelectorAll('.nav-tab-btn').forEach(b => {
+          b.classList.remove('active');
+        });
+
+        // Mostrar panel seleccionado
+        const target = document.getElementById(panelId);
+        if (target) target.classList.add('is-visible');
+
+        // Marcar pestaña activa
+        if (panelId === 'modulo_checkins') {
+          document.getElementById('btn_nav_checkins')?.classList.add('active');
+        } else {
+          document.getElementById('btn_nav_membresias')?.classList.add('active');
+        }
+      }
+    };
+
+    /* ==========================================================================
+       2. CONEXIÓN SUPABASE SEGURA (Maneja iframe, local y producción sin caerse)
+       ========================================================================== */
+    let supabaseClient = null;
+
+    function initSupabase() {
+      let url = null;
+      let key = null;
+
+      // Intento 1: LocalStorage directo
       try {
-        let url = localStorage.getItem('supabase_url') || (window.parent && window.parent.localStorage.getItem('supabase_url'));
-        let key = localStorage.getItem('supabase_anon_key') || (window.parent && window.parent.localStorage.getItem('supabase_anon_key'));
-        return { url, key };
-      } catch (e) {
-        return { url: null, key: null };
+        url = localStorage.getItem('supabase_url');
+        key = localStorage.getItem('supabase_anon_key');
+      } catch (e) {}
+
+      // Intento 2: Window Parent si está embebido
+      if (!url || !key) {
+        try {
+          if (window.parent && window.parent.localStorage) {
+            url = window.parent.localStorage.getItem('supabase_url');
+            key = window.parent.localStorage.getItem('supabase_anon_key');
+          }
+        } catch (e) {}
+      }
+
+      // Intento 3: Variables globales si existen en la ventana raíz
+      if (!url && window.parent && window.parent.SUPABASE_URL) {
+        url = window.parent.SUPABASE_URL;
+        key = window.parent.SUPABASE_ANON_KEY;
+      }
+
+      if (window.supabase && url && key) {
+        try {
+          supabaseClient = window.supabase.createClient(url, key);
+        } catch (err) {
+          console.error("Fallo al crear cliente Supabase:", err);
+        }
       }
     }
 
-    const { url: SUPABASE_URL, key: SUPABASE_KEY } = getSupabaseConfig();
-    let supabase = null;
-
-    if (window.supabase && SUPABASE_URL && SUPABASE_URL.startsWith('http') && SUPABASE_KEY) {
-      try {
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-      } catch (err) {
-        console.warn("Error iniciando Supabase:", err);
-      }
-    }
-
-    let selectedStriker = null;
-    let registeredUsersCache = [];
-    let pendingRecords = [];
-
-    // Mapeo exacto de las columnas reales en apex_checkins
+    /* ==========================================================================
+       3. GESTIÓN DE CHECK-INS & CALIBRACIÓN
+       ========================================================================== */
     const METRIC_KEYS = [
       { key: 'rendimiento', label: 'Rendimiento' },
       { key: 'rpe', label: 'RPE / Esfuerzo' },
@@ -223,353 +276,334 @@
       { key: 'divertiste', label: 'Disfrute / Flow' }
     ];
 
-    function cambiarModulo(moduloId, btn) {
-      document.querySelectorAll('.coach-nav-bar .nav-tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.panel-view').forEach(p => p.classList.remove('active'));
-      
-      if (btn) btn.classList.add('active');
-      const target = document.getElementById(moduloId);
-      if (target) target.classList.add('active');
-    }
+    let pendingRecords = [];
 
-    // --- CHECK-INS (LECTURA Y CALIBRACIÓN) ---
-    async function cargarCheckins() {
-      const container = document.getElementById('checkinsList');
-
-      if (!supabase) {
-        container.innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); text-align:center; padding:16px;">Conexión a Supabase no configurada.</div>';
-        return;
-      }
-
-      try {
-        const { data, error } = await supabase
-          .from('apex_checkins')
-          .select('*')
-          .ilike('status', '%pendiente%')
-          .order('created_at', { ascending: false });
-
-        if (error) {
-          container.innerHTML = `<div style="font-size:0.75rem; color:var(--accent); text-align:center; padding:16px;">Error de acceso: ${error.message}</div>`;
+    const ApexCheckins = {
+      cargar: async function() {
+        const container = document.getElementById('checkinsList');
+        if (!supabaseClient) {
+          container.innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); text-align:center; padding:16px;">Conexión a base de datos en espera de credenciales.</div>';
           return;
         }
 
-        if (!data || data.length === 0) {
-          container.innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); text-align:center; padding:16px;">No hay check-ins pendientes por validar.</div>';
-          return;
-        }
+        try {
+          const { data, error } = await supabaseClient
+            .from('apex_checkins')
+            .select('*')
+            .ilike('status', '%pendiente%')
+            .order('created_at', { ascending: false });
 
-        pendingRecords = data.map(item => {
-          const orig = {};
-          const curr = {};
-          METRIC_KEYS.forEach(m => {
-            const rawVal = parseFloat(item[m.key]);
-            const val = isNaN(rawVal) ? 7 : Math.round(rawVal);
-            orig[m.key] = val;
-            curr[m.key] = val;
+          if (error) {
+            container.innerHTML = `<div style="font-size:0.75rem; color:var(--accent); text-align:center; padding:16px;">Error de acceso: ${error.message}</div>`;
+            return;
+          }
+
+          if (!data || data.length === 0) {
+            container.innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); text-align:center; padding:16px;">No hay check-ins pendientes por validar.</div>';
+            return;
+          }
+
+          pendingRecords = data.map(item => {
+            const orig = {};
+            const curr = {};
+            METRIC_KEYS.forEach(m => {
+              const val = parseFloat(item[m.key]);
+              const num = isNaN(val) ? 7 : Math.round(val);
+              orig[m.key] = num;
+              curr[m.key] = num;
+            });
+            return { ...item, original: orig, current: curr };
           });
-          return {
-            ...item,
-            original: orig,
-            current: curr
-          };
+
+          this.render();
+        } catch (err) {
+          container.innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); text-align:center; padding:16px;">Error conectando a la base de datos.</div>';
+        }
+      },
+
+      render: function() {
+        const container = document.getElementById('checkinsList');
+        container.innerHTML = '';
+
+        pendingRecords.forEach((rec, idx) => {
+          let totalPenalty = 0;
+          METRIC_KEYS.forEach(m => {
+            if (rec.current[m.key] < rec.original[m.key]) totalPenalty += 1;
+          });
+
+          const card = document.createElement('div');
+          card.className = 'checkin-card';
+          card.id = `rec_${rec.id}`;
+
+          let metricsHtml = '';
+          METRIC_KEYS.forEach(m => {
+            const orig = rec.original[m.key];
+            const curr = rec.current[m.key];
+            const isPenalized = curr < orig;
+
+            metricsHtml += `
+              <div class="metric-row">
+                <div class="metric-label">${m.label} <span style="color:#555;">(Orig: ${orig})</span></div>
+                <div class="metric-control">
+                  <button class="metric-btn" onclick="ApexCheckins.ajustar(${idx}, '${m.key}', -1)">-</button>
+                  <div style="display:flex; align-items:center;">
+                    <span class="metric-val" id="val_${idx}_${m.key}">${curr}</span>
+                    <span class="metric-penalty-tag" id="tag_${idx}_${m.key}" style="display: ${isPenalized ? 'inline' : 'none'};">-1p</span>
+                  </div>
+                  <button class="metric-btn" onclick="ApexCheckins.ajustar(${idx}, '${m.key}', 1)">+</button>
+                </div>
+              </div>
+            `;
+          });
+
+          const emailMostrado = rec.user_email || 'correo@estudiante.com';
+          const focusTag = rec.focus ? `<div style="font-size:0.65rem; color:var(--accent); text-transform:uppercase; font-weight:800; margin-top:2px;">Enfoque: ${rec.focus}</div>` : '';
+
+          card.innerHTML = `
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+              <div>
+                <strong style="font-size:0.85rem; color:#fff;">${emailMostrado}</strong>
+                ${focusTag}
+              </div>
+              <span style="font-size:0.65rem; color:var(--accent); font-weight:800;" id="sum_${idx}">
+                ${totalPenalty > 0 ? `-${totalPenalty} pts` : ''}
+              </span>
+            </div>
+            <div class="metrics-grid">${metricsHtml}</div>
+            <div style="display:flex; gap:8px;">
+              <button class="btn-main btn-danger" style="flex:1;" onclick="ApexCheckins.resolver(${idx}, 'rechazado')">Rechazar</button>
+              <button class="btn-main" style="flex:2;" onclick="ApexCheckins.resolver(${idx}, 'aprobado')">Aprobar Check-in</button>
+            </div>
+          `;
+          container.appendChild(card);
         });
+      },
 
-        renderCheckins();
-      } catch (err) {
-        container.innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); text-align:center; padding:16px;">Error conectando a la base de datos.</div>';
-      }
-    }
+      ajustar: function(idx, key, delta) {
+        const rec = pendingRecords[idx];
+        let val = rec.current[key] + delta;
+        if (val < 1) val = 1;
+        if (val > 10) val = 10;
+        rec.current[key] = val;
 
-    function renderCheckins() {
-      const container = document.getElementById('checkinsList');
-      container.innerHTML = '';
+        const valEl = document.getElementById(`val_${idx}_${key}`);
+        const tagEl = document.getElementById(`tag_${idx}_${key}`);
+        if (valEl) valEl.textContent = val;
+        if (tagEl) tagEl.style.display = (val < rec.original[key]) ? 'inline' : 'none';
 
-      pendingRecords.forEach((rec, idx) => {
         let totalPenalty = 0;
         METRIC_KEYS.forEach(m => {
           if (rec.current[m.key] < rec.original[m.key]) totalPenalty += 1;
         });
+        const sumEl = document.getElementById(`sum_${idx}`);
+        if (sumEl) sumEl.textContent = totalPenalty > 0 ? `-${totalPenalty} pts` : '';
+      },
 
-        const card = document.createElement('div');
-        card.className = 'checkin-card';
-        card.id = `rec_${rec.id}`;
+      resolver: async function(idx, status) {
+        const rec = pendingRecords[idx];
+        let penalty = 0;
+        const updates = { status: status, coach_id: 'coach' };
 
-        let metricsHtml = '';
-        METRIC_KEYS.forEach(m => {
-          const orig = rec.original[m.key];
-          const curr = rec.current[m.key];
-          const isPenalized = curr < orig;
-
-          metricsHtml += `
-            <div class="metric-row">
-              <div class="metric-label">${m.label} <span style="color:#555;">(Orig: ${orig})</span></div>
-              <div class="metric-control">
-                <button class="metric-btn" onclick="ajustarMetrica(${idx}, '${m.key}', -1)">-</button>
-                <div style="display:flex; align-items:center;">
-                  <span class="metric-val" id="val_${idx}_${m.key}">${curr}</span>
-                  <span class="metric-penalty-tag" id="tag_${idx}_${m.key}" style="display: ${isPenalized ? 'inline' : 'none'};">-1p</span>
-                </div>
-                <button class="metric-btn" onclick="ajustarMetrica(${idx}, '${m.key}', 1)">+</button>
-              </div>
-            </div>
-          `;
-        });
-
-        const emailMostrado = rec.user_email || 'correo@estudiante.com';
-        const focusTag = rec.focus ? `<div style="font-size:0.65rem; color:var(--accent); text-transform:uppercase; font-weight:800; margin-top:2px;">Enfoque: ${rec.focus}</div>` : '';
-
-        card.innerHTML = `
-          <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-            <div>
-              <strong style="font-size:0.85rem; color:#fff;">${emailMostrado}</strong>
-              ${focusTag}
-            </div>
-            <span style="font-size:0.65rem; color:var(--accent); font-weight:800;" id="sum_${idx}">
-              ${totalPenalty > 0 ? `-${totalPenalty} pts` : ''}
-            </span>
-          </div>
-          <div class="metrics-grid">${metricsHtml}</div>
-          <div style="display:flex; gap:8px;">
-            <button class="btn-main btn-danger" style="flex:1;" onclick="resolverCheckin(${idx}, 'rechazado')">Rechazar</button>
-            <button class="btn-main" style="flex:2;" onclick="resolverCheckin(${idx}, 'aprobado')">Aprobar Check-in</button>
-          </div>
-        `;
-        container.appendChild(card);
-      });
-    }
-
-    function ajustarMetrica(idx, key, delta) {
-      const rec = pendingRecords[idx];
-      let val = rec.current[key] + delta;
-      if (val < 1) val = 1;
-      if (val > 10) val = 10;
-      rec.current[key] = val;
-
-      const valEl = document.getElementById(`val_${idx}_${key}`);
-      const tagEl = document.getElementById(`tag_${idx}_${key}`);
-      const isPenalized = val < rec.original[key];
-
-      if (valEl) valEl.textContent = val;
-      if (tagEl) tagEl.style.display = isPenalized ? 'inline' : 'none';
-
-      let totalPenalty = 0;
-      METRIC_KEYS.forEach(m => {
-        if (rec.current[m.key] < rec.original[m.key]) totalPenalty += 1;
-      });
-      const sumEl = document.getElementById(`sum_${idx}`);
-      if (sumEl) sumEl.textContent = totalPenalty > 0 ? `-${totalPenalty} pts` : '';
-    }
-
-    async function resolverCheckin(idx, status) {
-      const rec = pendingRecords[idx];
-      let penalty = 0;
-      const updates = {
-        status: status,
-        coach_id: 'coach'
-      };
-
-      if (status === 'aprobado') {
-        METRIC_KEYS.forEach(m => {
-          const orig = rec.original[m.key];
-          let curr = rec.current[m.key];
-          if (curr < orig) {
-            penalty += 1;
-            curr = Math.max(0, curr - 1);
-          }
-          updates[m.key] = curr;
-        });
-        updates.coach_point_mod = penalty;
-        updates.coach_tech_score = updates.student_tech_score ?? 7;
-      }
-
-      if (supabase) {
-        await supabase.from('apex_checkins').update(updates).eq('id', rec.id);
-      }
-
-      alert(status === 'aprobado' 
-        ? `Check-in aprobado.${penalty > 0 ? ' Penalización aplicada: -' + penalty + ' pts.' : ''}` 
-        : 'Check-in desestimado.');
-
-      const el = document.getElementById(`rec_${rec.id}`);
-      if (el) el.remove();
-
-      pendingRecords.splice(idx, 1);
-      if (pendingRecords.length === 0) {
-        document.getElementById('checkinsList').innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); text-align:center; padding:16px;">No hay check-ins pendientes por validar.</div>';
-      }
-    }
-
-    // --- GESTIÓN DE MEMBRESÍAS ---
-    async function cargarDirectorioUsuarios() {
-      if (!supabase) return;
-      try {
-        const { data } = await supabase
-          .from('apex_users')
-          .select('id, email, name, subscription_status, membership_start, membership_end');
-        if (data) registeredUsersCache = data;
-      } catch (e) {
-        console.warn("Directorio en espera.");
-      }
-    }
-
-    function buscarSugerencias(query) {
-      const q = query.trim().toLowerCase();
-      const box = document.getElementById('suggestionsBox');
-      box.innerHTML = '';
-
-      if (q.length < 1) {
-        box.style.display = 'none';
-        return;
-      }
-
-      const matches = registeredUsersCache.filter(u => 
-        (u.email && u.email.toLowerCase().includes(q)) || 
-        (u.name && u.name.toLowerCase().includes(q))
-      );
-
-      if (matches.length === 0) {
-        box.innerHTML = '<div style="padding:10px; font-size:0.75rem; color:#777;">Sin coincidencias</div>';
-        box.style.display = 'block';
-        return;
-      }
-
-      matches.forEach(user => {
-        const item = document.createElement('div');
-        item.className = 'suggestion-item';
-        item.innerHTML = `<strong>${user.name || 'Sin nombre'}</strong><span>${user.email}</span>`;
-        item.onclick = () => seleccionarStriker(user);
-        box.appendChild(item);
-      });
-      box.style.display = 'block';
-    }
-
-    function seleccionarStriker(user) {
-      selectedStriker = user;
-      document.getElementById('studentEmailSearch').value = user.email;
-      document.getElementById('suggestionsBox').style.display = 'none';
-
-      const hoy = new Date();
-      hoy.setHours(0,0,0,0);
-      let diasRestantes = 0;
-
-      if (user.membership_end) {
-        const fechaFin = new Date(user.membership_end + 'T00:00:00');
-        const diffMs = fechaFin - hoy;
-        diasRestantes = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-      }
-
-      const card = document.getElementById('strikerCard');
-      const nameEl = document.getElementById('strikerName');
-      const statusBadge = document.getElementById('strikerStatusBadge');
-      const daysVal = document.getElementById('strikerDaysVal');
-      const endVal = document.getElementById('strikerEndVal');
-
-      nameEl.textContent = `${user.name || 'Striker'} (${user.email})`;
-      endVal.textContent = user.membership_end || 'Sin registro';
-
-      if (diasRestantes > 0) {
-        daysVal.textContent = `${diasRestantes} días`;
-        daysVal.style.color = 'var(--status-ok)';
-        statusBadge.textContent = 'AL DÍA';
-        statusBadge.style.background = 'rgba(34, 197, 94, 0.2)';
-        statusBadge.style.color = 'var(--status-ok)';
-      } else {
-        daysVal.textContent = 'Vencido';
-        daysVal.style.color = 'var(--accent)';
-        statusBadge.textContent = 'INACTIVO';
-        statusBadge.style.background = 'var(--accent-dim)';
-        statusBadge.style.color = 'var(--accent)';
-      }
-
-      card.style.display = 'block';
-      validarEvidencia();
-    }
-
-    function validarEvidencia() {
-      const fileInput = document.getElementById('evidenceFileInput');
-      const btn = document.getElementById('btnSubmitMembership');
-      const hasFile = fileInput.files && fileInput.files.length > 0;
-
-      if (selectedStriker && hasFile) {
-        btn.disabled = false;
-        btn.textContent = "Validar y Habilitar Membresía";
-      } else {
-        btn.disabled = true;
-        btn.textContent = !selectedStriker ? "Selecciona un Striker" : "Adjunta Evidencia Para Habilitar";
-      }
-    }
-
-    async function procesarHabilitacion() {
-      if (!selectedStriker) return;
-      const fileInput = document.getElementById('evidenceFileInput');
-      const file = fileInput.files[0];
-      const planDays = parseInt(document.getElementById('membershipPlan').value, 10);
-      const dateVal = document.getElementById('paymentDateInput').value;
-
-      const baseDate = dateVal ? new Date(dateVal + 'T00:00:00') : new Date();
-      baseDate.setHours(0,0,0,0);
-
-      // Fecha a fecha menos uno
-      const expDate = new Date(baseDate);
-      expDate.setDate(expDate.getDate() + (planDays - 1));
-
-      const startDateStr = baseDate.toISOString().split('T')[0];
-      const expDateStr = expDate.toISOString().split('T')[0];
-
-      const btn = document.getElementById('btnSubmitMembership');
-      btn.disabled = true;
-      btn.textContent = "Subiendo auditoría...";
-
-      try {
-        let receiptUrl = null;
-
-        if (supabase && file) {
-          const fileExt = file.name.split('.').pop();
-          const filePath = `comprobantes/${Date.now()}_${selectedStriker.email.replace(/[^a-zA-Z0-9]/g, '_')}.${fileExt}`;
-          const { error: uploadError } = await supabase.storage.from('comprobantes').upload(filePath, file);
-
-          if (!uploadError) {
-            const { data: urlData } = supabase.storage.from('comprobantes').getPublicUrl(filePath);
-            receiptUrl = urlData.publicUrl;
-          }
-
-          const { data: authUser } = await supabase.auth.getUser();
-          await supabase.from('apex_payments').insert({
-            student_email: selectedStriker.email,
-            payment_date: startDateStr,
-            expiration_date: expDateStr,
-            receipt_url: receiptUrl,
-            registered_by: authUser?.user?.email || 'coach'
+        if (status === 'aprobado') {
+          METRIC_KEYS.forEach(m => {
+            const orig = rec.original[m.key];
+            let curr = rec.current[m.key];
+            if (curr < orig) {
+              penalty += 1;
+              curr = Math.max(0, curr - 1);
+            }
+            updates[m.key] = curr;
           });
-
-          await supabase.from('apex_users').update({
-            subscription_status: 'activo',
-            is_active: true,
-            membership_start: startDateStr,
-            membership_end: expDateStr
-          }).eq('email', selectedStriker.email);
+          updates.coach_point_mod = penalty;
+          updates.coach_tech_score = updates.student_tech_score ?? 7;
         }
 
-        alert(`Membresía habilitada con éxito.\nStriker: ${selectedStriker.email}\nInicio: ${startDateStr}\nVence: ${expDateStr}`);
-        
-        document.getElementById('studentEmailSearch').value = '';
-        document.getElementById('paymentDateInput').value = '';
-        document.getElementById('strikerCard').style.display = 'none';
-        fileInput.value = '';
-        selectedStriker = null;
-        validarEvidencia();
-        cargarDirectorioUsuarios();
+        if (supabaseClient) {
+          await supabaseClient.from('apex_checkins').update(updates).eq('id', rec.id);
+        }
 
-      } catch (err) {
-        alert("Error procesando membresía: " + err.message);
-        validarEvidencia();
+        alert(status === 'aprobado' ? 'Check-in aprobado.' : 'Check-in rechazado.');
+        document.getElementById(`rec_${rec.id}`)?.remove();
+        pendingRecords.splice(idx, 1);
+        if (pendingRecords.length === 0) {
+          document.getElementById('checkinsList').innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); text-align:center; padding:16px;">No hay check-ins pendientes por validar.</div>';
+        }
       }
-    }
-
-    window.onload = () => {
-      cargarDirectorioUsuarios();
-      cargarCheckins();
     };
+
+    /* ==========================================================================
+       4. GESTIÓN DE MEMBRESÍAS
+       ========================================================================== */
+    let selectedStriker = null;
+    let registeredUsersCache = [];
+
+    const ApexMembresias = {
+      cargarDirectorio: async function() {
+        if (!supabaseClient) return;
+        try {
+          const { data } = await supabaseClient
+            .from('apex_users')
+            .select('id, email, name, subscription_status, membership_start, membership_end');
+          if (data) registeredUsersCache = data;
+        } catch (e) {}
+      },
+
+      buscar: function(query) {
+        const q = query.trim().toLowerCase();
+        const box = document.getElementById('suggestionsBox');
+        box.innerHTML = '';
+
+        if (q.length < 1) {
+          box.style.display = 'none';
+          return;
+        }
+
+        const matches = registeredUsersCache.filter(u => 
+          (u.email && u.email.toLowerCase().includes(q)) || 
+          (u.name && u.name.toLowerCase().includes(q))
+        );
+
+        if (matches.length === 0) {
+          box.innerHTML = '<div style="padding:10px; font-size:0.75rem; color:#777;">Sin coincidencias</div>';
+          box.style.display = 'block';
+          return;
+        }
+
+        matches.forEach(user => {
+          const item = document.createElement('div');
+          item.className = 'suggestion-item';
+          item.innerHTML = `<strong>${user.name || 'Sin nombre'}</strong><span>${user.email}</span>`;
+          item.onclick = () => this.seleccionar(user);
+          box.appendChild(item);
+        });
+        box.style.display = 'block';
+      },
+
+      seleccionar: function(user) {
+        selectedStriker = user;
+        document.getElementById('studentEmailSearch').value = user.email;
+        document.getElementById('suggestionsBox').style.display = 'none';
+
+        const hoy = new Date();
+        hoy.setHours(0,0,0,0);
+        let diasRestantes = 0;
+
+        if (user.membership_end) {
+          const fechaFin = new Date(user.membership_end + 'T00:00:00');
+          const diffMs = fechaFin - hoy;
+          diasRestantes = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+        }
+
+        const card = document.getElementById('strikerCard');
+        document.getElementById('strikerName').textContent = `${user.name || 'Striker'} (${user.email})`;
+        document.getElementById('strikerEndVal').textContent = user.membership_end || 'Sin registro';
+
+        const daysVal = document.getElementById('strikerDaysVal');
+        const statusBadge = document.getElementById('strikerStatusBadge');
+
+        if (diasRestantes > 0) {
+          daysVal.textContent = `${diasRestantes} días`;
+          daysVal.style.color = 'var(--status-ok)';
+          statusBadge.textContent = 'AL DÍA';
+          statusBadge.style.background = 'rgba(34, 197, 94, 0.2)';
+          statusBadge.style.color = 'var(--status-ok)';
+        } else {
+          daysVal.textContent = 'Vencido';
+          daysVal.style.color = 'var(--accent)';
+          statusBadge.textContent = 'INACTIVO';
+          statusBadge.style.background = 'var(--accent-dim)';
+          statusBadge.style.color = 'var(--accent)';
+        }
+
+        card.style.display = 'block';
+        this.validarEvidencia();
+      },
+
+      validarEvidencia: function() {
+        const fileInput = document.getElementById('evidenceFileInput');
+        const btn = document.getElementById('btnSubmitMembership');
+        const hasFile = fileInput.files && fileInput.files.length > 0;
+
+        if (selectedStriker && hasFile) {
+          btn.disabled = false;
+          btn.textContent = "Validar y Habilitar Membresía";
+        } else {
+          btn.disabled = true;
+          btn.textContent = !selectedStriker ? "Selecciona un Striker" : "Adjunta Evidencia Para Habilitar";
+        }
+      },
+
+      procesar: async function() {
+        if (!selectedStriker) return;
+        const fileInput = document.getElementById('evidenceFileInput');
+        const file = fileInput.files[0];
+        const planDays = parseInt(document.getElementById('membershipPlan').value, 10);
+        const dateVal = document.getElementById('paymentDateInput').value;
+
+        const baseDate = dateVal ? new Date(dateVal + 'T00:00:00') : new Date();
+        baseDate.setHours(0,0,0,0);
+
+        // Regla: Fecha a fecha menos uno
+        const expDate = new Date(baseDate);
+        expDate.setDate(expDate.getDate() + (planDays - 1));
+
+        const startDateStr = baseDate.toISOString().split('T')[0];
+        const expDateStr = expDate.toISOString().split('T')[0];
+
+        const btn = document.getElementById('btnSubmitMembership');
+        btn.disabled = true;
+        btn.textContent = "Subiendo...";
+
+        try {
+          let receiptUrl = null;
+          if (supabaseClient && file) {
+            const fileExt = file.name.split('.').pop();
+            const filePath = `comprobantes/${Date.now()}_${selectedStriker.email.replace(/[^a-zA-Z0-9]/g, '_')}.${fileExt}`;
+            const { error: uploadError } = await supabaseClient.storage.from('comprobantes').upload(filePath, file);
+
+            if (!uploadError) {
+              const { data: urlData } = supabaseClient.storage.from('comprobantes').getPublicUrl(filePath);
+              receiptUrl = urlData.publicUrl;
+            }
+
+            await supabaseClient.from('apex_payments').insert({
+              student_email: selectedStriker.email,
+              payment_date: startDateStr,
+              expiration_date: expDateStr,
+              receipt_url: receiptUrl,
+              registered_by: 'coach'
+            });
+
+            await supabaseClient.from('apex_users').update({
+              subscription_status: 'activo',
+              is_active: true,
+              membership_start: startDateStr,
+              membership_end: expDateStr
+            }).eq('email', selectedStriker.email);
+          }
+
+          alert(`Membresía activada:\n${selectedStriker.email}\nVence: ${expDateStr}`);
+          document.getElementById('studentEmailSearch').value = '';
+          document.getElementById('strikerCard').style.display = 'none';
+          fileInput.value = '';
+          selectedStriker = null;
+          this.validarEvidencia();
+          this.cargarDirectorio();
+        } catch (err) {
+          alert("Error: " + err.message);
+          this.validarEvidencia();
+        }
+      }
+    };
+
+    /* ==========================================================================
+       5. ARRANQUE
+       ========================================================================== */
+    window.addEventListener('DOMContentLoaded', () => {
+      initSupabase();
+      ApexCheckins.cargar();
+      ApexMembresias.cargarDirectorio();
+    });
   </script>
 </body>
 </html>
