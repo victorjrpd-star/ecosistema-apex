@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0c0c0c">
+  <title>Apex Master Admin Panel</title>
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --bg: #0c0c0c;
+      --card-bg: #141414;
+      --border: #222222;
+      --accent: #e50914;
+      --accent-hover: #b80710;
+      --text-main: #ffffff;
+      --text-muted: #888888;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text-main); padding: 16px; max-width: 680px; margin: 0 auto; min-height: 100vh; }
+
+    /* AUTH GATE */
+    #adminAuthGate {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: var(--bg); z-index: 9999; display: flex; justify-content: center; align-items: center; padding: 20px;
+    }
+    .auth-card {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px;
+      padding: 26px; width: 100%; max-width: 360px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    }
+
+    /* HEADER & TABS NAVEGABLES */
+    .header { border-bottom: 2px solid var(--border); padding-bottom: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .title { font-size: 1.15rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
+    .title span { color: var(--accent); }
+
+    .nav-tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 16px; overflow-x: auto; scrollbar-width: none; }
+    .nav-tabs::-webkit-scrollbar { display: none; }
+    .tab-btn {
+      background: #1a1a1a; border: 1px solid var(--border); color: var(--text-muted);
+      padding: 8px 14px; border-radius: 6px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase;
+      cursor: pointer; white-space: nowrap; transition: 0.2s;
+    }
+    .tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    /* CONTENEDORES DE MÓDULOS */
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .section-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+    .section-title { font-size: 0.82rem; font-weight: 900; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
+    .form-control { width: 100%; padding: 10px; background: #1c1c1c; border: 1px solid #333; color: #fff; border-radius: 6px; font-weight: 700; outline: none; font-size: 0.85rem; }
+    .form-control:focus { border-color: var(--accent); }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    .checkbox-list { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; max-height: 180px; overflow-y: auto; }
+    .checkbox-item { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
+    .checkbox-item input { accent-color: var(--accent); width: 16px; height: 16px; }
+
+    .btn { background: var(--accent); color: #fff; border: none; padding: 11px; width: 100%; font-weight: 900; text-transform: uppercase; border-radius: 6px; cursor: pointer; margin-top: 6px; font-size: 0.82rem; }
+    .btn:active { background: var(--accent-hover); }
+    .btn-secondary { background: #1c1c1c; border: 1px solid #333; color: #ccc; margin-top: 6px; padding: 8px; font-size: 0.75rem; }
+
+    .list-item { background: #1c1c1c; border: 1px solid #2a2a2a; padding: 10px; border-radius: 6px; margin-top: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; }
+    .badge { font-size: 0.65rem; font-weight: 900; text-transform: uppercase; padding: 3px 6px; border-radius: 4px; background: #222; border: 1px solid #444; }
+  </style>
+</head>
+<body>
+
+  <!-- ACCESO ADMIN -->
+  <div id="adminAuthGate">
+    <div class="auth-card">
+      <div class="title" style="text-align: center; margin-bottom: 6px;">Apex <span>Master Admin</span></div>
+      <div style="font-size: 0.72rem; color: var(--text-muted); text-align: center; margin-bottom: 16px; font-weight: 700;">CONSOLA PRIVADA ROOT</div>
+      
+      <div class="form-group">
+        <label>Usuario</label>
+        <input type="text" id="adminUser" class="form-control" placeholder="Apex">
+      </div>
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input type="password" id="adminPass" class="form-control" placeholder="••••••••">
+      </div>
+      <button class="btn" onclick="verificarAccesoAdmin()">Entrar al Panel</button>
+    </div>
+  </div>
+
+  <!-- PANEL PRINCIPAL CON TABS -->
+  <div id="adminMainContent" style="display: none;">
+    <div class="header">
+      <div class="title">Admin <span>Apex Core</span></div>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <span class="badge" style="border-color: var(--accent); color: var(--accent);">ROOT</span>
+        <button onclick="cerrarConsola()" class="btn-secondary" style="margin: 0; padding: 4px 8px; cursor: pointer;">SALIR</button>
+      </div>
+    </div>
+
+    <!-- BARRA NAVEGABLE SUPERIOR -->
+    <nav class="nav-tabs">
+      <button class="tab-btn active" onclick="switchAdminTab('tabUsuarios', this)">👥 Usuarios</button>
+      <button class="tab-btn" onclick="switchAdminTab('tabBloques', this)">📦 Bloques / Apps</button>
+      <button class="tab-btn" onclick="switchAdminTab('tabRoles', this)">⚙️ Roles y Matriz</button>
+    </nav>
+
+    <!-- MÓDULO 1: GESTIÓN DE USUARIOS -->
+    <div id="tabUsuarios" class="tab-content active">
+      <div class="section-card">
+        <div class="section-title">1. Crear Usuario Manualmente</div>
+        <div class="form-group">
+          <label>Nombre Completo</label>
+          <input type="text" id="nuName" class="form-control" placeholder="Ej: Carlos Silva">
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label>Correo Electrónico</label>
+            <input type="email" id="nuEmail" class="form-control" placeholder="usuario@apex.com">
+          </div>
+          <div class="form-group">
+            <label>Contraseña</label>
+            <input type="text" id="nuPassword" class="form-control" placeholder="Mín 6 caracteres">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Rol Asignado</label>
+          <select id="nuRole" class="form-control">
+            <option value="estudiante">ESTUDIANTE</option>
+            <option value="coach">COACH</option>
+            <option value="supervisor">SUPERVISOR</option>
+            <option value="coordinador">COORDINADOR</option>
+          </select>
+        </div>
+        <button class="btn" onclick="crearUsuarioAdmin()">Crear y Habilitar</button>
+      </div>
+
+      <div class="section-card">
+        <div class="section-title">
+          <span>2. Directorio de Usuarios</span>
+          <button class="btn-secondary" onclick="cargarUsuarios()" style="margin:0; padding: 4px 8px;">Actualizar</button>
+        </div>
+        <div id="usersListContainer" style="max-height: 280px; overflow-y: auto;">Cargando directorio...</div>
+      </div>
+    </div>
+
+    <!-- MÓDULO 2: GESTIÓN DE BLOQUES -->
+    <div id="tabBloques" class="tab-content">
+      <div class="section-card">
+        <div class="section-title">Registrar Mini-App (Bloque)</div>
+        <div class="form-group">
+          <label>Título del Bloque</label>
+          <input type="text" id="newBlockTitle" class="form-control" placeholder="Ej: Crono Apex">
+        </div>
+        <div class="form-group">
+          <label>Archivo o URL (.html)</label>
+          <input type="text" id="newBlockUrl" class="form-control" placeholder="Ej: crono.html">
+        </div>
+        <button class="btn" onclick="registerBlock()">Guardar Bloque en Supabase</button>
+      </div>
+
+      <div class="section-card">
+        <div class="section-title">Bloques Registrados</div>
+        <div id="blocksListContainer">Cargando bloques...</div>
+      </div>
+    </div>
+
+    <!-- MÓDULO 3: GESTIÓN DE ROLES Y MATRIZ -->
+    <div id="tabRoles" class="tab-content">
+      <div class="section-card">
+        <div class="section-title">Configuración de Rol</div>
+        <div class="form-group">
+          <label>Seleccionar Perfil para Editar</label>
+          <select id="profileSelect" class="form-control" onchange="cargarDatosPerfil(this.value)">
+            <option value="">-- Seleccionar Perfil --</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Nombre del Perfil</label>
+          <input type="text" id="profileName" class="form-control" placeholder="Nombre del perfil">
+        </div>
+        <div class="form-group">
+          <label>Bloques visibles para este perfil:</label>
+          <div class="checkbox-list" id="blocksCheckboxContainer">Cargando...</div>
+        </div>
+        <button class="btn" onclick="saveProfile()">Guardar Asignaciones</button>
+        <button class="btn btn-secondary" onclick="limpiarFormularioPerfil()">Limpiar Formulario</button>
+      </div>
+
+      <div class="section-card">
+        <div class="section-title">Resumen Activo en la Nube</div>
+        <div id="profilesListContainer">Cargando...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://fprvbvucmtdpxdihuvrw.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_xAMs8LpCwyMyoql3ohoJUQ_BIRhBQoD';
+    const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+    let dbBlocks = [];
+    let dbProfiles = [];
+    let dbProfileBlocks = [];
+
+    function verificarAccesoAdmin() {
+      const u = document.getElementById('adminUser').value.trim();
+      const p = document.getElementById('adminPass').value.trim();
+
+      if (u === 'Apex' && p === 'Apex 2026') {
+        sessionStorage.setItem('apex_admin_auth', 'true');
+        document.getElementById('adminAuthGate').style.display = 'none';
+        document.getElementById('adminMainContent').style.display = 'block';
+        loadAdminData();
+        cargarUsuarios();
+      } else {
+        alert('Credenciales incorrectas.');
+      }
+    }
+
+    function cerrarConsola() {
+      sessionStorage.removeItem('apex_admin_auth');
+      location.reload();
+    }
+
+    function switchAdminTab(tabId, btn) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+    }
+
+    window.onload = () => {
+      if (sessionStorage.getItem('apex_admin_auth') === 'true') {
+        document.getElementById('adminAuthGate').style.display = 'none';
+        document.getElementById('adminMainContent').style.display = 'block';
+        loadAdminData();
+        cargarUsuarios();
+      }
+    };
+
+    async function crearUsuarioAdmin() {
+      const name = document.getElementById('nuName').value.trim();
+      const email = document.getElementById('nuEmail').value.trim();
+      const password = document.getElementById('nuPassword').value.trim();
+      const role = document.getElementById('nuRole').value;
+
+      if (!name || !email || !password) return alert('Completa todos los campos.');
+      if (password.length < 6) return alert('Contraseña mínimo 6 caracteres.');
+
+      const { data, error } = await sb.rpc('admin_crear_usuario', {
+        p_email: email, p_password: password, p_name: name, p_role: role
+      });
+
+      if (error) return alert('Error: ' + error.message);
+      if (data && data.success) {
+        alert(`¡Usuario creado!\nEmail: ${email}\nClave: ${password}\nRol: ${role.toUpperCase()}`);
+        document.getElementById('nuName').value = '';
+        document.getElementById('nuEmail').value = '';
+        document.getElementById('nuPassword').value = '';
+        cargarUsuarios();
+      } else {
+        alert('Fallo: ' + (data ? data.message : 'Error desconocido'));
+      }
+    }
+
+    async function cargarUsuarios() {
+      const container = document.getElementById('usersListContainer');
+      container.innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;">Consultando...</span>';
+
+      const { data: users, error } = await sb.from('apex_users').select('*').order('created_at', { ascending: false });
+      if (error || !users) return container.innerHTML = '<span style="color:var(--text-muted);">Error al cargar.</span>';
+
+      container.innerHTML = '';
+      users.forEach(u => {
+        container.innerHTML += `
+          <div class="list-item">
+            <div>
+              <strong>${u.name || 'Sin nombre'}</strong><br>
+              <span style="color: var(--text-muted); font-size: 0.72rem;">${u.email}</span>
+            </div>
+            <div>
+              <select class="form-control" style="padding: 4px 6px; font-size: 0.72rem;" onchange="actualizarRolUsuario('${u.id}', this.value)">
+                <option value="estudiante" ${u.profile_id === 'estudiante' ? 'selected' : ''}>ESTUDIANTE</option>
+                <option value="coach" ${u.profile_id === 'coach' ? 'selected' : ''}>COACH</option>
+                <option value="supervisor" ${u.profile_id === 'supervisor' ? 'selected' : ''}>SUPERVISOR</option>
+                <option value="coordinador" ${u.profile_id === 'coordinador' ? 'selected' : ''}>COORDINADOR</option>
+              </select>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    async function actualizarRolUsuario(userId, newRole) {
+      const { error } = await sb.from('apex_users').update({ profile_id: newRole }).eq('id', userId);
+      if (error) alert('Error: ' + error.message);
+      else alert('Rol actualizado a ' + newRole.toUpperCase());
+    }
+
+    async function loadAdminData() {
+      const { data: blocks } = await sb.from('apex_blocks').select('*').order('created_at', { ascending: true });
+      if (blocks) dbBlocks = blocks;
+
+      const { data: profiles } = await sb.from('apex_profiles').select('*').order('created_at', { ascending: true });
+      if (profiles) dbProfiles = profiles;
+
+      const { data: rels } = await sb.from('apex_profile_blocks').select('*').order('display_order', { ascending: true });
+      if (rels) dbProfileBlocks = rels;
+
+      renderUI();
+    }
+
+    function renderUI() {
+      // Checkboxes de bloques
+      const bContainer = document.getElementById('blocksCheckboxContainer');
+      bContainer.innerHTML = '';
+      dbBlocks.forEach(b => {
+        bContainer.innerHTML += `
+          <label class="checkbox-item">
+            <input type="checkbox" value="${b.id}" class="profile-block-checkbox">
+            <span>${b.title} <small style="color:var(--text-muted);">(${b.url})</small></span>
+          </label>
+        `;
+      });
+
+      // Lista de bloques en tab bloques
+      const blkList = document.getElementById('blocksListContainer');
+      blkList.innerHTML = '';
+      dbBlocks.forEach(b => {
+        blkList.innerHTML += `
+          <div class="list-item">
+            <strong>${b.title}</strong>
+            <span style="color:var(--text-muted); font-size:0.75rem;">${b.url}</span>
+          </div>
+        `;
+      });
+
+      // Selector de perfiles
+      const select = document.getElementById('profileSelect');
+      select.innerHTML = '<option value="">-- Seleccionar Perfil --</option>';
+      dbProfiles.forEach(p => {
+        select.innerHTML += `<option value="${p.id}">${p.name.toUpperCase()}</option>`;
+      });
+
+      // Resumen de roles
+      const listCont = document.getElementById('profilesListContainer');
+      listCont.innerHTML = '';
+      dbProfiles.forEach(p => {
+        const assigned = dbProfileBlocks
+          .filter(pb => pb.profile_id === p.id)
+          .map(pb => {
+            const b = dbBlocks.find(item => item.id === pb.block_id);
+            return b ? b.title : pb.block_id;
+          }).join(', ');
+
+        listCont.innerHTML += `
+          <div class="list-item">
+            <div>
+              <strong>${p.name.toUpperCase()}</strong><br>
+              <span style="color: var(--text-muted); font-size: 0.72rem;">Bloques: ${assigned || 'Ninguno'}</span>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    async function registerBlock() {
+      const title = document.getElementById('newBlockTitle').value.trim();
+      const url = document.getElementById('newBlockUrl').value.trim();
+      if (!title || !url) return alert('Completa título y URL.');
+
+      const id = 'b_' + title.toLowerCase().replace(/[^a-z0-9]/g, '_');
+      const { error } = await sb.from('apex_blocks').upsert([{ id, title, url }]);
+      if (error) return alert('Error: ' + error.message);
+
+      document.getElementById('newBlockTitle').value = '';
+      document.getElementById('newBlockUrl').value = '';
+      alert('Bloque registrado.');
+      loadAdminData();
+    }
+
+    function cargarDatosPerfil(profileId) {
+      if (!profileId) return limpiarFormularioPerfil();
+      const perfil = dbProfiles.find(p => p.id === profileId);
+      if (!perfil) return;
+
+      document.getElementById('profileName').value = perfil.name;
+      const assigned = dbProfileBlocks.filter(pb => pb.profile_id === profileId).map(pb => pb.block_id);
+      document.querySelectorAll('.profile-block-checkbox').forEach(cb => {
+        cb.checked = assigned.includes(cb.value);
+      });
+    }
+
+    function limpiarFormularioPerfil() {
+      document.getElementById('profileSelect').value = '';
+      document.getElementById('profileName').value = '';
+      document.querySelectorAll('.profile-block-checkbox').forEach(cb => cb.checked = false);
+    }
+
+    async function saveProfile() {
+      const name = document.getElementById('profileName').value.trim();
+      if (!name) return alert('Ingresa el nombre del perfil.');
+
+      const selectedId = document.getElementById('profileSelect').value;
+      const profileId = selectedId || name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+
+      await sb.from('apex_profiles').upsert([{ id: profileId, name }]);
+      await sb.from('apex_profile_blocks').delete().eq('profile_id', profileId);
+
+      const checkboxes = document.querySelectorAll('.profile-block-checkbox:checked');
+      const inserts = Array.from(checkboxes).map((cb, idx) => ({
+        profile_id: profileId,
+        block_id: cb.value,
+        display_order: idx + 1
+      }));
+
+      if (inserts.length > 0) {
+        await sb.from('apex_profile_blocks').insert(inserts);
+      }
+
+      alert(`Perfil "${name}" sincronizado con éxito.`);
+      limpiarFormularioPerfil();
+      loadAdminData();
+    }
+  </script>
+</body>
+</html>

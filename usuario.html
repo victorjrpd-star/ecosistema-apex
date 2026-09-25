@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0b0b0b">
+  <title>Apex Striker | Ficha & Dashboard</title>
+
+  <!-- Supabase JS & Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root {
+      --bg-color: #0b0b0b;
+      --card-bg: #141414;
+      --border-color: #262626;
+      --text-main: #f5f5f5;
+      --text-muted: #a3a3a3;
+      --accent: #e50914;
+      --accent-white: #ffffff;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg-color); color: var(--text-main); padding: 16px; max-width: 600px; margin: 0 auto; min-height: 100vh; }
+
+    /* NAVEGACIÓN SUB-MÓDULOS */
+    .module-nav { display: flex; gap: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px; }
+    .nav-btn {
+      flex: 1; padding: 10px; background: #181818; border: 1px solid var(--border-color); color: var(--text-muted);
+      border-radius: 6px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; cursor: pointer; text-align: center; transition: 0.2s;
+    }
+    .nav-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    .view-section { display: none; }
+    .view-section.active { display: block; }
+
+    /* CONTENEDOR COMÚN */
+    .card { background-color: var(--card-bg); border: 1px solid var(--border-color); padding: 20px; border-radius: 6px; margin-bottom: 16px; }
+    .header { text-align: center; margin-bottom: 20px; }
+    .header h1 { font-size: 1.3rem; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; color: var(--accent-white); }
+    .header h1 span { color: var(--accent); }
+    .header p { color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    .form-group { margin-bottom: 16px; }
+    label { display: block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 6px; font-weight: 700; }
+    .label-desc { font-size: 0.72rem; color: #777; margin-top: -3px; margin-bottom: 6px; }
+
+    input[type="email"], input[type="number"], select {
+      width: 100%; padding: 11px; background-color: var(--bg-color); border: 1px solid var(--border-color);
+      color: var(--text-main); font-size: 0.9rem; border-radius: 4px; outline: none; font-weight: 600;
+    }
+    input:focus, select:focus { border-color: var(--accent); }
+
+    /* SLIDER DIVERSIÓN */
+    .slider-container { background-color: var(--bg-color); border: 1px solid var(--border-color); padding: 12px; border-radius: 4px; text-align: center; }
+    .slider-flex { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    input[type="range"] { flex: 1; accent-color: var(--accent); cursor: pointer; height: 6px; background: #262626; border-radius: 3px; outline: none; }
+    #emojiDisplay { font-size: 1.6rem; min-width: 36px; text-align: center; }
+    .slider-value { font-size: 0.8rem; color: var(--text-muted); margin-top: 6px; font-weight: 700; }
+
+    /* BOTONES */
+    .btn-submit {
+      width: 100%; padding: 13px; background-color: var(--accent); color: #fff; border: none; font-weight: 800;
+      text-transform: uppercase; letter-spacing: 1px; font-size: 0.85rem; cursor: pointer; border-radius: 4px; transition: 0.2s;
+    }
+    .btn-submit:active { filter: brightness(0.85); }
+
+    /* DASHBOARD */
+    .chart-container { background: #101010; border: 1px solid var(--border-color); border-radius: 6px; padding: 14px; margin-bottom: 14px; }
+    .chart-title { font-size: 0.75rem; text-transform: uppercase; font-weight: 800; color: var(--accent); margin-bottom: 8px; }
+    .canvas-wrap { height: 160px; position: relative; }
+
+    .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+    .summary-box { background: #181818; border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; text-align: center; }
+    .summary-num { font-size: 1.6rem; font-weight: 900; color: #fff; }
+    .summary-txt { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800; }
+
+    .history-card { background: #161616; border: 1px solid #282828; border-radius: 4px; padding: 10px; margin-top: 8px; font-size: 0.75rem; }
+  </style>
+</head>
+<body>
+
+  <!-- NAVEGACIÓN DUAL DE LA FICHA -->
+  <nav class="module-nav">
+    <button class="nav-btn active" onclick="switchFichaTab('viewForm', this)">📝 Check-in Diario</button>
+    <button class="nav-btn" onclick="switchFichaTab('viewDash', this)">📊 Mi Dashboard</button>
+  </nav>
+
+  <!-- ================= SUBMÓDULO 1: FORMULARIO ================= -->
+  <div id="viewForm" class="view-section active">
+    <div class="card">
+      <div class="header">
+        <h1>Apex <span>Boxing</span></h1>
+        <p>Check-in Diario de Entrenamiento</p>
+      </div>
+
+      <form id="checkinForm" onsubmit="enviarCheckin(event)">
+        <div class="form-group">
+          <label>Correo Electrónico</label>
+          <input type="email" id="ciEmail" required placeholder="tu.correo@gmail.com">
+        </div>
+
+        <div class="form-group">
+          <label>Enfoque de la Clase</label>
+          <select id="ciEnfoque" required>
+            <option value="" disabled selected>Selecciona una opción</option>
+            <option value="técnica / sombra">Técnica / Sombra</option>
+            <option value="acondicionamiento físico">Acondicionamiento físico</option>
+            <option value="sparring">Sparring</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Rendimiento del Día (1 al 10)</label>
+          <input type="number" id="ciRendimiento" min="1" max="10" required placeholder="Ej. 8">
+        </div>
+
+        <div class="form-group">
+          <label>RPE - Esfuerzo Percibido (1 al 10)</label>
+          <input type="number" id="ciRpe" min="1" max="10" required placeholder="Ej. 7">
+        </div>
+
+        <div class="form-group">
+          <label>Soltura y Flexibilidad (1 al 10)</label>
+          <input type="number" id="ciSoltura" min="1" max="10" required placeholder="Ej. 6">
+        </div>
+
+        <div class="form-group">
+          <label>Pregúntale a tu Coach (Fluidez Técnica)</label>
+          <div class="label-desc">1 = No me salen los ejercicios | 10 = Fluyo con los ejercicios</div>
+          <input type="number" id="ciPreguntaCoach" min="1" max="10" required placeholder="Califica del 1 al 10">
+        </div>
+
+        <div class="form-group">
+          <label>¿Te divertiste? (Nivel de diversión)</label>
+          <div class="slider-container">
+            <div class="slider-flex">
+              <input type="range" id="ciDivertiste" min="1" max="10" value="10" oninput="actualizarEmoji(this.value)">
+              <div id="emojiDisplay">🤩</div>
+            </div>
+            <div class="slider-value">Nivel: <span id="valDivertiste">10</span> / 10</div>
+          </div>
+        </div>
+
+        <button type="submit" id="btnEnviar" class="btn-submit">Enviar Registro</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= SUBMÓDULO 2: DASHBOARD MÉTRICAS ================= -->
+  <div id="viewDash" class="view-section">
+    <div class="card">
+      <div class="header">
+        <h1>Métricas <span>Striker</span></h1>
+        <p>Seguimiento Individual de Rendimiento</p>
+      </div>
+
+      <div class="summary-grid">
+        <div class="summary-box">
+          <div class="summary-num" id="statSesiones">0</div>
+          <div class="summary-txt">Sesiones Registradas</div>
+        </div>
+        <div class="summary-box">
+          <div class="summary-num" id="statRendProm">0.0</div>
+          <div class="summary-txt">Promedio Rendimiento</div>
+        </div>
+      </div>
+
+      <!-- GRÁFICA 1: RENDIMIENTO -->
+      <div class="chart-container">
+        <div class="chart-title">Rendimiento del Día (1 - 10)</div>
+        <div class="canvas-wrap"><canvas id="chartRendimiento"></canvas></div>
+      </div>
+
+      <!-- GRÁFICA 2: RPE -->
+      <div class="chart-container">
+        <div class="chart-title">RPE - Esfuerzo Percibido (1 - 10)</div>
+        <div class="canvas-wrap"><canvas id="chartRpe"></canvas></div>
+      </div>
+
+      <!-- GRÁFICA 3: SOLTURA Y FLEXIBILIDAD -->
+      <div class="chart-container">
+        <div class="chart-title">Soltura y Flexibilidad (1 - 10)</div>
+        <div class="canvas-wrap"><canvas id="chartSoltura"></canvas></div>
+      </div>
+
+      <!-- GRÁFICA 4: FLUIDEZ TÉCNICA -->
+      <div class="chart-container">
+        <div class="chart-title">Fluidez Técnica / Coach (1 - 10)</div>
+        <div class="canvas-wrap"><canvas id="chartFluidez"></canvas></div>
+      </div>
+
+      <!-- GRÁFICA 5: DIVERSIÓN -->
+      <div class="chart-container">
+        <div class="chart-title">Nivel de Diversión (1 - 10)</div>
+        <div class="canvas-wrap"><canvas id="chartDiversion"></canvas></div>
+      </div>
+
+      <!-- LISTADO RECIENTE -->
+      <div style="margin-top: 18px;">
+        <label>Últimas Sesiones Registradas</label>
+        <div id="historyContainer">Cargando sesiones...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://fprvbvucmtdpxdihuvrw.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_xAMs8LpCwyMyoql3ohoJUQ_BIRhBQoD';
+    const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+    let currentUser = null;
+    let chartInstances = {};
+
+    function actualizarEmoji(valor) {
+      document.getElementById('valDivertiste').innerText = valor;
+      const emojiEl = document.getElementById('emojiDisplay');
+      const v = parseInt(valor);
+      if (v <= 2) emojiEl.innerText = "😞";
+      else if (v <= 4) emojiEl.innerText = "😐";
+      else if (v <= 7) emojiEl.innerText = "🙂";
+      else if (v <= 9) emojiEl.innerText = "😄";
+      else emojiEl.innerText = "🤩";
+    }
+
+    function switchFichaTab(tabId, btn) {
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+
+      if (tabId === 'viewDash') {
+        cargarMetricasDashboard();
+      }
+    }
+
+    async function init() {
+      if (!sb) return;
+
+      const { data: { session } } = await sb.auth.getSession();
+      if (session) {
+        currentUser = session.user;
+        const emailInput = document.getElementById('ciEmail');
+        emailInput.value = currentUser.email;
+        emailInput.setAttribute('readonly', 'true');
+        emailInput.style.opacity = '0.7';
+      }
+    }
+
+    async function enviarCheckin(event) {
+      event.preventDefault();
+      const btn = document.getElementById('btnEnviar');
+      btn.disabled = true;
+      btn.innerText = 'Enviando...';
+
+      const email = document.getElementById('ciEmail').value.trim();
+      const enfoque = document.getElementById('ciEnfoque').value;
+      const rendimiento = parseFloat(document.getElementById('ciRendimiento').value);
+      const rpe = parseFloat(document.getElementById('ciRpe').value);
+      const soltura = parseFloat(document.getElementById('ciSoltura').value);
+      const preguntacoach = parseFloat(document.getElementById('ciPreguntaCoach').value);
+      const divertiste = parseFloat(document.getElementById('ciDivertiste').value);
+
+      // Preliminar de puntuación interna Apex (Base 5 pts + promedio factores)
+      const prelim = parseFloat((5.0 + (rendimiento * 0.2) + (preguntacoach * 0.2) + (divertiste >= 8 ? 1.0 : 0)).toFixed(2));
+
+      const payload = {
+        user_id: currentUser ? currentUser.id : null,
+        user_email: email,
+        focus: enfoque,
+        rendimiento: rendimiento,
+        rpe: rpe,
+        soltura: soltura,
+        preguntacoach: preguntacoach,
+        divertiste: divertiste,
+        had_fun: divertiste >= 7,
+        prelim_score: Math.min(10.0, prelim),
+        status: 'pendiente_coach'
+      };
+
+      const { error } = await sb.from('apex_checkins').insert([payload]);
+
+      if (error) {
+        alert('Error al guardar sesión: ' + error.message);
+      } else {
+        alert('¡Check-in registrado con éxito!');
+        document.getElementById('checkinForm').reset();
+        if (currentUser) document.getElementById('ciEmail').value = currentUser.email;
+        actualizarEmoji(10);
+      }
+
+      btn.disabled = false;
+      btn.innerText = 'Enviar Registro';
+    }
+
+    async function cargarMetricasDashboard() {
+      const email = currentUser ? currentUser.email : document.getElementById('ciEmail').value.trim();
+      if (!email) return;
+
+      const { data: records, error } = await sb
+        .from('apex_checkins')
+        .select('*')
+        .eq('user_email', email)
+        .order('created_at', { ascending: true });
+
+      if (error || !records || records.length === 0) {
+        document.getElementById('historyContainer').innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;">Aún no hay métricas para este correo.</span>';
+        return;
+      }
+
+      // KPIs
+      document.getElementById('statSesiones').innerText = records.length;
+      const sumRend = records.reduce((acc, cur) => acc + (parseFloat(cur.rendimiento) || 0), 0);
+      document.getElementById('statRendProm').innerText = (sumRend / records.length).toFixed(1);
+
+      // Extraer datos cronológicos
+      const labels = records.map(r => {
+        const d = new Date(r.created_at);
+        return `${d.getDate()}/${d.getMonth() + 1}`;
+      });
+
+      renderSingleChart('chartRendimiento', labels, records.map(r => r.rendimiento), '#e50914');
+      renderSingleChart('chartRpe', labels, records.map(r => r.rpe), '#f39c12');
+      renderSingleChart('chartSoltura', labels, records.map(r => r.soltura), '#3498db');
+      renderSingleChart('chartFluidez', labels, records.map(r => r.preguntacoach), '#9b59b6');
+      renderSingleChart('chartDiversion', labels, records.map(r => r.divertiste), '#2ecc71');
+
+      // Listado Historial
+      const histCont = document.getElementById('historyContainer');
+      histCont.innerHTML = '';
+      records.slice(-5).reverse().forEach(r => {
+        const f = new Date(r.created_at).toLocaleDateString();
+        histCont.innerHTML += `
+          <div class="history-card">
+            <div style="display:flex; justify-content:space-between; font-weight:800;">
+              <span>${f} — ${r.focus}</span>
+              <span style="color:var(--accent);">Rend: ${r.rendimiento}/10</span>
+            </div>
+            <div style="color:var(--text-muted); font-size:0.7rem; margin-top:4px;">
+              RPE: ${r.rpe} | Soltura: ${r.soltura} | Fluidez: ${r.preguntacoach} | Diversión: ${r.divertiste}/10
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function renderSingleChart(canvasId, labels, dataPoints, color) {
+      if (chartInstances[canvasId]) {
+        chartInstances[canvasId].destroy();
+      }
+
+      const ctx = document.getElementById(canvasId).getContext('2d');
+      chartInstances[canvasId] = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: dataPoints,
+            borderColor: color,
+            backgroundColor: color + '22',
+            borderWidth: 2,
+            tension: 0.3,
+            fill: true,
+            pointRadius: 3,
+            pointBackgroundColor: color
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: '#666', font: { size: 9 } }, grid: { display: false } },
+            y: { min: 1, max: 10, ticks: { color: '#666', font: { size: 9 }, stepSize: 2 }, grid: { color: '#1e1e1e' } }
+          }
+        }
+      });
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>

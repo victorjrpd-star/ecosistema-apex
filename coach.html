@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Apex - Panel Coach</title>
+  <style>
+    :root {
+      --bg: #0c0c0c;
+      --card-bg: #141414;
+      --border: #222222;
+      --accent: #e50914;
+      --text-main: #ffffff;
+      --text-muted: #888888;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    html, body { background: var(--bg); color: var(--text-main); width: 100vw; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+    /* BARRA DE NAVEGACIÓN DINÁMICA DE BLOQUES (Pestañas del Coach) */
+    .coach-nav-bar {
+      display: flex; height: 46px; background: var(--card-bg); border-bottom: 1px solid var(--border);
+      align-items: center; padding: 0 12px; gap: 8px; overflow-x: auto; scrollbar-width: none; flex-shrink: 0;
+    }
+    .coach-nav-bar::-webkit-scrollbar { display: none; }
+
+    .nav-tab-btn {
+      background: #1a1a1a; border: 1px solid var(--border); color: var(--text-muted);
+      padding: 6px 12px; border-radius: 6px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase;
+      cursor: pointer; white-space: nowrap; transition: 0.2s;
+    }
+    .nav-tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    /* CONTENEDOR DE LAS MINI-APPS ASIGNADAS */
+    .coach-viewport { flex: 1; width: 100%; position: relative; background: var(--bg); overflow: hidden; }
+    .sub-block-frame { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; display: none; background: var(--bg); }
+    .sub-block-frame.active { display: block; }
+
+    /* VISTA NATIVA INTERNA DEL PANEL COACH (Panel de Control y Validación) */
+    .native-panel-content {
+      padding: 16px; max-width: 600px; margin: 0 auto; height: 100%; overflow-y: auto; padding-bottom: 40px; display: none;
+    }
+    .native-panel-content.active { display: block; }
+
+    .header { border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+    .title { font-size: 1.1rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
+    .title span { color: var(--accent); }
+    .badge-coach { font-size: 0.7rem; font-weight: 800; background: #222; color: #fff; border: 1px solid #444; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; }
+
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 12px; }
+    .card-title { font-size: 0.75rem; font-weight: 900; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
+
+    .btn { background: var(--accent); color: #fff; border: none; padding: 10px 14px; font-weight: 900; text-transform: uppercase; border-radius: 6px; cursor: pointer; font-size: 0.78rem; }
+    .btn:active { filter: brightness(0.85); }
+    .btn-secondary { background: #1c1c1c; border: 1px solid #333; color: #ccc; }
+    .list-item { background: #1c1c1c; border: 1px solid #2a2a2a; padding: 10px; border-radius: 6px; margin-top: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+
+  <!-- BARRA DE PESTAÑAS SUPERIOR (Se genera dinámicamente con los bloques del Coach) -->
+  <nav class="coach-nav-bar" id="coachNavBar">
+    <!-- Pestaña fija nativa del panel de control -->
+    <button class="nav-tab-btn active" onclick="switchCoachTab('native_panel', this)">Panel Operativo</button>
+  </nav>
+
+  <!-- CONTENEDOR DE VISUALIZACIÓN -->
+  <div class="coach-viewport" id="coachViewport">
+    
+    <!-- 1. VISTA NATIVA: Panel Operativo del Coach (Check-ins y Pagos) -->
+    <div class="native-panel-content active" id="view_native_panel">
+      <div class="header">
+        <div class="title">Panel <span>Coach</span></div>
+        <div class="badge-coach">Control Operativo</div>
+      </div>
+
+      <!-- VALIDACIÓN DE CHECK-INS -->
+      <div class="card">
+        <div class="card-title">Validación de Check-ins (Anti-Fraude)</div>
+        <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 8px;">
+          Revisa que las métricas de los estudiantes coincidan con lo dictado en clase.
+        </p>
+        <div id="checkinsList">
+          <div class="list-item">
+            <div>
+              <strong>Isabella Machado</strong><br>
+              <span style="color: var(--text-muted); font-size: 0.7rem;">Check-in Diario · Pendiente de visto bueno</span>
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <button class="btn" style="padding: 6px 10px;" onclick="aprobarCheckin(this)">✔</button>
+              <button class="btn btn-secondary" style="padding: 6px 10px;" onclick="rechazarCheckin(this)">✕</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RECEPCIÓN DE PAGOS Y MEMBRESÍAS -->
+      <div class="card">
+        <div class="card-title">Recepción de Pagos / Membresías</div>
+        <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 8px;">
+          Registra el comprobante físico o digital para levantar la tapa de acceso del estudiante.
+        </p>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="studentEmailPay" placeholder="Correo del estudiante" style="flex: 1; padding: 10px; background: #1c1c1c; border: 1px solid #333; color: #fff; border-radius: 6px; font-size: 0.8rem; outline: none;">
+          <button class="btn" onclick="registrarPago()">Validar Pago</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Cargar bloques autorizados desde el localStorage configurado en el Admin para el perfil Coach
+    const profiles = JSON.parse(localStorage.getItem('apex_admin_profiles')) || [];
+    const allBlocks = JSON.parse(localStorage.getItem('apex_admin_blocks')) || [];
+
+    function initCoachSubModules() {
+      const coachProfile = profiles.find(p => p.name.toLowerCase() === 'coach');
+      if (!coachProfile || !coachProfile.blocks) return;
+
+      const navBar = document.getElementById('coachNavBar');
+      const viewport = document.getElementById('coachViewport');
+
+      coachProfile.blocks.forEach(blockId => {
+        const blockFound = allBlocks.find(b => b.id === blockId);
+        if (!blockFound) return;
+
+        // Evitar duplicar si la URL ya apunta al coach u otro repetido
+        if (blockFound.url === 'coach.html') return;
+
+        // Crear Pestaña en la barra superior
+        const tabBtn = document.createElement('button');
+        tabBtn.className = 'nav-tab-btn';
+        tabBtn.textContent = blockFound.title;
+        tabBtn.onclick = () => switchCoachTab(`sub_block_${blockFound.id}`, tabBtn);
+        navBar.appendChild(tabBtn);
+
+        // Crear el iframe incrustado para ese bloque (ej: crono.html o usuario.html)
+        const iframe = document.createElement('iframe');
+        iframe.className = 'sub-block-frame';
+        iframe.id = `sub_block_${blockFound.id}`;
+        iframe.src = blockFound.url;
+        viewport.appendChild(iframe);
+      });
+    }
+
+    function switchCoachTab(viewId, btnElement) {
+      document.querySelectorAll('.coach-nav-bar .nav-tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.coach-viewport > div, .coach-viewport > iframe').forEach(v => v.classList.remove('active'));
+
+      btnElement.classList.add('active');
+      const targetView = document.getElementById(`view_${viewId}`) || document.getElementById(viewId);
+      if (targetView) targetView.classList.add('active');
+    }
+
+    function aprobarCheckin(btn) {
+      const item = btn.closest('.list-item');
+      item.style.opacity = '0.4';
+      alert("Check-in validado y sumado al puntaje oficial del alumno.");
+      setTimeout(() => item.remove(), 400);
+    }
+
+    function rechazarCheckin(btn) {
+      const item = btn.closest('.list-item');
+      alert("Check-in marcado con incongruencia.");
+      item.remove();
+    }
+
+    function registrarPago() {
+      const email = document.getElementById('studentEmailPay').value.trim();
+      if (!email) {
+        alert("Ingresa el correo del estudiante.");
+        return;
+      }
+      alert(`Pago registrado con éxito para ${email}. Tapa de membresía levantada.`);
+      document.getElementById('studentEmailPay').value = '';
+    }
+
+    window.onload = initCoachSubModules;
+  </script>
+</body>
+</html>

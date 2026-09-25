@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0c0c0c">
+  <title>Ecosistema Apex</title>
+  
+  <!-- CDN Oficial de Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --bg: #0c0c0c;
+      --card-bg: #141414;
+      --border: #222222;
+      --accent: #e50914;
+      --text-main: #ffffff;
+      --text-muted: #888888;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    html, body { background: var(--bg); color: var(--text-main); width: 100vw; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+    /* PORTAL DE ACCESO (LOGIN / REGISTRO) */
+    .login-overlay {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: var(--bg); z-index: 2000; display: flex; justify-content: center; align-items: center; padding: 20px;
+    }
+    .login-box { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 24px; max-width: 380px; width: 100%; }
+    .login-title { font-size: 1.2rem; font-weight: 900; text-transform: uppercase; text-align: center; margin-bottom: 6px; letter-spacing: 1px; }
+    .login-title span { color: var(--accent); }
+    .login-sub { font-size: 0.75rem; color: var(--text-muted); text-align: center; margin-bottom: 20px; text-transform: uppercase; font-weight: 700; }
+
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
+    .form-control { width: 100%; padding: 10px 12px; background: #1c1c1c; border: 1px solid #333; color: #fff; border-radius: 6px; font-weight: 700; outline: none; font-size: 0.85rem; }
+    
+    .btn { background: var(--accent); color: #fff; border: none; padding: 12px; width: 100%; font-weight: 900; text-transform: uppercase; border-radius: 6px; cursor: pointer; margin-top: 6px; font-size: 0.85rem; }
+    .btn:active { filter: brightness(0.85); }
+    .btn-secondary { background: #1c1c1c; border: 1px solid #333; color: #aaa; margin-top: 8px; }
+
+    .form-switch-text { text-align: center; font-size: 0.75rem; color: var(--text-muted); margin-top: 14px; font-weight: 700; cursor: pointer; }
+    .form-switch-text span { color: var(--accent); text-decoration: underline; }
+
+    /* APLICACIÓN PRINCIPAL */
+    .app-container { display: none; width: 100%; height: 100%; flex-direction: column; }
+    .app-container.active { display: flex; }
+
+    /* MARCO GENERAL: BARRA SUPERIOR */
+    .apex-global-header {
+      height: 52px; background: var(--card-bg); border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center; padding: 0 16px; flex-shrink: 0; z-index: 100;
+    }
+    .apex-brand { font-size: 0.95rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; color: #fff; }
+    .apex-brand span { color: var(--accent); }
+
+    .apex-nav-container { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; align-items: center; flex: 1; margin: 0 12px; }
+    .apex-nav-container::-webkit-scrollbar { display: none; }
+
+    .nav-tab-btn {
+      background: #1a1a1a; border: 1px solid var(--border); color: var(--text-muted);
+      padding: 6px 12px; border-radius: 6px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase;
+      cursor: pointer; white-space: nowrap; transition: 0.2s;
+    }
+    .nav-tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    .global-actions { display: flex; align-items: center; gap: 8px; }
+    .icon-btn {
+      background: #1c1c1c; border: 1px solid #333; color: #fff; width: 34px; height: 34px;
+      border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.9rem;
+    }
+    .icon-btn:active { background: var(--accent); }
+
+    .apex-viewport-container { flex: 1; width: 100%; position: relative; background: var(--bg); overflow: hidden; }
+    .block-frame { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; display: none; background: var(--bg); }
+    .block-frame.active { display: block; }
+
+    /* MODAL DE AJUSTES */
+    .modal-overlay {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.85); z-index: 3000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(4px);
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; max-width: 360px; width: 100%; }
+    .modal-title { font-size: 1rem; font-weight: 900; text-transform: uppercase; margin-bottom: 14px; text-align: center; color: #fff; }
+    
+    .profile-preview { width: 70px; height: 70px; border-radius: 50%; background: #222; border: 2px solid var(--accent); margin: 0 auto 12px auto; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .profile-preview img { width: 100%; height: 100%; object-fit: cover; }
+  </style>
+</head>
+<body>
+
+  <!-- PORTAL DE ACCESO -->
+  <div class="login-overlay" id="loginOverlay">
+    <div class="login-box">
+      
+      <!-- INICIO DE SESIÓN -->
+      <div id="loginFormSection">
+        <div class="login-title">Ecosistema <span>Apex</span></div>
+        <div class="login-sub">Iniciar Sesión</div>
+        
+        <div class="form-group">
+          <label>Correo Electrónico</label>
+          <input type="email" id="loginEmail" class="form-control" placeholder="usuario@apex.com">
+        </div>
+
+        <div class="form-group">
+          <label>Contraseña</label>
+          <input type="password" id="loginPassword" class="form-control" placeholder="••••••••">
+        </div>
+
+        <button class="btn" onclick="realizarLogin()">Entrar</button>
+        <div class="form-switch-text" onclick="toggleFormMode('register')">¿No tienes cuenta? <span>Regístrate aquí</span></div>
+      </div>
+
+      <!-- REGISTRO PÚBLICO SEGURO (SOLO ESTUDIANTE O COACH) -->
+      <div id="registerFormSection" style="display: none;">
+        <div class="login-title">Ecosistema <span>Apex</span></div>
+        <div class="login-sub">Crear Nueva Cuenta</div>
+
+        <div class="form-group">
+          <label>Nombre Completo</label>
+          <input type="text" id="regName" class="form-control" placeholder="Ej: Juan Pérez">
+        </div>
+
+        <div class="form-group">
+          <label>Tipo de Cuenta</label>
+          <select id="regProfileSelect" class="form-control">
+            <option value="estudiante">ESTUDIANTE (Striker)</option>
+            <option value="coach">COACH</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Correo Electrónico</label>
+          <input type="email" id="regEmail" class="form-control" placeholder="usuario@apex.com">
+        </div>
+
+        <div class="form-group">
+          <label>Contraseña</label>
+          <input type="password" id="regPassword" class="form-control" placeholder="••••••••">
+        </div>
+
+        <button class="btn" onclick="realizarRegistro()">Registrarse</button>
+        <button class="btn btn-secondary" onclick="toggleFormMode('login')">Volver al Login</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- APLICACIÓN PRINCIPAL (APP SHELL) -->
+  <div class="app-container" id="appContainer">
+    <header class="apex-global-header">
+      <div class="apex-brand">Apex <span>Core</span></div>
+      <nav class="apex-nav-container" id="apexNavBar"></nav>
+      <div class="global-actions">
+        <button class="icon-btn" onclick="openConfigModal()" title="Configuración de Cuenta">⚙</button>
+        <button class="icon-btn" onclick="cerrarSesion()" title="Cerrar Sesión" style="color: var(--accent);">⏏</button>
+      </div>
+    </header>
+
+    <div class="apex-viewport-container" id="apexViewportContainer"></div>
+  </div>
+
+  <!-- MODAL DE CONFIGURACIÓN -->
+  <div class="modal-overlay" id="configModal">
+    <div class="modal-box">
+      <div class="modal-title">Ajustes de Cuenta</div>
+      
+      <div class="profile-preview" id="profilePicContainer">
+        <span style="font-size: 1.5rem; color: #555;">👤</span>
+      </div>
+
+      <div class="form-group">
+        <label>URL de Foto / GIF de Perfil</label>
+        <input type="text" id="cfgPhotoUrl" class="form-control" placeholder="https://...">
+      </div>
+
+      <div class="form-group">
+        <label>Nombre Completo</label>
+        <input type="text" id="cfgName" class="form-control">
+      </div>
+
+      <button class="btn" onclick="guardarAjustes()">Guardar Cambios</button>
+      <button class="btn btn-secondary" onclick="closeConfigModal()">Cancelar</button>
+    </div>
+  </div>
+
+  <script>
+    // Inicialización oficial de Supabase con tus credenciales activas
+    const SUPABASE_URL = 'https://fprvbvucmtdpxdihuvrw.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_xAMs8LpCwyMyoql3ohoJUQ_BIRhBQoD';
+    const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+    let currentSessionUser = null;
+
+    async function initPortal() {
+      if (!sb) return;
+
+      // Comprobar sesión activa previa en el navegador
+      try {
+        const { data: { session } } = await sb.auth.getSession();
+        if (session) {
+          await cargarDatosUsuario(session.user.id);
+        }
+      } catch (e) {
+        console.log("Modo sin sesión previa");
+      }
+    }
+
+    function toggleFormMode(mode) {
+      document.getElementById('loginFormSection').style.display = mode === 'register' ? 'none' : 'block';
+      document.getElementById('registerFormSection').style.display = mode === 'register' ? 'block' : 'none';
+    }
+
+    async function realizarRegistro() {
+      const name = document.getElementById('regName').value.trim();
+      const profile_id = document.getElementById('regProfileSelect').value;
+      const email = document.getElementById('regEmail').value.trim();
+      const password = document.getElementById('regPassword').value.trim();
+
+      if (!name || !email || !password) {
+        alert('Por favor completa todos los campos.');
+        return;
+      }
+
+      if (password.length < 6) {
+        alert('La contraseña debe tener mínimo 6 caracteres.');
+        return;
+      }
+
+      const { data, error } = await sb.auth.signUp({ email, password });
+      if (error) {
+        alert('Error en registro: ' + error.message);
+        return;
+      }
+
+      if (data.user) {
+        await sb.from('apex_users').upsert([
+          { 
+            id: data.user.id, 
+            email, 
+            name, 
+            profile_id, 
+            photo_url: null,
+            is_active: true,
+            subscription_status: 'activo',
+            last_active_at: new Date().toISOString()
+          }
+        ]);
+        alert('¡Usuario registrado con éxito! Ya puedes iniciar sesión.');
+        toggleFormMode('login');
+        document.getElementById('loginEmail').value = email;
+      }
+    }
+
+    async function realizarLogin() {
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value.trim();
+
+      if (!email || !password) {
+        alert('Ingresa correo y contraseña.');
+        return;
+      }
+
+      const { data, error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) {
+        alert('Error al iniciar sesión: ' + error.message);
+        return;
+      }
+
+      // Actualizar marca de actividad
+      await sb.from('apex_users').update({ last_active_at: new Date().toISOString() }).eq('id', data.user.id);
+      await cargarDatosUsuario(data.user.id);
+    }
+
+    async function cargarDatosUsuario(userId) {
+      let { data: profileData } = await sb
+        .from('apex_users')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (!profileData) {
+        profileData = { id: userId, email: '', name: 'Usuario Apex', profile_id: 'estudiante', photo_url: null };
+      }
+
+      currentSessionUser = profileData;
+
+      // Cargar dinámicamente los bloques asignados a este perfil desde la nube
+      const { data: rels } = await sb
+        .from('apex_profile_blocks')
+        .select('block_id, display_order')
+        .eq('profile_id', currentSessionUser.profile_id)
+        .order('display_order', { ascending: true });
+
+      let userModules = [];
+      if (rels && rels.length > 0) {
+        const blockIds = rels.map(r => r.block_id);
+        const { data: blocks } = await sb.from('apex_blocks').select('*').in('id', blockIds);
+        
+        // Conservar el orden exacto configurado
+        userModules = rels.map(r => blocks.find(b => b.id === r.block_id)).filter(Boolean);
+      }
+
+      // Respaldo de seguridad en caso de perfil sin bloques asignados
+      if (userModules.length === 0) {
+        userModules = [{ id: 'b_usuario', title: 'Ficha Estudiante', url: 'usuario.html' }];
+      }
+
+      document.getElementById('loginOverlay').style.display = 'none';
+      document.getElementById('appContainer').classList.add('active');
+
+      renderAppModules(userModules);
+    }
+
+    function renderAppModules(modules) {
+      const navBar = document.getElementById('apexNavBar');
+      const container = document.getElementById('apexViewportContainer');
+
+      navBar.innerHTML = '';
+      container.innerHTML = '';
+
+      modules.forEach((mod, index) => {
+        const tabBtn = document.createElement('button');
+        tabBtn.className = `nav-tab-btn ${index === 0 ? 'active' : ''}`;
+        tabBtn.textContent = mod.title;
+        tabBtn.onclick = () => switchBlock(mod.id, tabBtn);
+        navBar.appendChild(tabBtn);
+
+        const iframe = document.createElement('iframe');
+        iframe.className = `block-frame ${index === 0 ? 'active' : ''}`;
+        iframe.id = `block_${mod.id}`;
+        iframe.src = mod.url;
+        container.appendChild(iframe);
+      });
+    }
+
+    function switchBlock(id, btnElement) {
+      document.querySelectorAll('.nav-tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.block-frame').forEach(f => f.classList.remove('active'));
+
+      btnElement.classList.add('active');
+      const targetFrame = document.getElementById(`block_${id}`);
+      if (targetFrame) targetFrame.classList.add('active');
+    }
+
+    async function cerrarSesion() {
+      if (confirm("¿Estás seguro de que deseas cerrar sesión?")) {
+        await sb.auth.signOut();
+        currentSessionUser = null;
+        document.getElementById('loginEmail').value = '';
+        document.getElementById('loginPassword').value = '';
+        document.getElementById('appContainer').classList.remove('active');
+        document.getElementById('loginOverlay').style.display = 'flex';
+        initPortal();
+      }
+    }
+
+    function openConfigModal() {
+      if (!currentSessionUser) return;
+      document.getElementById('cfgName').value = currentSessionUser.name || '';
+      document.getElementById('cfgPhotoUrl').value = currentSessionUser.photo_url || '';
+      actualizarPreviewFoto(currentSessionUser.photo_url);
+      document.getElementById('configModal').classList.add('open');
+    }
+
+    function closeConfigModal() {
+      document.getElementById('configModal').classList.remove('open');
+    }
+
+    function actualizarPreviewFoto(url) {
+      const container = document.getElementById('profilePicContainer');
+      if (url) {
+        container.innerHTML = `<img src="${url}" alt="Perfil">`;
+      } else {
+        container.innerHTML = `<span style="font-size: 1.5rem; color: #555;">👤</span>`;
+      }
+    }
+
+    async function guardarAjustes() {
+      const newName = document.getElementById('cfgName').value.trim();
+      const finalPhoto = document.getElementById('cfgPhotoUrl').value.trim() || null;
+
+      const { error } = await sb
+        .from('apex_users')
+        .update({ 
+          name: newName, 
+          photo_url: finalPhoto,
+          last_active_at: new Date().toISOString()
+        })
+        .eq('id', currentSessionUser.id);
+
+      if (error) {
+        alert('Error al guardar ajustes: ' + error.message);
+        return;
+      }
+
+      currentSessionUser.name = newName;
+      currentSessionUser.photo_url = finalPhoto;
+      actualizarPreviewFoto(finalPhoto);
+      alert('¡Ajustes actualizados en Supabase!');
+      closeConfigModal();
+    }
+
+    window.onload = initPortal;
+  </script>
+</body>
+</html>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Apex - Panel Supervisor</title>
+  <style>
+    :root {
+      --bg: #0c0c0c;
+      --card-bg: #141414;
+      --border: #222222;
+      --accent: #e50914;
+      --text-main: #ffffff;
+      --text-muted: #888888;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text-main); padding: 16px; max-width: 600px; margin: 0 auto; padding-bottom: 40px; }
+
+    .header { border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+    .title { font-size: 1.1rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
+    .title span { color: var(--accent); }
+    
+    .badge-super { font-size: 0.7rem; font-weight: 800; background: #1a0808; color: var(--accent); border: 1px solid var(--accent); padding: 4px 8px; border-radius: 4px; text-transform: uppercase; }
+
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 12px; }
+    .card-title { font-size: 0.75rem; font-weight: 900; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
+
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
+    .form-control { width: 100%; padding: 10px; background: #1c1c1c; border: 1px solid #333; color: #fff; border-radius: 6px; font-weight: 700; outline: none; font-size: 0.8rem; }
+
+    .btn { background: var(--accent); color: #fff; border: none; padding: 12px; width: 100%; font-weight: 900; text-transform: uppercase; border-radius: 6px; cursor: pointer; font-size: 0.82rem; }
+    .btn:active { filter: brightness(0.85); }
+
+    .list-item { background: #1c1c1c; border: 1px solid #2a2a2a; padding: 10px; border-radius: 6px; margin-top: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="title">Panel <span>Supervisor</span></div>
+    <div class="badge-super">Auditoría & Control</div>
+  </div>
+
+  <!-- FORMULARIO DE AUDITORÍA COMPLETO AL COACH -->
+  <div class="card">
+    <div class="card-title">Formulario de Auditoría y Evaluación al Coach</div>
+    
+    <div class="form-group">
+      <label>Seleccionar Coach a Evaluar</label>
+      <select id="coachSelect" class="form-control">
+        <option value="Víctor Garcés">Víctor Garcés</option>
+        <option value="Carlos Mendoza">Carlos Mendoza</option>
+        <option value="Instructor Invitado">Instructor Invitado</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Categoría de Evaluación</label>
+      <select id="auditCategory" class="form-control">
+        <option value="Rigor Técnico y Biomecánica">Rigor Técnico y Biomecánica</option>
+        <option value="Puntualidad y Disciplina en Sala">Puntualidad y Disciplina en Sala</option>
+        <option value="Control de Tiempos (Crono)">Control de Tiempos (Crono)</option>
+        <option value="Validación Correcta de Check-ins">Validación Correcta de Check-ins</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Puntaje Asignado (-10 a +10)</label>
+      <input type="number" id="auditPoints" class="form-control" placeholder="Ej: 10 o -5" min="-10" max="10">
+    </div>
+
+    <div class="form-group">
+      <label>Observación Detallada / Comentarios</label>
+      <input type="text" id="auditReason" class="form-control" placeholder="Ej: Excelente manejo del ritmo en los asaltos de sparring">
+    </div>
+
+    <button class="btn" onclick="guardarAuditoria()">Registrar Nota de Auditoría</button>
+  </div>
+
+  <!-- HISTORIAL DE SUPERVISIÓN -->
+  <div class="card">
+    <div class="card-title">Historial de Auditorías Recientes</div>
+    <div id="auditHistoryList">
+      <div class="list-item">
+        <div>
+          <strong>VÍCTOR GARCÉS</strong><br>
+          <span style="color: var(--text-muted); font-size: 0.7rem;">[Rigor Técnico] · Excelente dominio de la cadena cinética</span>
+        </div>
+        <div style="font-weight: 900; color: #4ade80;">+10 Pts</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function guardarAuditoria() {
+      const coach = document.getElementById('coachSelect').value;
+      const category = document.getElementById('auditCategory').value;
+      const pointsStr = document.getElementById('auditPoints').value.trim();
+      const reason = document.getElementById('auditReason').value.trim();
+
+      if (!pointsStr || !reason) {
+        alert("Por favor ingresa el puntaje y la observación de la auditoría.");
+        return;
+      }
+
+      const points = parseInt(pointsStr, 10);
+      if (isNaN(points) || points < -10 || points > 10) {
+        alert("El puntaje debe ser un valor numérico entre -10 y +10.");
+        return;
+      }
+
+      const list = document.getElementById('auditHistoryList');
+      const newItem = document.createElement('div');
+      newItem.className = 'list-item';
+      
+      const colorStyle = points >= 0 ? '#4ade80' : '#e50914';
+      const formattedPoints = points > 0 ? `+${points}` : `${points}`;
+
+      newItem.innerHTML = `
+        <div>
+          <strong>${coach.toUpperCase()}</strong><br>
+          <span style="color: var(--text-muted); font-size: 0.7rem;">[${category}] · ${reason}</span>
+        </div>
+        <div style="font-weight: 900; color: ${colorStyle};">${formattedPoints} Pts</div>
+      `;
+      list.prepend(newItem);
+
+      // Limpiar campos del formulario
+      document.getElementById('auditPoints').value = '';
+      document.getElementById('auditReason').value = '';
+      alert("¡Auditoría registrada con éxito y aplicada al perfil del coach!");
+    }
+  </script>
+</body>
+</html>

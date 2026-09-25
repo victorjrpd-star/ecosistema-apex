@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0c0c0c">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Crono Apex">
+  <title>Crono Apex Tactical</title>
+
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="icon.png">
+
+  <style>
+    :root {
+      --bg: #0c0c0c;
+      --card-bg: #141414;
+      --border: #222222;
+      --accent: #e50914;
+      --text-main: #ffffff;
+      --text-muted: #888888;
+      --text-sub: #aaaaaa;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+    html, body { background: var(--bg); color: var(--text-main); padding: 12px; max-width: 600px; margin: 0 auto; user-select: none; overscroll-behavior-y: none; }
+    
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 2px solid var(--border); padding-bottom: 8px; }
+    .main-title { font-size: 1.3rem; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase; color: #fff; }
+    .main-title span { color: var(--accent); }
+    
+    .header-actions { display: flex; gap: 6px; align-items: center; }
+    .action-btn-header {
+      background: #1c1c1c; border: 1px solid #333; color: #fff; width: 40px; height: 40px;
+      border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer;
+    }
+    .action-btn-header svg { width: 20px; height: 20px; stroke: #fff; fill: none; stroke-width: 2; }
+    .action-btn-header:active { background: var(--accent); }
+    .action-btn-header.active-setting { border-color: var(--accent); background: #1a0808; }
+
+    .selector-wrap { margin-bottom: 10px; }
+    select {
+      width: 100%; padding: 10px 12px; font-size: 0.88rem; font-weight: 700; background: var(--card-bg); color: #fff;
+      border: 1px solid var(--border); border-radius: 8px; outline: none; appearance: none;
+    }
+
+    .settings-panel {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px;
+      margin-bottom: 10px; display: none; flex-direction: column; gap: 10px;
+    }
+    .settings-panel.open { display: flex; }
+    .setting-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; }
+    .setting-row span { color: var(--text-sub); font-size: 0.75rem; }
+    
+    .coach-input-box { width: 100%; padding: 8px 12px; background: #1c1c1c; border: 1px solid #444; border-radius: 6px; color: #fff; font-weight: 800; text-transform: uppercase; outline: none; margin-top: 4px; }
+
+    .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider-toggle {
+      position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #262626; transition: .3s; border-radius: 24px; border: 1px solid #333;
+    }
+    .slider-toggle:before {
+      position: absolute; content: ""; height: 18px; width: 18px; left: 2px; bottom: 2px;
+      background-color: white; transition: .3s; border-radius: 50%;
+    }
+    input:checked + .slider-toggle { background-color: var(--accent); }
+    input:checked + .slider-toggle:before { transform: translateX(20px); }
+
+    .levels-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 10px; }
+    .level-btn {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; padding: 8px 4px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer;
+    }
+    .level-btn.active { border-color: var(--accent); background: #1a0808; }
+    .level-title { font-size: 0.78rem; font-weight: 800; text-transform: uppercase; }
+    .level-sub { font-size: 0.62rem; color: var(--text-muted); margin-top: 2px; }
+    .level-btn.active .level-title { color: #fff; }
+
+    .clock-display {
+      background: #050505; border: 1px solid var(--border); border-radius: 12px; padding: 12px;
+      text-align: center; margin-bottom: 8px; transition: border-color 0.3s;
+    }
+    .clock-display.sprint-active { border-color: var(--accent); animation: pulseBorder 1.2s infinite; }
+    @keyframes pulseBorder {
+      0% { border-color: var(--accent); }
+      50% { border-color: #330005; }
+      100% { border-color: var(--accent); }
+    }
+
+    .phase-badge {
+      display: inline-block; font-size: 0.72rem; font-weight: 800; letter-spacing: 1.2px;
+      padding: 3px 8px; border-radius: 4px; text-transform: uppercase; margin-bottom: 2px;
+      background: #1c1c1c; color: #fff; border: 1px solid #2a2a2a;
+    }
+    .time-big { font-size: 3.5rem; font-weight: 900; font-variant-numeric: tabular-nums; line-height: 1; margin: 2px 0; color: #fff; }
+    .exercise-current { font-size: 0.88rem; color: var(--text-sub); font-weight: 600; min-height: 18px; }
+
+    /* Línea de Tiempo Blanca (60 Min) */
+    .scrubber-container {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px;
+      padding: 8px 12px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 4px;
+      transition: opacity 0.3s;
+    }
+    .scrubber-container.locked { opacity: 0.35; pointer-events: none; }
+    .scrubber-header {
+      display: flex; justify-content: space-between; align-items: center; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted);
+    }
+    .scrubber-header span.tag-mode { color: var(--accent); }
+    .time-slider {
+      -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: #ffffff; outline: none; cursor: pointer; margin: 6px 0;
+    }
+    .time-slider::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%;
+      background: #ffffff; border: 2px solid #000; cursor: pointer; box-shadow: 0 0 6px rgba(255,255,255,0.8);
+    }
+    .time-slider::-moz-range-thumb {
+      width: 18px; height: 18px; border-radius: 50%;
+      background: #ffffff; border: 2px solid #000; cursor: pointer;
+    }
+    .scrubber-ticks {
+      display: flex; justify-content: space-between; font-size: 0.55rem; font-weight: 700; color: #888;
+    }
+
+    .lanes-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+    .lane-card {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px;
+      display: flex; flex-direction: column; gap: 4px; transition: opacity 0.2s; cursor: pointer;
+    }
+    .lane-card:hover { border-color: #444; }
+    .lane-card.muted { opacity: 0.2; }
+    
+    .lane-top-row {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;
+    }
+    .lane-header-group { display: flex; align-items: center; gap: 8px; }
+    .lane-name { font-size: 0.82rem; font-weight: 900; text-transform: uppercase; color: #fff; }
+    
+    .status-pill {
+      font-size: 0.65rem; font-weight: 800; text-transform: uppercase; padding: 2px 8px; border-radius: 4px;
+      display: flex; align-items: center; gap: 5px; background: #202020; color: #fff; border: 1px solid #333;
+    }
+    .status-pill.st-work .status-icon { color: var(--accent); }
+    .status-pill.st-pausa .status-icon { color: #888; }
+    .status-pill.st-descanso .status-icon { color: #666; }
+    .lane-time { font-size: 1.3rem; font-weight: 900; font-variant-numeric: tabular-nums; color: #fff; }
+
+    .feed-viewport {
+      position: relative; height: 74px; overflow: hidden; border-top: 1px solid #1a1a1a; padding-top: 4px;
+    }
+    .feed-slot {
+      position: absolute; left: 0; width: 100%;
+      transition: transform 0.45s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.45s ease;
+    }
+    .slot-current { top: 0; transform: translateY(0); opacity: 1; }
+    .slot-next { top: 40px; transform: translateY(0); opacity: 0.7; }
+    .slot-exit { top: 0; transform: translateY(-38px); opacity: 0; }
+
+    .lane-task-desc {
+      font-size: 0.82rem; font-weight: 800; color: #ffffff; line-height: 1.25;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .lane-biomech-row {
+      display: flex; align-items: center; gap: 5px; font-size: 0.7rem; color: #888888; font-weight: 600; line-height: 1.2; margin-top: 2px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .lane-biomech-label {
+      font-size: 0.6rem; text-transform: uppercase; font-weight: 900; background: #222; color: #fff; padding: 1px 4px; border-radius: 3px; display: inline-flex; align-items: center; gap: 3px;
+    }
+    .lane-biomech-label svg { width: 10px; height: 10px; stroke: var(--accent); fill: none; }
+    
+    .lane-next-row {
+      font-size: 0.7rem; color: #777777; font-weight: 500; display: flex; gap: 4px; align-items: center;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .lane-next-label { font-weight: 800; text-transform: uppercase; color: #555555; font-size: 0.62rem; }
+
+    .controls-wrap { display: flex; gap: 10px; }
+    .btn {
+      flex: 1; padding: 14px; font-size: 0.95rem; font-weight: 900; text-transform: uppercase;
+      border: none; border-radius: 8px; cursor: pointer; letter-spacing: 1px;
+    }
+    .btn-main { background: var(--accent); color: #fff; }
+    .btn-main:active { filter: brightness(0.85); }
+    .btn-sub { background: #1c1c1c; color: #bbb; max-width: 95px; border: 1px solid #2a2a2a; }
+
+    /* Cámara Táctica Estilizada */
+    .camera-modal {
+      display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: #0c0c0c; z-index: 1000; flex-direction: column; justify-content: space-between;
+    }
+    .camera-modal.active { display: flex; }
+    video#cameraFeed { display: none; }
+    canvas#renderCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
+    
+    .cam-placeholder-msg {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      z-index: 2; text-align: center; pointer-events: none; width: 90%; max-width: 400px;
+    }
+    .cam-placeholder-title { font-size: 1.2rem; font-weight: 950; letter-spacing: 2px; text-transform: uppercase; color: #fff; margin-bottom: 6px; }
+    .cam-placeholder-sub { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+    .cam-hud-top {
+      position: relative; z-index: 3; padding: 12px 16px; display: flex; justify-content: space-between;
+      align-items: flex-start; background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
+    }
+    .cam-controls-top { display: flex; align-items: center; gap: 8px; }
+    
+    .duration-drum-wrap {
+      display: flex; align-items: center; background: rgba(18, 18, 18, 0.85); border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 12px; padding: 4px 8px; backdrop-filter: blur(8px); height: 48px; gap: 6px;
+    }
+    .duration-scroll {
+      display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; gap: 6px; max-width: 100px; align-items: center; padding: 2px;
+    }
+    .duration-scroll::-webkit-scrollbar { display: none; }
+    .drum-item {
+      scroll-snap-align: center; font-size: 0.75rem; font-weight: 950; color: #888; padding: 4px 8px; border-radius: 8px; cursor: pointer; white-space: nowrap; transition: 0.2s;
+    }
+    .drum-item.active { color: #fff; background: var(--accent); }
+
+    .manual-toggle-btn {
+      background: #222; border: 1px solid #444; color: #aaa; font-size: 0.65rem; font-weight: 900; text-transform: uppercase;
+      padding: 6px 8px; border-radius: 8px; cursor: pointer; white-space: nowrap; transition: 0.2s;
+    }
+    .manual-toggle-btn.active { background: #fff; color: #000; border-color: #fff; }
+
+    .btn-close-cam {
+      background: rgba(20, 20, 20, 0.85); border: 1px solid rgba(255,255,255,0.3);
+      color: #fff; width: 40px; height: 40px; border-radius: 12px; display: flex;
+      align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(6px);
+    }
+    
+    .cam-hud-bottom {
+      position: relative; z-index: 3; padding: 20px; display: flex; flex-direction: column;
+      align-items: center; gap: 12px; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+    }
+    .rec-counter {
+      font-size: 0.9rem; font-weight: 900; color: var(--accent); font-variant-numeric: tabular-nums;
+      background: rgba(0,0,0,0.7); padding: 4px 12px; border-radius: 20px; display: none; letter-spacing: 1px;
+    }
+    .rec-counter.active { display: block; }
+    
+    .cam-bottom-bar {
+      display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; max-width: 340px;
+    }
+
+    /* Obturador Moderno Apex */
+    .shutter-btn {
+      width: 76px; height: 76px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.4);
+      display: flex; align-items: center; justify-content: center; cursor: pointer; background: rgba(0,0,0,0.6); transition: 0.2s;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.6); flex-shrink: 0; position: relative;
+    }
+    .shutter-core { width: 56px; height: 56px; border-radius: 50%; background: #ffffff; transition: all 0.2s; box-shadow: 0 0 12px rgba(255,255,255,0.8); }
+    .shutter-btn.recording { border-color: var(--accent); animation: pulseShutter 1.5s infinite; }
+    .shutter-btn.recording .shutter-core { width: 28px; height: 28px; border-radius: 8px; background: var(--accent); box-shadow: 0 0 12px var(--accent); }
+
+    @keyframes pulseShutter {
+      0% { box-shadow: 0 0 0 0 rgba(229, 9, 20, 0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(229, 9, 20, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(229, 9, 20, 0); }
+    }
+
+    .modal-overlay {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.88); z-index: 2000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(4px);
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: var(--card-bg); border: 2px solid var(--border); border-radius: 12px; padding: 20px;
+      max-width: 380px; width: 100%; text-align: left; max-height: 85vh; overflow-y: auto;
+    }
+    .modal-box h2 { font-size: 1.15rem; font-weight: 900; text-transform: uppercase; margin-bottom: 12px; color: #fff; text-align: center; }
+    .modal-box p { font-size: 0.85rem; color: #ddd; margin-bottom: 16px; line-height: 1.5; }
+    .modal-actions { display: flex; gap: 10px; justify-content: center; margin-top: 15px; }
+    .modal-btn {
+      flex: 1; padding: 12px; font-size: 0.85rem; font-weight: 800; text-transform: uppercase;
+      border: none; border-radius: 6px; cursor: pointer; text-align: center;
+    }
+    .modal-btn-danger { background: var(--accent); color: #fff; }
+    .modal-btn-cancel { background: #2a2a2a; color: #ccc; }
+    .modal-btn-save { background: #fff; color: #000; font-weight: 900; }
+  </style>
+</head>
+<body>
+
+  <audio id="silentAudio" loop playsinline preload="auto">
+    <source src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA" type="audio/wav">
+  </audio>
+
+  <div class="header">
+    <div class="main-title">Crono <span>Apex Tactical</span></div>
+    <div class="header-actions">
+      <button class="action-btn-header" id="settingsToggleBtn" onclick="toggleSettings()" title="Configuración">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l-.06.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+      <button class="action-btn-header" onclick="openCamera()" title="Cámara Táctica">
+        <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Panel de Configuración -->
+  <div class="settings-panel" id="settingsPanel">
+    <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 4px;">
+      <div>Nombre del Coach <br><span>(Aparece renderizado en los videos)</span></div>
+      <input type="text" id="coachNameConfigInput" class="coach-input-box" placeholder="EJ: VICTOR" oninput="updateCoachName(this.value)">
+    </div>
+    <div class="setting-row">
+      <div>Bloquear Modo Estudio <br><span>(Desactiva barra deslizante en sala)</span></div>
+      <label class="switch">
+        <input type="checkbox" id="lockScrubberCheck" onchange="toggleScrubberLock(this.checked)">
+        <span class="slider-toggle"></span>
+      </label>
+    </div>
+    <div class="setting-row">
+      <div>Avisos de Voz (Sintetizador) <br><span>(Alertas de cuenta atrás 3s)</span></div>
+      <label class="switch">
+        <input type="checkbox" id="voiceToggleCheck" checked onchange="toggleVoice(this.checked)">
+        <span class="slider-toggle"></span>
+      </label>
+    </div>
+    <div class="setting-row">
+      <div>Audio Keep-Alive (Silencio) <br><span>(Evita suspensión en móviles)</span></div>
+      <label class="switch">
+        <input type="checkbox" id="audioKeepCheck" checked onchange="toggleKeepAlive(this.checked)">
+        <span class="slider-toggle"></span>
+      </label>
+    </div>
+  </div>
+
+  <div class="selector-wrap">
+    <select id="classSelector" onchange="onClassChange()"></select>
+  </div>
+
+  <div class="levels-grid">
+    <div class="level-btn active" id="btn_iniciado" onclick="toggleNivel('Iniciado')">
+      <div class="level-title">Iniciados</div>
+      <div class="level-sub">1m / 1m P</div>
+    </div>
+    <div class="level-btn active" id="btn_intermedio" onclick="toggleNivel('Intermedio')">
+      <div class="level-title">Intermedio</div>
+      <div class="level-sub">1:15 / 1:30</div>
+    </div>
+    <div class="level-btn active" id="btn_avanzado" onclick="toggleNivel('Avanzado')">
+      <div class="level-title">Avanzado</div>
+      <div class="level-sub">1:30 / 30s P</div>
+    </div>
+    <div class="level-btn active" id="btn_apex" onclick="toggleNivel('Apex')">
+      <div class="level-title">Apex</div>
+      <div class="level-sub">1:45 / 15s P</div>
+    </div>
+    <div class="level-btn active" id="btn_apex_plus" onclick="toggleNivel('Apex+')">
+      <div class="level-title">Apex +</div>
+      <div class="level-sub">1:50 / 2m Cont.</div>
+    </div>
+  </div>
+
+  <div class="clock-display" id="clockBox">
+    <div class="phase-badge" id="phaseLabel">Apertura · Cuerda</div>
+    <div class="time-big" id="mainTime">00:00</div>
+    <div class="exercise-current" id="exerciseLabel">Preparación</div>
+  </div>
+
+  <!-- Línea de Tiempo Blanca (60 Min) -->
+  <div class="scrubber-container" id="scrubberContainer">
+    <div class="scrubber-header">
+      <span>Línea de Tiempo · Sesión (60 Min)</span>
+      <span class="tag-mode" id="scrubberPosLabel">00:00 / 60:00</span>
+    </div>
+    <input type="range" class="time-slider" id="sessionScrubber" min="0" max="3600" step="1" value="0" oninput="onScrub(this.value)">
+    <div class="scrubber-ticks">
+      <span>00:00 Cuerda</span>
+      <span>10:00 Aprox 1</span>
+      <span>13:00 Aprox 2</span>
+      <span>16:00 Cuerpo</span>
+      <span>44:00 Cierre</span>
+      <span>50:00 Calma</span>
+    </div>
+  </div>
+
+  <div class="lanes-list" id="lanesContainer"></div>
+
+  <div class="controls-wrap">
+    <button class="btn btn-main" id="btnStart" onclick="togglePlay()">Iniciar Clase</button>
+    <button class="btn btn-sub" onclick="openResetModal()">Reset</button>
+  </div>
+
+  <!-- Modal Lámina de Entrenamiento -->
+  <div class="modal-overlay" id="levelDetailModal">
+    <div class="modal-box">
+      <h2 id="modalLevelTitle">Detalle de Nivel</h2>
+      <p id="modalLevelContent" style="color: #fff; font-size: 0.88rem; white-space: pre-line;"></p>
+      <div class="modal-actions">
+        <button class="modal-btn modal-btn-save" onclick="closeLevelModal()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cámara Táctica con Instrucción Pre-grabación, Tambor de Segundos y Modo Libre -->
+  <div class="camera-modal" id="cameraModal">
+    <video id="cameraFeed" autoplay playsinline muted></video>
+    <canvas id="renderCanvas"></canvas>
+    
+    <div class="cam-placeholder-msg" id="camPlaceholderMsg">
+      <div class="cam-placeholder-title">Cámara Apex Tactical</div>
+      <div class="cam-placeholder-sub">Empieza a grabar para activar la cámara</div>
+    </div>
+
+    <div class="cam-hud-top">
+      <div class="cam-controls-top" style="margin-left: auto;">
+        <button class="btn-close-cam" onclick="closeCamera()">✕</button>
+      </div>
+    </div>
+    
+    <div class="cam-hud-bottom">
+      <div class="rec-counter" id="recCounter">REC 00:00 / 00:30</div>
+      <div class="cam-bottom-bar">
+        <div class="duration-drum-wrap" id="drumWrap">
+          <div class="duration-scroll" id="durationScroll">
+            <div class="drum-item" data-val="10">10s</div>
+            <div class="drum-item" data-val="20">20s</div>
+            <div class="drum-item active" data-val="30">30s</div>
+            <div class="drum-item" data-val="60">1m</div>
+          </div>
+          <button class="manual-toggle-btn" id="manualToggleBtn" onclick="toggleManualMode()">Libre</button>
+        </div>
+        <button class="shutter-btn" id="shutterBtn" onclick="toggleRecord()">
+          <div class="shutter-core" id="shutterCore"></div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modales -->
+  <div class="modal-overlay" id="saveVideoModal">
+    <div class="modal-box">
+      <h2>Evidencia Lista</h2>
+      <p id="saveVideoText">¿Deseas guardar este clip en tu galería o descartarlo?</p>
+      <div class="modal-actions">
+        <button class="modal-btn modal-btn-cancel" onclick="discardVideo()">Descartar</button>
+        <button class="modal-btn modal-btn-save" onclick="saveVideo()">Guardar Video</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="resetModal">
+    <div class="modal-box">
+      <h2>¿Reiniciar Clase?</h2>
+      <p>Se detendrá el cronómetro y el tiempo de la sesión volverá a cero.</p>
+      <div class="modal-actions">
+        <button class="modal-btn modal-btn-cancel" onclick="closeResetModal()">Cancelar</button>
+        <button class="modal-btn modal-btn-danger" onclick="confirmReset()">Reiniciar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      const swCode = `
+        self.addEventListener('install', e => self.skipWaiting());
+        self.addEventListener('activate', e => clients.claim());
+        self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => new Response('Offline'))));
+      `;
+      const blob = new Blob([swCode], { type: 'application/javascript' });
+      navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
+    }
+
+    let coachName = localStorage.getItem('apex_coach_name') || 'VICTOR';
+    document.getElementById('coachNameConfigInput').value = coachName;
+
+    function updateCoachName(val) {
+      coachName = val.trim().toUpperCase() || 'VICTOR';
+      localStorage.setItem('apex_coach_name', coachName);
+    }
+
+    let selectedDuration = 30;
+    let isManualMode = false;
+
+    document.querySelectorAll('.drum-item').forEach(item => {
+      item.onclick = () => {
+        document.querySelectorAll('.drum-item').forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+        selectedDuration = parseInt(item.getAttribute('data-val'), 10);
+        isManualMode = false;
+        document.getElementById("manualToggleBtn").classList.remove("active");
+      };
+    });
+
+    function toggleManualMode() {
+      isManualMode = !isManualMode;
+      const btn = document.getElementById("manualToggleBtn");
+      btn.classList.toggle("active", isManualMode);
+      if (isManualMode) {
+        document.querySelectorAll('.drum-item').forEach(i => i.classList.remove('active'));
+      }
+    }
+
+    // BASE DE DATOS MAESTRA COMPLETA (4 Semanas x 3 Pilares)
+    const sesionesData = [
+      {
+        id: "cf_sem1", title: "Condición Física - Semana 1", pilar: "Condición Física", semana: 1,
+        niveles: {
+          "Iniciado": { cuerda: "5 rounds x (1m salto suave / 1m descanso). R1-R4 ritmo suave, R5 máxima intensidad individual.", aprox1: "Movilidad articular: cadera 90/90, tobillos y muñecas (3 min)", aprox2: "Isometría cervical manual en 4 direcciones (3 min)", ejercicios: ["Sentadilla pared", "Flexión inclinada banco", "Plancha"], foco: "Tensión estática sin impacto", biomecanica: "Biomecánica de la respiración diafragmática y presión intraabdominal (IAP) para soporte lumbar", debate: "¿Cómo cambia tu estabilidad cuando inhalas empujando el abdomen hacia el suelo vs. cuando metes la barriga?" },
+          "Intermedio": { cuerda: "5 rounds x (1m15s salto rítmico / 45s descanso). R1-R3 ritmo medio, R4 aceleración, R5 sprint.", aprox1: "Movilidad dinámica de cadera y rodillas en sentadilla profunda (3 min)", aprox2: "Activación escapular con bandas elásticas en W y T (3 min)", ejercicios: ["Sentadilla tempo (3-1-1)", "Flexión estricta en suelo", "Plancha con toque hombros"], foco: "Fuerza isométrica y control de tronco", biomecanica: "Control excéntrico del cuádriceps en fase de bajada y estabilización lumbo-pélvica anti-rotatoria", debate: "¿Por qué bajar en 3 segundos controlados construye mucha más fuerza y estabilidad que dejarse caer rápido?" },
+          "Avanzado": { cuerda: "5 rounds x (1m30s salto continuo / 30s descanso). R1-R3 ritmo alto con cruces, R4 cambios de compás, R5 sprint máximo.", aprox1: "Movilidad articular bajo carga ligera y sentadilla isométrica profunda (3 min)", aprox2: "Activación rotacional con mancuernas ligeras en posición de combate (3 min)", ejercicios: ["Sentadilla isométrica al aire rotacional", "Flexión pausa 3s", "Giros rusos con carga"], foco: "Fuerza isométrica profunda y anti-rotación", biomecanica: "Fuerza isométrica profunda, reclutamiento de unidades motoras de alto umbral y rigidez del core", debate: "¿De qué manera una postura isométrica sólida te permite absorber impactos pesados sin retroceder un milímetro?" },
+          "Apex": { cuerda: "5 rounds x (1m45s salto intenso / 15s descanso). R1-R3 saltos dobles continuos, R4 cambios de dirección, R5 potencia pura.", aprox1: "Movilidad articular con autocarga pesada y apertura de cadera (3 min)", aprox2: "Activación explosiva de tríceps y serratos en suelo (3 min)", ejercicios: ["Sentadilla profunda pesada", "Flexión palmada", "Plancha sobre puños con rodilla"], foco: "Tensión máxima y potencia elástica", biomecanica: "Tasa de desarrollo de fuerza (RFD) máxima y reclutamiento de fibras tipo IIb bajo sobrecarga neuromuscular", debate: "¿Qué diferencia biomecánica hay entre un golpe que simplemente 'empuja' vs. uno que 'penetra y detona'?" },
+          "Apex+": { cuerda: "5 rounds x (1m50s salto con sobrecarga en muñecas/tobillos / 10s descanso). R1-R3 dobles continuos, R4 triples, R5 potencia balística pura.", aprox1: "Movilidad avanzada con sobrecarga externa y activación de core (3 min)", aprox2: "Sentadillas con sobrecarga y salto pliométrico inmediato (3 min)", ejercicios: ["Sentadilla pesada con salto reactivo", "Flexión déficit/lastre", "Hollow rock con peso"], foco: "RFD máxima y blindaje total de la cadena anterior", biomecanica: "Tasa de desarrollo de fuerza (RFD) máxima y blindaje total de la cadena anterior bajo tensión ininterrumpida", debate: "¿Cómo se siente en el cuerpo mantener una estructura completamente blindada mientras te mueves a máxima velocidad?" }
+        }
+      },
+      {
+        id: "cf_sem2", title: "Condición Física - Semana 2", pilar: "Condición Física", semana: 2,
+        niveles: {
+          "Iniciado": { cuerda: "5 rounds x (1m salto suave / 1m descanso). R1-R4 ritmo suave, R5 máxima intensidad individual.", aprox1: "Rotaciones torácicas en cuadrupedia y gato-camello (3 min)", aprox2: "Activación de gemelos y fascia plantar con balanceo talón-punta (3 min)", ejercicios: ["Sentadilla con despegue talón", "Lanzamiento balón pecho ligero", "Saltos estrella suaves"], foco: "Coordinación balística controlada", biomecanica: "Ciclo estiramiento-acortamiento básico (CEA) y disipación de impacto en la articulación tibiotarsiana", debate: "¿Por qué rebotar en silencio sobre la punta de los pies cansa mucho menos que saltar haciendo ruido contra el piso?" },
+          "Intermedio": { cuerda: "5 rounds x (1m15s salto rítmico / 45s descanso). R1-R3 ritmo medio, R4 aceleración, R5 sprint.", aprox1: "Activación de tobillos sobre cajón y movilidad de cadera en puente (3 min)", aprox2: "Lanzamientos balísticos suaves de balón medicinal a pared (3 min)", ejercicios: ["Salto vertical estricto", "Flexión con despegue de palmas", "Saltos laterales de cono"], foco: "Potencia elástica básica", biomecanica: "Tasa de desarrollo de fuerza (RFD) inicial y absorción de impacto mediante triple flexión coordinada", debate: "¿Cómo puedes saber si tu cuerpo está amortiguando el impacto correctamente o si tus articulaciones están sufriendo el golpe?" },
+          "Avanzado": { cuerda: "5 rounds x (1m30s salto continuo / 30s descanso). R1-R3 ritmo alto con cruces, R4 cambios de compás, R5 sprint máximo.", aprox1: "Movilidad dinámica de cadera y tobillos para potencia balística (3 min)", aprox2: "Pliometría horizontal y vertical con aterrizaje reactivo (3 min)", ejercicios: ["Squat jump continuo", "Balón medicinal explosivo pared/suelo", "Tijeras reactivas"], foco: "Potencia neuromuscular repetida", biomecanica: "Optimización del ciclo de estiramiento y acortamiento (CEA) a alta velocidad de contracción muscular", debate: "¿Cómo se siente en el cuerpo la diferencia entre un empuje lento con fuerza muscular vs. un disparo elástico explosivo?" },
+          "Apex": { cuerda: "5 rounds x (1m45s salto intenso / 15s descanso). R1-R3 saltos dobles continuos, R4 cambios de dirección, R5 potencia pura.", aprox1: "Activación reactiva de tobillos y estabilidad unipodal en cajón (3 min)", aprox2: "Lanzamientos balísticos rotacionales pesados con balón medicinal (3 min)", ejercicios: ["Salto al cajón continuo", "Flexión reactiva sobre cajón", "Lanzamiento rotacional balón"], foco: "Tasa de desarrollo de fuerza (RFD)", biomecanica: "Potencia reactiva y mínima amortiguación articular en la fase de contacto con el suelo (stiffness tendinoso)", debate: "¿Cómo logras que el contacto de tus pies con el tatami sea tan reactivo que parezca que el suelo quema?" },
+          "Apex+": { cuerda: "5 rounds x (1m50s salto con sobrecarga en muñecas/tobillos / 10s descanso). R1-R3 dobles continuos, R4 triples, R5 potencia balística pura.", aprox1: "Activación balística de hombros y movilidad de tobillos a máxima carga (3 min)", aprox2: "Pliometría multidireccional reactiva con sobrecarga externa (3 min)", ejercicios: ["Salto al cajón con sobrecarga", "Push press balístico", "Pliometría multi-direccional"], foco: "Transferencia balística explosiva", biomecanica: "Eficiencia neuromuscular en la transferencia de potencia desde el tren inferior hacia el tren superior en cadena cinética abierta", debate: "¿Cómo sincronizas el estallido de tus caderas para que el golpe salga en el pico exacto de la extensión de tus piernas?" }
+        }
+      },
+      {
+        id: "cf_sem3", title: "Condición Física - Semana 3", pilar: "Condición Física", semana: 3,
+        niveles: {
+          "Iniciado": { cuerda: "5 rounds x (1m salto suave / 1m descanso). R1-R4 ritmo suave, R5 máxima intensidad individual.", aprox1: "Circunducción de hombros y retracción escapular en suelo (3 min)", aprox2: "Activación de flexores de cadera con elevación de rodilla en pared (3 min)", ejercicios: ["Medio burpee sin salto", "Rodillas al pecho suaves", "Sombra básica guiada"], foco: "Base aeróbica y ritmo respiratorio", biomecanica: "Fisiología del consumo de oxígeno: cadencia respiratoria nasal-bucal para control de lactato basal", debate: "¿Qué señal física te avisa que pasaste de un ritmo aeróbico controlado a una deuda de oxígeno insostenible?" },
+          "Intermedio": { cuerda: "5 rounds x (1m15s salto rítmico / 45s descanso). R1-R3 ritmo medio, R4 aceleración, R5 sprint.", aprox1: "Movilidad torácica dinámica y zancadas con rotación de tronco (3 min)", aprox2: "Activación láctica con sombra y mancuernas de 1 kg (3 min)", ejercicios: ["Burpee completo con flexión", "Mountain climbers continuos", "Sombra con carga ligera"], foco: "Capacidad glucolítica media", biomecanica: "Cinética de la resíntesis de fosfocreatina en micropausas y tolerancia del sistema muscular a la acidosis", debate: "¿Por qué caminar erguido e inhalar profundo en los 30 segundos de pausa te permite arrancar el siguiente round al 100%?" },
+          "Avanzado": { cuerda: "5 rounds x (1m30s salto continuo / 30s descanso). R1-R3 ritmo alto con cruces, R4 cambios de compás, R5 sprint máximo.", aprox1: "Movilidad torácica avanzada y flexores de cadera dinámicos (3 min)", aprox2: "Activación metabólica con sprints de sombras con lastre ligero (3 min)", ejercicios: ["Man-makers con mancuernas", "Sprawls directos continuos", "Golpeo continuo saco pesado"], foco: "Resistencia a la fatiga extrema", biomecanica: "Cinética del aclaramiento de lactato y mantenimiento de la potencia de impacto bajo acidosis muscular severa", debate: "¿Qué ajuste mental y respiratorio haces cuando tus hombros empiezan a quemar por la acidez láctica?" },
+          "Apex": { cuerda: "5 rounds x (1m45s salto intenso / 15s descanso). R1-R3 saltos dobles continuos, R4 cambios de dirección, R5 potencia pura.", aprox1: "Movilidad torácica bajo fatiga y estiramiento activo de aductores (3 min)", aprox2: "Sprints de sombra con mancuernas de 2 kg a máxima frecuencia (3 min)", ejercicios: ["Sprints cortos continuos", "Burpees explosivos", "Golpeo pesado continuo a saco"], foco: "Capacidad anaeróbica láctica al límite", biomecanica: "Tolerancia extrema a la acidosis intracelular y mantenimiento de la potencia de contracción en deuda de oxígeno", debate: "¿Cómo logras que tus golpes sigan siendo milimétricamente precisos cuando tu cuerpo entero te pide parar?" },
+          "Apex+": { cuerda: "5 rounds x (1m50s salto con sobrecarga en muñecas/tobillos / 10s descanso). R1-R3 dobles continuos, R4 triples, R5 potencia balística pura.", aprox1: "Movilidad torácica bajo fatiga extrema y rotación en suspensión (3 min)", aprox2: "Complejo metabólico implacable con mancuernas pesadas y sprawls continuos (3 min)", ejercicios: ["Levantamiento con mancuernas continuo", "Sprawls pesados", "Golpeo a saco a fondo"], foco: "Potencia muscular implacable", biomecanica: "Capacidad de mantener la producción de fuerza de pico durante el agotamiento completo del sistema fosfágeno y glucolítico", debate: "¿Dónde encuentras el resorte mental para seguir disparando con máxima rigidez cuando tus músculos ya no tienen glucógeno?" }
+        }
+      },
+      {
+        id: "cf_sem4", title: "Condición Física - Semana 4", pilar: "Condición Física", semana: 4,
+        niveles: {
+          "Iniciado": { cuerda: "5 rounds x (1m salto suave / 1m descanso). R1-R4 ritmo suave, R5 máxima intensidad individual.", aprox1: "Descompresión lumbar en posición del niño y rotaciones pasivas (3 min)", aprox2: "Apertura de aductores en colchoneta y estiramiento de psoas (3 min)", ejercicios: ["Movilidad pasiva cadera 90/90", "Puente glúteo sostenido", "Descompresión lumbar activa"], foco: "Higiene postural", biomecanica: "Descarga miofascial, viscoelasticidad muscular del psoas-ilíaco y reajuste postural de pelvis neutra", debate: "¿Cómo influye tener la cadera relajada y neutra en la fluidez para agacharse y caminar en guardia?" },
+          "Intermedio": { cuerda: "5 rounds x (1m15s salto rítmico / 45s descanso). R1-R3 ritmo medio, R4 aceleración, R5 sprint.", aprox1: "Movilidad pasiva asistida con bandas para hombros y cápsula articular (3 min)", aprox2: "Descompresión pélvica y estiramiento dinámico de cadena posterior (3 min)", ejercicios: ["Movilidad activa con bandas", "Rotaciones torácicas dinámicas", "Aperturas escapulares"], foco: "Amplitud articular funcional", biomecanica: "Optimización del Rango de Movimiento Activo (RAM) y descarga miofascial de la cintura escapular", debate: "¿Cómo una escápula libre y móvil aumenta el alcance real de tu jab sin necesidad de inclinar el cuerpo?" },
+          "Avanzado": { cuerda: "5 rounds x (1m30s salto continuo / 30s descanso). R1-R3 ritmo alto con cruces, R4 cambios de compás, R5 sprint máximo.", aprox1: "Descompresión miofascial completa con rodillo y movilidad escapular (3 min)", aprox2: "Estiramiento de la cadena posterior y fortalecimiento de cuello con puente (3 min)", ejercicios: ["Jefferson curl ligero", "Puente de cuello en colchoneta", "Elongación psoas e isquios"], foco: "Blindaje articular y descompresión", biomecanica: "Descarga estructural profunda, incremento del ROM funcional y fortalecimiento cervical anti-conmoción", debate: "¿Por qué el fortalecimiento cervical es la herramienta biomecánica número uno para prevenir conmociones cerebrales?" },
+          "Apex": { cuerda: "5 rounds x (1m45s salto intenso / 15s descanso). R1-R3 saltos dobles continuos, R4 cambios de dirección, R5 potencia pura.", aprox1: "Movilidad articular profunda y desbloqueo capsular hombro-cadera (3 min)", aprox2: "Descarga miofascial activa y estiramientos PNF en colchoneta (3 min)", ejercicios: ["Movilidad con autocarga", "Desbloqueo capsular hombro-cadera", "Descarga miofascial"], foco: "Mantenimiento y prevención avanzada", biomecanica: "Recuperación neuromuscular acelerada, homeostasis celular y regeneración del tejido conectivo periarticular", debate: "¿Qué rutina de descarga física realizas para amanecer al día siguiente listo para rendir al 100% de nuevo?" },
+          "Apex+": { cuerda: "5 rounds x (1m50s salto con sobrecarga en muñecas/tobillos / 10s descanso). R1-R3 dobles continuos, R4 triples, R5 potencia balística pura.", aprox1: "CARs articulares avanzados a máxima amplitud y control motor (3 min)", aprox2: "Estiramiento PNF resistido y fortalecimiento de cuello con puente completo (3 min)", ejercicios: ["CARs articulares avanzados", "Estiramiento PNF resistido", "Puente de cuello completo"], foco: "Máxima capacidad biomecánica", biomecanica: "Optimización del ROM anatómico absoluto, resiliencia estructural de tendones y protección integral de la columna cervical", debate: "¿Por qué la longevidad y resistencia de un atleta de élite dependen directamente de la salud de sus cápsulas articulares?" }
+        }
+      },
+      {
+        id: "tec_sem1", title: "Técnica - Semana 1", pilar: "Técnica", semana: 1,
+        niveles: {
+          "Iniciado": { cuerda: "5 rounds x (1m salto suave / 1m descanso). R1-R4 ritmo suave, R5 máxima intensidad individual.", aprox1: "Movilidad de tobillos y rotación de cadera para guardia (3 min)", aprox2: "Ajuste postural de guardia estática frente al espejo sin guantes (3 min)", ejercicios: ["Guardia estática", "Paso plano adelante/atrás", "Pasos laterales continuos"], foco: "Base 50/50 y equilibrio constante", biomecanica: "Vendaje anatómico funcional: tensión sobre túnel carpiano, fijación del pulgar y compresión metacarpiana", debate: "¿Por qué apretar el puño después de vendarte debe sentirse como cerrar un bloque de piedra sólido y no como un corte de circulación?" },
+          "Intermedio": { cuerda: "5 rounds x (1m15s salto péndulo / 45s descanso). R1-R3 coordinación, R4 cambios de guardia, R5 velocidad.", aprox1: "Elasticidad del tendón de Aquiles y movilidad dinámica de tobillos (3 min)", aprox2: "Automatización del paso péndulo adelante y atrás en espejo (3 min)", ejercicios: ["Paso péndulo rítmico", "Desplazamiento en diagonal", "Péndulo con fintas de jab"], foco: "Fluidez de desplazamiento", biomecanica: "Resonancia viscoelástica del tendón de Aquiles y eficiencia metabólica en oscilación constante", debate: "¿Cómo encuentras el ritmo justo del péndulo para estar siempre listo para atacar sin quemar las pantorrillas?" },
+          "Avanzado": { cuerda: "5 rounds x (1m30s salto técnico / 30s descanso). R1-R3 saltos dobles, R4 giros de soga en carrera, R5 máxima cadencia.", aprox1: "Movilidad de tobillos y pivotes sobre metatarso a velocidad de combate (3 min)", aprox2: "Automatización de pasos laterales con amague y quiebre de cadera (3 min)", ejercicios: ["Pivote sobre pie adelantado", "Cambios de guardia temporales", "Creación ángulos ciegos"], foco: "Posicionamiento y cambio de línea", biomecanica: "Mecánica del desplazamiento helicoidal y creación de momentos de inercia favorables fuera de la línea de tiro del oponente", debate: "¿Cómo puedes usar un simple pivote con el talón para que el oponente se encuentre de pronto golpeando al aire?" },
+          "Apex": { cuerda: "5 rounds x (1m45s salto con fintas / 15s descanso). R1-R3 cambios de peso, R4 pasos ciegos con soga, R5 velocidad pura.", aprox1: "Propiocepción y engaño de peso en desplazamientos multidireccionales (3 min)", aprox2: "Fintas de entrada y salida rápida en piso resbaladizo o delimitado (3 min)", ejercicios: ["Pasos laterales con engaño de peso", "Fintas de paso", "Parada y salida en ángulo"], foco: "Dominio del engaño visual", biomecanica: "Ocultamiento cinemático de señales de intención motriz y alteración del centro de masa sin comprometer la base", debate: "¿Cómo puedes mover los pies y engañar el peso del cuerpo manteniendo los hombros y la mirada completamente neutros?" },
+          "Apex+": { cuerda: "5 rounds x (1m50s salto de élite / 10s descanso). R1-R3 velocidad máxima, R4 saltos cuádruples, R5 potencia continua.", aprox1: "Movilidad omnidireccional fluida y cambios de nivel imperceptibles (3 min)", aprox2: "Sombra técnica a máxima velocidad integrando dominio territorial total (3 min)", ejercicios: ["Movilidad omnidireccional continua", "Dominio de cuerdas y centro", "Cambios de ritmo"], foco: "Fluidez espacial sin interrupción", biomecanica: "Economía motriz de élite: desplazamiento sobre el plano de flotación sin variaciones del centro de gravedad y con vector dinámico", debate: "¿Cómo logras moverte con fluidez por todo el cuadrilátero manteniendo tu centro de gravedad siempre a la misma altura?" }
+        }
+      },
+      {
+        id: "tec_sem2", title: "Técnica - Semana 2", pilar: "Técnica", semana: 2,
+        niveles: {
+          "Iniciado": { cuerda: "5 rounds x (1m salto suave / 1m descanso). R1-R4 ritmo suave, R5 máxima intensidad individual.", aprox1: "Rotación de muñecas y movilidad escapular para extensión de brazos (3 min)", aprox2: "Mecánica en vacío de rotación del pie trasero para el directo (2) (3 min)", ejercicios: ["Jab (1) con fijación", "Directo (2) con rotación", "Serie 1-2 guiada"], foco: "Alineación ósea y extensión completa", biomecanica: "Alineación cúbito-radial con nudillos mayores y pronación final del antebrazo en punto de impacto", debate: "¿En qué milisegundo exacto del recorrido del brazo debe girar la palma hacia el piso?" },
+          "Intermedio": { cuerda: "5 rounds x (1m15s salto con giros de torso / 45s descanso). R1-R3 rotación, R4 doble salto, R5 explosivo.", aprox1: "Movilidad de cadera en rotación interna/externa y torsión torácica (3 min)", aprox2: "Transferencia de peso de talón a talón para ganchos al cuerpo (3 min)", ejercicios: ["Gancho cuerpo (3-4)", "Uppercut (5-6) con cadera", "Enlace 3-6 al aire/pads"], foco: "Transferencia de peso y cadera", biomecanica: "Generación de torque pélvico y activación del dorsal ancho en el frenado excéntrico del codo", debate: "¿Por qué apretar la espalda dorsal en el momento del impacto hace que el gancho pegue como un mazo?" },
+          "Avanzado": { cuerda: "5 rounds x (1m30s salto técnico / 30s descanso). R1-R3 saltos dobles, R4 giros de soga en carrera, R5 máxima cadencia.", aprox1: "Movilidad articular de hombros y columna dorsal en rotación pesada (3 min)", aprox2: "Fijación isométrica de nudillos en impacto de máxima rigidez (3 min)", ejercicios: ["Golpeo en potencia a saco", "Encadenamiento alto-bajo", "Golpeo tras paso angular"], foco: "Rigidez terminal en impacto pesado", biomecanica: "Rigidez articular terminal (effective mass) en el microsegundo de impacto para máxima transferencia de energía cinética", debate: "¿Por qué el secreto del golpeo de nocaut es viajar 99% relajado como un látigo y ser 1% piedra solo en el contacto?" },
+          "Apex": { cuerda: "5 rounds x (1m45s salto con fintas / 15s descanso). R1-R3 cambios de peso, R4 pasos ciegos con soga, R5 velocidad pura.", aprox1: "Movilidad escapular y activación refleja de rotadores externos (3 min)", aprox2: "Disparo instantáneo desde posiciones forzadas o ángulos ciegos (3 min)", ejercicios: ["Golpeo en ángulo corto tras finta", "Disparo en tiempo cero", "Rigidez terminal en pads"], foco: "Descarga instantánea sin telegrafiar", biomecanica: "Generación de torque en cadena abierta sin preparación previa (non-telegraphed strike) y rigidez articular reactiva", debate: "¿Cómo cultivas la capacidad de disparar un misil a toda potencia saliendo desde una postura de total relajación?" },
+          "Apex+": { cuerda: "5 rounds x (1m50s salto de élite / 10s descanso). R1-R3 velocidad máxima, R4 saltos cuádruples, R5 potencia continua.", aprox1: "Activación propioceptiva instantánea y disparos en tiempo fraccionado (3 min)", aprox2: "Encadenamiento de golpes de intercepción retrocediendo a fondo (3 min)", ejercicios: ["Golpes interceptores retrocediendo", "Disparos en ángulo ciego", "Encadenamiento"], foco: "Neutralización simultánea", biomecanica: "Tiempo de reacción motriz inferior a 150ms y rigidez terminal refleja en disparos de trayectoria angular compleja", debate: "¿Qué señal física del oponente te avisa que ya inició su ataque y que su cabeza está desprotegida para ser interceptada?" }
+        }
+      },
+      {
+        id: "tec_sem3", title: "Técnica - Semana 3", pilar: "Técnica", semana: 3,
+        niveles: {
+          "Iniciado": { cuerda: "5 rounds x (1m salto suave / 1m descanso). R1-R4 ritmo suave, R5 máxima intensidad individual.", aprox1: "Retracción cervical y activación de trapecios en suelo (3 min)", aprox2: "Fijación isométrica de guardia alta con codos pegados a costillas (3 min)", ejercicios: ["Guardia alta cerrada", "Bloqueo de rectos con antebrazo", "Bloqueo de ganchos con codos"], foco: "Absorción sin apertura", biomecanica: "Disipación de fuerzas mecánicas mediante acoplamiento de serratos, depresión del mentón y rigidez escapular", debate: "¿Por qué meter el mentón pegado a la clavícula reduce drásticamente el riesgo de un nocaut?" },
+          "Intermedio": { cuerda: "5 rounds x (1m15s salto defensivo / 45s descanso). R1-R3 cabeceo, R4 fintas de pies, R5 velocidad reactiva.", aprox1: "Activación refleja de hombros y flexores profundos del cuello (3 min)", aprox2: "Bloqueo y desvío de jab con parada de mano (parry) al espejo (3 min)", ejercicios: ["Parry al jab", "Esquiva lateral de tronco simple", "Parry + paso atrás sincronizado"], foco: "Disipación lateral del impacto", biomecanica: "Mecánica de redirección tangencial mediante pronación corta de palma y balanceo lateral sin flexión lumbar", debate: "¿Por qué un desvío milimétrico a 2 cm de tu cara es más seguro y eficiente que intentar bloquear el golpe a medio camino?" },
+          "Avanzado": { cuerda: "5 rounds x (1m30s salto técnico / 30s descanso). R1-R3 saltos dobles, R4 giros de soga en carrera, R5 máxima cadencia.", aprox1: "Activación refleja de oblicuos y flexores laterales de tronco (3 min)", aprox2: "Trabajo de péndulo y esquiva bajo cuerda con contragolpe en ascenso (3 min)", ejercicios: ["Esquiva en U bajo cuerda", "Roll + gancho cuerpo", "Roll continuo + directo derecha"], foco: "Transferencia de peso en arco", biomecanica: "Biomecánica del movimiento de flexión-rotación elipsoidal del tronco con almacenamiento elástico en oblicuos", debate: "¿Cómo sientes la acumulación de energía en tus piernas y oblicuos cuando pasas por debajo del golpe?" },
+          "Apex": { cuerda: "5 rounds x (1m45s salto con fintas / 15s descanso). R1-R3 cambios de peso, R4 pasos ciegos con soga, R5 velocidad pura.", aprox1: "Activación refleja de hombro adelantado y rotación cervical (3 min)", aprox2: "Automatización del shoulder roll y contragolpe cruzado de derecha (3 min)", ejercicios: ["Bloqueo activo + Shoulder roll", "Roll + contra directa de derecha", "Salida defensiva"], foco: "Economía defensiva y contrafilo", biomecanica: "Deflexión angular mediante elevación deltoidea y absorción de impacto sobre el eje axial para contraataque en tiempo 1", debate: "¿Por qué el Shoulder Roll ahorra un 70% de movimiento comparado con levantar los dos guantes para bloquear?" },
+          "Apex+": { cuerda: "5 rounds x (1m50s salto de élite / 10s descanso). R1-R3 velocidad máxima, R4 saltos cuádruples, R5 potencia continua.", aprox1: "Activación refleja de tronco para evasión milimétrica (3 min)", aprox2: "Esquiva de cintura integrada con contragolpe simultáneo en tiempo cero (3 min)", ejercicios: ["Esquiva cintura + bloqueo codo", "Contragolpe simultáneo tiempo cero", "Defensa total"], foco: "Respuesta refleja instantánea", biomecanica: "Acción neuromuscular simultánea: evasión angular milimétrica combinada con aceleración balística de contragolpe en el mismo eje", debate: "¿Cómo visualizas tu cuerpo para que una esquiva lateral se convierta automáticamente en un proyectil de respuesta?" }
+        }
+      },
+      {
+        id: "tec_sem4", title: "Técnica - Semana 4", pilar: "Técnica", semana: 4,
+        niveles: {
+          "Iniciado": { cuerda: "5 rounds x (1m salto suave / 1m descanso). R1-R4 ritmo suave, R5 máxima intensidad individual.", aprox1: "Movilidad integrada de cadera y hombro en paso péndulo suave (3 min)", aprox2: "Sombra guiada de recuperación de guardia tras impacto (3 min)", ejercicios: ["1-2 continuo", "1-2 + paso atrás", "1-2 + paso atrás + 1-2"], foco: "Recuperación inmediata de base", biomecanica: "Cadena cinética cerrada: vector de fuerza desde el suelo por rotación coxofemoral hasta la desaceleración dorsal", debate: "Si el pie trasero no rota, ¿hacia dónde se escapa la energía mecánica que debería llegar al guante?" },
+          "Intermedio": { cuerda: "5 rounds x (1m15s salto combinatorio / 45s descanso). R1-R3 cruces de soga, R4 ritmo alto, R5 sprint.", aprox1: "Movilidad dinámica de cadera en ángulos y pivotes cortos (3 min)", aprox2: "Secuencia técnica de salida en ángulo tras soltar manos curvas (3 min)", ejercicios: ["Combinación 1-2-3 al aire", "Salida angular 45° tras gancho", "1-2-3 + salida + guardia"], foco: "Creación de ángulos de salida", biomecanica: "Conversión del momento angular final del gancho en desplazamiento lateral mediante pivote en el pie delantero", debate: "¿Cómo utilizas la misma fuerza de tu propio golpe para escapar de la línea de visión del rival?" },
+          "Avanzado": { cuerda: "5 rounds x (1m30s salto técnico / 30s descanso). R1-R3 saltos dobles, R4 giros de soga en carrera, R5 máxima cadencia.", aprox1: "Movilidad rítmica de piernas y transferencias rápidas de peso en el eje anteroposterior (3 min)", aprox2: "Sombra libre combinatoria aplicando rupturas de ritmo (3 min)", ejercicios: ["Combinación 1-2-3-2 en saco", "Finta jab + ráfaga 2-3-2", "Ruptura de tempo y salida"], foco: "Cambios de cadencia y descarga", biomecanica: "Sincronización intersegmentaria y modulación de la velocidad angular para romper el patrón perceptivo del rival", debate: "¿Cómo puedes usar un cambio sutil en la cadencia de tu jab para abrir un hueco en una guardia cerrada?" },
+          "Apex": { cuerda: "5 rounds x (1m45s salto con fintas / 15s descanso). R1-R3 cambios de peso, R4 pasos ciegos con soga, R5 velocidad pura.", aprox1: "Movilidad articular fluida y cambios continuos de nivel alto-bajo (3 min)", aprox2: "Ráfagas combinatorias en ángulos de 5 golpes a máxima velocidad (3 min)", ejercicios: ["Ráfagas de 5 golpes alternados", "Secuencia cabeza-hígado-cabeza", "Salida lateral limpia"], foco: "Velocidad y encadenamiento implacable", biomecanica: "Transmisión de inercia ininterrumpida entre segmentos corporales sin desaceleración de la masa del torso", debate: "¿Cómo encadenas cabeza-hígado-cabeza para que se escuche una sola ráfaga continua y no tres golpes aislados?" },
+          "Apex+": { cuerda: "5 rounds x (1m50s salto de élite / 10s descanso). R1-R3 velocidad máxima, R4 saltos cuádruples, R5 potencia continua.", aprox1: "Movilidad libre de alta cadencia y adaptación biomecánica espontánea (3 min)", aprox2: "Patrones ofensivos impredecibles con presión constante en todos los planos (3 min)", ejercicios: ["Fluidez combinatoria libre", "Patrones tácticos espontáneos", "Presión continua arriba-abajo"], foco: "Creatividad ofensiva y volumen implacable", biomecanica: "Sincronización intermuscular óptima y variabilidad motriz adaptativa sin patrones fijos telegrafiables", debate: "¿Cómo construyes combinaciones en tiempo real guiándote por los huecos que abre el rival y no por una memoria fija?" }
+        }
+      },
+      {
+        id: "spa_sem1", title: "Sparring - Semana 1", pilar: "Sparring", semana: 1,
+        niveles: {
+          "Iniciado": { cuerda: "5 rounds x (1m salto suave / 1m descanso). R1-R4 ritmo suave, R5 máxima intensidad individual.", aprox1: "Movilidad ocular y enfoque visual periférico sin parpadeo (3 min)", aprox2: "Simulación de distancia larga con toques al hombro del rival en seco (3 min)", ejercicios: ["Toques a hombros a distancia larga", "Toques al pecho con salida", "Desplazamiento circular"], foco: "Control de distancia segura", biomecanica: "Control propioceptivo del espacio intermuscular y supresión refleja del cierre palpebral ante la amenaza visual", debate: "¿Cómo logras mantener los ojos abiertos y la mente en calma cuando una mano viene directo a tu cara?" },
+          "Intermedio": { cuerda: "5 rounds x (1m15s salto reactivo / 45s descanso). R1-R3 velocidad constante, R4 doble ritmo, R5 ráfagas.", aprox1: "Activación vestibular y giros de cabeza con fijación ocular (3 min)", aprox2: "Distancia de seguridad y defensa de 1-2 con antebrazos al pecho (3 min)", ejercicios: ["Sparring condicionado: rival tira 1-2", "Bloqueo con antebrazos", "Parry exclusivo"], foco: "Reacción táctil condicionada", biomecanica: "Amortiguación de fuerzas lineales mediante co-contracción del bíceps y tríceps braquial sin retraso reactivo", debate: "¿Cómo tensas la estructura de tus brazos en el instante exacto sin quemar energía manteniendo los músculos duros todo el round?" },
+          "Avanzado": { cuerda: "5 rounds x (1m30s salto táctico / 30s descanso). R1-R3 saltos dobles, R4 fintas y cambios de ritmo, R5 sprint de impacto.", aprox1: "Activación neuromuscular reactiva y desplazamientos en zigzag (3 min)", aprox2: "Simulación de defensa de contragolpe tras salida de cuerda (3 min)", ejercicios: ["Sparring condicionado: esquiva en U", "Contra inmediata al hígado", "Salida lateral"], foco: "Castigo al error defensivo rival", biomecanica: "Tiempo de reacción de elección (Choice Reaction Time) e intercepción dinámica del hueco defensivo lateral", debate: "¿Qué clave visual del cuerpo del adversario te indica que ya es momento de disparar tu contragolpe?" },
+          "Apex": { cuerda: "5 rounds x (1m45s salto de combate / 15s descanso). R1-R3 cambios de ritmo, R4 triples continuos, R5 sprint de potencia.", aprox1: "Activación reactiva de cuello y hombros bajo impacto (3 min)", aprox2: "Manejo de la distancia corta con guardias activas y contragolpe retrocediendo (3 min)", ejercicios: ["Sparring bajo presión constante", "Contragolpe caminando atrás", "Salidas laterales"], foco: "Templanza y eficacia bajo asedio", biomecanica: "Gestión del equilibrio dinámico y distribución de presiones plantares retrocediendo bajo asedio biomecánico continuo", debate: "¿Cómo puedes hacer que un rival que te está presionando sienta que está entrando directamente hacia una trampa?" },
+          "Apex+": { cuerda: "5 rounds x (1m50s salto de campeonato / 10s descanso). R1-R3 ritmo de combate, R4 explosividad máxima, R5 potencia terminal.", aprox1: "Activación reactiva frente a estímulos visuales aleatorios (3 min)", aprox2: "Sparring rotativo con rival de refresco entrando a máxima intensidad cada 60s (3 min)", ejercicios: ["Sparring asalto rotativo", "Estilos mixtos continuos", "Ritmo sin pausa"], foco: "Sobrecarga cognitiva y adaptación", biomecanica: "Procesamiento sensorial y adaptación táctica instantánea ante la variación continua del biotipo y estilo del oponente", debate: "¿Qué ajustes inmediatos realizas cuando te cambian un rival bajito y agresivo por uno alto y elusivo?" }
+        }
+      },
+      {
+        id: "spa_sem2", title: "Sparring - Semana 2", pilar: "Sparring", semana: 2,
+        niveles: {
+          "Iniciado": { cuerda: "5 rounds x (1m salto suave / 1m descanso). R1-R4 ritmo suave, R5 máxima intensidad individual.", aprox1: "Movilidad cervical suave y giros controlados de tronco (3 min)", aprox2: "Reacción controlada a toques lentos con pads a la guardia (3 min)", ejercicios: ["Bloqueo a pads del coach", "Paso atrás ante avance", "Respuesta suave al hombro"], foco: "Visión panorámica sin cerrar ojos", biomecanica: "Tiempo de reacción psicomotriz simple y amortiguación elástica de miembros superiores sin pérdida de balance", debate: "¿Qué diferencia hay entre bloquear un golpe como una pared de ladrillo vs. amortiguarlo como el amortiguador de un carro?" },
+          "Intermedio": { cuerda: "5 rounds x (1m15s salto reactivo / 45s descanso). R1-R3 velocidad constante, R4 doble ritmo, R5 ráfagas.", aprox1: "Movilidad espinal dinámica en flexión y torsión torácica (3 min)", aprox2: "Pivotes defensivos en ángulo corto ante ataque curvo simulado (3 min)", ejercicios: ["Esquiva de ganchos controlados", "Salida en ángulo tras evasión", "Reajuste de distancia"], foco: "Flexión de rodillas sin doblar cintura", biomecanica: "Cinemática de la flexión coxofemoral para evasión manteniendo el centro de gravedad dentro del polígono de sustentación", debate: "¿Por qué bajar doblando las rodillas te mantiene listo para golpear mientras que agacharte de cintura te anula?" },
+          "Avanzado": { cuerda: "5 rounds x (1m30s salto táctico / 30s descanso). R1-R3 saltos dobles, R4 fintas y cambios de ritmo, R5 sprint de impacto.", aprox1: "Elasticidad dinámica de tobillos para absorción en esquinas (3 min)", aprox2: "Manejo del espacio cerrado y salida de cuerdas mediante pivote corto (3 min)", ejercicios: ["Presión en cuerdas controlada", "Salida de cuerdas con pivote", "Giro y toma del centro"], foco: "Dominio territorial del ring", biomecanica: "Uso de la cinemática corporal y contacto con cuerdas para transformar el empuje rival en vector de salida rotacional", debate: "¿Cómo transformas el empuje hacia adelante de tu rival en la fuerza necesaria para girar y tomar el centro?" },
+          "Apex": { cuerda: "5 rounds x (1m45s salto de combate / 15s descanso). R1-R3 cambios de ritmo, R4 triples continuos, R5 sprint de potencia.", aprox1: "Movilidad visual periférica y esquiva de tronco con un solo brazo hábil (3 min)", aprox2: "Resolución táctica de combates asimétricos con movilidad constante (3 min)", ejercicios: ["Sparring con 1 brazo hábil", "Esquivas de tronco obligatorias", "Interceptación con jab"], foco: "Agudeza visual y toma de decisiones", biomecanica: "Optimización del uso de la cadena cinética contralateral y compensación neuromuscular mediante esquiva activa", debate: "¿Cómo cambia tu lectura del combate cuando no puedes depender de poner los guantes arriba para protegerte?" },
+          "Apex+": { cuerda: "5 rounds x (1m50s salto de campeonato / 10s descanso). R1-R3 ritmo de combate, R4 explosividad máxima, R5 potencia terminal.", aprox1: "Elasticidad neuromuscular y lectura cinemática del oponente en sombra (3 min)", aprox2: "Sparring táctico complejo con asignación de objetivos ocultos en tiempo real (3 min)", ejercicios: ["Sparring libre con objetivos ocultos", "Lectura analítica", "Dominio táctico total"], foco: "Resolución táctica avanzada", biomecanica: "Toma de decisiones analítica bajo estrés neurofisiológico elevado y ejecución de directrices tácticas complejas", debate: "¿Cómo mantienes la disciplina mental para ejecutar una estrategia difícil cuando el instinto primitivo te pide pelear en automático?" }
+        }
+      },
+      {
+        id: "spa_sem3", title: "Sparring - Semana 3", pilar: "Sparring", semana: 3,
+        niveles: {
+          "Iniciado": { cuerda: "5 rounds x (1m salto suave / 1m descanso). R1-R4 ritmo suave, R5 máxima intensidad individual.", aprox1: "Elasticidad del tendón de Aquiles y balance dinámico unipodal (3 min)", aprox2: "Entrada a distancia de toque y salida lineal reactiva (3 min)", ejercicios: ["Entrada con toque al hombro", "Salida en paso plano", "Reajuste de distancia neutra"], foco: "Entrar y salir sobre la misma línea", biomecanica: "Gestión del centro de masa: frenado excéntrico con el metatarso trasero para reversión vectorial inmediata", debate: "¿Cómo utilizas la fricción de la suela de tu zapato contra el piso para frenar y rebotar sin doblar la cintura?" },
+          "Intermedio": { cuerda: "5 rounds x (1m15s salto reactivo / 45s descanso). R1-R3 velocidad constante, R4 doble ritmo, R5 ráfagas.", aprox1: "Elasticidad de tobillos para contragolpe inmediato de metatarso (3 min)", aprox2: "Respuesta automática en tiempo 1 tras bloqueo de guante (3 min)", ejercicios: ["Bloqueo 1-2 + contra de directo (2)", "Parry jab + contra de jab", "Salida defensiva"], foco: "Anticipación y respuesta inmediata", biomecanica: "Mecánica de aprovechamiento de la energía de retroceso para disparar la mano trasera en tiempo cero", debate: "¿Cómo conviertes el impacto que recibes en tu guardia en el disparador automático de tu mano de contra?" },
+          "Avanzado": { cuerda: "5 rounds x (1m30s salto táctico / 30s descanso). R1-R3 saltos dobles, R4 fintas y cambios de ritmo, R5 sprint de impacto.", aprox1: "Movilidad respiratoria de alta demanda y activación diafragmática (3 min)", aprox2: "Alternancia de distancia corta y larga con fintas constantes (3 min)", ejercicios: ["45s presión ofensiva", "45s manejo distancia y fintas", "Cambio de marcha continuo"], foco: "Modulación de ritmo de combate", biomecanica: "Eficiencia neuromuscular en la transición instantánea entre metabolismo oxidativo y anaeróbico glucolítico", debate: "¿Qué ajuste respiratorio aplicas en los 5 segundos que pasas a distancia larga para resetear tu fatiga?" },
+          "Apex": { cuerda: "5 rounds x (1m45s salto de combate / 15s descanso). R1-R3 cambios de ritmo, R4 triples continuos, R5 sprint de potencia.", aprox1: "Entrada con fatiga láctica inducida y respiración nasal forzada (3 min)", aprox2: "Toma de decisiones tácticas bajo agotamiento extremo (3 min)", ejercicios: ["Entrada con fatiga previa de burpees", "Resolución táctica serena", "Cierre con ritmo alto"], foco: "Rendimiento lúcido bajo fatiga", biomecanica: "Resiliencia neural y mantenimiento del control motor fino sobre los músculos agonistas y antagonistas bajo hipoxia relativa", debate: "¿Cómo controlas el ritmo de un combate cuando tu cuerpo está al límite físico para que el rival no note tu cansancio?" },
+          "Apex+": { cuerda: "5 rounds x (1m50s salto de campeonato / 10s descanso). R1-R3 ritmo de combate, R4 explosividad máxima, R5 potencia terminal.", aprox1: "Movilidad y disipación de presión en distancia corta (3 min)", aprox2: "Combate cuerpo a cuerpo continuo con palancas, desequilibrios y golpeo corto (3 min)", ejercicios: ["Infighting continuo a distancia corta", "Golpes cortos y palancas", "Salida con hombro"], foco: "Lucha cuerpo a cuerpo y desequilibrio", biomecanica: "Mecánica de anclaje de hombros, transferencia de fuerzas de rozamiento y desestabilización del centro de gravedad en distancia cero", debate: "¿Cómo controlas el equilibrio y los brazos del rival en el cuerpo a cuerpo usando solo el peso de tus hombros y torso?" }
+        }
+      },
+      {
+        id: "spa_sem4", title: "Sparring - Semana 4", pilar: "Sparring", semana: 4,
+        niveles: {
+          "Iniciado": { cuerda: "5 rounds x (1m salto suave / 1m descanso). R1-R4 ritmo suave, R5 máxima intensidad individual.", aprox1: "Respiración diafragmática guiada y descarga de trapecios (3 min)", aprox2: "Desplazamiento defensivo continuo en parejas a manos abiertas (3 min)", ejercicios: ["Sparring táctil continuo guiado", "Seguimiento visual constante", "Defensa en movimiento continuo"], foco: "Calma bajo contacto", biomecanica: "Regulación de la respuesta simpática (eje estrés) mediante ciclo respiratorio nasal continuo bajo estímulo táctil", debate: "¿Qué técnica mental usas para que el contacto físico en sparring se sienta como un juego de ajedrez y no como una agresión?" },
+          "Intermedio": { cuerda: "5 rounds x (1m15s salto reactivo / 45s descanso). R1-R3 velocidad constante, R4 doble ritmo, R5 ráfagas.", aprox1: "Movilidad miofascial y respiración controlada bajo exigencia (3 min)", aprox2: "Pacing táctico y alternancia de guardia en combate semilibre (3 min)", ejercicios: ["Sparring semilibre a velocidad media", "Toques controlados a cuerpo/cabeza", "Gestión de guardia activa"], foco: "Volumen controlado", biomecanica: "Gestión de la fatiga psicomotriz y mantenimiento de la alineación articular en situaciones de estrés táctico continuo", debate: "¿Qué diálogo interno y qué ajuste biomecánico utilizas cuando sientes que las piernas ya no responden?" },
+          "Avanzado": { cuerda: "5 rounds x (1m30s salto táctico / 30s descanso). R1-R3 saltos dobles, R4 fintas y cambios de ritmo, R5 sprint de impacto.", aprox1: "Relajación activa entre asaltos y descompresión cervical (3 min)", aprox2: "Sparring técnico completo a alta velocidad con control de impacto (3 min)", ejercicios: ["Sparring libre técnico", "Aplicación de combinaciones", "Control defensivo continuo"], foco: "Solvencia táctica en tiempo real", biomecanica: "Integración total de la toma de decisiones, control del RPE y solvencia técnica bajo estrés ambiental de combate", debate: "¿Cómo mantienes tu plan táctico intacto cuando el cansancio o los golpes del rival intentan sacarte de foco?" },
+          "Apex": { cuerda: "5 rounds x (1m45s salto de combate / 15s descanso). R1-R3 cambios de ritmo, R4 triples continuos, R5 sprint de potencia.", aprox1: "Calentamiento mental específico y relajación neuromuscular (3 min)", aprox2: "Sparring libre a ritmo oficial de combate con estrategia personalizada (3 min)", ejercicios: ["Sparring libre a ritmo de torneo", "Adaptación estratégica en tiempo real", "Dominio total"], foco: "Madurez táctica y temple", biomecanica: "Integración holística del rendimiento psicofísico: gestión energética, timing, precisión balística y solidez táctica total", debate: "¿Qué elementos clave analizas en los primeros segundos de un asalto para descifrar el estilo de tu adversario?" },
+          "Apex+": { cuerda: "5 rounds x (1m50s salto de campeonato / 10s descanso). R1-R3 ritmo de combate, R4 explosividad máxima, R5 potencia terminal.", aprox1: "Concentración absoluta y visualización estratégica previa (3 min)", aprox2: "Asalto final de campeonato a ritmo oficial con máxima exigencia física y mental (3 min)", ejercicios: ["Sparring de campeonato a ritmo oficial", "Gestión energética", "Cierre con ráfaga máxima"], foco: "Excelencia técnica competitiva", biomecanica: "Pico de rendimiento atlético absoluto: sincronización óptima de los sistemas neuroendocrino, metabólico y biomecánico bajo máxima exigencia", debate: "¿Cómo defines la mentalidad y presencia física de un verdadero campeón en los últimos 30 segundos de una guerra de campeonato?" }
+        }
+      }
+    ];
+
+    const sel = document.getElementById("classSelector");
+    sesionesData.forEach(s => {
+      const opt = document.createElement("option");
+      opt.value = s.id;
+      opt.textContent = s.title;
+      sel.appendChild(opt);
+    });
+
+    const configNiveles = {
+      'Iniciado':   { id: 'iniciado',   name: "Iniciados", active: true, prevIdx: -1 },
+      'Intermedio': { id: 'intermedio', name: "Intermedio", active: true, prevIdx: -1 },
+      'Avanzado':   { id: 'avanzado',   name: "Avanzado",   active: true, prevIdx: -1 },
+      'Apex':       { id: 'apex',       name: "Apex",       active: true, prevIdx: -1 },
+      'Apex+':      { id: 'apex_plus',  name: "Apex +",    active: true, prevIdx: -1 }
+    };
+
+    let settingsOpen = false;
+    let voiceEnabled = true;
+    let keepAliveEnabled = true;
+    let scrubberLocked = false;
+
+    function toggleSettings() {
+      settingsOpen = !settingsOpen;
+      const panel = document.getElementById("settingsPanel");
+      const btn = document.getElementById("settingsToggleBtn");
+      panel.classList.toggle("open", settingsOpen);
+      btn.classList.toggle("active-setting", settingsOpen);
+    }
+
+    function toggleScrubberLock(isLocked) {
+      scrubberLocked = isLocked;
+      const container = document.getElementById("scrubberContainer");
+      container.classList.toggle("locked", scrubberLocked);
+    }
+
+    function toggleVoice(enabled) {
+      voiceEnabled = enabled;
+      if (!enabled) window.speechSynthesis.cancel();
+    }
+
+    function toggleKeepAlive(enabled) {
+      keepAliveEnabled = enabled;
+      if (!enabled) silentAudio.pause();
+      else if (!silentAudio.paused) keepAudioAlive();
+    }
+
+    const silentAudio = document.getElementById('silentAudio');
+    function keepAudioAlive() {
+      if (keepAliveEnabled && silentAudio.paused) silentAudio.play().catch(() => {});
+    }
+
+    function speak(text) {
+      if (!voiceEnabled || !('speechSynthesis' in window)) return;
+      keepAudioAlive();
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'es-LA';
+      u.rate = 1.25;
+      u.pitch = 1.0;
+      window.speechSynthesis.speak(u);
+    }
+
+    const workerBlob = new Blob([`
+      let timer = null;
+      self.onmessage = function(e) {
+        if (e.data === 'start') timer = setInterval(() => self.postMessage('tick'), 250);
+        else if (e.data === 'stop') clearInterval(timer);
+      };
+    `], { type: 'application/javascript' });
+    const worker = new Worker(URL.createObjectURL(workerBlob));
+
+    let isRunning = false;
+    let startTime = 0;
+    let elapsedBeforePause = 0;
+    let lastSecondReported = -1;
+
+    const T_APERTURA_FIN = 10 * 60; // 600s
+    const T_APROX1_FIN   = 13 * 60; // 780s
+    const T_APROX2_FIN   = 16 * 60; // 960s
+    const T_CUERPO_FIN   = 44 * 60; // 2640s
+    const T_CIERRE_FIN   = 50 * 60; // 3000s
+    const T_TOTAL_FIN    = 60 * 60; // 3600s (60 Minutos exactos)
+
+    function toggleNivel(k) {
+      const n = configNiveles[k];
+      n.active = !n.active;
+      document.getElementById(`btn_${n.id}`).classList.toggle('active', n.active);
+      const totalSec = Math.floor((elapsedBeforePause + (isRunning ? (performance.now() - startTime) : 0)) / 1000);
+      actualizarVista(totalSec, false);
+    }
+
+    function formatTime(s) {
+      const m = Math.floor(s / 60).toString().padStart(2, '0');
+      const sec = (s % 60).toString().padStart(2, '0');
+      return `${m}:${sec}`;
+    }
+
+    function getSelectedSesion() {
+      const selectedId = document.getElementById("classSelector").value;
+      return sesionesData.find(s => s.id === selectedId) || sesionesData[0];
+    }
+
+    function getTaskForLevel(nivelKey) {
+      const sesion = getSelectedSesion();
+      return sesion.niveles[nivelKey] || sesion.niveles["Iniciado"];
+    }
+
+    function openLevelModal(nivelKey) {
+      const task = getTaskForLevel(nivelKey);
+      const sesion = getSelectedSesion();
+      document.getElementById("modalLevelTitle").textContent = `${nivelKey} · ${sesion.title}`;
+      document.getElementById("modalLevelContent").innerHTML = `
+        <strong>• Cuerda / Apertura:</strong> ${task.cuerda}<br><br>
+        <strong>• Aproximación 1 (Movilidad):</strong> ${task.aprox1}<br><br>
+        <strong>• Aproximación 2 (Activación):</strong> ${task.aprox2}<br><br>
+        <strong>• Ejercicios (Cuerpo):</strong> ${task.ejercicios ? task.ejercicios.join(" | ") : ''}<br><br>
+        <strong>• Foco:</strong> ${task.foco || '--'}<br><br>
+        <strong>• Biomecánica:</strong> ${task.biomecanica}<br><br>
+        <strong>• Debate:</strong> ${task.debate || '--'}
+      `;
+      document.getElementById("levelDetailModal").classList.add("open");
+    }
+
+    function closeLevelModal() {
+      document.getElementById("levelDetailModal").classList.remove("open");
+    }
+
+    function initLanesDOM() {
+      const cont = document.getElementById("lanesContainer");
+      cont.innerHTML = "";
+
+      for (let k in configNiveles) {
+        const n = configNiveles[k];
+        const card = document.createElement("div");
+        card.id = `lane_${n.id}`;
+        card.className = `lane-card ${n.active ? '' : 'muted'}`;
+        card.onclick = () => openLevelModal(k);
+        card.innerHTML = `
+          <div class="lane-top-row">
+            <div class="lane-header-group">
+              <div class="lane-name">${n.name}</div>
+              <div class="status-pill st-work" id="pill_${n.id}">
+                <span class="status-icon" id="icon_${n.id}">▶</span>
+                <span id="txtStatus_${n.id}">TRABAJO</span>
+              </div>
+            </div>
+            <div class="lane-time" id="time_${n.id}">01:00</div>
+          </div>
+          <div class="feed-viewport" id="viewport_${n.id}">
+            <div class="feed-slot slot-current" id="slotA_${n.id}">
+              <div class="lane-task-desc" id="taskA_${n.id}">--</div>
+              <div class="lane-biomech-row" id="bioA_${n.id}">
+                <span class="lane-biomech-label">
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l-.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                  BIOMEC
+                </span>
+                <span id="bioTxtA_${n.id}">--</span>
+              </div>
+            </div>
+            <div class="feed-slot slot-next" id="slotB_${n.id}">
+              <div class="lane-next-row" id="nextRow_${n.id}">
+                <span class="lane-next-label">SIGUIENTE:</span>
+                <span id="taskB_${n.id}">--</span>
+              </div>
+            </div>
+          </div>
+        `;
+        cont.appendChild(card);
+      }
+    }
+
+    function updateLaneData(k, secInCycle, isRestRound, faseTipo, roundIdx, remGeneral = 0) {
+      const n = configNiveles[k];
+      const card = document.getElementById(`lane_${n.id}`);
+      if (card) card.className = `lane-card ${n.active ? '' : 'muted'}`;
+
+      const taskData = getTaskForLevel(k);
+
+      let workSec = 60;
+      if (faseTipo === "APERTURA") {
+        if (k === 'Iniciado') workSec = 60;
+        else if (k === 'Intermedio') workSec = 75;
+        else if (k === 'Avanzado') workSec = 90;
+        else if (k === 'Apex') workSec = 105;
+        else if (k === 'Apex+') workSec = 110;
+      } else if (faseTipo === "CUERPO") {
+        if (k === 'Iniciado') workSec = 60;
+        else if (k === 'Intermedio' || k === 'Avanzado') workSec = 90;
+        else if (k === 'Apex') workSec = 105;
+        else if (k === 'Apex+') workSec = 120;
+      }
+
+      let status = "TRABAJO";
+      let statusClass = "st-work";
+      let icon = "▶";
+      let rem = 0;
+
+      let tareaActual = "";
+      let biomecActual = taskData.biomecanica;
+      let tareaSiguiente = "";
+      let stateKeyIndex = roundIdx;
+
+      if (faseTipo === "APERTURA") {
+        const roundNum = roundIdx + 1;
+        const isR5Sprint = (roundNum === 5);
+
+        if (secInCycle < workSec) {
+          status = isR5Sprint ? "SPRINT R5" : "TRABAJO";
+          statusClass = "st-work";
+          icon = isR5Sprint ? "⚡" : "▶";
+          rem = workSec - secInCycle;
+        } else {
+          status = "PAUSA";
+          statusClass = "st-pausa";
+          icon = "⏸";
+          rem = 120 - secInCycle;
+        }
+
+        tareaActual = isR5Sprint ? `R5 SPRINT: Máxima Intensidad Individual` : `R${roundNum}: Cuerda Táctica · ${taskData.cuerda.split('.')[0]}`;
+        biomecActual = isR5Sprint ? "Despliegue de potencia anaeróbica individual sin reserva" : "Rebote elástico continuo, codos pegados a la cadera";
+        tareaSiguiente = roundNum < 5 ? `R${roundNum + 1}: Cuerda Táctica Progresiva` : "Aproximación 1: Movilidad y Postura";
+        stateKeyIndex = roundIdx;
+      } else if (faseTipo === "APROX1") {
+        status = "MOVILIDAD";
+        statusClass = "st-work";
+        icon = "⚙";
+        rem = remGeneral;
+        tareaActual = taskData.aprox1;
+        biomecActual = "Alineación articular y rango activo previo a carga específico del nivel";
+        tareaSiguiente = "Aproximación 2: Activación Específica";
+        stateKeyIndex = 501;
+      } else if (faseTipo === "APROX2") {
+        status = "ACTIVACIÓN";
+        statusClass = "st-work";
+        icon = "⚙";
+        rem = remGeneral;
+        tareaActual = taskData.aprox2;
+        biomecActual = "Isometría y estabilización neuromuscular específica del nivel";
+        tareaSiguiente = "Cuerpo de Clase: Estación 1";
+        stateKeyIndex = 502;
+      } else if (faseTipo === "CUERPO") {
+        if (isRestRound) {
+          status = "DESCANSO";
+          statusClass = "st-descanso";
+          icon = "■";
+          rem = Math.max(0, 60 - secInCycle);
+          tareaActual = "Recuperación biológica activa e hidratación";
+          biomecActual = "Descarga diafragmática y respiración nasal profunda";
+          tareaSiguiente = "Preparar siguiente asalto del Cuerpo";
+          stateKeyIndex = 999;
+        } else {
+          if (secInCycle < workSec) {
+            status = "TRABAJO";
+            statusClass = "st-work";
+            icon = "▶";
+            rem = workSec - secInCycle;
+          } else {
+            status = "PAUSA";
+            statusClass = "st-pausa";
+            icon = "⏸";
+            rem = 120 - secInCycle;
+          }
+          const ejList = taskData.ejercicios;
+          const ejActual = ejList[roundIdx % 3];
+          const ejSig = ejList[(roundIdx + 1) % 3];
+
+          tareaActual = `${(roundIdx % 3) + 1}. ${ejActual}`;
+          biomecActual = taskData.foco ? `Foco: ${taskData.foco}` : taskData.biomecanica;
+          tareaSiguiente = `${((roundIdx + 1) % 3) + 1}. ${ejSig}`;
+          stateKeyIndex = 100 + roundIdx;
+        }
+      } else if (faseTipo === "CIERRE") {
+        status = "CIERRE";
+        statusClass = "st-descanso";
+        icon = "✓";
+        rem = remGeneral;
+        tareaActual = "Biomecánica y Debate en Sala";
+        biomecActual = taskData.debate ? `Debate: ${taskData.debate}` : taskData.biomecanica;
+        tareaSiguiente = "Vuelta a la Calma · Integración";
+        stateKeyIndex = 9999;
+      } else {
+        status = "CALMA";
+        statusClass = "st-descanso";
+        icon = "☕";
+        rem = remGeneral;
+        tareaActual = "Vuelta a la Calma: Recogida de equipo y Video Clan Apex";
+        biomecActual = "Sintonía respiratoria y descompresión neuromuscular post-combate";
+        tareaSiguiente = "Fin de Sesión Táctica";
+        stateKeyIndex = 99999;
+      }
+
+      const pill = document.getElementById(`pill_${n.id}`);
+      if (pill) {
+        pill.className = `status-pill ${statusClass}`;
+        document.getElementById(`icon_${n.id}`).textContent = icon;
+        document.getElementById(`txtStatus_${n.id}`).textContent = status;
+      }
+      const mins = Math.floor(rem / 60).toString().padStart(2, '0');
+      const secs = (rem % 60).toString().padStart(2, '0');
+      const timeElem = document.getElementById(`time_${n.id}`);
+      if (timeElem) timeElem.textContent = `${mins}:${secs}`;
+
+      if (n.prevIdx !== stateKeyIndex) {
+        const slotA = document.getElementById(`slotA_${n.id}`);
+        const slotB = document.getElementById(`slotB_${n.id}`);
+
+        if (n.prevIdx !== -1) {
+          slotA.classList.remove("slot-current");
+          slotA.classList.add("slot-exit");
+          slotB.classList.remove("slot-next");
+          slotB.classList.add("slot-current");
+
+          setTimeout(() => {
+            slotA.classList.remove("slot-exit");
+            slotA.classList.add("slot-current");
+            document.getElementById(`taskA_${n.id}`).textContent = tareaActual;
+            document.getElementById(`bioTxtA_${n.id}`).textContent = biomecActual;
+
+            slotB.classList.remove("slot-current");
+            slotB.classList.add("slot-next");
+            document.getElementById(`taskB_${n.id}`).textContent = tareaSiguiente;
+          }, 450);
+        } else {
+          document.getElementById(`taskA_${n.id}`).textContent = tareaActual;
+          document.getElementById(`bioTxtA_${n.id}`).textContent = biomecActual;
+          document.getElementById(`taskB_${n.id}`).textContent = tareaSiguiente;
+        }
+        n.prevIdx = stateKeyIndex;
+      }
+    }
+
+    function togglePlay() {
+      keepAudioAlive();
+      if (isRunning) {
+        worker.postMessage('stop');
+        elapsedBeforePause += (performance.now() - startTime);
+        isRunning = false;
+        document.getElementById("btnStart").textContent = "Reanudar";
+        document.getElementById("btnStart").style.background = "var(--accent)";
+      } else {
+        startTime = performance.now();
+        worker.postMessage('start');
+        isRunning = true;
+        document.getElementById("btnStart").textContent = "Pausar";
+        document.getElementById("btnStart").style.background = "#222";
+        if (elapsedBeforePause === 0) speak("Todos, trabajo en tres, dos, uno");
+      }
+    }
+
+    function openResetModal() { document.getElementById("resetModal").classList.add("open"); }
+    function closeResetModal() { document.getElementById("resetModal").classList.remove("open"); }
+    function confirmReset() {
+      closeResetModal();
+      worker.postMessage('stop');
+      silentAudio.pause();
+      isRunning = false;
+      startTime = 0;
+      elapsedBeforePause = 0;
+      lastSecondReported = -1;
+      for (let k in configNiveles) configNiveles[k].prevIdx = -1;
+      document.getElementById("btnStart").textContent = "Iniciar Clase";
+      document.getElementById("btnStart").style.background = "var(--accent)";
+      document.getElementById("sessionScrubber").value = 0;
+      actualizarVista(0, false);
+    }
+    function onClassChange() {
+      for (let k in configNiveles) configNiveles[k].prevIdx = -1;
+      actualizarVista(parseInt(document.getElementById("sessionScrubber").value, 10), false);
+    }
+
+    function onScrub(val) {
+      if (scrubberLocked) return;
+      let scrubSec = parseInt(val, 10);
+      const blockSnapPoints = [0, 600, 780, 960, 2640, 3000, 3600];
+      for (const pt of blockSnapPoints) {
+        if (Math.abs(scrubSec - pt) <= 10) {
+          scrubSec = pt;
+          document.getElementById("sessionScrubber").value = pt;
+          break;
+        }
+      }
+
+      if (isRunning) {
+        worker.postMessage('stop');
+        isRunning = false;
+        document.getElementById("btnStart").textContent = "Reanudar";
+        document.getElementById("btnStart").style.background = "var(--accent)";
+      }
+      elapsedBeforePause = scrubSec * 1000;
+      startTime = performance.now();
+      lastSecondReported = scrubSec;
+      actualizarVista(scrubSec, true);
+    }
+
+    function actualizarVista(totalSec, isScrubbing = false) {
+      if (totalSec > T_TOTAL_FIN) totalSec = T_TOTAL_FIN;
+
+      const formatted = formatTime(totalSec);
+      document.getElementById("mainTime").textContent = formatted;
+      document.getElementById("scrubberPosLabel").textContent = `${formatted} / 60:00`;
+      
+      if (!isScrubbing) {
+        document.getElementById("sessionScrubber").value = totalSec;
+      }
+
+      const selSesion = getSelectedSesion();
+      const taskIniciado = selSesion.niveles["Iniciado"];
+      const clockBox = document.getElementById("clockBox");
+
+      const isR5 = (totalSec >= 480 && totalSec < 600);
+      if (isR5) {
+        clockBox.classList.add("sprint-active");
+      } else {
+        clockBox.classList.remove("sprint-active");
+      }
+
+      if (totalSec < T_APERTURA_FIN) {
+        const cycleSec = totalSec % 120;
+        const currentRound = Math.floor(totalSec / 120);
+        const phaseName = isR5 ? "⚡ SPRINT R5" : `Asalto ${currentRound + 1} de 5`;
+        document.getElementById("phaseLabel").textContent = isR5 ? "Apertura · SPRINT R5" : "Apertura · Cuerda";
+        document.getElementById("exerciseLabel").textContent = phaseName + " · Cuerda Táctica";
+        
+        if (!isScrubbing) evaluarVoz(cycleSec, false, "APERTURA");
+        for (let k in configNiveles) updateLaneData(k, cycleSec, false, "APERTURA", currentRound);
+      } else if (totalSec < T_APROX1_FIN) {
+        document.getElementById("phaseLabel").textContent = "Aproximación 1 · Movilidad";
+        const remAprox1 = T_APROX1_FIN - totalSec;
+        document.getElementById("exerciseLabel").textContent = taskIniciado.aprox1;
+        
+        if (!isScrubbing && totalSec === T_APERTURA_FIN) speak("Aproximación uno, movilidad y postura");
+        for (let k in configNiveles) updateLaneData(k, 0, false, "APROX1", 0, remAprox1);
+      } else if (totalSec < T_APROX2_FIN) {
+        document.getElementById("phaseLabel").textContent = "Aproximación 2 · Activación";
+        const remAprox2 = T_APROX2_FIN - totalSec;
+        document.getElementById("exerciseLabel").textContent = taskIniciado.aprox2;
+        
+        if (!isScrubbing && totalSec === T_APROX1_FIN) speak("Aproximación dos, activación específica");
+        for (let k in configNiveles) updateLaneData(k, 0, false, "APROX2", 0, remAprox2);
+      } else if (totalSec < T_CUERPO_FIN) {
+        const cuerpoSec = totalSec - T_APROX2_FIN;
+        const roundSec = cuerpoSec % 420;
+        const roundNum = Math.floor(cuerpoSec / 420) + 1;
+        document.getElementById("phaseLabel").textContent = `Cuerpo · Asalto ${roundNum} de 4`;
+
+        if (roundSec < 360) {
+          const ejSec = roundSec % 120;
+          const ejNum = Math.floor(roundSec / 120);
+          document.getElementById("exerciseLabel").textContent = `Estación ${ejNum + 1} de 3 · Trabajo Multicanal`;
+          
+          if (!isScrubbing) evaluarVoz(ejSec, false, "CUERPO");
+          for (let k in configNiveles) updateLaneData(k, ejSec, false, "CUERPO", ejNum);
+        } else {
+          const restSec = roundSec - 360;
+          document.getElementById("exerciseLabel").textContent = "Descanso Inter-Round (1 min)";
+          
+          if (!isScrubbing) evaluarDescanso(restSec);
+          for (let k in configNiveles) updateLaneData(k, restSec, true, "CUERPO", 0);
+        }
+      } else if (totalSec < T_CIERRE_FIN) {
+        const remCierre = T_CIERRE_FIN - totalSec;
+        document.getElementById("phaseLabel").textContent = "Cierre · Biomecánica y Debate";
+        document.getElementById("exerciseLabel").textContent = "Biomecánica y Debate (5m) · Check-in Clan Apex";
+
+        for (let k in configNiveles) updateLaneData(k, 0, false, "CIERRE", 0, remCierre);
+        if (!isScrubbing && totalSec === T_CUERPO_FIN) {
+          speak("Cuerpo de clase completado. Iniciar Biomecánica, debate y check-in en la aplicación");
+        }
+      } else {
+        const remCalma = T_TOTAL_FIN - totalSec;
+        document.getElementById("phaseLabel").textContent = "Vuelta a la Calma · Integración";
+        document.getElementById("exerciseLabel").textContent = "Vuelta a la Calma (10m) · Recogida de equipo y Video Clan Apex";
+
+        for (let k in configNiveles) updateLaneData(k, 0, false, "CALMA", 0, remCalma);
+        if (!isScrubbing && totalSec === T_CIERRE_FIN) {
+          speak("Inicio de vuelta a la calma, recogida de equipos y video Clan Apex");
+        }
+      }
+    }
+
+    worker.onmessage = function() {
+      const totalElapsedMs = elapsedBeforePause + (isRunning ? (performance.now() - startTime) : 0);
+      const totalSec = Math.floor(totalElapsedMs / 1000);
+
+      if (totalSec === lastSecondReported) return;
+      lastSecondReported = totalSec;
+      actualizarVista(totalSec, false);
+    };
+
+    function evaluarVoz(sec, isRest, fase) {
+      if (isRest || !voiceEnabled) return;
+
+      if (sec === 57 && configNiveles['Iniciado'].active) speak("Iniciados, pausa en tres, dos, uno");
+
+      if (fase === "APERTURA" && sec === 72 && configNiveles['Intermedio'].active) {
+        speak("Intermedio, pausa en tres, dos, uno");
+      } else if (fase === "CUERPO" && sec === 87 && configNiveles['Intermedio'].active) {
+        speak("Intermedio, pausa en tres, dos, uno");
+      }
+
+      if (sec === 87 && configNiveles['Avanzado'].active) {
+        speak("Avanzado, pausa en tres, dos, uno");
+      }
+
+      if (sec === 102 && configNiveles['Apex'].active) {
+        speak("Apex, pausa en tres, dos, uno");
+      }
+
+      if (fase === "APERTURA" && sec === 107 && configNiveles['Apex+'].active) {
+        speak("Apex +, pausa en tres, dos, uno");
+      }
+
+      if (sec === 117) speak("Todos, trabajo en tres, dos, uno");
+    }
+
+    function evaluarDescanso(sec) {
+      if (!voiceEnabled) return;
+      if (sec === 0) speak("Todos, descanso en tres, dos, uno");
+      if (sec === 57) speak("Siguiente asalto, todos en tres, dos, uno");
+    }
+
+    // --- CÁMARA TÁCTICA CON RENDERIZADO POR CANVAS (Zero-Lag + Modo Libre + Instrucción Previa) ---
+    let mediaStream = null;
+    let mediaRecorder = null;
+    let recordedChunks = [];
+    let isRecording = false;
+    let recordStartTime = 0;
+    let recordInterval = null;
+    let latestBlobUrl = null;
+    let selectedMimeType = '';
+    let fileExtension = 'mp4';
+    let renderCanvas = null;
+    let renderCtx = null;
+    let canvasAnimId = null;
+
+    function getSupportedMimeType() {
+      const candidates = [
+        { mime: 'video/mp4;codecs=avc1.42E01E,mp4a.40.2', ext: 'mp4' },
+        { mime: 'video/mp4;codecs=avc1', ext: 'mp4' },
+        { mime: 'video/mp4', ext: 'mp4' },
+        { mime: 'video/webm;codecs=h264', ext: 'mp4' },
+        { mime: 'video/webm;codecs=vp9', ext: 'webm' },
+        { mime: 'video/webm;codecs=vp8', ext: 'webm' },
+        { mime: 'video/webm', ext: 'webm' }
+      ];
+      for (const c of candidates) {
+        if (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported(c.mime)) {
+          return c;
+        }
+      }
+      return { mime: '', ext: 'mp4' };
+    }
+
+    async function openCamera() {
+      document.getElementById("cameraModal").classList.add("active");
+      document.getElementById("camPlaceholderMsg").style.display = "block";
+      try {
+        const constraints = {
+          video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: { echoCancellation: true, noiseSuppression: true }
+        };
+        mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+        const videoEl = document.getElementById("cameraFeed");
+        videoEl.srcObject = mediaStream;
+        videoEl.play().catch(()=>{});
+      } catch (err) {
+        alert("No se pudo acceder a la cámara o micrófono. Revisa los permisos.");
+        closeCamera();
+      }
+    }
+
+    function closeCamera() {
+      if (isRecording) stopRecording(false);
+      if (canvasAnimId) cancelAnimationFrame(canvasAnimId);
+      if (mediaStream) {
+        mediaStream.getTracks().forEach(track => track.stop());
+        mediaStream = null;
+      }
+      document.getElementById("cameraModal").classList.remove("active");
+    }
+
+    function toggleRecord() {
+      if (!isRecording) startRecording();
+      else stopRecording(true);
+    }
+
+    function startRecording() {
+      recordedChunks = [];
+      document.getElementById("camPlaceholderMsg").style.display = "none";
+      
+      const videoElement = document.getElementById("cameraFeed");
+      renderCanvas = document.getElementById("renderCanvas");
+      renderCanvas.width = videoElement.videoWidth || 1280;
+      renderCanvas.height = videoElement.videoHeight || 720;
+      renderCtx = renderCanvas.getContext('2d', { alpha: false });
+
+      const canvasStream = renderCanvas.captureStream(24);
+      const audioTracks = mediaStream.getAudioTracks();
+      const mixedStream = new MediaStream([
+        ...canvasStream.getVideoTracks(),
+        ...(audioTracks.length > 0 ? [audioTracks[0]] : [])
+      ]);
+
+      const supported = getSupportedMimeType();
+      selectedMimeType = supported.mime;
+      fileExtension = supported.ext;
+
+      try {
+        if (selectedMimeType) mediaRecorder = new MediaRecorder(mixedStream, { mimeType: selectedMimeType });
+        else mediaRecorder = new MediaRecorder(mixedStream);
+      } catch (e) {
+        mediaRecorder = new MediaRecorder(mixedStream);
+      }
+
+      mediaRecorder.ondataavailable = e => {
+        if (e.data && e.data.size > 0) recordedChunks.push(e.data);
+      };
+
+      mediaRecorder.onstop = onRecordingStopped;
+      mediaRecorder.start(250);
+
+      isRecording = true;
+      recordStartTime = performance.now();
+      document.getElementById("shutterBtn").classList.add("recording");
+      const counter = document.getElementById("recCounter");
+      counter.classList.add("active");
+
+      function drawCanvasFrame() {
+        if (!isRecording) return;
+        if (renderCtx && videoElement.readyState >= 2) {
+          renderCtx.drawImage(videoElement, 0, 0, renderCanvas.width, renderCanvas.height);
+          
+          renderCtx.save();
+          renderCtx.shadowColor = "rgba(0, 0, 0, 0.95)";
+          renderCtx.shadowBlur = 10;
+          renderCtx.shadowOffsetX = 2;
+          renderCtx.shadowOffsetY = 2;
+
+          renderCtx.fillStyle = "#aaaaaa";
+          renderCtx.font = "bold 20px -apple-system, sans-serif";
+          renderCtx.fillText((document.getElementById("phaseLabel").textContent || "CUERDA").toUpperCase(), 50, 60);
+
+          renderCtx.fillStyle = "#ffffff";
+          renderCtx.font = "900 68px -apple-system, monospace";
+          renderCtx.fillText(document.getElementById("mainTime").textContent || "00:00", 50, 130);
+
+          renderCtx.fillStyle = "#e50914";
+          renderCtx.font = "bold 18px -apple-system, sans-serif";
+          renderCtx.fillText(`COACH: ${coachName}`, 50, 165);
+
+          let offsetY = 205;
+          for (let k in configNiveles) {
+            const n = configNiveles[k];
+            if (!n.active) continue;
+            const timeStr = document.getElementById(`time_${n.id}`).textContent || "01:00";
+            const taskStr = document.getElementById(`taskA_${n.id}`).textContent || "";
+            
+            renderCtx.fillStyle = "#ffffff";
+            renderCtx.font = "900 16px -apple-system, sans-serif";
+            renderCtx.fillText(`• ${n.name.toUpperCase()} [${timeStr}]: ${taskStr}`, 50, offsetY);
+            offsetY += 26;
+          }
+          renderCtx.restore();
+        }
+        canvasAnimId = requestAnimationFrame(drawCanvasFrame);
+      }
+      drawCanvasFrame();
+
+      recordInterval = setInterval(() => {
+        const elapsed = Math.floor((performance.now() - recordStartTime) / 1000);
+        if (isManualMode) {
+          counter.textContent = `REC 00:${Math.floor(elapsed/60).toString().padStart(2,'0')}:${(elapsed%60).toString().padStart(2, '0')}`;
+        } else {
+          counter.textContent = `REC 00:${elapsed.toString().padStart(2, '0')} / 00:${selectedDuration.toString().padStart(2, '0')}`;
+          if (elapsed >= selectedDuration) stopRecording(true);
+        }
+      }, 500);
+    }
+
+    function stopRecording(promptSave = true) {
+      if (!isRecording) return;
+      isRecording = false;
+      if (canvasAnimId) cancelAnimationFrame(canvasAnimId);
+      clearInterval(recordInterval);
+      document.getElementById("shutterBtn").classList.remove("recording");
+      document.getElementById("recCounter").classList.remove("active");
+      mediaRecorder.stop();
+      mediaRecorder.promptSave = promptSave;
+      document.getElementById("camPlaceholderMsg").style.display = "block";
+    }
+
+    function onRecordingStopped() {
+      if (this.promptSave && recordedChunks.length > 0) {
+        const mimeToUse = selectedMimeType || (recordedChunks[0] && recordedChunks[0].type) || 'video/mp4';
+        const blob = new Blob(recordedChunks, { type: mimeToUse });
+        latestBlobUrl = URL.createObjectURL(blob);
+        const durationText = isManualMode ? "libre" : `${selectedDuration}s`;
+        document.getElementById("saveVideoText").textContent = 
+          `Se capturó un clip (${durationText}). ¿Deseas guardarlo en tu galería de descargas?`;
+        document.getElementById("saveVideoModal").classList.add("open");
+      }
+    }
+
+    function saveVideo() {
+      if (!latestBlobUrl) return;
+      const a = document.createElement("a");
+      a.style.display = "none";
+      a.href = latestBlobUrl;
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+      a.download = `CronoApex_V7_${timestamp}.${fileExtension}`;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(latestBlobUrl);
+      }, 100);
+      document.getElementById("saveVideoModal").classList.remove("open");
+    }
+
+    function discardVideo() {
+      if (latestBlobUrl) URL.revokeObjectURL(latestBlobUrl);
+      document.getElementById("saveVideoModal").classList.remove("open");
+    }
+
+    initLanesDOM();
+    actualizarVista(0, false);
+  </script>
+</body>
+</html>

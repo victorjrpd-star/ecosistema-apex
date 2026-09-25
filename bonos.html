@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apex - Sistema de Bonos Pro (Supabase)</title>
+    <!-- Librería de Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root { --bg-overlay: rgba(0, 0, 0, 0.88); }
+        body { font-family: Arial, sans-serif; background: #000; color: #fff; margin: 0; padding: 20px; background-size: cover; background-position: center; background-attachment: fixed; position: relative; }
+        body::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-overlay); z-index: -1; pointer-events: none; }
+        .card { background: #050505; border: 1px solid #1a1a1a; padding: 18px; margin-bottom: 15px; border-radius: 6px; max-width: 500px; margin-left: auto; margin-right: auto; box-shadow: 0 4px 20px rgba(0,0,0,0.9); position: relative; z-index: 1; }
+        input, select, textarea, button { width: 100%; padding: 11px; margin: 8px 0; box-sizing: border-box; background: #000; color: #fff; border: 1px solid #333; border-radius: 4px; font-family: inherit; }
+        button { background: #fff; color: #000; font-weight: bold; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; font-size: 12px; border: 1px solid #fff; transition: all 0.2s ease; }
+        button:hover { background: #000; color: #fff; border-color: #fff; }
+        button:active { transform: scale(0.97); }
+        button:disabled { background: #333; color: #777; border-color: #333; cursor: not-allowed; }
+        .btn-danger { background: #000; color: #ff4444; border: 1px solid #550000; }
+        .btn-danger:hover { background: #220000; border-color: #ff4444; }
+        .btn-warning { background: #1a1a1a; color: #aaa; border: 1px solid #444; }
+        .btn-warning:hover { background: #333; color: #fff; }
+        .hidden { display: none !important; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+        th, td { border: 1px solid #1a1a1a; padding: 8px; text-align: left; }
+        th { background: #0a0a0a; color: #777; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        .nav-bar { display: flex; flex-wrap: wrap; justify-content: space-around; background: #080808; padding: 6px; border-radius: 6px; margin-bottom: 15px; max-width: 500px; margin-left: auto; margin-right: auto; gap: 4px; border: 1px solid #1a1a1a; }
+        .nav-btn { background: transparent; color: #777; border: none; font-size: 10px; cursor: pointer; padding: 6px; flex: 1; min-width: 55px; transition: all 0.2s ease; text-transform: uppercase; letter-spacing: 1px; }
+        .nav-btn.active { color: #fff; border-bottom: 2px solid #fff; font-weight: bold; }
+        .coupon-box { position: relative; background-size: cover; background-position: center; border: 2px solid #fff; text-align: center; margin-top: 10px; border-radius: 12px; width: 280px; height: 500px; margin-left: auto; margin-right: auto; color: #fff; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.9); }
+        .coupon-overlay { background: rgba(0,0,0,0.85); width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-between; padding: 25px 15px; box-sizing: border-box; text-shadow: 0 2px 5px rgba(0,0,0,0.9); }
+        .suggestions-box { background: #0a0a0a; border: 1px solid #333; max-height: 150px; overflow-y: auto; text-align: left; margin-bottom: 10px; border-radius: 4px; }
+        .suggestion-item { padding: 8px; cursor: pointer; border-bottom: 1px solid #1a1a1a; font-size: 13px; transition: background 0.15s; }
+        .suggestion-item:hover { background: #1a1a1a; }
+        .funnel-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; }
+        .funnel-card { background: #0a0a0a; border: 1px solid #1a1a1a; padding: 12px; text-align: center; border-radius: 4px; }
+        .funnel-card span { font-size: 18px; font-weight: bold; color: #fff; display: block; margin-top: 4px; letter-spacing: 1px; }
+        .bar-container { background: #111; border-radius: 4px; margin: 6px 0; overflow: hidden; height: 18px; position: relative; border: 1px solid #222; }
+        .bar-fill { background: #fff; height: 100%; width: 0%; transition: width 0.5s ease; }
+        .bar-text { position: absolute; width: 100%; top: 0; left: 0; font-size: 10px; text-align: center; line-height: 18px; color: #000; font-weight: bold; }
+        .badge { display: inline-block; padding: 2px 6px; font-size: 9px; font-weight: bold; border-radius: 3px; border: 1px solid #333; }
+        .badge-basico { background: #111; color: #aaa; }
+        .badge-pro { background: #221100; color: #ff9900; border-color: #553300; }
+        .badge-elite { background: #002211; color: #00ff88; border-color: #005533; }
+        .badge-manual { background: #220022; color: #ff88ff; border-color: #550055; }
+        #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); background: #fff; color: #000; padding: 10px 20px; border-radius: 4px; font-weight: bold; font-size: 12px; letter-spacing: 1px; box-shadow: 0 5px 20px rgba(255,255,255,0.2); transition: transform 0.3s ease; z-index: 1000; text-transform: uppercase; }
+        #toast.show { transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+
+    <div style="max-width: 500px; margin: 0 auto; text-align: center;">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 5px;">
+            <img id="globalAppLogo" src="" alt="" style="width: 32px; height: 32px; object-fit: cover; border-radius: 50%; border: 1px solid #fff; display: none;">
+            <h2 style="letter-spacing: 2px; font-size: 15px; margin: 0;">APEX // EMBUDO DE VENTAS</h2>
+        </div>
+        <div id="currentUserBar" class="hidden" style="margin-bottom: 15px;">
+            <span id="lblRoleInfo" style="font-size: 12px; color: #777;"></span>
+            <button onclick="logout()" style="width: auto; padding: 3px 8px; margin-left: 8px; font-size: 10px;" class="btn-warning">Salir</button>
+        </div>
+    </div>
+
+    <!-- VISTA LOGIN -->
+    <section id="loginView" class="card">
+        <h3 style="font-size: 13px; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px;">Acceso al Sistema</h3>
+        <p style="font-size: 11px; color: #666;">Usa tu usuario registrado (Ej: <code>admin</code> o nombre de tienda).</p>
+        <input type="text" id="loginUser" placeholder="Usuario / Nombre">
+        <button onclick="login()">Ingresar</button>
+    </section>
+
+    <!-- PANEL ADMINISTRADOR -->
+    <section id="adminDashboard" class="hidden">
+        <div class="nav-bar">
+            <button class="nav-btn active" onclick="switchAdminTab('tabStores')">Tiendas</button>
+            <button class="nav-btn" onclick="switchAdminTab('tabPromos')">Campañas</button>
+            <button class="nav-btn" onclick="switchAdminTab('tabBonos')">Emitir</button>
+            <button class="nav-btn" onclick="switchAdminTab('tabList')">Listado</button>
+            <button class="nav-btn" onclick="switchAdminTab('tabFunnel')">Embudo</button>
+            <button class="nav-btn" onclick="switchAdminTab('tabSettings')">Ajustes</button>
+        </div>
+
+        <!-- 1. GESTIÓN TIENDAS -->
+        <div id="tabStores" class="card admin-tab">
+            <h3 style="font-size: 13px; color:#aaa; margin-bottom:8px;">Gestión de Tiendas y Accesos</h3>
+            <input type="text" id="storeName" placeholder="Nombre de la Tienda / Admin">
+            <label style="font-size:11px; color:#666;">Nivel de Membresía / Modo:</label>
+            <select id="storeTierSelect">
+                <option value="basico">Básico (Probabilidad Normal)</option>
+                <option value="pro">Pro (Prioridad x2)</option>
+                <option value="elite">Élite (Prioridad x3)</option>
+                <option value="manual">Manual (Asignación directa)</option>
+            </select>
+            <button id="btnSaveStore" onclick="saveStore()">Guardar Tienda</button>
+            <table>
+                <thead><tr><th>Tienda</th><th>Nivel</th><th>Estado</th><th>Acciones</th></tr></thead>
+                <tbody id="adminStoresTable"></tbody>
+            </table>
+        </div>
+
+        <!-- 2. GESTIÓN CAMPAÑAS -->
+        <div id="tabPromos" class="card admin-tab hidden">
+            <h3 style="font-size: 13px; color:#aaa; margin-bottom:8px;">Gestión de Campañas por Tienda</h3>
+            <input type="text" id="promoTitle" placeholder="Título de la Campaña (Ej: Combo Octubre)">
+            <label style="font-size:11px; color:#666;">Asignar a Tienda:</label>
+            <select id="promoStoreSelect"></select>
+            <label style="font-size:11px; color:#666;">Temporada (Mes/Año):</label>
+            <input type="text" id="promoSeason" placeholder="Ej: 2026-10">
+            <div style="display:flex; gap:6px;">
+                <input type="date" id="promoStart">
+                <input type="date" id="promoEnd">
+            </div>
+            <label style="font-size:11px; color:#666;">Términos y Condiciones:</label>
+            <textarea id="promoTerms" placeholder="Términos de la campaña..." rows="2" style="resize:vertical;"></textarea>
+            <label style="font-size:11px; color:#666;">Imagen de Fondo (Opcional):</label>
+            <input type="file" id="promoBgFile" accept="image/*" onchange="previewPromoBg(event)">
+            <button id="btnSavePromo" onclick="savePromo()">Guardar Campaña</button>
+            <table>
+                <thead><tr><th>Campaña</th><th>Tienda</th><th>Temporada</th><th>Acciones</th></tr></thead>
+                <tbody id="adminPromosTable"></tbody>
+            </table>
+        </div>
+
+        <!-- 3. EMITIR BONOS -->
+        <div id="tabBonos" class="card admin-tab hidden">
+            <h3 style="font-size: 13px; color:#aaa; margin-bottom:8px;">Emitir Bono para el Usuario Final</h3>
+            <input type="text" id="clientName" placeholder="Nombre del Cliente">
+            <input type="text" id="clientPhone" placeholder="Teléfono / PIN Único">
+            
+            <label style="font-size:11px; color:#666;">Modo de Asignación:</label>
+            <select id="assignModeSelect" onchange="toggleAssignMode()">
+                <option value="auto">Automático (Sorteo Ponderado por Tiendas)</option>
+                <option value="manual">Manual (Elegir Campaña/Tienda Específica)</option>
+            </select>
+            
+            <div id="manualPromoContainer" class="hidden">
+                <label style="font-size:11px; color:#666;">Seleccionar Campaña Específica:</label>
+                <select id="manualPromoSelect"></select>
+            </div>
+
+            <button id="btnGenerateCoupon" onclick="generateCoupon()">Generar Tarjeta 9:16</button>
+            
+            <div id="previewContainer" class="hidden" style="margin-top:15px; text-align:center;">
+                <div id="couponCard" class="coupon-box">
+                    <div class="coupon-overlay">
+                        <div>
+                            <span style="background:#fff; color:#000; font-size:9px; padding:2px 6px; font-weight:bold;">OFICIAL APEX</span>
+                            <p style="margin:8px 0 2px 0; font-size:11px; color:#ccc; font-style:italic;">Felicidades. Reto Apex superado.</p>
+                            <p style="margin:0; font-size:11px; color:#888;">Has obtenido un:</p>
+                        </div>
+                        <div>
+                            <h3 id="prevTitle" style="margin:5px 0; font-size:14px; color:#fff; text-transform:uppercase;"></h3>
+                            <h1 id="prevClient" style="margin:8px 0; font-size:32px; font-weight:900; color:#fff; line-height:1.1; word-break: break-word;"></h1>
+                            <p id="prevTerms" style="margin:8px 0; font-size:11px; color:#aaa; line-height:1.3;"></p>
+                        </div>
+                        <div style="border-top: 1px solid rgba(255,255,255,0.2); padding-top:8px;">
+                            <p id="prevPhone" style="margin:2px 0; color:#fff; font-weight:bold; font-size:12px;"></p>
+                            <p id="prevExpiry" style="margin:2px 0; font-size:9px; color:#777;"></p>
+                            <p style="margin:4px 0 0 0; font-size:7px; color:#aaa;">Al redimir autorizas el uso de tus datos para comunicaciones de la tienda.</p>
+                        </div>
+                    </div>
+                </div>
+                <button onclick="downloadCard()" style="margin-top:10px;">📥 Descargar Imagen 9:16</button>
+            </div>
+        </div>
+
+        <!-- 4. LISTADO GENERAL -->
+        <div id="tabList" class="card admin-tab hidden">
+            <h3 style="font-size: 13px; color:#aaa; margin-bottom:8px;">Listado de Bonos Emitidos</h3>
+            <button onclick="resetAdminHistory()" class="btn-warning" style="margin-bottom: 10px;">🔄 Resetear Historial Admin</button>
+            <table>
+                <thead><tr><th>Cliente</th><th>PIN</th><th>Campaña</th><th>Estado</th><th>Acciones</th></tr></thead>
+                <tbody id="adminBonosTable"></tbody>
+            </table>
+        </div>
+
+        <!-- 5. EMBUDO ADMIN -->
+        <div id="tabFunnel" class="card admin-tab hidden">
+            <h3 style="font-size: 13px; color:#aaa; margin-bottom:8px;">Embudo y Filtros Dinámicos</h3>
+            <label style="font-size:11px; color:#666;">Filtrar por Campaña:</label>
+            <select id="filterPromo" onchange="renderFunnel()"><option value="all">Todas las Campañas</option></select>
+            
+            <div class="funnel-grid" style="margin-top:12px;">
+                <div class="funnel-card"><small style="font-size:10px; color:#666;">BONOS EMITIDOS</small><span id="funnelTotal">0</span></div>
+                <div class="funnel-card"><small style="font-size:10px; color:#666;">BONOS REDIMIDOS</small><span id="funnelRedeemed">0</span></div>
+                <div class="funnel-card"><small style="font-size:10px; color:#666;">BONOS VENCIDOS</small><span id="funnelExpired">0</span></div>
+                <div class="funnel-card"><small style="font-size:10px; color:#666;">EFICIENCIA / CONVERSIÓN</small><span id="funnelRate">0%</span></div>
+            </div>
+
+            <h4 style="font-size: 12px; color:#aaa; margin:15px 0 5px 0;">Rendimiento por Categorías de Membresía</h4>
+            <div id="chartTierContainer"></div>
+
+            <h4 style="font-size: 12px; color:#aaa; margin:15px 0 5px 0;">Rendimiento por Tienda</h4>
+            <div id="chartContainer"></div>
+        </div>
+
+        <!-- 6. AJUSTES GLOBALES -->
+        <div id="tabSettings" class="card admin-tab hidden">
+            <h3 style="font-size: 13px; color:#aaa; margin-bottom:8px;">Ajustes Globales (Logotipo y Fondo / GIF)</h3>
+            <label style="font-size:11px; color:#666;">Logotipo Global:</label>
+            <input type="file" id="appLogoFile" accept="image/*" onchange="uploadGlobalAsset(event, 'logo')">
+            <label style="font-size:11px; color:#666;">Fondo o GIF de la Aplicación:</label>
+            <input type="file" id="appBgFile" accept="image/*" onchange="uploadGlobalAsset(event, 'bg')">
+            <input type="text" id="appBgUrl" placeholder="O pega enlace directo a imagen / GIF" onchange="saveBgUrl(this.value)" style="margin-top:5px;">
+        </div>
+    </section>
+
+    <!-- PANEL TIENDA ALIADA -->
+    <section id="establishmentDashboard" class="hidden">
+        <div class="nav-bar">
+            <button class="nav-btn active" onclick="switchStoreTab('storeRedeem')">Validador</button>
+            <button class="nav-btn" onclick="switchStoreTab('storeLeads')">Leads / Base de Datos</button>
+            <button class="nav-btn" onclick="switchStoreTab('storeFunnel')">Embudo</button>
+            <button class="nav-btn" onclick="switchStoreTab('storeSettings')">Mi Perfil</button>
+        </div>
+
+        <!-- Validador Tienda -->
+        <div id="storeRedeem" class="store-subtab">
+            <div class="card" id="redeemCardBox">
+                <h3 id="estTitleHeader" style="font-size: 14px; margin-bottom: 5px;">Panel de Tienda</h3>
+                <p style="font-size: 11px; color: #666; margin-bottom: 10px;">Busca al cliente activo o haz clic directo en la lista.</p>
+                
+                <input type="text" id="searchClientInput" placeholder="Escribe el nombre del cliente..." oninput="filterClientSuggestions()">
+                <div id="clientSuggestions" class="suggestions-box hidden"></div>
+
+                <div id="selectedClientBox" class="hidden" style="background:#0a0a0a; padding:10px; margin-top:10px; border-radius:4px; border: 1px solid #1a1a1a;">
+                    <p style="margin:0; font-size:13px; color:#fff;" id="lblSelectedInfo"></p>
+                    <input type="text" id="confirmPhoneInput" placeholder="Confirma el PIN / Teléfono">
+                    <button id="btnRedeemAction" onclick="redeemCouponSecure()" style="margin-top:8px;">Validar y Redimir</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 style="font-size: 13px; color:#aaa; margin-bottom:8px;">Bonos Activos Pendientes</h3>
+                <table>
+                    <thead><tr><th>Cliente</th><th>Campaña</th><th>Vigencia</th></tr></thead>
+                    <tbody id="estBonosTable"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Leads Tienda -->
+        <div id="storeLeads" class="store-subtab hidden">
+            <div class="card">
+                <h3 style="font-size: 13px; color:#aaa; margin-bottom:8px;">Base de Datos de Leads (Redimidos)</h3>
+                <label style="font-size:11px; color:#666;">Temporada / Campaña:</label>
+                <select id="leadSeasonFilter" onchange="renderStoreLeads()"><option value="all">Todas las temporadas</option></select>
+                <input type="text" id="leadSearchInput" placeholder="Buscar por nombre o teléfono..." oninput="renderStoreLeads()">
+                <button onclick="exportLeadsCSV()" style="background:#003311; color:#00ff88; border-color:#006622; margin-top:10px;">📥 Descargar Leads (CSV)</button>
+                <button onclick="resetStoreHistory()" class="btn-warning" style="margin-top: 5px;">🔄 Resetear Mi Historial</button>
+                <table style="margin-top: 10px;">
+                    <thead><tr><th>Cliente</th><th>Teléfono</th><th>Campaña</th><th>Fecha Redención</th></tr></thead>
+                    <tbody id="storeLeadsTable"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Embudo Tienda -->
+        <div id="storeFunnel" class="store-subtab hidden">
+            <div class="card">
+                <h3 style="font-size: 13px; color:#aaa; margin-bottom:8px;">Filtros de Embudo</h3>
+                <label style="font-size:11px; color:#666;">Campaña:</label>
+                <select id="storeFilterPromo" onchange="renderStoreFunnel()"><option value="all">Todas las campañas</option></select>
+            </div>
+
+            <div class="card" style="padding: 10px;">
+                <h4 style="font-size: 11px; color:#aaa; margin:0 0 8px 0;">Mis Métricas Locales</h4>
+                <div class="funnel-grid">
+                    <div class="funnel-card"><small style="font-size:10px; color:#666;">ASIGNADOS</small><span id="storeMetricAssigned">0</span></div>
+                    <div class="funnel-card"><small style="font-size:10px; color:#666;">REDIMIDOS</small><span id="storeMetricRedeemed">0</span></div>
+                    <div class="funnel-card"><small style="font-size:10px; color:#666;">VENCIDOS</small><span id="storeMetricExpired">0</span></div>
+                    <div class="funnel-card"><small style="font-size:10px; color:#666;">EFICIENCIA</small><span id="storeMetricRate">0%</span></div>
+                </div>
+
+                <h4 style="font-size: 11px; color:#aaa; margin:15px 0 8px 0;">Métricas Globales de la Red</h4>
+                <div class="funnel-grid">
+                    <div class="funnel-card"><small style="font-size:10px; color:#666;">TOTAL CAMPAÑA</small><span id="globalMetricTotal">0</span></div>
+                    <div class="funnel-card"><small style="font-size:10px; color:#666;">REDIMIDOS RED</small><span id="globalMetricRedeemed">0</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Perfil Tienda -->
+        <div id="storeSettings" class="store-subtab hidden">
+            <div class="card">
+                <h3 style="font-size: 13px; color:#aaa; margin-bottom:8px;">Mi Perfil y Membresía</h3>
+                <p id="lblStoreTierInfo" style="font-size: 12px; color: #ccc; margin-bottom: 10px;"></p>
+                <input type="text" id="storeNewName" placeholder="Nuevo nombre de usuario">
+                <button onclick="updateStoreName()">Guardar Nuevo Usuario</button>
+            </div>
+        </div>
+    </section>
+
+    <div id="toast">Notificación</div>
+
+    <script>
+        // CREDENCIALES CONFIGURADAS DIRECTAMENTE
+        const SUPABASE_URL = "https://fprvbvucmtdpxdihuvrw.supabase.co";
+        const SUPABASE_ANON_KEY = "sb_publishable_xAMs8LpCwyMyoql3ohoJUQ_BIRhBQoD";
+        
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let DB = { stores: [], promos: [], users: [] };
+        let currentUser = null;
+        let lastCreatedUser = null;
+        let selectedTargetCoupon = null;
+        let globalSettings = { logo: '', bg: '' };
+        let tempPromoBgData = '';
+
+        function showToast(msg) {
+            let t = document.getElementById('toast');
+            t.innerText = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2500);
+        }
+
+        async function loadData() {
+            try {
+                let { data: stores } = await supabaseClient.from('stores').select('*');
+                let { data: promos } = await supabaseClient.from('promos').select('*');
+                let { data: coupons } = await supabaseClient.from('coupons').select('*');
+
+                DB.stores = stores || [];
+                DB.promos = promos || [];
+                DB.users = coupons || [];
+                
+                let setStore = DB.stores.find(s => s.name && s.name.trim().toLowerCase() === 'settings_global');
+                if(setStore && setStore.terms) {
+                    try { globalSettings = JSON.parse(setStore.terms); } catch(e){}
+                }
+                applyGlobalAssets();
+            } catch(e) {
+                console.error("Error cargando datos de Supabase:", e);
+            }
+        }
+
+        function applyGlobalAssets() {
+            let logoEl = document.getElementById('globalAppLogo');
+            if(globalSettings.logo) {
+                logoEl.src = globalSettings.logo;
+                logoEl.style.display = 'block';
+            } else {
+                logoEl.style.display = 'none';
+            }
+
+            if(globalSettings.bg) {
+                document.body.style.backgroundImage = `url('${globalSettings.bg}')`;
+            } else {
+                document.body.style.backgroundImage = 'none';
+            }
+        }
+
+        async function uploadGlobalAsset(event, type) {
+            let file = event.target.files[0];
+            if(file) {
+                let reader = new FileReader();
+                reader.onload = async function(e) {
+                    if(type === 'logo') globalSettings.logo = e.target.result;
+                    if(type === 'bg') globalSettings.bg = e.target.result;
+                    await saveGlobalSettingsToSupabase();
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function saveBgUrl(url) {
+            if(!url) return;
+            globalSettings.bg = url.trim();
+            await saveGlobalSettingsToSupabase();
+        }
+
+        async function saveGlobalSettingsToSupabase() {
+            let setStore = DB.stores.find(s => s.name && s.name.trim().toLowerCase() === 'settings_global');
+            let payload = { name: 'settings_global', tier: 'system', status: 'active', terms: JSON.stringify(globalSettings) };
+            if(setStore) {
+                await supabaseClient.from('stores').update(payload).eq('id', setStore.id);
+            } else {
+                await supabaseClient.from('stores').insert([payload]);
+            }
+            await loadData();
+            showToast('Ajustes globales actualizados');
+        }
+
+        async function login() {
+            let val = document.getElementById('loginUser').value.trim().toLowerCase();
+            if(!val) { showToast('Ingresa un usuario'); return; }
+            await loadData();
+
+            let foundStore = DB.stores.find(s => s.name && s.name.trim().toLowerCase() === val);
+            if(foundStore) {
+                let cleanName = foundStore.name.trim().toLowerCase();
+                if(cleanName === 'admin') {
+                    currentUser = { role: 'admin', ...foundStore };
+                } else {
+                    currentUser = { role: 'store', ...foundStore };
+                }
+                startSession();
+                return;
+            }
+            showToast('Usuario no encontrado');
+        }
+
+        function startSession() {
+            document.getElementById('loginView').classList.add('hidden');
+            document.getElementById('currentUserBar').classList.remove('hidden');
+            document.getElementById('lblRoleInfo').innerText = `Conectado: ${currentUser.name}`;
+
+            if(currentUser.role === 'admin') {
+                document.getElementById('adminDashboard').classList.remove('hidden');
+                renderAdminEverything();
+            } else {
+                document.getElementById('establishmentDashboard').classList.remove('hidden');
+                document.getElementById('estTitleHeader').innerText = `Tienda: ${currentUser.name}`;
+                
+                let isSuspended = currentUser.status === 'suspended';
+                document.getElementById('lblStoreTierInfo').innerText = `Membresía actual: ${currentUser.tier.toUpperCase()} ${isSuspended ? ' (⚠️ SUSPENDIDA)' : ''}`;
+                
+                if(isSuspended) {
+                    document.getElementById('redeemCardBox').innerHTML = '<p style="color:#ff4444; font-weight:bold;">⚠️ Tu tienda se encuentra suspendida por el administrador.</p>';
+                }
+                renderStoreEverything();
+            }
+        }
+
+        function logout() {
+            if(!confirm('¿Deseas salir?')) return;
+            currentUser = null;
+            document.getElementById('loginView').classList.remove('hidden');
+            document.getElementById('currentUserBar').classList.add('hidden');
+            document.getElementById('adminDashboard').classList.add('hidden');
+            document.getElementById('establishmentDashboard').classList.add('hidden');
+            document.getElementById('loginUser').value = '';
+            showToast('Sesión cerrada');
+        }
+
+        function switchAdminTab(tabId) {
+            document.querySelectorAll('.admin-tab').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('#adminDashboard .nav-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.remove('hidden');
+            event.target.classList.add('active');
+            if(tabId === 'tabFunnel') renderFunnel();
+        }
+
+        function switchStoreTab(tabId) {
+            document.querySelectorAll('.store-subtab').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('#establishmentDashboard .nav-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.remove('hidden');
+            event.target.classList.add('active');
+            if(tabId === 'storeFunnel') renderStoreFunnel();
+            if(tabId === 'storeLeads') renderStoreLeads();
+        }
+
+        function renderAdminEverything() {
+            renderAdminSelects();
+            renderAdminStoresTable();
+            renderAdminPromosTable();
+            renderAdminTable();
+            renderFunnelFilters();
+        }
+
+        function renderStoreEverything() {
+            renderStoreTable();
+            renderStoreFunnelFilters();
+            renderStoreFunnel();
+            renderStoreLeads();
+        }
+
+        async function updateStoreName() {
+            if(currentUser.status === 'suspended') { alert('Tienda suspendida.'); return; }
+            let newName = document.getElementById('storeNewName').value.trim();
+            if(!newName) { showToast('Ingresa un nombre'); return; }
+            currentUser.name = newName;
+            await supabaseClient.from('stores').update({ name: newName }).eq('id', currentUser.id);
+            await loadData();
+            document.getElementById('storeNewName').value = '';
+            document.getElementById('estTitleHeader').innerText = `Tienda: ${currentUser.name}`;
+            showToast('Nombre actualizado');
+        }
+
+        // --- STORES CRUD ---
+        async function saveStore() {
+            let btn = document.getElementById('btnSaveStore');
+            let name = document.getElementById('storeName').value.trim();
+            let tier = document.getElementById('storeTierSelect').value;
+            if(!name) { showToast('Escribe el nombre'); return; }
+            
+            btn.disabled = true;
+            btn.innerText = "Guardando...";
+
+            let { error } = await supabaseClient.from('stores').insert([{ name, tier, status: 'active' }]);
+            if(error) { alert('Error: Ya existe una tienda con este nombre.'); }
+            else { document.getElementById('storeName').value = ''; showToast('Tienda guardada'); }
+
+            await loadData();
+            renderAdminEverything();
+            btn.disabled = false;
+            btn.innerText = "Guardar Tienda";
+        }
+
+        async function editStore(id) {
+            let store = DB.stores.find(s => s.id === id);
+            if(!store) return;
+            let newName = prompt("Editar nombre de tienda:", store.name);
+            if(newName === null) return;
+            await supabaseClient.from('stores').update({ name: newName.trim() }).eq('id', id);
+            await loadData();
+            renderAdminEverything();
+            showToast('Tienda actualizada');
+        }
+
+        async function toggleSuspendStore(id) {
+            let store = DB.stores.find(s => s.id === id);
+            if(!store) return;
+            let newStatus = store.status === 'suspended' ? 'active' : 'suspended';
+            await supabaseClient.from('stores').update({ status: newStatus }).eq('id', id);
+            await loadData();
+            renderAdminEverything();
+            showToast('Estado actualizado');
+        }
+
+        async function deleteStore(id) {
+            let store = DB.stores.find(s => s.id === id);
+            if(store && store.name.trim().toLowerCase() === 'admin') return alert('⚠️ No puedes eliminar el administrador principal.');
+            if(!confirm('¿Eliminar tienda? Se borrarán en cascada sus campañas y bonos.')) return;
+            await supabaseClient.from('stores').delete().eq('id', id);
+            await loadData();
+            renderAdminEverything();
+            showToast('Tienda eliminada');
+        }
+
+        function renderAdminStoresTable() {
+            let validStores = DB.stores.filter(s => s.name && s.name.trim().toLowerCase() !== 'settings_global');
+            document.getElementById('adminStoresTable').innerHTML = validStores.map(s => `
+                <tr>
+                    <td><b>${s.name}</b></td>
+                    <td><span class="badge badge-${s.tier || 'basico'}">${(s.tier || 'basico').toUpperCase()}</span></td>
+                    <td>${s.status === 'suspended' ? '<span style="color:#ff4444">Suspendida</span>' : '<span style="color:#00ff88">Activa</span>'}</td>
+                    <td>
+                        <button onclick="editStore('${s.id}')" style="padding:4px 6px; margin-right:4px;">✏️</button>
+                        <button onclick="toggleSuspendStore('${s.id}')" style="padding:4px 6px; margin-right:4px;" class="${s.status === 'suspended' ? '' : 'btn-warning'}">${s.status === 'suspended' ? 'Activar' : 'Suspender'}</button>
+                        ${s.name.trim().toLowerCase() !== 'admin' ? `<button onclick="deleteStore('${s.id}')" style="padding:4px 6px;" class="btn-danger">ELIMINAR</button>` : ''}
+                    </td>
+                </tr>
+            `).join('') || `<tr><td colspan="4">Sin tiendas.</td></tr>`;
+        }
+
+        // --- PROMOS CRUD ---
+        function previewPromoBg(event) {
+            let file = event.target.files[0];
+            if(file) {
+                let reader = new FileReader();
+                reader.onload = function(e) { tempPromoBgData = e.target.result; showToast('Imagen cargada'); };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function savePromo() {
+            let btn = document.getElementById('btnSavePromo');
+            let title = document.getElementById('promoTitle').value.trim();
+            let storeId = document.getElementById('promoStoreSelect').value;
+            let season = document.getElementById('promoSeason').value.trim();
+            let start = document.getElementById('promoStart').value;
+            let end = document.getElementById('promoEnd').value;
+            let terms = document.getElementById('promoTerms').value.trim();
+
+            if(!title || !season || !storeId) { showToast('Completa título, tienda y temporada'); return; }
+
+            btn.disabled = true;
+            btn.innerText = "Guardando...";
+
+            let promoObj = {
+                title, season, store_id: storeId,
+                start_date: start || null, end_date: end || null,
+                terms: terms || 'Válido en establecimientos participantes.',
+                bg_image: tempPromoBgData || ''
+            };
+
+            await supabaseClient.from('promos').insert([promoObj]);
+            document.getElementById('promoTitle').value = '';
+            document.getElementById('promoSeason').value = '';
+            document.getElementById('promoStart').value = '';
+            document.getElementById('promoEnd').value = '';
+            document.getElementById('promoTerms').value = '';
+            tempPromoBgData = '';
+            
+            await loadData();
+            renderAdminEverything();
+            btn.disabled = false;
+            btn.innerText = "Guardar Campaña";
+            showToast('Campaña guardada');
+        }
+
+        async function deletePromo(id) {
+            if(!confirm('¿Eliminar campaña?')) return;
+            await supabaseClient.from('promos').delete().eq('id', id);
+            await loadData();
+            renderAdminEverything();
+            showToast('Campaña eliminada');
+        }
+
+        function renderAdminPromosTable() {
+            document.getElementById('adminPromosTable').innerHTML = DB.promos.map(p => {
+                let st = DB.stores.find(s => s.id === p.store_id);
+                return `
+                    <tr>
+                        <td>${p.title}</td>
+                        <td><b>${st ? st.name : 'N/A'}</b></td>
+                        <td><code>${p.season || 'N/A'}</code></td>
+                        <td><button onclick="deletePromo('${p.id}')" style="padding:4px 8px;" class="btn-danger">ELIMINAR</button></td>
+                    </tr>
+                `;
+            }).join('') || `<tr><td colspan="4">Sin campañas.</td></tr>`;
+        }
+
+        function renderAdminSelects() {
+            let activeStores = DB.stores.filter(s => s.name && s.name.trim().toLowerCase() !== 'settings_global' && s.status !== 'suspended');
+            document.getElementById('promoStoreSelect').innerHTML = activeStores.map(s => `<option value="${s.id}">${s.name} (${s.tier})</option>`).join('');
+            document.getElementById('manualPromoSelect').innerHTML = DB.promos.map(p => {
+                let st = DB.stores.find(s => s.id === p.store_id);
+                return `<option value="${p.id}">${p.title} - [Tienda: ${st ? st.name : 'N/A'}]</option>`;
+            }).join('');
+        }
+
+        function toggleAssignMode() {
+            let mode = document.getElementById('assignModeSelect').value;
+            document.getElementById('manualPromoContainer').classList.toggle('hidden', mode !== 'manual');
+        }
+
+        // --- ALGORITHM: WEIGHTED RANDOM SELECTION ---
+        function selectWeightedPromo() {
+            let activeStores = DB.stores.filter(s => s.name && s.name.trim().toLowerCase() !== 'admin' && s.name.trim().toLowerCase() !== 'settings_global' && s.status !== 'suspended' && s.tier !== 'manual');
+            
+            if(activeStores.length === 0) {
+                let fallbackStores = DB.stores.filter(s => s.status !== 'suspended' && s.name && s.name.trim().toLowerCase() !== 'settings_global' && s.name.trim().toLowerCase() !== 'admin');
+                if(fallbackStores.length === 0) return null;
+                let storePromos = DB.promos.filter(p => p.store_id === fallbackStores[0].id);
+                return storePromos.length > 0 ? storePromos[0] : null;
+            }
+
+            let pool = [];
+            activeStores.forEach(s => {
+                let weight = 1;
+                if(s.tier === 'pro') weight = 2;
+                if(s.tier === 'elite') weight = 3;
+                let sPromos = DB.promos.filter(p => p.store_id === s.id);
+                sPromos.forEach(p => {
+                    for(let i = 0; i < weight; i++) { pool.push(p); }
+                });
+            });
+
+            if(pool.length === 0 && DB.promos.length > 0) return DB.promos[0];
+            if(pool.length === 0) return null;
+
+            return pool[Math.floor(Math.random() * pool.length)];
+        }
+
+        // --- COUPONS ---
+        async function generateCoupon() {
+            let btn = document.getElementById('btnGenerateCoupon');
+            let clientName = document.getElementById('clientName').value.trim();
+            let clientPhone = document.getElementById('clientPhone').value.trim();
+            let assignMode = document.getElementById('assignModeSelect').value;
+
+            if(!clientName || !clientPhone) { showToast('Completa los campos'); return; }
+
+            let targetPromo = null;
+            if(assignMode === 'manual') {
+                let promoId = document.getElementById('manualPromoSelect').value;
+                targetPromo = DB.promos.find(p => p.id === promoId);
+            } else {
+                targetPromo = selectWeightedPromo();
+            }
+
+            if(!targetPromo) { showToast('No hay campañas ni tiendas disponibles'); return; }
+
+            btn.disabled = true;
+            btn.innerText = "Generando...";
+
+            let userObj = {
+                beneficiary: clientName,
+                phone: clientPhone,
+                expiry: targetPromo.end_date || 'Sin caducidad',
+                terms: targetPromo.terms || 'Válido en establecimientos participantes.',
+                promo_id: targetPromo.id,
+                promo_title: targetPromo.title,
+                season: targetPromo.season || '2026-10',
+                store_id: targetPromo.store_id,
+                status: 'activo'
+            };
+
+            let { error } = await supabaseClient.from('coupons').insert([userObj]);
+            if(error) {
+                alert('⚠️ Este número de teléfono ya tiene un bono asignado en esta campaña.');
+                btn.disabled = false;
+                btn.innerText = "Generar Tarjeta 9:16";
+                return;
+            }
+
+            lastCreatedUser = userObj;
+            await loadData();
+            renderAdminTable();
+
+            if(targetPromo.bg_image) {
+                document.getElementById('couponCard').style.backgroundImage = `url('${targetPromo.bg_image}')`;
+            } else {
+                document.getElementById('couponCard').style.backgroundImage = 'none';
+            }
+
+            document.getElementById('prevTitle').innerText = targetPromo.title;
+            document.getElementById('prevClient').innerText = clientName;
+            document.getElementById('prevTerms').innerText = targetPromo.terms;
+            document.getElementById('prevPhone').innerText = `PIN / TEL: ${clientPhone}`;
+            document.getElementById('prevExpiry').innerText = `Expira: ${targetPromo.end_date || 'N/A'}`;
+            document.getElementById('previewContainer').classList.remove('hidden');
+            
+            btn.disabled = false;
+            btn.innerText = "Generar Tarjeta 9:16";
+            showToast('Bono generado con éxito');
+        }
+
+        function downloadCard() {
+            let card = document.getElementById('couponCard');
+            html2canvas(card, { scale: 2, useCORS: true }).then(canvas => {
+                let link = document.createElement('a');
+                link.download = `Bono_Apex_${lastCreatedUser ? lastCreatedUser.beneficiary : 'Card'}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+
+        async function deleteCoupon(id) {
+            if(!confirm('¿Eliminar este bono?')) return;
+            await supabaseClient.from('coupons').delete().eq('id', id);
+            await loadData();
+            renderAdminTable();
+            showToast('Bono eliminado');
+        }
+
+        async function resetAdminHistory() {
+            if(!confirm('⚠️ ¿Resetear el historial general de bonos?')) return;
+            await supabaseClient.from('coupons').delete().neq('status', '9999');
+            await loadData();
+            renderAdminEverything();
+            showToast('Historial reseteado');
+        }
+
+        function renderAdminTable() {
+            let valid = DB.users.filter(u => u.status !== 'eliminado');
+            document.getElementById('adminBonosTable').innerHTML = valid.map(u => `
+                <tr>
+                    <td>${u.beneficiary}</td>
+                    <td><code>${u.phone}</code></td>
+                    <td>${u.promo_title}</td>
+                    <td><b>${u.status.toUpperCase()}</b></td>
+                    <td><button onclick="deleteCoupon('${u.id}')" style="padding:4px 6px;" class="btn-danger">ELIMINAR</button></td>
+                </tr>
+            `).join('') || `<tr><td colspan="5">Sin bonos.</td></tr>`;
+        }
+
+        // --- ADMIN FUNNEL ---
+        function renderFunnelFilters() {
+            document.getElementById('filterPromo').innerHTML = '<option value="all">Todas las Campañas</option>' + DB.promos.map(p => `<option value="${p.id}">${p.title} (${p.season})</option>`).join('');
+        }
+
+        function renderFunnel() {
+            let promoId = document.getElementById('filterPromo').value;
+            let list = DB.users.filter(u => u.status !== 'eliminado');
+            if(promoId !== 'all') list = list.filter(u => u.promo_id === promoId);
+
+            let total = list.length;
+            let redeemed = list.filter(u => u.status === 'redimido').length;
+            let now = new Date();
+            let expired = list.filter(u => u.status === 'vencido' || (u.expiry !== 'Sin caducidad' && new Date(u.expiry) < now)).length;
+            let rate = total > 0 ? Math.round((redeemed / total) * 100) : 0;
+
+            document.getElementById('funnelTotal').innerText = total;
+            document.getElementById('funnelRedeemed').innerText = redeemed;
+            document.getElementById('funnelExpired').innerText = expired;
+            document.getElementById('funnelRate').innerText = rate + '%';
+
+            let tiers = ['basico', 'pro', 'elite', 'manual'];
+            let tierHtml = '';
+            tiers.forEach(t => {
+                let tierStores = DB.stores.filter(s => s.tier === t).map(s => s.id);
+                let tBonos = list.filter(u => tierStores.includes(u.store_id));
+                let tTotal = tBonos.length;
+                let tRed = tBonos.filter(u => u.status === 'redimido').length;
+                let pct = tTotal > 0 ? Math.round((tRed / tTotal) * 100) : 0;
+
+                tierHtml += `
+                    <div style="font-size:11px; margin-top:4px;">Nivel <span class="badge badge-${t}">${t.toUpperCase()}</span> (${tRed} redimidos / ${tTotal} asignados)</div>
+                    <div class="bar-container">
+                        <div class="bar-fill" style="width: ${pct}%;"></div>
+                        <div class="bar-text">${pct}% conversión</div>
+                    </div>
+                `;
+            });
+            document.getElementById('chartTierContainer').innerHTML = tierHtml;
+
+            let chartHtml = '';
+            let validStores = DB.stores.filter(s => s.name && s.name.trim().toLowerCase() !== 'settings_global' && s.name.trim().toLowerCase() !== 'admin');
+            validStores.forEach(s => {
+                let sBonos = list.filter(u => u.store_id === s.id);
+                let sTotal = sBonos.length;
+                let sRed = sBonos.filter(u => u.status === 'redimido').length;
+                let pct = sTotal > 0 ? Math.round((sRed / sTotal) * 100) : 0;
+
+                chartHtml += `
+                    <div style="font-size:11px; margin-top:4px;">${s.name} [${s.tier}] (${sRed}/${sTotal})</div>
+                    <div class="bar-container">
+                        <div class="bar-fill" style="width: ${pct}%;"></div>
+                        <div class="bar-text">${pct}% redimido</div>
+                    </div>
+                `;
+            });
+            document.getElementById('chartContainer').innerHTML = chartHtml || '<p style="font-size:11px; color:#666;">Sin datos</p>';
+        }
+
+        // --- STORE ACTIONS ---
+        function renderStoreTable() {
+            let storeBonos = DB.users.filter(u => u.store_id === currentUser.id && u.status === 'activo');
+            document.getElementById('estBonosTable').innerHTML = storeBonos.map(u => `
+                <tr style="cursor: pointer;" onclick='selectClientForRedeem(${JSON.stringify(u)})'>
+                    <td><b>${u.beneficiary}</b></td>
+                    <td>${u.promo_title}</td>
+                    <td><span style="color: #fff; font-weight:bold;">ACTIVO</span><br><small style="color:#666;">Exp: ${u.expiry}</small></td>
+                </tr>
+            `).join('') || `<tr><td colspan="3">Sin bonos activos.</td></tr>`;
+        }
+
+        function filterClientSuggestions() {
+            let query = document.getElementById('searchClientInput').value.trim().toLowerCase();
+            let box = document.getElementById('clientSuggestions');
+            if(!query) { box.classList.add('hidden'); return; }
+
+            let matches = DB.users.filter(u => u.store_id === currentUser.id && u.status === 'activo' && u.beneficiary.toLowerCase().includes(query));
+            if(matches.length === 0) {
+                box.innerHTML = '<div class="suggestion-item">No se encontraron clientes activos</div>';
+                box.classList.remove('hidden');
+                return;
+            }
+
+            box.innerHTML = matches.map(u => `
+                <div class="suggestion-item" onclick='selectClientForRedeem(${JSON.stringify(u)})'>
+                    👤 <b>${u.beneficiary}</b> - ${u.promo_title} (Exp: ${u.expiry})
+                </div>
+            `).join('');
+            box.classList.remove('hidden');
+        }
+
+        function selectClientForRedeem(coupon) {
+            selectedTargetCoupon = coupon;
+            document.getElementById('searchClientInput').value = coupon.beneficiary;
+            document.getElementById('clientSuggestions').classList.add('hidden');
+            document.getElementById('lblSelectedInfo').innerText = `Seleccionado: ${coupon.beneficiary} (${coupon.promo_title})`;
+            document.getElementById('selectedClientBox').classList.remove('hidden');
+        }
+
+        async function redeemCouponSecure() {
+            let enteredPhone = document.getElementById('confirmPhoneInput').value.trim();
+            let btn = document.getElementById('btnRedeemAction');
+            if(!selectedTargetCoupon || !enteredPhone) { showToast('Ingresa el PIN'); return; }
+
+            if(String(selectedTargetCoupon.phone).trim() !== enteredPhone) {
+                showToast('PIN incorrecto');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = "Procesando...";
+
+            await supabaseClient.from('coupons').update({
+                status: 'redimido',
+                redeemed_at: new Date().toISOString()
+            }).eq('id', selectedTargetCoupon.id);
+            
+            document.getElementById('searchClientInput').value = '';
+            document.getElementById('confirmPhoneInput').value = '';
+            document.getElementById('selectedClientBox').classList.add('hidden');
+            selectedTargetCoupon = null;
+
+            await loadData();
+            renderStoreTable();
+            renderStoreFunnel();
+            renderStoreLeads();
+            
+            btn.disabled = false;
+            btn.innerText = "Validar y Redimir";
+            showToast('¡Bono redimido con éxito! Lead guardado.');
+        }
+
+        function renderStoreLeads() {
+            if(currentUser.status === 'suspended') return;
+            let season = document.getElementById('leadSeasonFilter').value;
+            let query = document.getElementById('leadSearchInput').value.trim().toLowerCase();
+
+            let redeemedList = DB.users.filter(u => u.store_id === currentUser.id && u.status === 'redimido');
+            
+            if(season !== 'all') redeemedList = redeemedList.filter(u => (u.season || '2026-10') === season);
+            if(query) redeemedList = redeemedList.filter(u => u.beneficiary.toLowerCase().includes(query) || u.phone.includes(query));
+
+            let seasonsSet = [...new Set(DB.users.filter(u => u.store_id === currentUser.id && u.status === 'redimido').map(u => u.season || '2026-10'))];
+            document.getElementById('leadSeasonFilter').innerHTML = '<option value="all">Todas las temporadas</option>' + seasonsSet.map(s => `<option value="${s}">${s}</option>`).join('');
+
+            document.getElementById('storeLeadsTable').innerHTML = redeemedList.map(u => `
+                <tr>
+                    <td><b>${u.beneficiary}</b></td>
+                    <td><code>${u.phone}</code></td>
+                    <td>${u.promo_title}</td>
+                    <td><small>${new Date(u.redeemed_at || u.created_at).toLocaleDateString()}</small></td>
+                </tr>
+            `).join('') || `<tr><td colspan="4">Sin leads registrados.</td></tr>`;
+        }
+
+        function exportLeadsCSV() {
+            if(currentUser.status === 'suspended') { alert('Tienda suspendida.'); return; }
+            let redeemedList = DB.users.filter(u => u.store_id === currentUser.id && u.status === 'redimido');
+            if(redeemedList.length === 0) { showToast('No hay leads para exportar'); return; }
+
+            let csvContent = "data:text/csv;charset=utf-8,Cliente;Telefono;Campana;FechaRedencion\n";
+            redeemedList.forEach(u => {
+                let row = `"${u.beneficiary}","${u.phone}","${u.promo_title}","${u.redeemed_at || u.created_at}"`;
+                csvContent += row + "\r\n";
+            });
+
+            let encodedUri = encodeURI(csvContent);
+            let link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Leads_${currentUser.name}_Apex.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        async function resetStoreHistory() {
+            if(!confirm('⚠️ ¿Resetear tu historial de leads de tienda?')) return;
+            let myRedeemed = DB.users.filter(u => u.store_id === currentUser.id && u.status === 'redimido');
+            for(let b of myRedeemed) {
+                await supabaseClient.from('coupons').update({ status: 'archivado_tienda' }).eq('id', b.id);
+            }
+            await loadData();
+            renderStoreLeads();
+            renderStoreTable();
+            showToast('Historial reseteado');
+        }
+
+        function renderStoreFunnelFilters() {
+            let storePromos = DB.promos.filter(p => p.store_id === currentUser.id);
+            document.getElementById('storeFilterPromo').innerHTML = '<option value="all">Todas mis campañas</option>' + storePromos.map(p => `<option value="${p.id}">${p.title} (${p.season})</option>`).join('');
+        }
+
+        function renderStoreFunnel() {
+            let promoId = document.getElementById('storeFilterPromo').value;
+            let storeBonos = DB.users.filter(u => u.store_id === currentUser.id && u.status !== 'eliminado' && u.status !== 'archivado_tienda');
+            let globalBonos = DB.users.filter(u => u.status !== 'eliminado');
+
+            if(promoId !== 'all') {
+                storeBonos = storeBonos.filter(u => u.promo_id === promoId);
+                globalBonos = globalBonos.filter(u => u.promo_id === promoId);
+            }
+
+            let total = storeBonos.length;
+            let redeemed = storeBonos.filter(u => u.status === 'redimido').length;
+            let now = new Date();
+            let expired = storeBonos.filter(u => u.status === 'vencido' || (u.expiry !== 'Sin caducidad' && new Date(u.expiry) < now)).length;
+            let rate = total > 0 ? Math.round((redeemed / total) * 100) : 0;
+
+            document.getElementById('storeMetricAssigned').innerText = total;
+            document.getElementById('storeMetricRedeemed').innerText = redeemed;
+            document.getElementById('storeMetricExpired').innerText = expired;
+            document.getElementById('storeMetricRate').innerText = rate + '%';
+
+            document.getElementById('globalMetricTotal').innerText = globalBonos.length;
+            document.getElementById('globalMetricRedeemed').innerText = globalBonos.filter(u => u.status === 'redimido').length;
+        }
+
+        // Carga inicial
+        loadData();
+    </script>
+</body>
+</html>
