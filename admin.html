@@ -18,6 +18,7 @@
       --text-main: #ffffff;
       --text-muted: #888888;
       --status-ok: #22c55e;
+      --status-warn: #eab308;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background: var(--bg); color: var(--text-main); padding: 16px; max-width: 680px; margin: 0 auto; min-height: 100vh; }
@@ -66,10 +67,16 @@
 
     .btn { background: var(--accent); color: #fff; border: none; padding: 11px; width: 100%; font-weight: 900; text-transform: uppercase; border-radius: 6px; cursor: pointer; margin-top: 6px; font-size: 0.82rem; }
     .btn:active { background: var(--accent-hover); }
-    .btn-secondary { background: #1c1c1c; border: 1px solid #333; color: #ccc; margin-top: 6px; padding: 8px; font-size: 0.75rem; }
+    .btn-secondary { background: #1c1c1c; border: 1px solid #333; color: #ccc; margin-top: 6px; padding: 8px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; font-weight: 800; }
+    .btn-danger { background: #380d0d; border: 1px solid #7f1d1d; color: #f87171; padding: 5px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; cursor: pointer; }
+    .btn-edit { background: #1e293b; border: 1px solid #334155; color: #94a3b8; padding: 5px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; cursor: pointer; margin-right: 4px; }
 
-    .list-item { background: #1c1c1c; border: 1px solid #2a2a2a; padding: 10px; border-radius: 6px; margin-top: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; }
+    .list-item { background: #1c1c1c; border: 1px solid #2a2a2a; padding: 10px; border-radius: 6px; margin-top: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; gap: 8px; }
     .badge { font-size: 0.65rem; font-weight: 900; text-transform: uppercase; padding: 3px 6px; border-radius: 4px; background: #222; border: 1px solid #444; }
+
+    /* FILTROS USUARIOS */
+    .filter-bar { display: flex; gap: 8px; margin-bottom: 12px; }
+    .filter-bar .form-control { padding: 8px 10px; font-size: 0.78rem; }
   </style>
 </head>
 <body>
@@ -128,7 +135,7 @@
           </div>
         </div>
         <div class="form-group">
-          <label>Rol Asignado (Dinámico)</label>
+          <label>Rol Asignado</label>
           <select id="nuRole" class="form-control">
             <option value="">Cargando roles...</option>
           </select>
@@ -141,14 +148,25 @@
           <span>2. Directorio de Usuarios</span>
           <button class="btn-secondary" onclick="cargarUsuarios()" style="margin:0; padding: 4px 8px;">Actualizar</button>
         </div>
-        <div id="usersListContainer" style="max-height: 320px; overflow-y: auto;">Cargando directorio...</div>
+
+        <!-- FILTRO POR ROLES Y BUSCADOR -->
+        <div class="filter-bar">
+          <select id="userRoleFilter" class="form-control" style="flex: 1;" onchange="filtrarUsuarios()">
+            <option value="todos">Todos los Roles</option>
+          </select>
+          <input type="text" id="userSearchInput" class="form-control" style="flex: 1.2;" placeholder="Buscar nombre o correo..." oninput="filtrarUsuarios()">
+        </div>
+
+        <div id="usersListContainer" style="max-height: 380px; overflow-y: auto;">Cargando directorio...</div>
       </div>
     </div>
 
     <!-- MÓDULO 2: GESTIÓN DE BLOQUES -->
     <div id="tabBloques" class="tab-content">
       <div class="section-card">
-        <div class="section-title">Registrar Mini-App (Bloque)</div>
+        <div class="section-title" id="tituloFormBloque">Registrar Mini-App (Bloque)</div>
+        <input type="hidden" id="editBlockId" value="">
+
         <div class="form-group">
           <label>Título del Bloque</label>
           <input type="text" id="newBlockTitle" class="form-control" placeholder="Ej: Libro Contable Apex">
@@ -157,11 +175,16 @@
           <label>Archivo o URL (.html)</label>
           <input type="text" id="newBlockUrl" class="form-control" placeholder="Ej: contador.html">
         </div>
-        <button class="btn" onclick="registerBlock()">Guardar Bloque en Supabase</button>
+        
+        <button class="btn" id="btnGuardarBloque" onclick="registerBlock()">Guardar Bloque en Supabase</button>
+        <button class="btn btn-secondary" id="btnCancelarEdicionBloque" style="display:none;" onclick="cancelarEdicionBloque()">Cancelar Edición</button>
       </div>
 
       <div class="section-card">
-        <div class="section-title">Bloques Registrados</div>
+        <div class="section-title">
+          <span>Bloques Registrados</span>
+          <span id="blocksCountTxt" style="color:var(--status-ok); font-size:0.68rem;">0 Bloques</span>
+        </div>
         <div id="blocksListContainer">Cargando bloques...</div>
       </div>
     </div>
@@ -184,8 +207,12 @@
           <label>Bloques visibles para este perfil:</label>
           <div class="checkbox-list" id="blocksCheckboxContainer">Cargando bloques...</div>
         </div>
+        
         <button class="btn" onclick="saveProfile()">Guardar Asignaciones del Perfil</button>
-        <button class="btn btn-secondary" onclick="limpiarFormularioPerfil()">Nuevo Perfil</button>
+        <div style="display:flex; gap:8px; margin-top:6px;">
+          <button class="btn-secondary" style="flex:1;" onclick="limpiarFormularioPerfil()">Nuevo Perfil</button>
+          <button class="btn-danger" id="btnEliminarPerfil" style="flex:1; display:none;" onclick="eliminarPerfilActual()">🗑️ Eliminar Rol</button>
+        </div>
       </div>
 
       <div class="section-card">
@@ -203,6 +230,7 @@
     let dbBlocks = [];
     let dbProfiles = [];
     let dbProfileBlocks = [];
+    let rawUsersList = [];
 
     function verificarAccesoAdmin() {
       const u = document.getElementById('adminUser').value.trim();
@@ -238,12 +266,12 @@
       }
     };
 
-    /* ================= GESTIÓN CENTRAL DE DATOS ================= */
+    /* ================= CARGA DE DATOS ================= */
     async function loadAdminData() {
       if (!sb) return;
 
       const [resBlocks, resProfiles, resRels] = await Promise.all([
-        sb.from('apex_blocks').select('*').order('created_at', { ascending: true }),
+        sb.from('apex_blocks').select('*').order('title', { ascending: true }),
         sb.from('apex_profiles').select('*').order('name', { ascending: true }),
         sb.from('apex_profile_blocks').select('*').order('display_order', { ascending: true })
       ]);
@@ -252,36 +280,31 @@
       dbProfiles = resProfiles.data || [];
       dbProfileBlocks = resRels.data || [];
 
-      // Si apex_profiles está vacía, sincronizar con los roles base
-      if (dbProfiles.length === 0) {
-        const base = [
-          { id: 'estudiante', name: 'Estudiante (Striker)' },
-          { id: 'coach', name: 'Coach' },
-          { id: 'supervisor', name: 'Supervisor' },
-          { id: 'coordinador', name: 'Coordinador' },
-          { id: 'contador', name: 'Contador' },
-          { id: 'admin', name: 'Administrador' }
-        ];
-        await sb.from('apex_profiles').upsert(base);
-        const { data: recProfiles } = await sb.from('apex_profiles').select('*').order('name', { ascending: true });
-        dbProfiles = recProfiles || base;
-      }
-
       renderUI();
-      actualizarSelectorRolesNuevoUsuario();
-      cargarUsuarios();
+      actualizarSelectorRoles();
+      await cargarUsuarios();
     }
 
-    function actualizarSelectorRolesNuevoUsuario() {
+    function actualizarSelectorRoles() {
+      // 1. Selector en formulario nuevo usuario
       const nuSelect = document.getElementById('nuRole');
       nuSelect.innerHTML = '';
       dbProfiles.forEach(p => {
         nuSelect.innerHTML += `<option value="${p.id}">${p.name.toUpperCase()}</option>`;
       });
+
+      // 2. Selector en barra de filtro
+      const filterSelect = document.getElementById('userRoleFilter');
+      const valActual = filterSelect.value;
+      filterSelect.innerHTML = '<option value="todos">Todos los Roles</option>';
+      dbProfiles.forEach(p => {
+        filterSelect.innerHTML += `<option value="${p.id}">${p.name.toUpperCase()}</option>`;
+      });
+      filterSelect.value = valActual || 'todos';
     }
 
     function renderUI() {
-      // 1. Checkboxes de bloques disponibles
+      // 1. Checkboxes en roles
       const bContainer = document.getElementById('blocksCheckboxContainer');
       bContainer.innerHTML = '';
       dbBlocks.forEach(b => {
@@ -293,29 +316,41 @@
         `;
       });
 
-      // 2. Lista de bloques en tab bloques
+      // 2. Lista de bloques con botones de editar y eliminar
       const blkList = document.getElementById('blocksListContainer');
+      document.getElementById('blocksCountTxt').innerText = `${dbBlocks.length} Bloques`;
       blkList.innerHTML = '';
-      dbBlocks.forEach(b => {
-        blkList.innerHTML += `
-          <div class="list-item">
-            <div>
-              <strong>${b.title}</strong><br>
-              <small style="color:var(--accent); font-weight:800;">ID: ${b.id}</small>
-            </div>
-            <span style="color:var(--text-muted); font-size:0.75rem;">${b.url}</span>
-          </div>
-        `;
-      });
 
-      // 3. Selector dinámico de perfiles en tab roles
+      if (dbBlocks.length === 0) {
+        blkList.innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;">No hay bloques registrados.</span>';
+      } else {
+        dbBlocks.forEach(b => {
+          blkList.innerHTML += `
+            <div class="list-item">
+              <div>
+                <strong>${b.title}</strong><br>
+                <small style="color:var(--accent); font-weight:800;">ID: ${b.id}</small> · 
+                <span style="color:var(--text-muted); font-size:0.72rem;">${b.url}</span>
+              </div>
+              <div style="display:flex; align-items:center;">
+                <button class="btn-edit" onclick="iniciarEdicionBloque('${b.id}')">✏️</button>
+                <button class="btn-danger" onclick="eliminarBloque('${b.id}')">🗑️</button>
+              </div>
+            </div>
+          `;
+        });
+      }
+
+      // 3. Selector de perfiles
       const select = document.getElementById('profileSelect');
+      const selectVal = select.value;
       select.innerHTML = '<option value="">[ + CREAR NUEVO PERFIL / ROL ]</option>';
       dbProfiles.forEach(p => {
         select.innerHTML += `<option value="${p.id}">${p.name.toUpperCase()} (${p.id})</option>`;
       });
+      select.value = selectVal;
 
-      // 4. Resumen de perfiles y sus bloques asignados
+      // 4. Resumen de perfiles en la nube
       const listCont = document.getElementById('profilesListContainer');
       listCont.innerHTML = '';
       dbProfiles.forEach(p => {
@@ -337,7 +372,86 @@
       });
     }
 
-    /* ================= MÓDULO USUARIOS ================= */
+    /* ================= USUARIOS CON FILTRO ================= */
+    async function cargarUsuarios() {
+      const container = document.getElementById('usersListContainer');
+      container.innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;">Consultando directorio...</span>';
+
+      try {
+        const { data: users, error } = await sb.from('apex_users').select('*');
+        if (error) throw error;
+
+        rawUsersList = users || [];
+        filtrarUsuarios();
+      } catch (err) {
+        container.innerHTML = `<span style="color:var(--accent);font-size:0.75rem;">Error al cargar usuarios: ${err.message}</span>`;
+      }
+    }
+
+    function filtrarUsuarios() {
+      const roleFilter = document.getElementById('userRoleFilter').value;
+      const search = document.getElementById('userSearchInput').value.toLowerCase().trim();
+      const container = document.getElementById('usersListContainer');
+
+      let filtrados = rawUsersList.filter(u => {
+        const rol = (u.profile_id || u.role || 'estudiante').toLowerCase();
+        const coincideRol = (roleFilter === 'todos') || (rol === roleFilter.toLowerCase());
+
+        const name = (u.name || '').toLowerCase();
+        const email = (u.email || '').toLowerCase();
+        const coincideTexto = !search || name.includes(search) || email.includes(search);
+
+        return coincideRol && coincideTexto;
+      });
+
+      if (filtrados.length === 0) {
+        container.innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;padding:8px;display:block;">No se encontraron usuarios para este criterio.</span>';
+        return;
+      }
+
+      container.innerHTML = '';
+      filtrados.forEach(u => {
+        const userRolActual = u.profile_id || u.role || 'estudiante';
+
+        let opcionesRolesHTML = '';
+        dbProfiles.forEach(p => {
+          opcionesRolesHTML += `<option value="${p.id}" ${userRolActual === p.id ? 'selected' : ''}>${p.name.toUpperCase()}</option>`;
+        });
+
+        container.innerHTML += `
+          <div class="list-item">
+            <div>
+              <strong>${u.name || 'Sin nombre'}</strong><br>
+              <span style="color: var(--text-muted); font-size: 0.72rem;">${u.email}</span>
+            </div>
+            <div>
+              <select class="form-control" style="padding: 4px 6px; font-size: 0.72rem;" onchange="actualizarRolUsuario('${u.id}', this.value)">
+                ${opcionesRolesHTML}
+              </select>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    async function actualizarRolUsuario(userId, newRole) {
+      const { error } = await sb.from('apex_users').update({ 
+        profile_id: newRole,
+        role: newRole 
+      }).eq('id', userId);
+
+      if (error) alert('Error: ' + error.message);
+      else {
+        alert('Rol actualizado a ' + newRole.toUpperCase());
+        // Actualizar en memoria local
+        const userObj = rawUsersList.find(u => u.id === userId);
+        if (userObj) {
+          userObj.profile_id = newRole;
+          userObj.role = newRole;
+        }
+      }
+    }
+
     async function crearUsuarioAdmin() {
       const name = document.getElementById('nuName').value.trim();
       const email = document.getElementById('nuEmail').value.trim();
@@ -363,73 +477,84 @@
       }
     }
 
-    async function cargarUsuarios() {
-      const container = document.getElementById('usersListContainer');
-      container.innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;">Consultando directorio...</span>';
-
-      const { data: users, error } = await sb.from('apex_users').select('*').order('created_at', { ascending: false });
-      if (error || !users) return container.innerHTML = '<span style="color:var(--text-muted);">Error al cargar.</span>';
-
-      container.innerHTML = '';
-      users.forEach(u => {
-        const userRolActual = u.profile_id || u.role || 'estudiante';
-
-        // Generar dinámicamente las opciones usando dbProfiles
-        let opcionesRolesHTML = '';
-        dbProfiles.forEach(p => {
-          opcionesRolesHTML += `<option value="${p.id}" ${userRolActual === p.id ? 'selected' : ''}>${p.name.toUpperCase()}</option>`;
-        });
-
-        container.innerHTML += `
-          <div class="list-item">
-            <div>
-              <strong>${u.name || 'Sin nombre'}</strong><br>
-              <span style="color: var(--text-muted); font-size: 0.72rem;">${u.email}</span>
-            </div>
-            <div>
-              <select class="form-control" style="padding: 4px 6px; font-size: 0.72rem;" onchange="actualizarRolUsuario('${u.id}', this.value)">
-                ${opcionesRolesHTML}
-              </select>
-            </div>
-          </div>
-        `;
-      });
-    }
-
-    async function actualizarRolUsuario(userId, newRole) {
-      // Sincroniza tanto profile_id como role
-      const { error } = await sb.from('apex_users').update({ 
-        profile_id: newRole,
-        role: newRole 
-      }).eq('id', userId);
-
-      if (error) alert('Error: ' + error.message);
-      else alert('Rol de usuario actualizado a ' + newRole.toUpperCase());
-    }
-
-    /* ================= MÓDULO BLOQUES ================= */
+    /* ================= BLOQUES: CREAR, EDITAR Y ELIMINAR ================= */
     async function registerBlock() {
       const title = document.getElementById('newBlockTitle').value.trim();
       const url = document.getElementById('newBlockUrl').value.trim();
+      const editId = document.getElementById('editBlockId').value;
+
       if (!title || !url) return alert('Completa título y URL.');
 
-      const id = 'b_' + title.toLowerCase().replace(/[^a-z0-9]/g, '_');
-      const { error } = await sb.from('apex_blocks').upsert([{ id, title, url }]);
-      if (error) return alert('Error: ' + error.message);
+      if (editId) {
+        // Actualización de bloque existente
+        const { error } = await sb.from('apex_blocks').update({ title, url }).eq('id', editId);
+        if (error) return alert('Error al actualizar bloque: ' + error.message);
+        alert('¡Bloque actualizado con éxito!');
+      } else {
+        // Creación
+        const id = 'b_' + title.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, '_');
+        const { error } = await sb.from('apex_blocks').upsert([{ id, title, url }]);
+        if (error) return alert('Error al registrar bloque: ' + error.message);
+        alert('Bloque registrado con ID: ' + id);
+      }
 
-      document.getElementById('newBlockTitle').value = '';
-      document.getElementById('newBlockUrl').value = '';
-      alert('Bloque registrado con ID: ' + id);
-      loadAdminData();
+      cancelarEdicionBloque();
+      await loadAdminData();
     }
 
-    /* ================= MÓDULO ROLES Y MATRIZ ================= */
+    function iniciarEdicionBloque(blockId) {
+      const b = dbBlocks.find(item => item.id === blockId);
+      if (!b) return;
+
+      document.getElementById('editBlockId').value = b.id;
+      document.getElementById('newBlockTitle').value = b.title;
+      document.getElementById('newBlockUrl').value = b.url;
+
+      document.getElementById('tituloFormBloque').innerText = `Editar Bloque (${b.id})`;
+      document.getElementById('btnGuardarBloque').innerText = 'Guardar Cambios del Bloque';
+      document.getElementById('btnCancelarEdicionBloque').style.display = 'block';
+      document.getElementById('newBlockTitle').focus();
+    }
+
+    function cancelarEdicionBloque() {
+      document.getElementById('editBlockId').value = '';
+      document.getElementById('newBlockTitle').value = '';
+      document.getElementById('newBlockUrl').value = '';
+      document.getElementById('tituloFormBloque').innerText = 'Registrar Mini-App (Bloque)';
+      document.getElementById('btnGuardarBloque').innerText = 'Guardar Bloque en Supabase';
+      document.getElementById('btnCancelarEdicionBloque').style.display = 'none';
+    }
+
+    async function eliminarBloque(blockId) {
+      if (!confirm(`¿Eliminar permanentemente el bloque "${blockId}"? Se quitará de todos los perfiles asignados.`)) return;
+
+      try {
+        await sb.from('apex_profile_blocks').delete().eq('block_id', blockId);
+        const { error } = await sb.from('apex_blocks').delete().eq('id', blockId);
+        if (error) throw error;
+
+        alert('Bloque eliminado correctamente.');
+        await loadAdminData();
+      } catch (err) {
+        alert('Error al eliminar bloque: ' + err.message);
+      }
+    }
+
+    /* ================= ROLES: CREAR, EDITAR Y ELIMINAR ================= */
     function cargarDatosPerfil(profileId) {
-      if (!profileId) return limpiarFormularioPerfil();
+      const btnEliminar = document.getElementById('btnEliminarPerfil');
+      if (!profileId) {
+        limpiarFormularioPerfil();
+        btnEliminar.style.display = 'none';
+        return;
+      }
+
       const perfil = dbProfiles.find(p => p.id === profileId);
       if (!perfil) return;
 
       document.getElementById('profileName').value = perfil.name;
+      btnEliminar.style.display = (['admin', 'estudiante'].includes(profileId)) ? 'none' : 'block';
+
       const assigned = dbProfileBlocks.filter(pb => pb.profile_id === profileId).map(pb => pb.block_id);
       document.querySelectorAll('.profile-block-checkbox').forEach(cb => {
         cb.checked = assigned.includes(cb.value);
@@ -439,6 +564,7 @@
     function limpiarFormularioPerfil() {
       document.getElementById('profileSelect').value = '';
       document.getElementById('profileName').value = '';
+      document.getElementById('btnEliminarPerfil').style.display = 'none';
       document.querySelectorAll('.profile-block-checkbox').forEach(cb => cb.checked = false);
     }
 
@@ -449,7 +575,7 @@
       const selectedId = document.getElementById('profileSelect').value;
       const profileId = selectedId || name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, '_');
 
-      // 1. Guardar en apex_profiles (creación o actualización dinámica)
+      // 1. Guardar en apex_profiles
       const { error: pErr } = await sb.from('apex_profiles').upsert([{ id: profileId, name }]);
       if (pErr) return alert('Error al guardar perfil: ' + pErr.message);
 
@@ -467,9 +593,32 @@
         await sb.from('apex_profile_blocks').insert(inserts);
       }
 
-      alert(`¡Perfil/Rol "${name.toUpperCase()}" (${profileId}) sincronizado con éxito!`);
+      alert(`¡Perfil/Rol "${name.toUpperCase()}" sincronizado con éxito!`);
       limpiarFormularioPerfil();
       await loadAdminData();
+    }
+
+    async function eliminarPerfilActual() {
+      const selectedId = document.getElementById('profileSelect').value;
+      if (!selectedId) return;
+
+      if (['admin', 'estudiante'].includes(selectedId)) {
+        return alert('Los roles raíz no pueden ser eliminados.');
+      }
+
+      if (!confirm(`¿Eliminar definitivamente el perfil "${selectedId}"? Los usuarios con este rol perderán sus accesos.`)) return;
+
+      try {
+        await sb.from('apex_profile_blocks').delete().eq('profile_id', selectedId);
+        const { error } = await sb.from('apex_profiles').delete().eq('id', selectedId);
+        if (error) throw error;
+
+        alert(`Perfil "${selectedId}" eliminado.`);
+        limpiarFormularioPerfil();
+        await loadAdminData();
+      } catch (err) {
+        alert('Error al eliminar perfil: ' + err.message);
+      }
     }
   </script>
 </body>
