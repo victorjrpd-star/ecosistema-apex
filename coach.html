@@ -35,8 +35,6 @@
 
     /* VIEWPORT Y PANELES */
     .coach-viewport { flex: 1; width: 100%; position: relative; overflow-y: auto; padding: 16px; max-width: 600px; margin: 0 auto; }
-    
-    /* El switch de visibilidad ahora se rige por display directo */
     .panel-view { display: none; }
     .panel-view.is-visible { display: block; }
 
@@ -104,7 +102,7 @@
 </head>
 <body>
 
-  <!-- PESTAÑAS: Eventos onclick directos y robustos -->
+  <!-- PESTAÑAS -->
   <nav class="coach-nav-bar">
     <button class="nav-tab-btn active" id="btn_nav_checkins" onclick="ApexNav.irA('modulo_checkins')">Validación Check-ins</button>
     <button class="nav-tab-btn" id="btn_nav_membresias" onclick="ApexNav.irA('modulo_membresias')">Gestión Membresías</button>
@@ -197,25 +195,16 @@
 
   <script>
     /* ==========================================================================
-       1. NAVEGADOR BLINDADO (No depende de Supabase ni de scripts externos)
+       1. NAVEGADOR AUTÓNOMO
        ========================================================================== */
     const ApexNav = {
       irA: function(panelId) {
-        // Ocultar todos los paneles
-        document.querySelectorAll('.panel-view').forEach(p => {
-          p.classList.remove('is-visible');
-        });
-        
-        // Quitar estado activo de pestañas
-        document.querySelectorAll('.nav-tab-btn').forEach(b => {
-          b.classList.remove('active');
-        });
+        document.querySelectorAll('.panel-view').forEach(p => p.classList.remove('is-visible'));
+        document.querySelectorAll('.nav-tab-btn').forEach(b => b.classList.remove('active'));
 
-        // Mostrar panel seleccionado
         const target = document.getElementById(panelId);
         if (target) target.classList.add('is-visible');
 
-        // Marcar pestaña activa
         if (panelId === 'modulo_checkins') {
           document.getElementById('btn_nav_checkins')?.classList.add('active');
         } else {
@@ -225,41 +214,27 @@
     };
 
     /* ==========================================================================
-       2. CONEXIÓN SUPABASE SEGURA (Maneja iframe, local y producción sin caerse)
+       2. CONEXIÓN SUPABASE DIRECTA
        ========================================================================== */
+    const CONFIG_SUPABASE_URL = 'https://fprvbvucmtdpxdihuvrw.supabase.co';
+    const CONFIG_SUPABASE_KEY = 'sb_publishable_xAMs8LpCwyMyoql3ohoJUQ_BIRhBQoD';
+
     let supabaseClient = null;
 
     function initSupabase() {
-      let url = null;
-      let key = null;
+      let url = CONFIG_SUPABASE_URL;
+      let key = CONFIG_SUPABASE_KEY;
 
-      // Intento 1: LocalStorage directo
       try {
-        url = localStorage.getItem('supabase_url');
-        key = localStorage.getItem('supabase_anon_key');
+        if (localStorage.getItem('supabase_url')) url = localStorage.getItem('supabase_url');
+        if (localStorage.getItem('supabase_anon_key')) key = localStorage.getItem('supabase_anon_key');
       } catch (e) {}
-
-      // Intento 2: Window Parent si está embebido
-      if (!url || !key) {
-        try {
-          if (window.parent && window.parent.localStorage) {
-            url = window.parent.localStorage.getItem('supabase_url');
-            key = window.parent.localStorage.getItem('supabase_anon_key');
-          }
-        } catch (e) {}
-      }
-
-      // Intento 3: Variables globales si existen en la ventana raíz
-      if (!url && window.parent && window.parent.SUPABASE_URL) {
-        url = window.parent.SUPABASE_URL;
-        key = window.parent.SUPABASE_ANON_KEY;
-      }
 
       if (window.supabase && url && key) {
         try {
           supabaseClient = window.supabase.createClient(url, key);
         } catch (err) {
-          console.error("Fallo al crear cliente Supabase:", err);
+          console.error("Error al instanciar Supabase:", err);
         }
       }
     }
@@ -282,7 +257,7 @@
       cargar: async function() {
         const container = document.getElementById('checkinsList');
         if (!supabaseClient) {
-          container.innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); text-align:center; padding:16px;">Conexión a base de datos en espera de credenciales.</div>';
+          container.innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); text-align:center; padding:16px;">Conectando a base de datos...</div>';
           return;
         }
 
@@ -294,7 +269,7 @@
             .order('created_at', { ascending: false });
 
           if (error) {
-            container.innerHTML = `<div style="font-size:0.75rem; color:var(--accent); text-align:center; padding:16px;">Error de acceso: ${error.message}</div>`;
+            container.innerHTML = `<div style="font-size:0.75rem; color:var(--accent); text-align:center; padding:16px;">Error: ${error.message}</div>`;
             return;
           }
 
@@ -317,7 +292,7 @@
 
           this.render();
         } catch (err) {
-          container.innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); text-align:center; padding:16px;">Error conectando a la base de datos.</div>';
+          container.innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); text-align:center; padding:16px;">Error consultando registros.</div>';
         }
       },
 
@@ -422,7 +397,7 @@
           await supabaseClient.from('apex_checkins').update(updates).eq('id', rec.id);
         }
 
-        alert(status === 'aprobado' ? 'Check-in aprobado.' : 'Check-in rechazado.');
+        alert(status === 'aprobado' ? 'Check-in aprobado y calibrado.' : 'Check-in rechazado.');
         document.getElementById(`rec_${rec.id}`)?.remove();
         pendingRecords.splice(idx, 1);
         if (pendingRecords.length === 0) {
@@ -445,7 +420,9 @@
             .from('apex_users')
             .select('id, email, name, subscription_status, membership_start, membership_end');
           if (data) registeredUsersCache = data;
-        } catch (e) {}
+        } catch (e) {
+          console.warn("Directorio en espera.");
+        }
       },
 
       buscar: function(query) {
@@ -458,10 +435,11 @@
           return;
         }
 
-        const matches = registeredUsersCache.filter(u => 
-          (u.email && u.email.toLowerCase().includes(q)) || 
-          (u.name && u.name.toLowerCase().includes(q))
-        );
+        const matches = registeredUsersCache.filter(u => {
+          const emailMatch = u.email ? u.email.toLowerCase().includes(q) : false;
+          const nameMatch = u.name ? u.name.toLowerCase().includes(q) : false;
+          return emailMatch || nameMatch;
+        });
 
         if (matches.length === 0) {
           box.innerHTML = '<div style="padding:10px; font-size:0.75rem; color:#777;">Sin coincidencias</div>';
@@ -472,7 +450,8 @@
         matches.forEach(user => {
           const item = document.createElement('div');
           item.className = 'suggestion-item';
-          item.innerHTML = `<strong>${user.name || 'Sin nombre'}</strong><span>${user.email}</span>`;
+          const displayName = user.name || 'Sin nombre registrado';
+          item.innerHTML = `<strong>${displayName}</strong><span>${user.email}</span>`;
           item.onclick = () => this.seleccionar(user);
           box.appendChild(item);
         });
@@ -543,7 +522,7 @@
         const baseDate = dateVal ? new Date(dateVal + 'T00:00:00') : new Date();
         baseDate.setHours(0,0,0,0);
 
-        // Regla: Fecha a fecha menos uno
+        // Regla: fecha a fecha menos uno
         const expDate = new Date(baseDate);
         expDate.setDate(expDate.getDate() + (planDays - 1));
 
