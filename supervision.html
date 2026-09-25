@@ -3,7 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Apex - Panel Supervisor</title>
+  <meta name="theme-color" content="#0c0c0c">
+  <title>Apex | Panel Supervisor</title>
+
+  <!-- Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <style>
     :root {
       --bg: #0c0c0c;
@@ -12,125 +17,1070 @@
       --accent: #e50914;
       --text-main: #ffffff;
       --text-muted: #888888;
+      --status-ok: #22c55e;
+      --status-warn: #eab308;
+      --tier-color: #ffffff;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background: var(--bg); color: var(--text-main); padding: 16px; max-width: 600px; margin: 0 auto; padding-bottom: 40px; }
 
-    .header { border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text-main); padding: 16px; max-width: 600px; margin: 0 auto; padding-bottom: 50px; }
+
+    /* CABECERA */
+    .header { border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; }
     .title { font-size: 1.1rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
     .title span { color: var(--accent); }
-    
-    .badge-super { font-size: 0.7rem; font-weight: 800; background: #1a0808; color: var(--accent); border: 1px solid var(--accent); padding: 4px 8px; border-radius: 4px; text-transform: uppercase; }
+    .badge-super { font-size: 0.65rem; font-weight: 800; background: #1a0808; color: var(--accent); border: 1px solid var(--accent); padding: 4px 8px; border-radius: 4px; text-transform: uppercase; }
 
-    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 12px; }
-    .card-title { font-size: 0.75rem; font-weight: 900; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
+    /* CABECERA DE PERFIL SUPERVISOR CON FOTO DIRECTA */
+    .profile-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px 14px; margin-bottom: 12px;
+    }
+    .profile-info { display: flex; align-items: center; gap: 12px; }
+    .avatar-wrapper { position: relative; cursor: pointer; flex-shrink: 0; }
+    .avatar-circle {
+      width: 48px; height: 48px; border-radius: 50%; object-fit: cover;
+      background: #1c1c1c; border: 2px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.9rem; font-weight: 900; color: #fff;
+    }
+    .avatar-btn-badge {
+      position: absolute; bottom: -2px; right: -2px; background: var(--accent);
+      color: #fff; border-radius: 50%; width: 18px; height: 18px; font-size: 0.7rem;
+      display: flex; align-items: center; justify-content: center; border: 2px solid #000;
+    }
+    .profile-text strong { display: block; font-size: 0.9rem; color: #fff; }
+    .profile-text span { font-size: 0.7rem; color: var(--text-muted); }
+    .role-pill {
+      font-size: 0.65rem; font-weight: 800; padding: 4px 8px; border-radius: 4px;
+      text-transform: uppercase; background: #1c1c1c; border: 1px solid var(--border); color: var(--accent);
+    }
+
+    /* BARRA DE PROGRESO DE NIVEL */
+    .progress-card {
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 14px; margin-bottom: 14px;
+    }
+    .progress-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+    .progress-tier-title { font-size: 0.8rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; color: var(--tier-color); }
+    .progress-percent-val { font-size: 1.1rem; font-weight: 900; color: var(--tier-color); }
+
+    .progress-bar-track {
+      width: 100%; height: 10px; background: #1c1c1c; border-radius: 5px;
+      overflow: hidden; border: 1px solid #282828; margin-bottom: 8px;
+    }
+    .progress-bar-fill {
+      height: 100%; width: 0%; background: var(--tier-color);
+      border-radius: 5px; transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+      box-shadow: 0 0 10px var(--tier-color);
+    }
+    .progress-meta-grid { display: flex; justify-content: space-between; font-size: 0.68rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
+
+    /* BANDEJA DE SANCIONES / ALERTAS DE COORDINACIÓN */
+    .notif-container { display: none; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+    .notif-card {
+      background: #18181a; border-left: 3px solid var(--accent); border-top: 1px solid var(--border);
+      border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
+      border-radius: 6px; padding: 12px;
+    }
+    .notif-card.reward { border-left-color: var(--status-ok); }
+    .notif-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .notif-title { font-size: 0.75rem; font-weight: 900; text-transform: uppercase; color: #fff; }
+    .notif-date { font-size: 0.62rem; color: var(--text-muted); }
+    .notif-btn-close { background: none; border: none; color: var(--text-muted); font-size: 0.85rem; cursor: pointer; }
+    .notif-btn-close:hover { color: #fff; }
+    .notif-body { font-size: 0.74rem; color: #ccc; line-height: 1.4; }
+
+    /* NAVEGACIÓN EN CUATRO PESTAÑAS */
+    .sub-nav { display: flex; gap: 4px; margin-bottom: 14px; overflow-x: auto; padding-bottom: 4px; }
+    .nav-btn {
+      flex: 1; min-width: 80px; padding: 9px 4px; background: #161616; border: 1px solid var(--border);
+      color: var(--text-muted); font-size: 0.68rem; font-weight: 800; text-transform: uppercase;
+      border-radius: 6px; cursor: pointer; text-align: center; transition: 0.2s; white-space: nowrap;
+    }
+    .nav-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    .tab-section { display: none; }
+    .tab-section.active { display: block; }
+
+    /* TARJETAS Y CONTROLES */
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 14px; }
+    .card-title { font-size: 0.75rem; font-weight: 900; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
 
     .form-group { margin-bottom: 12px; }
-    .form-group label { display: block; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
-    .form-control { width: 100%; padding: 10px; background: #1c1c1c; border: 1px solid #333; color: #fff; border-radius: 6px; font-weight: 700; outline: none; font-size: 0.8rem; }
+    label { display: block; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted); margin-bottom: 5px; }
+    .form-control { width: 100%; padding: 11px; background: #1c1c1c; border: 1px solid #333; color: #fff; border-radius: 6px; font-weight: 600; outline: none; font-size: 0.82rem; color-scheme: dark; }
+    .form-control:focus { border-color: var(--accent); }
 
-    .btn { background: var(--accent); color: #fff; border: none; padding: 12px; width: 100%; font-weight: 900; text-transform: uppercase; border-radius: 6px; cursor: pointer; font-size: 0.82rem; }
+    /* BLOQUE DE CONFIGURACIÓN DE NOMBRE */
+    .config-box { display: flex; gap: 8px; margin-top: 10px; }
+    .config-box input { flex: 1; }
+    .btn-small { padding: 0 14px; background: #262626; border: 1px solid #383838; color: #fff; font-size: 0.72rem; font-weight: 800; border-radius: 6px; cursor: pointer; text-transform: uppercase; }
+    .btn-small:hover { background: #333; }
+
+    /* FILTROS TEMPORALES */
+    .time-filter-wrap {
+      background: #101012; border: 1px solid var(--border); border-radius: 6px;
+      padding: 10px; margin-bottom: 14px;
+    }
+    .filter-btn-group { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
+    .filter-btn {
+      flex: 1; min-width: 65px; padding: 7px 4px; background: #18181a; border: 1px solid var(--border);
+      color: var(--text-muted); border-radius: 4px; font-size: 0.65rem; font-weight: 800;
+      text-transform: uppercase; cursor: pointer; text-align: center; transition: 0.2s;
+    }
+    .filter-btn.active { background: #fff; color: #000; border-color: #fff; }
+    .custom-range-inputs {
+      display: none; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px;
+      border-top: 1px solid #202024; padding-top: 8px;
+    }
+    .custom-range-inputs input {
+      background: #09090b; border: 1px solid var(--border); color: #fff;
+      padding: 6px 8px; font-size: 0.72rem; border-radius: 4px; outline: none; color-scheme: dark;
+    }
+
+    /* CHECKLIST TÁCTICO APEX */
+    .checklist-container { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+    .check-item {
+      display: flex; align-items: flex-start; gap: 10px; background: #18181a;
+      border: 1px solid #26262a; padding: 10px 12px; border-radius: 6px; cursor: pointer; user-select: none; transition: 0.15s;
+    }
+    .check-item.active { background: #121f15; border-color: #22c55e66; }
+    .check-item input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--status-ok); cursor: pointer; margin-top: 2px; flex-shrink: 0; }
+    .check-desc { font-size: 0.74rem; font-weight: 600; color: #ddd; line-height: 1.35; }
+    .check-num { font-weight: 900; color: var(--text-muted); font-size: 0.75rem; min-width: 18px; }
+    .check-item.active .check-num { color: var(--status-ok); }
+
+    /* VISUALIZADOR DE PUNTOS EN VIVO */
+    .points-bar {
+      position: sticky; top: 10px; z-index: 10;
+      background: #111; border: 1px solid var(--border); border-radius: 6px;
+      padding: 12px 16px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    }
+    .score-badge { font-size: 1.3rem; font-weight: 900; }
+
+    .btn { background: var(--accent); color: #fff; border: none; padding: 13px; width: 100%; font-weight: 900; text-transform: uppercase; border-radius: 6px; cursor: pointer; font-size: 0.85rem; letter-spacing: 0.5px; margin-top: 10px; transition: 0.2s; }
+    .btn:disabled { background: #333; color: #777; cursor: not-allowed; }
     .btn:active { filter: brightness(0.85); }
 
-    .list-item { background: #1c1c1c; border: 1px solid #2a2a2a; padding: 10px; border-radius: 6px; margin-top: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; }
+    /* KPIS & TARJETAS DE RESUMEN */
+    .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+    .summary-box { background: #181818; border: 1px solid var(--border); border-radius: 6px; padding: 12px; text-align: center; }
+    .summary-num { font-size: 1.6rem; font-weight: 900; color: #fff; }
+    .summary-txt { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800; margin-top: 2px; }
+
+    .history-card { background: #18181a; border: 1px solid #282828; border-radius: 6px; padding: 10px 12px; margin-top: 8px; font-size: 0.75rem; }
+    .history-header { display: flex; justify-content: space-between; font-weight: 800; margin-bottom: 4px; }
+    .audit-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 6px; background: #111; padding: 8px; border-radius: 4px; font-size: 0.68rem; text-align: center; }
   </style>
 </head>
 <body>
 
+  <!-- INPUT DIRECTO DE ARCHIVO (CÁMARA / GALERÍA) -->
+  <input type="file" id="inputFotoSupervisor" accept="image/*" style="display: none;" onchange="subirFotoSupervisor(this.files)">
+
   <div class="header">
-    <div class="title">Panel <span>Supervisor</span></div>
-    <div class="badge-super">Auditoría & Control</div>
+    <div class="title">Apex <span>Supervisor</span></div>
+    <div class="badge-super">Control Audiovisual</div>
   </div>
 
-  <!-- FORMULARIO DE AUDITORÍA COMPLETO AL COACH -->
-  <div class="card">
-    <div class="card-title">Formulario de Auditoría y Evaluación al Coach</div>
-    
-    <div class="form-group">
-      <label>Seleccionar Coach a Evaluar</label>
-      <select id="coachSelect" class="form-control">
-        <option value="Víctor Garcés">Víctor Garcés</option>
-        <option value="Carlos Mendoza">Carlos Mendoza</option>
-        <option value="Instructor Invitado">Instructor Invitado</option>
-      </select>
+  <!-- BARRA DE PERFIL SUPERIOR CON FOTO DIRECTA -->
+  <div class="profile-bar">
+    <div class="profile-info">
+      <div class="avatar-wrapper" onclick="document.getElementById('inputFotoSupervisor').click()" title="Toca para tomar o cambiar foto">
+        <div id="displayAvatarSup" class="avatar-circle">SP</div>
+        <div class="avatar-btn-badge">📷</div>
+      </div>
+      <div class="profile-text">
+        <strong id="displayNombreSup">Supervisor Apex</strong>
+        <span id="displayEmailSup">supervisor@apexboxing.com</span>
+      </div>
     </div>
-
-    <div class="form-group">
-      <label>Categoría de Evaluación</label>
-      <select id="auditCategory" class="form-control">
-        <option value="Rigor Técnico y Biomecánica">Rigor Técnico y Biomecánica</option>
-        <option value="Puntualidad y Disciplina en Sala">Puntualidad y Disciplina en Sala</option>
-        <option value="Control de Tiempos (Crono)">Control de Tiempos (Crono)</option>
-        <option value="Validación Correcta de Check-ins">Validación Correcta de Check-ins</option>
-      </select>
-    </div>
-
-    <div class="form-group">
-      <label>Puntaje Asignado (-10 a +10)</label>
-      <input type="number" id="auditPoints" class="form-control" placeholder="Ej: 10 o -5" min="-10" max="10">
-    </div>
-
-    <div class="form-group">
-      <label>Observación Detallada / Comentarios</label>
-      <input type="text" id="auditReason" class="form-control" placeholder="Ej: Excelente manejo del ritmo en los asaltos de sparring">
-    </div>
-
-    <button class="btn" onclick="guardarAuditoria()">Registrar Nota de Auditoría</button>
+    <div class="role-pill">SUPERVISOR</div>
   </div>
 
-  <!-- HISTORIAL DE SUPERVISIÓN -->
-  <div class="card">
-    <div class="card-title">Historial de Auditorías Recientes</div>
-    <div id="auditHistoryList">
-      <div class="list-item">
-        <div>
-          <strong>VÍCTOR GARCÉS</strong><br>
-          <span style="color: var(--text-muted); font-size: 0.7rem;">[Rigor Técnico] · Excelente dominio de la cadena cinética</span>
+  <!-- TARJETA REACTIVA DE NIVEL & PROGRESO DEL SUPERVISOR -->
+  <div class="progress-card">
+    <div class="progress-header">
+      <div>
+        <span style="font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; display: block; font-weight: 800;">Nivel Supervisor</span>
+        <div class="progress-tier-title" id="supTierLabel">INICIADO</div>
+      </div>
+      <div class="progress-percent-val" id="supTierPercent">0%</div>
+    </div>
+    <div class="progress-bar-track">
+      <div class="progress-bar-fill" id="supTierBarFill"></div>
+    </div>
+    <div class="progress-meta-grid">
+      <span id="supPtsTxt">0 Pts Auditoría</span>
+      <span id="supMetaTxt">Escala Oficial Apex</span>
+    </div>
+  </div>
+
+  <!-- BANDEJA DE SANCIONES / NOTIFICACIONES DE COORDINACIÓN -->
+  <div id="notifSupervisorArea" class="notif-container"></div>
+
+  <!-- NAVEGACIÓN EN CUATRO PESTAÑAS (INICIO: MI BALANCE) -->
+  <div class="sub-nav">
+    <button class="nav-btn active" onclick="switchTab('tabBalance', this)">👤 Mi Balance</button>
+    <button class="nav-btn" onclick="switchTab('tabEvaluar', this)">📋 Evaluar</button>
+    <button class="nav-btn" onclick="switchTab('tabHistorialSupervisiones', this)">📜 Historial</button>
+    <button class="nav-btn" onclick="switchTab('tabAuditoriaStrikers', this)">👁️ Strikers</button>
+  </div>
+
+  <!-- ================= SUBMÓDULO 1: MI BALANCE (VENTANA DE INICIO) ================= -->
+  <div id="tabBalance" class="tab-section active">
+    <div class="card">
+      <div class="card-title">Rendimiento Operativo de Supervisión</div>
+      
+      <div class="summary-grid">
+        <div class="summary-box">
+          <div class="summary-num" id="statSupBimestre">0</div>
+          <div class="summary-txt">Últimos 2 Meses</div>
         </div>
-        <div style="font-weight: 900; color: #4ade80;">+10 Pts</div>
+        <div class="summary-box">
+          <div class="summary-num" id="statSupTotal">0</div>
+          <div class="summary-txt">Supervisiones Totales</div>
+        </div>
+      </div>
+
+      <div class="summary-grid">
+        <div class="summary-box">
+          <div class="summary-num" id="statSupAprobadas" style="color: var(--status-ok);">0</div>
+          <div class="summary-txt">Aprobadas Limpias (+2)</div>
+        </div>
+        <div class="summary-box">
+          <div class="summary-num" id="statSupSanciones" style="color: var(--accent);">0</div>
+          <div class="summary-txt">Sanciones (-10)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONFIGURACIÓN DE NOMBRE -->
+    <div class="card">
+      <div class="card-title">Configuración de Perfil</div>
+      <label>Nombre de Usuario / Alias en Sistema</label>
+      <div class="config-box">
+        <input type="text" id="inputEditNombre" class="form-control" placeholder="Tu Nombre Completo">
+        <button class="btn-small" onclick="guardarNombreSupervisor()">Guardar</button>
       </div>
     </div>
   </div>
 
-  <script>
-    function guardarAuditoria() {
-      const coach = document.getElementById('coachSelect').value;
-      const category = document.getElementById('auditCategory').value;
-      const pointsStr = document.getElementById('auditPoints').value.trim();
-      const reason = document.getElementById('auditReason').value.trim();
+  <!-- ================= SUBMÓDULO 2: EVALUAR COACH ================= -->
+  <div id="tabEvaluar" class="tab-section">
+    <!-- VISUALIZADOR DE PUNTAJE EN VIVO (-10 A +10) -->
+    <div class="points-bar">
+      <div>
+        <span style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800; display: block;">Balance de Clase</span>
+        <span id="txtCumplidos" style="font-size: 0.72rem; color: #aaa;">0 / 10 Criterios Cumplidos</span>
+      </div>
+      <div id="displayScore" class="score-badge" style="color: var(--accent);">-10 Pts</div>
+    </div>
 
-      if (!pointsStr || !reason) {
-        alert("Por favor ingresa el puntaje y la observación de la auditoría.");
-        return;
-      }
+    <form id="formSupervision" onsubmit="enviarSupervision(event)">
+      <!-- DATOS DE SESIÓN -->
+      <div class="card">
+        <div class="card-title">Datos de la Sesión a Calificar</div>
 
-      const points = parseInt(pointsStr, 10);
-      if (isNaN(points) || points < -10 || points > 10) {
-        alert("El puntaje debe ser un valor numérico entre -10 y +10.");
-        return;
-      }
-
-      const list = document.getElementById('auditHistoryList');
-      const newItem = document.createElement('div');
-      newItem.className = 'list-item';
-      
-      const colorStyle = points >= 0 ? '#4ade80' : '#e50914';
-      const formattedPoints = points > 0 ? `+${points}` : `${points}`;
-
-      newItem.innerHTML = `
-        <div>
-          <strong>${coach.toUpperCase()}</strong><br>
-          <span style="color: var(--text-muted); font-size: 0.7rem;">[${category}] · ${reason}</span>
+        <div class="form-group">
+          <label>Fecha de la Clase</label>
+          <input type="date" id="supFecha" class="form-control" required>
         </div>
-        <div style="font-weight: 900; color: ${colorStyle};">${formattedPoints} Pts</div>
-      `;
-      list.prepend(newItem);
 
-      // Limpiar campos del formulario
-      document.getElementById('auditPoints').value = '';
-      document.getElementById('auditReason').value = '';
-      alert("¡Auditoría registrada con éxito y aplicada al perfil del coach!");
+        <div class="form-group">
+          <label>Clase a Calificar (Horario - 24 Horas)</label>
+          <select id="supClase" class="form-control" required></select>
+        </div>
+
+        <div class="form-group">
+          <label>Correo Electrónico del Coach</label>
+          <select id="supCoachSelect" class="form-control" required>
+            <option value="" disabled selected>Cargando lista de coaches...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Supervisor Activo</label>
+          <input type="email" id="supSupervisorEmail" class="form-control" readonly style="opacity: 0.7;">
+        </div>
+      </div>
+
+      <!-- MATRIZ DE 10 CRITERIOS -->
+      <div class="card">
+        <div class="card-title">Checklist de Calidad (Basado en Video de Sala)</div>
+        
+        <div class="checklist-container">
+          <label class="check-item" id="item_c1">
+            <input type="checkbox" id="c1" onchange="actualizarCalculo()">
+            <span class="check-num">1.</span>
+            <span class="check-desc">¿Llegó a tiempo y cumplió exactamente con el horario?</span>
+          </label>
+
+          <label class="check-item" id="item_c2">
+            <input type="checkbox" id="c2" onchange="actualizarCalculo()">
+            <span class="check-num">2.</span>
+            <span class="check-desc">¿Siguió estrictamente todos los bloques y tiempos de la lámina de la clase?</span>
+          </label>
+
+          <label class="check-item" id="item_c3">
+            <input type="checkbox" id="c3" onchange="actualizarCalculo()">
+            <span class="check-num">3.</span>
+            <span class="check-desc">¿Explicó los movimientos y corrigió activamente la postura?</span>
+          </label>
+
+          <label class="check-item" id="item_c4">
+            <input type="checkbox" id="c4" onchange="actualizarCalculo()">
+            <span class="check-num">4.</span>
+            <span class="check-desc">¿Mantuvo un trato respetuoso, sin apodos y con refuerzo positivo?</span>
+          </label>
+
+          <label class="check-item" id="item_c5">
+            <input type="checkbox" id="c5" onchange="actualizarCalculo()">
+            <span class="check-num">5.</span>
+            <span class="check-desc">¿Controló adecuadamente la música APEX y la comunicación? (voz audible para todos)</span>
+          </label>
+
+          <label class="check-item" id="item_c6">
+            <input type="checkbox" id="c6" onchange="actualizarCalculo()">
+            <span class="check-num">6.</span>
+            <span class="check-desc">¿Produjo y envió el material audiovisual cumpliendo las métricas?</span>
+          </label>
+
+          <label class="check-item" id="item_c7">
+            <input type="checkbox" id="c7" onchange="actualizarCalculo()">
+            <span class="check-num">7.</span>
+            <span class="check-desc">¿Cumplió con los estándares de imagen y presentación personal?</span>
+          </label>
+
+          <label class="check-item" id="item_c8">
+            <input type="checkbox" id="c8" onchange="actualizarCalculo()">
+            <span class="check-num">8.</span>
+            <span class="check-desc">¿Verificó que los alumnos llenaran su autoevaluación y enviaran su video?</span>
+          </label>
+
+          <label class="check-item" id="item_c9">
+            <input type="checkbox" id="c9" onchange="actualizarCalculo()">
+            <span class="check-num">9.</span>
+            <span class="check-desc">¿Supervisó el orden, la limpieza y la ubicación de los equipos?</span>
+          </label>
+
+          <label class="check-item" id="item_c10">
+            <input type="checkbox" id="c10" onchange="actualizarCalculo()">
+            <span class="check-num">10.</span>
+            <span class="check-desc">¿Aplicó las progresiones correctas por nivel y atendió a los nuevos en el circuito de bienvenida?</span>
+          </label>
+        </div>
+
+        <button type="submit" id="btnEnviar" class="btn">Enviar Evaluación a Coordinación</button>
+      </div>
+    </form>
+
+    <!-- HISTORIAL RECIENTE (VIGENCIA SEMANAL: ÚLTIMOS 7 DÍAS) -->
+    <div class="card">
+      <div class="card-title">
+        <span>Tus Evaluaciones Recientes (Últimos 7 Días)</span>
+        <span id="histRecentCountTxt" style="color: var(--accent); font-size: 0.65rem;">0 Recientes</span>
+      </div>
+      <div id="historialRecienteList">Cargando...</div>
+    </div>
+  </div>
+
+  <!-- ================= SUBMÓDULO 3: HISTORIAL COMPLETO DE SUPERVISIONES ================= -->
+  <div id="tabHistorialSupervisiones" class="tab-section">
+    <!-- FILTROS TEMPORALES PARA SUPERVISIONES -->
+    <div class="time-filter-wrap">
+      <div class="filter-btn-group">
+        <button class="filter-btn active" id="f_sup_60" onclick="FiltroSupervisiones.set(60, this)">Bimestre (60d)</button>
+        <button class="filter-btn" id="f_sup_30" onclick="FiltroSupervisiones.set(30, this)">30 Días</button>
+        <button class="filter-btn" id="f_sup_all" onclick="FiltroSupervisiones.set('all', this)">Todo</button>
+        <button class="filter-btn" id="f_sup_custom" onclick="FiltroSupervisiones.toggleCustom(this)">Libre</button>
+      </div>
+      <div class="custom-range-inputs" id="customSupRangeBox">
+        <div>
+          <span style="font-size:0.6rem; color:var(--text-muted); text-transform:uppercase;">Desde:</span>
+          <input type="date" id="supDateFrom" onchange="FiltroSupervisiones.aplicarCustom()">
+        </div>
+        <div>
+          <span style="font-size:0.6rem; color:var(--text-muted); text-transform:uppercase;">Hasta:</span>
+          <input type="date" id="supDateTo" onchange="FiltroSupervisiones.aplicarCustom()">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <span>Historial de Checklist de Calidad</span>
+        <span id="histFullCountTxt" style="color: var(--status-ok); font-size: 0.65rem;">0 Registros</span>
+      </div>
+      <div id="historialCompletoList">Cargando archivo...</div>
+    </div>
+  </div>
+
+  <!-- ================= SUBMÓDULO 4: AUDITORÍA A STRIKERS CON FILTROS ================= -->
+  <div id="tabAuditoriaStrikers" class="tab-section">
+    <!-- BUSCADOR POR USUARIO & FILTROS DE TIEMPO -->
+    <div class="time-filter-wrap">
+      <div class="form-group" style="margin-bottom: 8px;">
+        <input type="text" id="filtroStrikerUser" class="form-control" placeholder="🔍 Filtrar por correo o nombre del Striker..." oninput="FiltroStrikers.aplicar()">
+      </div>
+      <div class="filter-btn-group">
+        <button class="filter-btn active" id="f_stk_60" onclick="FiltroStrikers.set(60, this)">Bimestre (60d)</button>
+        <button class="filter-btn" id="f_stk_30" onclick="FiltroStrikers.set(30, this)">30 Días</button>
+        <button class="filter-btn" id="f_stk_all" onclick="FiltroStrikers.set('all', this)">Todo</button>
+        <button class="filter-btn" id="f_stk_custom" onclick="FiltroStrikers.toggleCustom(this)">Libre</button>
+      </div>
+      <div class="custom-range-inputs" id="customStkRangeBox">
+        <div>
+          <span style="font-size:0.6rem; color:var(--text-muted); text-transform:uppercase;">Desde:</span>
+          <input type="date" id="stkDateFrom" onchange="FiltroStrikers.aplicarCustom()">
+        </div>
+        <div>
+          <span style="font-size:0.6rem; color:var(--text-muted); text-transform:uppercase;">Hasta:</span>
+          <input type="date" id="stkDateTo" onchange="FiltroStrikers.aplicarCustom()">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <span>Trazabilidad de Strikers Calificados</span>
+        <span id="strikerAuditCount" style="color: var(--status-ok); font-size: 0.65rem;">0 Sesiones</span>
+      </div>
+      <div id="strikerAuditList">Cargando sesiones...</div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://fprvbvucmtdpxdihuvrw.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_xAMs8LpCwyMyoql3ohoJUQ_BIRhBQoD';
+    const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+    let totalPointsCoach = -10;
+    let currentSupervisorEmail = 'supervisor@apexboxing.com';
+    let currentSupervisorProfile = null;
+
+    let cachedSupervisiones = [];
+    let cachedStrikersCheckins = [];
+
+    /* NAVEGACIÓN ENTRE PESTAÑAS */
+    function switchTab(tabId, btn) {
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+
+      if (tabId === 'tabHistorialSupervisiones') {
+        FiltroSupervisiones.recalcular();
+      } else if (tabId === 'tabAuditoriaStrikers') {
+        FiltroStrikers.recalcular();
+      }
     }
+
+    /* INICIALIZACIÓN GENERAL */
+    async function init() {
+      // 1. Llenar Selector de 24 Horas
+      poblarSelectorHoras();
+
+      // 2. Fecha actual por defecto
+      document.getElementById('supFecha').value = new Date().toISOString().split('T')[0];
+
+      // 3. Autenticación y obtención de sesión
+      if (sb) {
+        try {
+          const { data: { session } } = await sb.auth.getSession();
+          if (session && session.user) {
+            currentSupervisorEmail = session.user.email;
+          }
+        } catch (e) {}
+      }
+
+      if (!currentSupervisorEmail || currentSupervisorEmail === 'supervisor@apexboxing.com') {
+        currentSupervisorEmail = localStorage.getItem('apex_supervisor_email') || 'supervisor@apexboxing.com';
+      }
+
+      document.getElementById('displayEmailSup').innerText = currentSupervisorEmail;
+      document.getElementById('supSupervisorEmail').value = currentSupervisorEmail;
+
+      // 4. Cargar Datos y Caché
+      await cargarPerfilSupervisor();
+      await cargarCoaches();
+      actualizarCalculo();
+      await cargarNotificacionesSupervisor();
+      await cargarRegistrosSupervisiones();
+      await cargarRegistrosStrikers();
+    }
+
+    /* GENERADOR DE 24 HORAS EN EL DESPLEGABLE */
+    function poblarSelectorHoras() {
+      const select = document.getElementById('supClase');
+      select.innerHTML = '<option value="" disabled selected>Selecciona el horario (24h)</option>';
+      for (let h = 0; h < 24; h++) {
+        const hh = String(h).padStart(2, '0');
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        const h12 = h % 12 === 0 ? 12 : h % 12;
+        const opt = document.createElement('option');
+        opt.value = `${hh}:00 (${h12}:00 ${ampm})`;
+        opt.textContent = `${hh}:00 — ${h12}:00 ${ampm}`;
+        select.appendChild(opt);
+      }
+    }
+
+    /* PERFIL Y CONFIGURACIÓN DEL SUPERVISOR */
+    async function cargarPerfilSupervisor() {
+      if (!sb || !currentSupervisorEmail) return;
+
+      try {
+        const { data } = await sb
+          .from('apex_users')
+          .select('*')
+          .eq('email', currentSupervisorEmail)
+          .single();
+
+        if (data) {
+          currentSupervisorProfile = data;
+          document.getElementById('displayNombreSup').innerText = data.name || 'Supervisor Apex';
+          document.getElementById('inputEditNombre').value = data.name || '';
+
+          const avatarUrl = data.avatar_url || data.photo_url;
+          const displayEl = document.getElementById('displayAvatarSup');
+          if (avatarUrl) {
+            displayEl.outerHTML = `<img id="displayAvatarSup" src="${avatarUrl}" class="avatar-circle" alt="Foto">`;
+          } else {
+            const iniciales = (data.name || data.email || 'SP').substring(0, 2).toUpperCase();
+            displayEl.innerText = iniciales;
+          }
+        }
+      } catch (e) {
+        console.warn("Perfil supervisor en espera.");
+      }
+    }
+
+    async function guardarNombreSupervisor() {
+      const nuevoNombre = document.getElementById('inputEditNombre').value.trim();
+      if (!nuevoNombre || !sb) return;
+
+      try {
+        const { error } = await sb
+          .from('apex_users')
+          .update({ name: nuevoNombre })
+          .eq('email', currentSupervisorEmail);
+
+        if (error) {
+          alert("Error al actualizar nombre: " + error.message);
+        } else {
+          document.getElementById('displayNombreSup').innerText = nuevoNombre;
+          alert("¡Nombre actualizado con éxito!");
+        }
+      } catch (err) {
+        alert("Fallo de red: " + err.message);
+      }
+    }
+
+    /* SUBIDA DIRECTA DE FOTO SUPERVISOR */
+    async function subirFotoSupervisor(files) {
+      if (!files || files.length === 0 || !sb) return;
+      const file = files[0];
+      const ext = file.name.split('.').pop();
+      const filePath = `avatars/sup_${Date.now()}_${currentSupervisorEmail.replace(/[^a-zA-Z0-9]/g, '_')}.${ext}`;
+
+      alert('Subiendo foto de supervisor...');
+      try {
+        const { error: uploadError } = await sb.storage.from('avatars').upload(filePath, file, { upsert: true });
+
+        if (uploadError) {
+          alert('Error al subir: ' + uploadError.message);
+          return;
+        }
+
+        const { data: urlData } = sb.storage.from('avatars').getPublicUrl(filePath);
+        const publicUrl = urlData.publicUrl;
+
+        await sb.from('apex_users').update({
+          avatar_url: publicUrl,
+          photo_url: publicUrl
+        }).eq('email', currentSupervisorEmail);
+
+        const displayEl = document.getElementById('displayAvatarSup');
+        if (displayEl.tagName === 'IMG') {
+          displayEl.src = publicUrl;
+        } else {
+          displayEl.outerHTML = `<img id="displayAvatarSup" src="${publicUrl}" class="avatar-circle" alt="Foto">`;
+        }
+
+        alert('¡Foto de perfil actualizada!');
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
+    }
+
+    /* CARGAR LISTA DE COACHES */
+    async function cargarCoaches() {
+      const select = document.getElementById('supCoachSelect');
+      if (!sb) return;
+
+      try {
+        const { data, error } = await sb
+          .from('apex_users')
+          .select('id, name, email, role')
+          .in('role', ['coach', 'instructor', 'admin']);
+
+        if (error || !data || data.length === 0) {
+          select.innerHTML = '<option value="victor@apexboxing.com">Víctor Garcés (victor@apexboxing.com)</option>';
+          return;
+        }
+
+        select.innerHTML = '<option value="" disabled selected>Selecciona el coach a evaluar</option>';
+        data.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c.email;
+          opt.textContent = `${c.name || c.email} (${c.email})`;
+          opt.dataset.id = c.id;
+          select.appendChild(opt);
+        });
+      } catch (e) {
+        select.innerHTML = '<option value="victor@apexboxing.com">Víctor Garcés (victor@apexboxing.com)</option>';
+      }
+    }
+
+    /* CHECKLIST Y CÁLCULO DE PUNTOS (-10 A +10) */
+    function actualizarCalculo() {
+      let marcados = 0;
+      for (let i = 1; i <= 10; i++) {
+        const chk = document.getElementById(`c${i}`);
+        const itemWrap = document.getElementById(`item_c${i}`);
+        if (chk.checked) {
+          marcados++;
+          itemWrap.classList.add('active');
+        } else {
+          itemWrap.classList.remove('active');
+        }
+      }
+
+      totalPointsCoach = (marcados * 2) - 10;
+
+      const scoreEl = document.getElementById('displayScore');
+      const cumTxt = document.getElementById('txtCumplidos');
+
+      cumTxt.innerText = `${marcados} / 10 Criterios Cumplidos`;
+      scoreEl.innerText = totalPointsCoach > 0 ? `+${totalPointsCoach} Pts` : `${totalPointsCoach} Pts`;
+
+      if (totalPointsCoach >= 5) {
+        scoreEl.style.color = 'var(--status-ok)';
+      } else if (totalPointsCoach >= 0) {
+        scoreEl.style.color = 'var(--status-warn)';
+      } else {
+        scoreEl.style.color = 'var(--accent)';
+      }
+    }
+
+    /* ENVÍO DE EVALUACIÓN A COORDINACIÓN */
+    async function enviarSupervision(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnEnviar');
+      btn.disabled = true;
+      btn.innerText = 'Enviando Calificación...';
+
+      const selectCoach = document.getElementById('supCoachSelect');
+      const coachEmail = selectCoach.value;
+      const coachId = selectCoach.options[selectCoach.selectedIndex]?.dataset?.id || null;
+      const fecha = document.getElementById('supFecha').value;
+      const clase = document.getElementById('supClase').value;
+
+      const payload = {
+        session_date: fecha,
+        class_time: clase,
+        coach_email: coachEmail,
+        coach_id: coachId,
+        supervisor_email: currentSupervisorEmail,
+        c1_puntualidad: document.getElementById('c1').checked,
+        c2_bloques_lamina: document.getElementById('c2').checked,
+        c3_explicacion_postura: document.getElementById('c3').checked,
+        c4_trato_respetuoso: document.getElementById('c4').checked,
+        c5_musica_comunicacion: document.getElementById('c5').checked,
+        c6_material_audiovisual: document.getElementById('c6').checked,
+        c7_imagen_presentacion: document.getElementById('c7').checked,
+        c8_verifico_autoevaluacion: document.getElementById('c8').checked,
+        c9_orden_limpieza: document.getElementById('c9').checked,
+        c10_progresiones_nuevos: document.getElementById('c10').checked,
+        coach_points: totalPointsCoach,
+        supervisor_points: 0,
+        coordinator_status: 'pendiente_revision'
+      };
+
+      try {
+        const { error } = await sb.from('apex_coach_supervisions').insert([payload]);
+        if (error) {
+          alert('Error al guardar: ' + error.message);
+        } else {
+          alert(`¡Supervisión enviada a coordinación! Puntos preliminares para coach: ${totalPointsCoach > 0 ? '+' : ''}${totalPointsCoach}`);
+          document.getElementById('formSupervision').reset();
+          document.getElementById('supFecha').value = new Date().toISOString().split('T')[0];
+          document.getElementById('supSupervisorEmail').value = currentSupervisorEmail;
+          actualizarCalculo();
+          await cargarRegistrosSupervisiones();
+        }
+      } catch (err) {
+        alert('Error de conexión: ' + err.message);
+      }
+
+      btn.disabled = false;
+      btn.innerText = 'Enviar Evaluación a Coordinación';
+    }
+
+    /* CARGA CENTRALIZADA DE SUPERVISIONES DEL SUPERVISOR */
+    async function cargarRegistrosSupervisiones() {
+      if (!sb || !currentSupervisorEmail) return;
+
+      try {
+        const { data, error } = await sb
+          .from('apex_coach_supervisions')
+          .select('*')
+          .eq('supervisor_email', currentSupervisorEmail)
+          .order('session_date', { ascending: false });
+
+        if (error || !data) return;
+        cachedSupervisiones = data;
+
+        // 1. Actualizar Métricas de Balance
+        calcularMetricasBalance(data);
+
+        // 2. Renderizar Historial Reciente (Últimos 7 días)
+        renderizarHistorialRecienteSemanal(data);
+
+        // 3. Renderizar Historial Completo con Filtros
+        FiltroSupervisiones.recalcular();
+
+      } catch (e) {
+        console.warn("Fallo cargando supervisiones:", e);
+      }
+    }
+
+    /* CÁLCULO DE BALANCE, PUNTOS Y NIVEL DEL SUPERVISOR */
+    function calcularMetricasBalance(records) {
+      const totalSupervisiones = records.length;
+      document.getElementById('statSupTotal').innerText = totalSupervisiones;
+
+      const fLimite60 = new Date();
+      fLimite60.setDate(fLimite60.getDate() - 60);
+
+      let bimestrales = 0;
+      let puntosAcumulados = 0;
+      let aprobadas = 0;
+      let sanciones = 0;
+
+      records.forEach(r => {
+        const f = new Date(r.created_at);
+        if (f >= fLimite60) bimestrales++;
+
+        if (r.coordinator_status === 'aprobado') {
+          aprobadas++;
+          puntosAcumulados += (r.supervisor_points || 2);
+        } else if (r.coordinator_status === 'sancionado') {
+          sanciones++;
+          puntosAcumulados += (r.supervisor_points || -10);
+        }
+      });
+
+      document.getElementById('statSupBimestre').innerText = bimestrales;
+      document.getElementById('statSupAprobadas').innerText = aprobadas;
+      document.getElementById('statSupSanciones').innerText = sanciones;
+      document.getElementById('supPtsTxt').innerText = `${puntosAcumulados} Pts Auditoría`;
+
+      // Escala Oficial Apex para Supervisión (Base 100 Pts)
+      let pct = Math.max(0, Math.min(100, Math.round((puntosAcumulados / 100) * 100)));
+      document.getElementById('supTierPercent').innerText = `${pct}%`;
+
+      let tierName = "INICIADO";
+      let tierColor = "#ffffff";
+      if (pct >= 100) { tierName = "APEX+"; tierColor = "#ffd700"; }
+      else if (pct >= 76) { tierName = "APEX"; tierColor = "#d4af37"; }
+      else if (pct >= 36) { tierName = "AVANZADO"; tierColor = "#c0c0c0"; }
+      else if (pct >= 11) { tierName = "INTERMEDIO"; tierColor = "#cd7f32"; }
+
+      document.documentElement.style.setProperty('--tier-color', tierColor);
+      document.getElementById('supTierLabel').innerText = tierName;
+
+      const fill = document.getElementById('supTierBarFill');
+      fill.style.width = `${pct}%`;
+      fill.style.background = tierColor;
+      fill.style.boxShadow = `0 0 10px ${tierColor}66`;
+    }
+
+    /* HISTORIAL RECIENTE (ÚLTIMOS 7 DÍAS) */
+    function renderizarHistorialRecienteSemanal(records) {
+      const cont = document.getElementById('historialRecienteList');
+      const fLimite7 = new Date();
+      fLimite7.setDate(fLimite7.getDate() - 7);
+
+      const recientes = records.filter(r => new Date(r.created_at) >= fLimite7);
+      document.getElementById('histRecentCountTxt').innerText = `${recientes.length} Recientes`;
+
+      if (recientes.length === 0) {
+        cont.innerHTML = '<span style="color:var(--text-muted); font-size:0.72rem;">Sin evaluaciones en los últimos 7 días.</span>';
+        return;
+      }
+
+      cont.innerHTML = '';
+      recientes.forEach(item => {
+        cont.appendChild(crearCardSupervision(item));
+      });
+    }
+
+    /* FILTROS Y HISTORIAL COMPLETO DE SUPERVISIONES */
+    const FiltroSupervisiones = {
+      tipo: 60,
+      desde: null,
+      hasta: null,
+
+      set: function(dias, btn) {
+        this.tipo = dias;
+        document.querySelectorAll('#tabHistorialSupervisiones .filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('customSupRangeBox').style.display = 'none';
+        this.recalcular();
+      },
+
+      toggleCustom: function(btn) {
+        this.tipo = 'custom';
+        document.querySelectorAll('#tabHistorialSupervisiones .filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('customSupRangeBox').style.display = 'grid';
+        this.aplicarCustom();
+      },
+
+      aplicarCustom: function() {
+        this.desde = document.getElementById('supDateFrom').value;
+        this.hasta = document.getElementById('supDateTo').value;
+        this.recalcular();
+      },
+
+      recalcular: function() {
+        if (!cachedSupervisiones) return;
+        let filtrados = cachedSupervisiones;
+
+        if (this.tipo === 'custom' && this.desde) {
+          const fD = new Date(this.desde + 'T00:00:00');
+          const fH = this.hasta ? new Date(this.hasta + 'T23:59:59') : new Date();
+          filtrados = cachedSupervisiones.filter(r => {
+            const f = new Date(r.session_date);
+            return f >= fD && f <= fH;
+          });
+        } else if (this.tipo !== 'all') {
+          const fLim = new Date();
+          fLim.setDate(fLim.getDate() - parseInt(this.tipo));
+          filtrados = cachedSupervisiones.filter(r => new Date(r.session_date) >= fLim);
+        }
+
+        const cont = document.getElementById('historialCompletoList');
+        document.getElementById('histFullCountTxt').innerText = `${filtrados.length} Registros`;
+
+        if (filtrados.length === 0) {
+          cont.innerHTML = '<span style="color:var(--text-muted); font-size:0.72rem;">No hay registros en este periodo.</span>';
+          return;
+        }
+
+        cont.innerHTML = '';
+        filtrados.forEach(item => {
+          cont.appendChild(crearCardSupervision(item));
+        });
+      }
+    };
+
+    function crearCardSupervision(item) {
+      const div = document.createElement('div');
+      div.className = 'history-card';
+      const f = new Date(item.session_date);
+      const fechaStr = `${f.getDate() + 1}/${f.getMonth() + 1}`;
+      const scoreColor = item.coach_points >= 5 ? 'var(--status-ok)' : (item.coach_points >= 0 ? 'var(--status-warn)' : 'var(--accent)');
+
+      let estadoBadge = `<span style="color:#aaa; text-transform:uppercase;">Pendiente</span>`;
+      if (item.coordinator_status === 'aprobado') {
+        estadoBadge = `<span style="color:var(--status-ok); font-weight:800;">APROBADO (+2 PTS)</span>`;
+      } else if (item.coordinator_status === 'sancionado') {
+        estadoBadge = `<span style="color:var(--accent); font-weight:800;">SANCIONADO (-10 PTS)</span>`;
+      }
+
+      div.innerHTML = `
+        <div class="history-header">
+          <span>${fechaStr} · ${item.class_time}</span>
+          <span style="color: ${scoreColor}; font-weight: 900;">${item.coach_points > 0 ? '+' : ''}${item.coach_points} Pts Coach</span>
+        </div>
+        <div style="color: var(--text-muted); font-size: 0.68rem; margin-top:2px;">
+          Coach: <strong style="color: #eee;">${item.coach_email}</strong> · Estado: ${estadoBadge}
+        </div>
+      `;
+      return div;
+    }
+
+    /* FILTROS Y TRAZABILIDAD DE STRIKERS */
+    async function cargarRegistrosStrikers() {
+      if (!sb) return;
+
+      try {
+        const { data, error } = await sb
+          .from('apex_checkins')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error || !data) return;
+        cachedStrikersCheckins = data;
+        FiltroStrikers.recalcular();
+      } catch (e) {
+        console.warn("Fallo cargando strikers:", e);
+      }
+    }
+
+    const FiltroStrikers = {
+      tipo: 60,
+      desde: null,
+      hasta: null,
+
+      set: function(dias, btn) {
+        this.tipo = dias;
+        document.querySelectorAll('#tabAuditoriaStrikers .filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('customStkRangeBox').style.display = 'none';
+        this.recalcular();
+      },
+
+      toggleCustom: function(btn) {
+        this.tipo = 'custom';
+        document.querySelectorAll('#tabAuditoriaStrikers .filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('customStkRangeBox').style.display = 'grid';
+        this.aplicarCustom();
+      },
+
+      aplicarCustom: function() {
+        this.desde = document.getElementById('stkDateFrom').value;
+        this.hasta = document.getElementById('stkDateTo').value;
+        this.recalcular();
+      },
+
+      aplicar: function() {
+        this.recalcular();
+      },
+
+      recalcular: function() {
+        if (!cachedStrikersCheckins) return;
+        const textoBusqueda = (document.getElementById('filtroStrikerUser')?.value || '').toLowerCase().trim();
+
+        let filtrados = cachedStrikersCheckins;
+
+        // 1. Filtro temporal
+        if (this.tipo === 'custom' && this.desde) {
+          const fD = new Date(this.desde + 'T00:00:00');
+          const fH = this.hasta ? new Date(this.hasta + 'T23:59:59') : new Date();
+          filtrados = filtrados.filter(r => {
+            const f = new Date(r.created_at);
+            return f >= fD && f <= fH;
+          });
+        } else if (this.tipo !== 'all') {
+          const fLim = new Date();
+          fLim.setDate(fLim.getDate() - parseInt(this.tipo));
+          filtrados = filtrados.filter(r => new Date(r.created_at) >= fLim);
+        }
+
+        // 2. Filtro por usuario
+        if (textoBusqueda) {
+          filtrados = filtrados.filter(r => (r.user_email || '').toLowerCase().includes(textoBusqueda));
+        }
+
+        const list = document.getElementById('strikerAuditList');
+        document.getElementById('strikerAuditCount').innerText = `${filtrados.length} Sesiones`;
+
+        if (filtrados.length === 0) {
+          list.innerHTML = '<span style="color:var(--text-muted); font-size:0.75rem;">No hay sesiones de alumnos con estos filtros.</span>';
+          return;
+        }
+
+        list.innerHTML = '';
+        filtrados.forEach(r => {
+          const d = new Date(r.created_at);
+          const fechaStr = `${d.getDate()}/${d.getMonth() + 1} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+          const penTag = r.coach_point_mod > 0 ? `<span style="color:var(--accent); font-weight:800;"> (-${r.coach_point_mod}p Penalización)</span>` : '';
+
+          const card = document.createElement('div');
+          card.className = 'history-card';
+          card.innerHTML = `
+            <div class="history-header">
+              <span style="color:#fff; font-weight:800;">${r.user_email}</span>
+              <span style="color:var(--status-ok); font-weight:900;">Rend: ${r.rendimiento}/10</span>
+            </div>
+            <div style="font-size:0.68rem; color:var(--text-muted); margin-top:2px;">
+              ${fechaStr} · Enfoque: <strong style="color:#ddd;">${r.focus}</strong> · Estado: <span style="text-transform:uppercase;">${r.status}</span>${penTag}
+            </div>
+            <div class="audit-grid">
+              <div>RPE: <strong style="color:#fff;">${r.rpe}</strong></div>
+              <div>Soltura: <strong style="color:#fff;">${r.soltura}</strong></div>
+              <div>Técnica: <strong style="color:#fff;">${r.preguntacoach || r.student_tech_score}</strong></div>
+            </div>
+          `;
+          list.appendChild(card);
+        });
+      }
+    };
+
+    /* BANDEJA DE SANCIONES / NOTIFICACIONES DE COORDINACIÓN */
+    async function cargarNotificacionesSupervisor() {
+      if (!sb || !currentSupervisorEmail) return;
+      const area = document.getElementById('notifSupervisorArea');
+      area.innerHTML = '';
+
+      try {
+        const { data, error } = await sb
+          .from('apex_notifications')
+          .select('*')
+          .eq('user_email', currentSupervisorEmail)
+          .order('created_at', { ascending: false })
+          .limit(3);
+
+        if (error || !data || data.length === 0) {
+          area.style.display = 'none';
+          return;
+        }
+
+        area.style.display = 'flex';
+        data.forEach(n => {
+          const card = document.createElement('div');
+          const esPremio = n.title.includes('Aprobada') || n.title.includes('+2');
+          card.className = `notif-card ${esPremio ? 'reward' : ''}`;
+          card.id = `notif_sup_${n.id}`;
+
+          const f = new Date(n.created_at);
+          const fechaStr = `${f.getDate()}/${f.getMonth() + 1}`;
+
+          card.innerHTML = `
+            <div class="notif-top">
+              <span class="notif-title" style="color: ${esPremio ? 'var(--status-ok)' : 'var(--accent)'};">${n.title}</span>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span class="notif-date">${fechaStr}</span>
+                <button class="notif-btn-close" onclick="descartarNotif('${n.id}')">✕</button>
+              </div>
+            </div>
+            <div class="notif-body">${n.message}</div>
+          `;
+          area.appendChild(card);
+        });
+      } catch (e) {
+        console.warn("Notificaciones supervisor en espera.");
+      }
+    }
+
+    async function descartarNotif(id) {
+      document.getElementById(`notif_sup_${id}`)?.remove();
+      const area = document.getElementById('notifSupervisorArea');
+      if (area.children.length === 0) area.style.display = 'none';
+
+      if (sb) {
+        await sb.from('apex_notifications').delete().eq('id', id);
+      }
+    }
+
+    window.onload = init;
   </script>
 </body>
 </html>
