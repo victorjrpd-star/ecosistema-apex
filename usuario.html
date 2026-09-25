@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#0b0b0b">
-  <title>Apex Striker | Ficha & Dashboard</title>
+  <title>Apex Striker | Ficha, Dashboard & Perfil</title>
 
   <!-- Supabase JS & Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -19,16 +19,101 @@
       --text-muted: #a3a3a3;
       --accent: #e50914;
       --accent-white: #ffffff;
+      --status-ok: #22c55e;
+      --tier-color: #ffffff;
+      --radar-theme: #cd7f32;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background-color: var(--bg-color); color: var(--text-main); padding: 16px; max-width: 600px; margin: 0 auto; min-height: 100vh; }
 
-    /* NAVEGACIÓN SUB-MÓDULOS */
-    .module-nav { display: flex; gap: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px; }
+    /* CABECERA DE PERFIL CON FOTO DIRECTA */
+    .profile-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--card-bg); border: 1px solid var(--border-color);
+      border-radius: 6px; padding: 12px 14px; margin-bottom: 12px;
+    }
+    .profile-info { display: flex; align-items: center; gap: 12px; }
+    .avatar-wrapper { position: relative; cursor: pointer; flex-shrink: 0; }
+    .avatar-circle {
+      width: 48px; height: 48px; border-radius: 50%; object-fit: cover;
+      background: #1c1c1c; border: 2px solid var(--border-color);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.9rem; font-weight: 900; color: #fff;
+    }
+    .avatar-btn-badge {
+      position: absolute; bottom: -2px; right: -2px; background: var(--accent);
+      color: #fff; border-radius: 50%; width: 18px; height: 18px; font-size: 0.7rem;
+      display: flex; align-items: center; justify-content: center; border: 2px solid #000;
+    }
+    .profile-text strong { display: block; font-size: 0.9rem; color: #fff; }
+    .profile-text span { font-size: 0.7rem; color: var(--text-muted); }
+    .membership-pill {
+      font-size: 0.65rem; font-weight: 800; padding: 4px 8px; border-radius: 4px;
+      text-transform: uppercase; background: #1c1c1c; border: 1px solid var(--border-color);
+    }
+
+    /* BARRA DE PROGRESO BIMESTRAL */
+    .progress-card {
+      background: var(--card-bg); border: 1px solid var(--border-color);
+      border-radius: 6px; padding: 14px; margin-bottom: 14px;
+    }
+    .progress-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+    .progress-tier-title { font-size: 0.8rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; color: var(--tier-color); }
+    .progress-percent-val { font-size: 1.1rem; font-weight: 900; color: var(--tier-color); }
+
+    .progress-bar-track {
+      width: 100%; height: 10px; background: #1c1c1c; border-radius: 5px;
+      overflow: hidden; border: 1px solid #282828; margin-bottom: 8px;
+    }
+    .progress-bar-fill {
+      height: 100%; width: 0%; background: var(--tier-color);
+      border-radius: 5px; transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+      box-shadow: 0 0 10px var(--tier-color);
+    }
+    .progress-meta-grid { display: flex; justify-content: space-between; font-size: 0.68rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
+
+    /* FILTROS TEMPORALES */
+    .time-filter-wrap {
+      background: #101012; border: 1px solid var(--border-color); border-radius: 6px;
+      padding: 10px; margin-bottom: 14px;
+    }
+    .filter-btn-group { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
+    .filter-btn {
+      flex: 1; min-width: 70px; padding: 7px 4px; background: #18181a; border: 1px solid var(--border-color);
+      color: var(--text-muted); border-radius: 4px; font-size: 0.65rem; font-weight: 800;
+      text-transform: uppercase; cursor: pointer; text-align: center; transition: 0.2s;
+    }
+    .filter-btn.active { background: #fff; color: #000; border-color: #fff; }
+    .custom-range-inputs {
+      display: none; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px;
+      border-top: 1px solid #202024; padding-top: 8px;
+    }
+    .custom-range-inputs input {
+      background: #09090b; border: 1px solid var(--border-color); color: #fff;
+      padding: 6px 8px; font-size: 0.72rem; border-radius: 4px; outline: none; color-scheme: dark;
+    }
+
+    /* BANDEJA DE NOTIFICACIONES */
+    .notif-container { display: none; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+    .notif-card {
+      background: #181818; border-left: 3px solid var(--accent); border-top: 1px solid var(--border-color);
+      border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);
+      border-radius: 4px; padding: 10px 12px;
+    }
+    .notif-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+    .notif-title { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #fff; }
+    .notif-meta { display: flex; align-items: center; gap: 6px; }
+    .notif-date { font-size: 0.62rem; color: var(--text-muted); }
+    .notif-btn-close { background: none; border: none; color: var(--text-muted); font-size: 0.85rem; cursor: pointer; line-height: 1; }
+    .notif-btn-close:hover { color: #fff; }
+    .notif-body { font-size: 0.72rem; color: #ccc; line-height: 1.35; }
+
+    /* NAVEGACIÓN TRIPLE */
+    .module-nav { display: flex; gap: 6px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px; }
     .nav-btn {
-      flex: 1; padding: 10px; background: #181818; border: 1px solid var(--border-color); color: var(--text-muted);
-      border-radius: 6px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; cursor: pointer; text-align: center; transition: 0.2s;
+      flex: 1; padding: 10px 6px; background: #181818; border: 1px solid var(--border-color); color: var(--text-muted);
+      border-radius: 6px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; cursor: pointer; text-align: center; transition: 0.2s;
     }
     .nav-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
@@ -65,6 +150,7 @@
       text-transform: uppercase; letter-spacing: 1px; font-size: 0.85rem; cursor: pointer; border-radius: 4px; transition: 0.2s;
     }
     .btn-submit:active { filter: brightness(0.85); }
+    .btn-submit:disabled { background: #333; color: #777; cursor: not-allowed; }
 
     /* DASHBOARD */
     .chart-container { background: #101010; border: 1px solid var(--border-color); border-radius: 6px; padding: 14px; margin-bottom: 14px; }
@@ -77,17 +163,114 @@
     .summary-txt { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800; }
 
     .history-card { background: #161616; border: 1px solid #282828; border-radius: 4px; padding: 10px; margin-top: 8px; font-size: 0.75rem; }
+
+    /* SUBMÓDULO 3: PERFIL STRIKER (TELARAÑA) */
+    .profile-dossier-card {
+      position: relative; background: var(--card-bg); border: 1px solid var(--border-color);
+      border-radius: 6px; padding: 20px; overflow: hidden; margin-bottom: 16px;
+    }
+    .dossier-watermark {
+      position: absolute; top: 12px; right: 14px; text-align: right;
+      font-size: 0.62rem; color: #222; text-transform: uppercase; font-weight: 900;
+      letter-spacing: 1px; line-height: 1.4; user-select: none; pointer-events: none; z-index: 1;
+    }
+    .dossier-header { position: relative; z-index: 2; margin-bottom: 16px; }
+    .dossier-name { font-size: 1.2rem; font-weight: 900; text-transform: uppercase; color: #fff; letter-spacing: 0.5px; }
+    .dossier-sub { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; margin-top: 2px; }
+
+    .discipline-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px;
+      position: relative; z-index: 2;
+    }
+    .discipline-box {
+      background: #0f0f11; border: 1px solid var(--border-color); border-radius: 6px;
+      padding: 12px; text-align: center;
+    }
+    .discipline-num { font-size: 1.7rem; font-weight: 900; color: #fff; }
+    .discipline-txt { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800; margin-top: 2px; }
+    .discipline-subtxt { font-size: 0.58rem; color: #666; margin-top: 2px; }
+
+    .radar-wrapper {
+      position: relative; z-index: 2; width: 100%; height: 320px;
+      background: radial-gradient(circle at center, rgba(255,255,255,0.02) 0%, transparent 70%);
+      border: 1px solid #1c1c1f; border-radius: 6px; padding: 10px;
+    }
+    .radar-legend {
+      display: flex; justify-content: space-between; font-size: 0.65rem;
+      color: var(--text-muted); text-transform: uppercase; font-weight: 800;
+      margin-top: 8px; padding: 0 4px;
+    }
   </style>
 </head>
 <body>
 
-  <!-- NAVEGACIÓN DUAL DE LA FICHA -->
+  <!-- INPUT DIRECTO DE ARCHIVO (CÁMARA / GALERÍA) -->
+  <input type="file" id="inputFotoPerfil" accept="image/*" style="display: none;" onchange="subirFotoPerfil(this.files)">
+
+  <!-- BARRA DE PERFIL SUPERIOR -->
+  <div class="profile-bar">
+    <div class="profile-info">
+      <div class="avatar-wrapper" onclick="document.getElementById('inputFotoPerfil').click()" title="Toca para tomar o cambiar foto">
+        <div id="displayAvatar" class="avatar-circle">ST</div>
+        <div class="avatar-btn-badge">📷</div>
+      </div>
+      <div class="profile-text">
+        <strong id="displayNombre">Striker Apex</strong>
+        <span id="displayEmail">Cargando perfil...</span>
+      </div>
+    </div>
+    <div id="displayStatus" class="membership-pill">-</div>
+  </div>
+
+  <!-- TARJETA REACTIVA DE NIVEL & PROGRESO -->
+  <div class="progress-card">
+    <div class="progress-header">
+      <div>
+        <span style="font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; display: block; font-weight: 800;">Nivel Actual</span>
+        <div class="progress-tier-title" id="tierLabel">INICIADO</div>
+      </div>
+      <div class="progress-percent-val" id="tierPercent">0%</div>
+    </div>
+    <div class="progress-bar-track">
+      <div class="progress-bar-fill" id="tierBarFill"></div>
+    </div>
+    <div class="progress-meta-grid">
+      <span id="ptsBimestreTxt">0 / 240 PTS (Bimestre)</span>
+      <span id="totalSesionesTxt">0 Clases Totales</span>
+    </div>
+  </div>
+
+  <!-- BARRA DE FILTROS DE TIEMPO -->
+  <div class="time-filter-wrap">
+    <div class="filter-btn-group">
+      <button class="filter-btn active" id="f_btn_60" onclick="ApexFiltros.setFiltro(60, this)">Bimestre (60d)</button>
+      <button class="filter-btn" id="f_btn_30" onclick="ApexFiltros.setFiltro(30, this)">30 Días</button>
+      <button class="filter-btn" id="f_btn_all" onclick="ApexFiltros.setFiltro('all', this)">Todo</button>
+      <button class="filter-btn" id="f_btn_custom" onclick="ApexFiltros.toggleCustom(this)">Libre</button>
+    </div>
+    <div class="custom-range-inputs" id="customRangeBox">
+      <div>
+        <span style="font-size:0.6rem; color:var(--text-muted); text-transform:uppercase;">Desde:</span>
+        <input type="date" id="customDateFrom" onchange="ApexFiltros.aplicarCustom()">
+      </div>
+      <div>
+        <span style="font-size:0.6rem; color:var(--text-muted); text-transform:uppercase;">Hasta:</span>
+        <input type="date" id="customDateTo" onchange="ApexFiltros.aplicarCustom()">
+      </div>
+    </div>
+  </div>
+
+  <!-- BANDEJA DE OBSERVACIONES Y CALIBRACIONES (MÁXIMO 3) -->
+  <div id="notifArea" class="notif-container"></div>
+
+  <!-- NAVEGACIÓN TRIPLE -->
   <nav class="module-nav">
-    <button class="nav-btn active" onclick="switchFichaTab('viewForm', this)">📝 Check-in Diario</button>
-    <button class="nav-btn" onclick="switchFichaTab('viewDash', this)">📊 Mi Dashboard</button>
+    <button class="nav-btn active" onclick="switchFichaTab('viewForm', this)">📝 Check-in</button>
+    <button class="nav-btn" onclick="switchFichaTab('viewDash', this)">📊 Dashboard</button>
+    <button class="nav-btn" onclick="switchFichaTab('viewProfile', this)">👤 Perfil Striker</button>
   </nav>
 
-  <!-- ================= SUBMÓDULO 1: FORMULARIO ================= -->
+  <!-- ================= SUBMÓDULO 1: FORMULARIO CHECK-IN ================= -->
   <div id="viewForm" class="view-section active">
     <div class="card">
       <div class="header">
@@ -199,8 +382,47 @@
 
       <!-- LISTADO RECIENTE -->
       <div style="margin-top: 18px;">
-        <label>Últimas Sesiones Registradas</label>
+        <label>Últimas Sesiones Filtradas</label>
         <div id="historyContainer">Cargando sesiones...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= SUBMÓDULO 3: PERFIL STRIKER & TELARAÑA ================= -->
+  <div id="viewProfile" class="view-section">
+    <div class="profile-dossier-card">
+      <div class="dossier-watermark">
+        APEX SYSTEM // TACTICAL DOSSIER<br>
+        EQUILIBRIUM RADAR // PROGRESSION MATRIX<br>
+        FIGHTER REPORT
+      </div>
+
+      <div class="dossier-header">
+        <div class="dossier-name" id="dossierName">Striker Apex</div>
+        <div class="dossier-sub" id="dossierMeta">Iniciado // 0 Clases Registradas</div>
+      </div>
+
+      <div class="discipline-grid">
+        <div class="discipline-box">
+          <div class="discipline-num" id="dossierDisciplinaVal">0%</div>
+          <div class="discipline-txt">Disciplina de Periodo</div>
+          <div class="discipline-subtxt" id="dossierClasesRatio">0 / 24 Clases Meta</div>
+        </div>
+        <div class="discipline-box">
+          <div class="discipline-num" id="dossierTotalVal">0</div>
+          <div class="discipline-txt">Historial Total</div>
+          <div class="discipline-subtxt">Clases de Carrera</div>
+        </div>
+      </div>
+
+      <div class="chart-title" style="margin-bottom: 6px;">Equilibrio Biomecánico & Mental</div>
+      <div class="radar-wrapper">
+        <canvas id="chartRadar"></canvas>
+      </div>
+
+      <div class="radar-legend">
+        <span>Radial: 1 - 10</span>
+        <span id="radarStatusLabel">Equilibrio: Calculando...</span>
       </div>
     </div>
   </div>
@@ -211,7 +433,68 @@
     const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
     let currentUser = null;
+    let userProfile = null;
+    let cachedRecords = [];
     let chartInstances = {};
+
+    /* CONTROL DE FILTROS TEMPORALES */
+    const ApexFiltros = {
+      tipo: 60, // 60, 30, 'all', 'custom'
+      desde: null,
+      hasta: null,
+
+      setFiltro: function(dias, btn) {
+        this.tipo = dias;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('customRangeBox').style.display = 'none';
+        this.recalcularVistas();
+      },
+
+      toggleCustom: function(btn) {
+        this.tipo = 'custom';
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('customRangeBox').style.display = 'grid';
+        this.aplicarCustom();
+      },
+
+      aplicarCustom: function() {
+        this.desde = document.getElementById('customDateFrom').value;
+        this.hasta = document.getElementById('customDateTo').value;
+        this.recalcularVistas();
+      },
+
+      obtenerRegistrosFiltrados: function() {
+        if (!cachedRecords || cachedRecords.length === 0) return [];
+        const ahora = new Date();
+
+        if (this.tipo === 'all') {
+          return cachedRecords;
+        }
+
+        if (this.tipo === 'custom') {
+          if (!this.desde) return cachedRecords;
+          const fDesde = new Date(this.desde + 'T00:00:00');
+          const fHasta = this.hasta ? new Date(this.hasta + 'T23:59:59') : new Date();
+          return cachedRecords.filter(r => {
+            const f = new Date(r.created_at);
+            return f >= fDesde && f <= fHasta;
+          });
+        }
+
+        // Días (30 o 60)
+        const fLimite = new Date();
+        fLimite.setDate(fLimite.getDate() - parseInt(this.tipo));
+        return cachedRecords.filter(r => new Date(r.created_at) >= fLimite);
+      },
+
+      recalcularVistas: function() {
+        const filtrados = this.obtenerRegistrosFiltrados();
+        actualizarDashboardConDatos(filtrados);
+        actualizarRadarConDatos(filtrados);
+      }
+    };
 
     function actualizarEmoji(valor) {
       document.getElementById('valDivertiste').innerText = valor;
@@ -230,91 +513,174 @@
       btn.classList.add('active');
       document.getElementById(tabId).classList.add('active');
 
-      if (tabId === 'viewDash') {
-        cargarMetricasDashboard();
+      if (tabId === 'viewDash' || tabId === 'viewProfile') {
+        ApexFiltros.recalcularVistas();
       }
     }
 
+    /* INICIALIZACIÓN */
     async function init() {
       if (!sb) return;
 
-      const { data: { session } } = await sb.auth.getSession();
-      if (session) {
-        currentUser = session.user;
-        const emailInput = document.getElementById('ciEmail');
-        emailInput.value = currentUser.email;
+      let email = null;
+      try {
+        const { data: { session } } = await sb.auth.getSession();
+        if (session) {
+          currentUser = session.user;
+          email = currentUser.email;
+        }
+      } catch (e) {}
+
+      if (!email) {
+        email = localStorage.getItem('apex_user_email') || 'isabelgg2394@gmail.com';
+      }
+
+      const emailInput = document.getElementById('ciEmail');
+      emailInput.value = email;
+      if (currentUser) {
         emailInput.setAttribute('readonly', 'true');
         emailInput.style.opacity = '0.7';
       }
+
+      await cargarDatosPerfil(email);
+      await cargarRegistrosBD(email);
+      await cargarNotificaciones(email);
     }
 
-    async function enviarCheckin(event) {
-      event.preventDefault();
-      const btn = document.getElementById('btnEnviar');
-      btn.disabled = true;
-      btn.innerText = 'Enviando...';
+    async function cargarDatosPerfil(email) {
+      if (!sb || !email) return;
 
-      const email = document.getElementById('ciEmail').value.trim();
-      const enfoque = document.getElementById('ciEnfoque').value;
-      const rendimiento = parseFloat(document.getElementById('ciRendimiento').value);
-      const rpe = parseFloat(document.getElementById('ciRpe').value);
-      const soltura = parseFloat(document.getElementById('ciSoltura').value);
-      const preguntacoach = parseFloat(document.getElementById('ciPreguntaCoach').value);
-      const divertiste = parseFloat(document.getElementById('ciDivertiste').value);
+      try {
+        const { data } = await sb
+          .from('apex_users')
+          .select('*')
+          .eq('email', email)
+          .single();
 
-      // Preliminar de puntuación interna Apex (Base 5 pts + promedio factores)
-      const prelim = parseFloat((5.0 + (rendimiento * 0.2) + (preguntacoach * 0.2) + (divertiste >= 8 ? 1.0 : 0)).toFixed(2));
+        if (data) {
+          userProfile = data;
+          document.getElementById('displayNombre').innerText = data.name || 'Striker';
+          document.getElementById('displayEmail').innerText = data.email;
 
-      const payload = {
-        user_id: currentUser ? currentUser.id : null,
-        user_email: email,
-        focus: enfoque,
-        rendimiento: rendimiento,
-        rpe: rpe,
-        soltura: soltura,
-        preguntacoach: preguntacoach,
-        divertiste: divertiste,
-        had_fun: divertiste >= 7,
-        prelim_score: Math.min(10.0, prelim),
-        status: 'pendiente_coach'
-      };
+          const avatarUrl = data.avatar_url || data.photo_url;
+          const displayEl = document.getElementById('displayAvatar');
+          if (avatarUrl) {
+            displayEl.outerHTML = `<img id="displayAvatar" src="${avatarUrl}" class="avatar-circle" alt="Foto">`;
+          } else {
+            const iniciales = (data.name || data.email || 'ST').substring(0, 2).toUpperCase();
+            displayEl.innerText = iniciales;
+          }
 
-      const { error } = await sb.from('apex_checkins').insert([payload]);
+          const hoy = new Date(); hoy.setHours(0,0,0,0);
+          let activa = false;
+          if (data.membership_end) {
+            const exp = new Date(data.membership_end + 'T00:00:00');
+            activa = exp >= hoy;
+          }
 
-      if (error) {
-        alert('Error al guardar sesión: ' + error.message);
-      } else {
-        alert('¡Check-in registrado con éxito!');
-        document.getElementById('checkinForm').reset();
-        if (currentUser) document.getElementById('ciEmail').value = currentUser.email;
-        actualizarEmoji(10);
+          const badge = document.getElementById('displayStatus');
+          if (activa) {
+            badge.innerText = 'AL DÍA';
+            badge.style.color = 'var(--status-ok)';
+            badge.style.borderColor = 'rgba(34, 197, 94, 0.4)';
+          } else {
+            badge.innerText = 'VENCIDO';
+            badge.style.color = 'var(--accent)';
+            badge.style.borderColor = 'rgba(229, 9, 20, 0.4)';
+          }
+        }
+      } catch (e) {
+        console.warn("Perfil en espera.");
       }
-
-      btn.disabled = false;
-      btn.innerText = 'Enviar Registro';
     }
 
-    async function cargarMetricasDashboard() {
-      const email = currentUser ? currentUser.email : document.getElementById('ciEmail').value.trim();
-      if (!email) return;
+    /* CARGA CENTRALIZADA DE REGISTROS */
+    async function cargarRegistrosBD(email) {
+      if (!sb || !email) return;
 
-      const { data: records, error } = await sb
-        .from('apex_checkins')
-        .select('*')
-        .eq('user_email', email)
-        .order('created_at', { ascending: true });
+      try {
+        const { data, error } = await sb
+          .from('apex_checkins')
+          .select('*')
+          .eq('user_email', email)
+          .neq('status', 'rechazado')
+          .order('created_at', { ascending: true });
 
-      if (error || !records || records.length === 0) {
-        document.getElementById('historyContainer').innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;">Aún no hay métricas para este correo.</span>';
+        if (error || !data) return;
+        cachedRecords = data;
+
+        // 1. Calcular Nivel Oficial Bimestral (Base 240 PTS Rendimiento)
+        calcularNivelOficialBimestral(data);
+
+        // 2. Renderizar Vistas iniciales con filtro por defecto (60 días)
+        ApexFiltros.recalcularVistas();
+
+      } catch (e) {
+        console.warn("Error cargando check-ins:", e);
+      }
+    }
+
+    /* PROGRESO OFICIAL BIMESTRAL (BASE 240 PTS - RENDIMIENTO) */
+    function calcularNivelOficialBimestral(records) {
+      const totalClases = records.length;
+      document.getElementById('totalSesionesTxt').innerText = `${totalClases} Clases Totales`;
+
+      const fechaLimite = new Date();
+      fechaLimite.setDate(fechaLimite.getDate() - 60);
+
+      let puntosRendimientoBimestre = 0;
+      records.forEach(r => {
+        const f = new Date(r.created_at);
+        if (f >= fechaLimite) {
+          const ptsDia = Math.min(10, Math.max(0, parseFloat(r.rendimiento) || 0));
+          puntosRendimientoBimestre += ptsDia;
+        }
+      });
+
+      let porcentaje = Math.round((puntosRendimientoBimestre / 240) * 100);
+      if (porcentaje > 110) porcentaje = 110;
+
+      document.getElementById('ptsBimestreTxt').innerText = `${puntosRendimientoBimestre.toFixed(1)} / 240 PTS (Bimestre)`;
+      document.getElementById('tierPercent').innerText = `${porcentaje}%`;
+
+      const nivelInfo = determinarEscalaOficial(porcentaje);
+
+      document.documentElement.style.setProperty('--tier-color', nivelInfo.color);
+      document.getElementById('tierLabel').innerText = nivelInfo.nombre;
+
+      const barFill = document.getElementById('tierBarFill');
+      barFill.style.width = `${Math.min(100, porcentaje)}%`;
+      barFill.style.background = nivelInfo.color;
+      barFill.style.boxShadow = `0 0 10px ${nivelInfo.color}66`;
+    }
+
+    /* REGLA OFICIAL DE RANGOS APEX BOXING */
+    function determinarEscalaOficial(porcentaje) {
+      if (porcentaje >= 101) return { nombre: "APEX+", color: "#ffd700", estado: "Equilibrio Apex+" };
+      if (porcentaje >= 76) return { nombre: "APEX", color: "#d4af37", estado: "Equilibrio Apex" };
+      if (porcentaje >= 36) return { nombre: "AVANZADO", color: "#c0c0c0", estado: "Equilibrio Capaz / Sólido" };
+      if (porcentaje >= 11) return { nombre: "INTERMEDIO", color: "#cd7f32", estado: "En Calibración" };
+      return { nombre: "INICIADO", color: "#ffffff", estado: "En Desarrollo" };
+    }
+
+    /* ACTUALIZAR DASHBOARD */
+    function actualizarDashboardConDatos(records) {
+      const container = document.getElementById('historyContainer');
+
+      if (!records || records.length === 0) {
+        document.getElementById('statSesiones').innerText = '0';
+        document.getElementById('statRendProm').innerText = '0.0';
+        container.innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;">Sin registros en este periodo.</span>';
+        ['chartRendimiento', 'chartRpe', 'chartSoltura', 'chartFluidez', 'chartDiversion'].forEach(id => {
+          if (chartInstances[id]) chartInstances[id].destroy();
+        });
         return;
       }
 
-      // KPIs
       document.getElementById('statSesiones').innerText = records.length;
       const sumRend = records.reduce((acc, cur) => acc + (parseFloat(cur.rendimiento) || 0), 0);
       document.getElementById('statRendProm').innerText = (sumRend / records.length).toFixed(1);
 
-      // Extraer datos cronológicos
       const labels = records.map(r => {
         const d = new Date(r.created_at);
         return `${d.getDate()}/${d.getMonth() + 1}`;
@@ -323,25 +689,128 @@
       renderSingleChart('chartRendimiento', labels, records.map(r => r.rendimiento), '#e50914');
       renderSingleChart('chartRpe', labels, records.map(r => r.rpe), '#f39c12');
       renderSingleChart('chartSoltura', labels, records.map(r => r.soltura), '#3498db');
-      renderSingleChart('chartFluidez', labels, records.map(r => r.preguntacoach), '#9b59b6');
+      renderSingleChart('chartFluidez', labels, records.map(r => r.preguntacoach || r.student_tech_score), '#9b59b6');
       renderSingleChart('chartDiversion', labels, records.map(r => r.divertiste), '#2ecc71');
 
-      // Listado Historial
-      const histCont = document.getElementById('historyContainer');
-      histCont.innerHTML = '';
+      container.innerHTML = '';
       records.slice(-5).reverse().forEach(r => {
         const f = new Date(r.created_at).toLocaleDateString();
-        histCont.innerHTML += `
+        const calTag = r.coach_point_mod > 0 ? ` <span style="color:var(--accent);">(-${r.coach_point_mod}p)</span>` : '';
+        container.innerHTML += `
           <div class="history-card">
             <div style="display:flex; justify-content:space-between; font-weight:800;">
               <span>${f} — ${r.focus}</span>
-              <span style="color:var(--accent);">Rend: ${r.rendimiento}/10</span>
+              <span style="color:var(--accent);">Rend: ${r.rendimiento}/10${calTag}</span>
             </div>
             <div style="color:var(--text-muted); font-size:0.7rem; margin-top:4px;">
-              RPE: ${r.rpe} | Soltura: ${r.soltura} | Fluidez: ${r.preguntacoach} | Diversión: ${r.divertiste}/10
+              RPE: ${r.rpe} | Soltura: ${r.soltura} | Fluidez: ${r.preguntacoach || r.student_tech_score} | Diversión: ${r.divertiste}/10
             </div>
           </div>
         `;
+      });
+    }
+
+    /* ACTUALIZAR TELARAÑA Y PERFIL STRIKER */
+    function actualizarRadarConDatos(records) {
+      const email = currentUser ? currentUser.email : document.getElementById('ciEmail').value.trim();
+      const totalClasesCarrera = cachedRecords.length;
+      const clasesPeriodo = records.length;
+
+      // Meta estándar de 24 clases por bimestre (proporcional a 30 días = 12 clases)
+      const metaPeriodo = ApexFiltros.tipo === 30 ? 12 : 24;
+      const disciplinaPct = Math.min(100, Math.round((clasesPeriodo / metaPeriodo) * 100));
+
+      document.getElementById('dossierName').innerText = userProfile?.name || 'Striker Apex';
+      const tierTxt = document.getElementById('tierLabel').innerText;
+      document.getElementById('dossierMeta').innerText = `${tierTxt} // ${email}`;
+      document.getElementById('dossierDisciplinaVal').innerText = `${disciplinaPct}%`;
+      document.getElementById('dossierClasesRatio').innerText = `${clasesPeriodo} / ${metaPeriodo} Clases Meta`;
+      document.getElementById('dossierTotalVal').innerText = totalClasesCarrera;
+
+      if (records.length === 0) {
+        document.getElementById('radarStatusLabel').innerText = "Sin datos en el periodo";
+        if (chartInstances['chartRadar']) chartInstances['chartRadar'].destroy();
+        return;
+      }
+
+      let sum = { rendimiento: 0, rpe: 0, soltura: 0, tecnica: 0, ram: 0, diversion: 0 };
+      records.forEach(r => {
+        sum.rendimiento += parseFloat(r.rendimiento) || 0;
+        sum.rpe += parseFloat(r.rpe) || 0;
+        sum.soltura += parseFloat(r.soltura) || 0;
+        sum.tecnica += parseFloat(r.preguntacoach || r.student_tech_score) || 0;
+        sum.ram += parseFloat(r.ram || r.preguntacoach) || 0;
+        sum.diversion += parseFloat(r.divertiste) || 0;
+      });
+
+      const count = records.length;
+      const averages = [
+        +(sum.rendimiento / count).toFixed(1),
+        +(sum.rpe / count).toFixed(1),
+        +(sum.soltura / count).toFixed(1),
+        +(sum.tecnica / count).toFixed(1),
+        +(sum.ram / count).toFixed(1),
+        +(sum.diversion / count).toFixed(1)
+      ];
+
+      // Promedio global y conversión a porcentaje (10 pts = 100%)
+      const globalAvg = averages.reduce((a, b) => a + b, 0) / 6;
+      const globalPct = Math.round((globalAvg / 10) * 100);
+
+      // Color dinámico según escala oficial
+      const escala = determinarEscalaOficial(globalPct);
+      const themeColor = escala.color;
+      const themeBg = themeColor + '33'; // 20% transparencia
+
+      const statusLabel = document.getElementById('radarStatusLabel');
+      statusLabel.innerText = `${escala.estado} (${globalPct}%)`;
+      statusLabel.style.color = themeColor;
+
+      renderRadarChart(averages, themeColor, themeBg);
+    }
+
+    function renderRadarChart(dataPoints, color, bgColor) {
+      if (chartInstances['chartRadar']) {
+        chartInstances['chartRadar'].destroy();
+      }
+
+      const canvasEl = document.getElementById('chartRadar');
+      if (!canvasEl) return;
+      const ctx = canvasEl.getContext('2d');
+
+      chartInstances['chartRadar'] = new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels: ['Rendimiento', 'RPE (Esfuerzo)', 'Soltura', 'Técnica', 'RAM', 'Disfrute'],
+          datasets: [{
+            data: dataPoints,
+            borderColor: color,
+            backgroundColor: bgColor,
+            borderWidth: 2,
+            pointBackgroundColor: color,
+            pointBorderColor: '#fff',
+            pointRadius: 4,
+            pointHoverRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            r: {
+              min: 0,
+              max: 10,
+              ticks: { stepSize: 2, display: false },
+              angleLines: { color: 'rgba(255, 255, 255, 0.15)' },
+              grid: { color: 'rgba(255, 255, 255, 0.12)' },
+              pointLabels: {
+                color: '#ddd',
+                font: { size: 10, weight: '700' }
+              }
+            }
+          }
+        }
       });
     }
 
@@ -350,7 +819,10 @@
         chartInstances[canvasId].destroy();
       }
 
-      const ctx = document.getElementById(canvasId).getContext('2d');
+      const canvasEl = document.getElementById(canvasId);
+      if (!canvasEl) return;
+      const ctx = canvasEl.getContext('2d');
+
       chartInstances[canvasId] = new Chart(ctx, {
         type: 'line',
         data: {
@@ -376,6 +848,150 @@
           }
         }
       });
+    }
+
+    /* SUBIDA DIRECTA DE FOTO (CÁMARA / GALERÍA) */
+    async function subirFotoPerfil(files) {
+      if (!files || files.length === 0 || !sb) return;
+      const file = files[0];
+      const email = document.getElementById('ciEmail').value.trim();
+      const ext = file.name.split('.').pop();
+      const filePath = `avatars/${Date.now()}_${email.replace(/[^a-zA-Z0-9]/g, '_')}.${ext}`;
+
+      alert('Subiendo foto...');
+      try {
+        const { error: uploadError } = await sb.storage.from('avatars').upload(filePath, file, { upsert: true });
+
+        if (uploadError) {
+          alert('Error al subir: ' + uploadError.message);
+          return;
+        }
+
+        const { data: urlData } = sb.storage.from('avatars').getPublicUrl(filePath);
+        const publicUrl = urlData.publicUrl;
+
+        await sb.from('apex_users').update({
+          avatar_url: publicUrl,
+          photo_url: publicUrl
+        }).eq('email', email);
+
+        const displayEl = document.getElementById('displayAvatar');
+        if (displayEl.tagName === 'IMG') {
+          displayEl.src = publicUrl;
+        } else {
+          displayEl.outerHTML = `<img id="displayAvatar" src="${publicUrl}" class="avatar-circle" alt="Foto">`;
+        }
+
+        alert('¡Foto de perfil actualizada!');
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
+    }
+
+    /* BANDEJA DE OBSERVACIONES (MÁXIMO 3, 7 DÍAS) */
+    async function cargarNotificaciones(email) {
+      if (!sb || !email) return;
+      const area = document.getElementById('notifArea');
+      area.innerHTML = '';
+
+      try {
+        const hace7Dias = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+        const { data, error } = await sb
+          .from('apex_notifications')
+          .select('*')
+          .eq('user_email', email)
+          .gte('created_at', hace7Dias)
+          .order('created_at', { ascending: false })
+          .limit(3);
+
+        if (error || !data || data.length === 0) {
+          area.style.display = 'none';
+          return;
+        }
+
+        area.style.display = 'flex';
+        data.forEach(n => {
+          const card = document.createElement('div');
+          card.className = 'notif-card';
+          card.id = `notif_${n.id}`;
+
+          const f = new Date(n.created_at);
+          const fechaStr = `${f.getDate()}/${f.getMonth() + 1}`;
+
+          card.innerHTML = `
+            <div class="notif-top">
+              <span class="notif-title">${n.title}</span>
+              <div class="notif-meta">
+                <span class="notif-date">${fechaStr}</span>
+                <button class="notif-btn-close" onclick="descartarNotif('${n.id}')">✕</button>
+              </div>
+            </div>
+            <div class="notif-body">${n.message}</div>
+          `;
+          area.appendChild(card);
+        });
+      } catch (e) {
+        console.warn("Observaciones en espera.");
+      }
+    }
+
+    async function descartarNotif(id) {
+      document.getElementById(`notif_${id}`)?.remove();
+      const area = document.getElementById('notifArea');
+      if (area.children.length === 0) area.style.display = 'none';
+
+      if (sb) {
+        await sb.from('apex_notifications').delete().eq('id', id);
+      }
+    }
+
+    /* ENVÍO DEL CHECK-IN */
+    async function enviarCheckin(event) {
+      event.preventDefault();
+      const btn = document.getElementById('btnEnviar');
+      btn.disabled = true;
+      btn.innerText = 'Enviando...';
+
+      const email = document.getElementById('ciEmail').value.trim();
+      const enfoque = document.getElementById('ciEnfoque').value;
+      const rendimiento = parseFloat(document.getElementById('ciRendimiento').value);
+      const rpe = parseFloat(document.getElementById('ciRpe').value);
+      const soltura = parseFloat(document.getElementById('ciSoltura').value);
+      const preguntacoach = parseFloat(document.getElementById('ciPreguntaCoach').value);
+      const divertiste = parseFloat(document.getElementById('ciDivertiste').value);
+
+      const prelim = parseFloat((5.0 + (rendimiento * 0.2) + (preguntacoach * 0.2) + (divertiste >= 8 ? 1.0 : 0)).toFixed(2));
+
+      const payload = {
+        user_id: userProfile ? userProfile.id : (currentUser ? currentUser.id : null),
+        user_email: email,
+        focus: enfoque,
+        rendimiento: rendimiento,
+        rpe: rpe,
+        soltura: soltura,
+        preguntacoach: preguntacoach,
+        student_tech_score: preguntacoach,
+        ram: preguntacoach,
+        divertiste: divertiste,
+        had_fun: divertiste >= 7,
+        prelim_score: Math.min(10.0, prelim),
+        status: 'pendiente_coach'
+      };
+
+      const { error } = await sb.from('apex_checkins').insert([payload]);
+
+      if (error) {
+        alert('Error al guardar sesión: ' + error.message);
+      } else {
+        alert('¡Check-in registrado con éxito! Pendiente de calibración por tu coach.');
+        document.getElementById('checkinForm').reset();
+        document.getElementById('ciEmail').value = email;
+        actualizarEmoji(10);
+        await cargarRegistrosBD(email);
+      }
+
+      btn.disabled = false;
+      btn.innerText = 'Enviar Registro';
     }
 
     window.onload = init;
