@@ -131,7 +131,7 @@
         <div class="form-switch-text" onclick="toggleFormMode('register')">¿No tienes cuenta? <span>Regístrate aquí</span></div>
       </div>
 
-      <!-- REGISTRO PÚBLICO SEGURO (SOLO ESTUDIANTE O COACH) -->
+      <!-- REGISTRO PÚBLICO (ROL ESTUDIANTE POR DEFECTO) -->
       <div id="registerFormSection" style="display: none;">
         <div class="login-title">Ecosistema <span>Apex</span></div>
         <div class="login-sub">Crear Nueva Cuenta</div>
@@ -139,14 +139,6 @@
         <div class="form-group">
           <label>Nombre Completo</label>
           <input type="text" id="regName" class="form-control" placeholder="Ej: Juan Pérez">
-        </div>
-
-        <div class="form-group">
-          <label>Tipo de Cuenta</label>
-          <select id="regProfileSelect" class="form-control">
-            <option value="estudiante">ESTUDIANTE (Striker)</option>
-            <option value="coach">COACH</option>
-          </select>
         </div>
 
         <div class="form-group">
@@ -208,7 +200,6 @@
   </div>
 
   <script>
-    // Inicialización oficial de Supabase con tus credenciales activas
     const SUPABASE_URL = 'https://fprvbvucmtdpxdihuvrw.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_xAMs8LpCwyMyoql3ohoJUQ_BIRhBQoD';
     const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
@@ -235,7 +226,8 @@
 
     async function realizarRegistro() {
       const name = document.getElementById('regName').value.trim();
-      const profile_id = document.getElementById('regProfileSelect').value;
+      const role = 'estudiante';
+      const profile_id = 'estudiante';
       const email = document.getElementById('regEmail').value.trim();
       const password = document.getElementById('regPassword').value.trim();
 
@@ -249,7 +241,18 @@
         return;
       }
 
-      const { data, error } = await sb.auth.signUp({ email, password });
+      const { data, error } = await sb.auth.signUp({ 
+        email, 
+        password,
+        options: {
+          data: {
+            name: name,
+            role: role,
+            profile_id: profile_id
+          }
+        }
+      });
+
       if (error) {
         alert('Error en registro: ' + error.message);
         return;
@@ -261,11 +264,12 @@
             id: data.user.id, 
             email, 
             name, 
-            profile_id, 
-            photo_url: null,
-            avatar_url: null,
-            is_active: true,
-            subscription_status: 'activo',
+            role: role,
+            profile_id: profile_id, 
+            photo_url: null, 
+            avatar_url: null, 
+            is_active: true, 
+            subscription_status: 'activo', 
             last_active_at: new Date().toISOString()
           }
         ]);
@@ -302,7 +306,7 @@
         .single();
 
       if (!profileData) {
-        profileData = { id: userId, email: '', name: 'Usuario Apex', profile_id: 'estudiante', photo_url: null, avatar_url: null };
+        profileData = { id: userId, email: '', name: 'Usuario Apex', profile_id: 'estudiante', role: 'estudiante', photo_url: null, avatar_url: null };
       }
 
       currentSessionUser = profileData;
@@ -420,9 +424,9 @@
 
         // 3. Actualización directa en la base de datos
         await sb.from('apex_users').update({ 
-          photo_url: publicUrl,
-          avatar_url: publicUrl,
-          last_active_at: new Date().toISOString()
+          photo_url: publicUrl, 
+          avatar_url: publicUrl, 
+          last_active_at: new Date().toISOString() 
         }).eq('id', currentSessionUser.id);
 
         currentSessionUser.photo_url = publicUrl;
@@ -447,7 +451,7 @@
         .from('apex_users')
         .update({ 
           name: newName, 
-          last_active_at: new Date().toISOString()
+          last_active_at: new Date().toISOString() 
         })
         .eq('id', currentSessionUser.id);
 
