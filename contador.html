@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0a0a0a">
+  <title>Apex | Contabilidad & Tesorería</title>
+
+  <!-- Supabase JS, Chart.js & Html2Canvas -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --card-bg: #121212;
+      --border: #222222;
+      --accent: #e50914;
+      --text-main: #ffffff;
+      --text-muted: #888888;
+      --status-ok: #22c55e;
+      --status-warn: #eab308;
+      --status-info: #3b82f6;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text-main); padding: 14px; max-width: 720px; margin: 0 auto; padding-bottom: 70px; }
+
+    .header { border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .title { font-size: 1.1rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
+    .title span { color: var(--accent); }
+    .badge-role { font-size: 0.65rem; font-weight: 800; background: #1a0808; color: var(--accent); border: 1px solid var(--accent); padding: 4px 8px; border-radius: 4px; text-transform: uppercase; }
+
+    /* NAVEGACIÓN */
+    .sub-nav { display: flex; gap: 4px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
+    .nav-btn {
+      flex: 1; min-width: 85px; padding: 9px 4px; background: #161616; border: 1px solid var(--border);
+      color: var(--text-muted); font-size: 0.66rem; font-weight: 800; text-transform: uppercase;
+      border-radius: 6px; cursor: pointer; text-align: center; transition: 0.2s; white-space: nowrap; position: relative;
+    }
+    .nav-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .nav-badge { position: absolute; top: -4px; right: -2px; background: var(--accent); color: #fff; border-radius: 10px; font-size: 0.55rem; padding: 1px 5px; font-weight: 900; }
+
+    .tab-section { display: none; }
+    .tab-section.active { display: block; }
+
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin-bottom: 12px; }
+    .card-title { font-size: 0.74rem; font-weight: 900; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+
+    .form-group { margin-bottom: 10px; }
+    label { display: block; font-size: 0.66rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
+    .form-control { width: 100%; padding: 10px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 6px; font-weight: 600; outline: none; font-size: 0.82rem; color-scheme: dark; }
+    .form-control:focus { border-color: var(--accent); }
+
+    .btn { background: var(--accent); color: #fff; border: none; padding: 11px; width: 100%; font-weight: 900; text-transform: uppercase; border-radius: 6px; cursor: pointer; font-size: 0.82rem; letter-spacing: 0.5px; transition: 0.2s; }
+    .btn:disabled { background: #333; color: #777; cursor: not-allowed; }
+    .btn-secondary { background: #1f1f1f; border: 1px solid #333; color: #fff; padding: 8px 12px; font-size: 0.7rem; font-weight: 800; border-radius: 4px; cursor: pointer; text-transform: uppercase; }
+    .btn-success { background: var(--status-ok); color: #000; font-weight: 900; border: none; padding: 8px 12px; border-radius: 4px; font-size: 0.7rem; cursor: pointer; text-transform: uppercase; }
+
+    /* KPIS & SALDOS */
+    .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+    .kpi-box { background: #161616; border: 1px solid var(--border); border-radius: 6px; padding: 10px; text-align: center; }
+    .kpi-num { font-size: 1.1rem; font-weight: 900; color: #fff; }
+    .kpi-label { font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800; margin-top: 2px; }
+
+    /* LISTA REDENCIÓN MEMBRESÍAS */
+    .inflow-item {
+      background: #161618; border-left: 3px solid var(--status-ok); border-top: 1px solid var(--border);
+      border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
+      border-radius: 6px; padding: 10px 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    }
+    .inflow-meta { font-size: 0.68rem; color: var(--text-muted); margin-top: 2px; }
+
+    /* FILTROS DE TIEMPO */
+    .period-filter-wrap { background: #101012; border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin-bottom: 12px; }
+    .filter-btn-group { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+    .filter-btn {
+      flex: 1; min-width: 65px; padding: 7px 4px; background: #18181a; border: 1px solid var(--border);
+      color: var(--text-muted); border-radius: 4px; font-size: 0.65rem; font-weight: 800;
+      text-transform: uppercase; cursor: pointer; text-align: center; transition: 0.2s;
+    }
+    .filter-btn.active { background: #fff; color: #000; border-color: #fff; }
+    .period-navigator { display: flex; justify-content: space-between; align-items: center; background: #161616; padding: 6px 10px; border-radius: 4px; font-size: 0.72rem; font-weight: 800; }
+    .nav-arrow { background: none; border: none; color: #fff; font-size: 1rem; cursor: pointer; padding: 0 8px; }
+
+    /* GRÁFICA DE DONA */
+    .chart-box { height: 240px; position: relative; margin: 10px 0; }
+    .cat-stat-item { display: flex; justify-content: space-between; align-items: center; padding: 7px 10px; background: #141416; border: 1px solid #202022; border-radius: 4px; margin-top: 5px; font-size: 0.74rem; }
+    .cat-pill { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+
+    /* DOCUMENTOS (ESTÉTICA NOIR TOTAL) */
+    .document-preview-box {
+      background: #000000; border: 1px solid #333333; border-radius: 8px;
+      padding: 24px; color: #ffffff; margin-top: 12px; position: relative;
+    }
+    .doc-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #222; padding-bottom: 12px; margin-bottom: 14px; }
+    .doc-brand { font-size: 1.3rem; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: #fff; }
+    .doc-brand span { color: var(--accent); }
+    .doc-title { font-size: 0.85rem; font-weight: 900; text-transform: uppercase; text-align: right; color: #ccc; }
+    .doc-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 0.75rem; }
+    .doc-table th { border-bottom: 1px solid #333; padding: 6px 4px; text-align: left; color: var(--text-muted); text-transform: uppercase; font-size: 0.65rem; }
+    .doc-table td { border-bottom: 1px solid #1a1a1a; padding: 8px 4px; }
+    .doc-total-box { margin-top: 16px; border-top: 2px solid #333; padding-top: 10px; display: flex; justify-content: space-between; align-items: baseline; font-size: 1.15rem; font-weight: 900; }
+
+    /* TARJETAS DE INVERSIONISTAS */
+    .investor-card {
+      background: #161618; border: 1px solid var(--border); border-radius: 6px;
+      padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    }
+
+    .modal-overlay {
+      display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.85); backdrop-filter: blur(4px); z-index: 100;
+      align-items: center; justify-content: center; padding: 14px;
+    }
+
+    @media print {
+      body * { visibility: hidden; }
+      .document-preview-box, .document-preview-box * { visibility: visible; }
+      .document-preview-box { position: absolute; left: 0; top: 0; width: 100%; border: none; padding: 0; }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="title">Apex <span>Contabilidad</span></div>
+    <div class="badge-role">Tesorería & Dividendos</div>
+  </div>
+
+  <!-- NAVEGACIÓN -->
+  <div class="sub-nav">
+    <button class="nav-btn active" onclick="switchTab('tabDashboard', this)">📊 Dashboard</button>
+    <button class="nav-btn" onclick="switchTab('tabInversionistas', this)">💼 Socios</button>
+    <button class="nav-btn" onclick="switchTab('tabBandejaCoach', this)">
+      📥 Membresías <span id="badgeCoachCount" class="nav-badge" style="display:none;">0</span>
+    </button>
+    <button class="nav-btn" onclick="switchTab('tabCobroGym', this)">🏢 Cobro Gym</button>
+    <button class="nav-btn" onclick="switchTab('tabFacturacion', this)">🧾 Factura</button>
+    <button class="nav-btn" onclick="switchTab('tabCuentas', this)">🏦 Cuentas</button>
+  </div>
+
+  <!-- ================= SUBMÓDULO 1: DASHBOARD CON DONA ================= -->
+  <div id="tabDashboard" class="tab-section active">
+    <div class="period-filter-wrap">
+      <div class="filter-btn-group">
+        <button class="filter-btn" onclick="FiltroContable.setModo('semanal', this)">Semanal</button>
+        <button class="filter-btn active" onclick="FiltroContable.setModo('quincenal', this)">Quincenal</button>
+        <button class="filter-btn" onclick="FiltroContable.setModo('mensual', this)">Mensual</button>
+        <button class="filter-btn" onclick="FiltroContable.setModo('libre', this)">Libre</button>
+      </div>
+
+      <div class="period-navigator" id="periodNavBox">
+        <button class="nav-arrow" onclick="FiltroContable.navegar(-1)">◀</button>
+        <span id="periodDisplayTxt">Cargando período...</span>
+        <button class="nav-arrow" onclick="FiltroContable.navegar(1)">▶</button>
+      </div>
+
+      <div id="customDateRangeBox" style="display:none; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
+        <input type="date" id="dateRangeStart" class="form-control" onchange="FiltroContable.aplicarLibre()">
+        <input type="date" id="dateRangeEnd" class="form-control" onchange="FiltroContable.aplicarLibre()">
+      </div>
+    </div>
+
+    <!-- KPIS DEL PERÍODO -->
+    <div class="kpi-grid">
+      <div class="kpi-box">
+        <div class="kpi-num" id="kpiIngresos" style="color: var(--status-ok);">$0</div>
+        <div class="kpi-label">Ingresos</div>
+      </div>
+      <div class="kpi-box">
+        <div class="kpi-num" id="kpiGastos" style="color: var(--accent);">$0</div>
+        <div class="kpi-label">Gastos</div>
+      </div>
+      <div class="kpi-box">
+        <div class="kpi-num" id="kpiUtilidad">$0</div>
+        <div class="kpi-label">Flujo Neto</div>
+      </div>
+    </div>
+
+    <!-- DONA INTERACTIVA -->
+    <div class="card">
+      <div class="card-title">
+        <span id="tituloDona">Distribución de Gastos</span>
+        <div style="display: flex; gap: 4px;">
+          <button class="btn-secondary" id="btnToggleGasto" onclick="alternarTipoDona('gasto')">Gastos</button>
+          <button class="btn-secondary" id="btnToggleIngreso" onclick="alternarTipoDona('ingreso')">Ingresos</button>
+        </div>
+      </div>
+
+      <div class="chart-box">
+        <canvas id="chartDona"></canvas>
+      </div>
+
+      <div id="listaDesgloseCategorias">
+        <span style="color: var(--text-muted); font-size: 0.72rem;">Sin movimientos en este período.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= SUBMÓDULO 2: INVERSIONISTAS & DISTRIBUCIÓN DE UTILIDADES ================= -->
+  <div id="tabInversionistas" class="tab-section">
+    <!-- PANEL DE RENDICIÓN DE CUENTAS DEL PERÍODO -->
+    <div class="card">
+      <div class="card-title">Rendición de Cuentas y Repartición de Utilidades</div>
+      <div style="font-size:0.7rem; color:var(--text-muted); margin-bottom:10px;">
+        Regla de distribución Apex: <strong style="color:#fff;">30% Reinversión Academia</strong> | <strong style="color:var(--status-ok);">70% Base Distribuible a Socios</strong>.
+      </div>
+
+      <div class="kpi-grid" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="kpi-box">
+          <div class="kpi-num" id="invKpiUtilidadNet">$0</div>
+          <div class="kpi-label">Utilidad Neta</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-num" id="invKpiReservaApex" style="color:var(--status-info);">$0</div>
+          <div class="kpi-label">30% Reserva Apex</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-num" id="invKpiBaseSocios" style="color:var(--status-ok);">$0</div>
+          <div class="kpi-label">70% Distribuible</div>
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+        <span style="font-size:0.68rem; color:var(--text-muted);" id="invPeriodoEtiqueta">Período actual</span>
+        <button class="btn-secondary" onclick="abrirReporteGlobalInversionistas()">📄 Reporte Global Inversionistas</button>
+      </div>
+    </div>
+
+    <!-- REGISTRO DE NUEVO INVERSIONISTA -->
+    <div class="card">
+      <div class="card-title">Registrar Nuevo Inversionista</div>
+      <form id="formCrearInversionista" onsubmit="crearInversionista(event)">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <div class="form-group">
+            <label>Nombre del Socio</label>
+            <input type="text" id="invNombre" class="form-control" placeholder="Ej: Carlos Restrepo" required>
+          </div>
+          <div class="form-group">
+            <label>Cédula / NIT / Contacto</label>
+            <input type="text" id="invDoc" class="form-control" placeholder="C.C. 1.144.xxx / Celular">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <div class="form-group">
+            <label>Capital Invertido ($ COP)</label>
+            <input type="number" id="invCapital" class="form-control" placeholder="Ej: 5000000" min="0" step="any" required>
+          </div>
+          <div class="form-group">
+            <label>% Participación sobre 70%</label>
+            <input type="number" id="invPorcentaje" class="form-control" placeholder="Ej: 25 (%)" min="0" max="100" step="any" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Datos Bancarios / Cuenta de Pago</label>
+          <input type="text" id="invCuentaPago" class="form-control" placeholder="Bancolombia Ahorros #xxxx / Nequi xxxx">
+        </div>
+
+        <button type="submit" class="btn">Guardar Inversionista</button>
+      </form>
+    </div>
+
+    <!-- LISTADO DE INVERSIONISTAS & LIQUIDACIÓN INDIVIDUAL -->
+    <div class="card">
+      <div class="card-title">
+        <span>Censo de Inversionistas</span>
+        <span id="invCountTxt" style="color:var(--status-ok); font-size:0.65rem;">0 Socios</span>
+      </div>
+      <div id="listaInversionistas">Cargando inversionistas...</div>
+    </div>
+
+    <!-- VISTA PREVIA REPORTE EJECUTIVO INVERSIONISTA (ESTÉTICA NOIR) -->
+    <div id="vistaReporteInversionistaWrap" style="display: none;">
+      <div class="document-preview-box" id="docInversionistaArea">
+        <div class="doc-header">
+          <div>
+            <div class="doc-brand">APEX <span>BOXING</span></div>
+            <div style="font-size:0.62rem; color:var(--text-muted); margin-top:2px;">ESTADO DE RENDICIÓN DE CUENTAS</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="doc-title">REPORTE DE UTILIDADES</div>
+            <div style="font-size:0.68rem; color:#aaa;" id="lblRepInvNumero">REP-INV-001</div>
+            <div style="font-size:0.62rem; color:var(--text-muted);" id="lblRepInvFecha">-</div>
+          </div>
+        </div>
+
+        <div style="font-size:0.75rem; margin-bottom:12px; line-height:1.4;">
+          INVERSIONISTA: <strong id="lblRepInvNombre">-</strong><br>
+          CAPITAL APORTADO: <span id="lblRepInvCapital">$0</span> | CUOTA: <strong id="lblRepInvPorcentaje">0%</strong><br>
+          PERÍODO LIQUIDADO: <strong id="lblRepInvPeriodo">-</strong>
+        </div>
+
+        <table class="doc-table">
+          <thead>
+            <tr>
+              <th>Concepto Financiero</th>
+              <th style="text-align:right;">Monto Base ($ COP)</th>
+            </tr>
+          </thead>
+          <tbody id="repInvTableBody"></tbody>
+        </table>
+
+        <div class="doc-total-box">
+          <span>DIVIDENDO NETO A RECIBIR:</span>
+          <span id="lblRepInvGranTotal" style="color:var(--status-ok);">$0</span>
+        </div>
+
+        <div style="font-size:0.6rem; color:var(--text-muted); margin-top:10px;" id="lblRepInvNotaExplicativa">
+          * Nota: Si la utilidad neta es menor o igual a cero, no se genera distribución económica en este período.
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 8px; margin-top: 12px;" class="no-print">
+        <button class="btn-success" style="flex:1;" onclick="exportarReporteInversionistaJPG()">📸 Descargar Imagen JPG (WhatsApp)</button>
+        <button class="btn-secondary" style="flex:1;" onclick="window.print()">📄 Guardar PDF / Imprimir</button>
+        <button class="btn" style="flex:1; background:var(--status-info);" onclick="abrirModalPagarDividendo()">💳 Asentar Pago en Caja</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= SUBMÓDULO 3: BANDEJA DE MEMBRESÍAS DEL COACH ================= -->
+  <div id="tabBandejaCoach" class="tab-section">
+    <div class="card">
+      <div class="card-title">
+        <span>Flujo de Membresías Reportadas en Sala</span>
+        <span id="lblCoachPendientesTxt" style="color: var(--status-ok); font-size: 0.65rem;">0 Pendientes</span>
+      </div>
+      <p style="font-size:0.7rem; color:var(--text-muted); margin-bottom:10px;">
+        Aquí llegan las membresías registradas por el coach. El contador solo selecciona la cuenta receptora para redimir el ingreso en caja o descartar.
+      </p>
+      <div id="listaMembresiasPendientes">Cargando pagos en sala...</div>
+    </div>
+  </div>
+
+  <!-- ================= SUBMÓDULO 4: CUENTA DE COBRO AL GIMNASIO ================= -->
+  <div id="tabCobroGym" class="tab-section">
+    <div class="card">
+      <div class="card-title">Generador de Cuenta de Cobro a Aliado</div>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+        <div class="form-group">
+          <label>Gimnasio / Entidad Aliada</label>
+          <input type="text" id="cobroEntidad" class="form-control" value="GIMNASIO ALIADO APEX" required>
+        </div>
+        <div class="form-group">
+          <label>NIT / Identificación</label>
+          <input type="text" id="cobroNit" class="form-control" placeholder="Ej: 900.123.456-7">
+        </div>
+      </div>
+
+      <div class="filter-btn-group" style="margin-top: 6px;">
+        <button class="filter-btn active" onclick="GeneradorCobro.setPeriodo('1q', this)">1ra Quincena</button>
+        <button class="filter-btn" onclick="GeneradorCobro.setPeriodo('2q', this)">2da Quincena</button>
+        <button class="filter-btn" onclick="GeneradorCobro.setPeriodo('mes', this)">Mes Completo</button>
+      </div>
+
+      <div style="display: flex; gap: 8px; margin-top: 10px;">
+        <button class="btn" style="flex:1;" onclick="GeneradorCobro.generarVista()">Generar Detalle</button>
+      </div>
+    </div>
+
+    <!-- VISTA PREVIA CUENTA DE COBRO -->
+    <div id="vistaCuentaCobroWrap" style="display: none;">
+      <div class="document-preview-box" id="docCuentaCobroArea">
+        <div class="doc-header">
+          <div>
+            <div class="doc-brand">APEX <span>BOXING</span></div>
+            <div style="font-size:0.62rem; color:var(--text-muted); margin-top:2px;">ECOSISTEMA TÁCTICO DEPORTIVO</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="doc-title">CUENTA DE COBRO</div>
+            <div style="font-size:0.68rem; color:#aaa;" id="lblCobroNumero">CC-2026-001</div>
+            <div style="font-size:0.62rem; color:var(--text-muted);" id="lblCobroFecha">Fecha: 25/09/2026</div>
+          </div>
+        </div>
+
+        <div style="font-size:0.75rem; margin-bottom:12px; line-height:1.4;">
+          <strong>A FAVOR DE:</strong> APEX BOXING<br>
+          <strong>DEBE A:</strong> <span id="lblCobroDeudor">GIMNASIO ALIADO APEX</span><br>
+          <strong>CONCEPTO:</strong> Recaudación de Membresías Articuladas correspondiente al período <strong id="lblCobroPeriodo">-</strong>
+        </div>
+
+        <table class="doc-table">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Striker / Alumno</th>
+              <th>Membresía</th>
+              <th style="text-align:right;">Valor</th>
+            </tr>
+          </thead>
+          <tbody id="cobroTableBody"></tbody>
+        </table>
+
+        <div class="doc-total-box">
+          <span>VALOR TOTAL A COBRAR:</span>
+          <span id="lblCobroGranTotal" style="color:var(--status-ok);">$0</span>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 8px; margin-top: 12px;" class="no-print">
+        <button class="btn-success" style="flex:1;" onclick="exportarCuentaCobroJPG()">📸 Descargar Imagen JPG (WhatsApp)</button>
+        <button class="btn-secondary" style="flex:1;" onclick="window.print()">📄 Guardar PDF / Imprimir</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= SUBMÓDULO 5: FACTURACIÓN ================= -->
+  <div id="tabFacturacion" class="tab-section">
+    <div class="card">
+      <div class="card-title">Emisor de Factura Directa Apex</div>
+      <form id="formNuevaFactura" onsubmit="emitirFactura(event)">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <div class="form-group">
+            <label>Cliente / Striker</label>
+            <input type="text" id="facCliente" class="form-control" placeholder="Nombre completo" required>
+          </div>
+          <div class="form-group">
+            <label>Documento / ID (Opcional)</label>
+            <input type="text" id="facDocCliente" class="form-control" placeholder="Cédula / Pasaporte">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <div class="form-group">
+            <label>Concepto / Ítem</label>
+            <input type="text" id="facItem" class="form-control" placeholder="Ej: Plan Bimestral Striker" required>
+          </div>
+          <div class="form-group">
+            <label>Valor ($ COP)</label>
+            <input type="number" id="facMonto" class="form-control" placeholder="Monto" min="1" step="any" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Cuenta Donde Ingresa el Dinero</label>
+          <select id="facCuentaDestino" class="form-control" required></select>
+        </div>
+
+        <button type="submit" class="btn">Emitir Factura y Cargar Ingreso</button>
+      </form>
+    </div>
+
+    <!-- VISTA PREVIA FACTURA -->
+    <div id="vistaFacturaWrap" style="display: none;">
+      <div class="document-preview-box" id="docFacturaArea">
+        <div class="doc-header">
+          <div>
+            <div class="doc-brand">APEX <span>BOXING</span></div>
+            <div style="font-size:0.6rem; color:var(--text-muted);">SANTIAGO DE CALI, COLOMBIA</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="doc-title" style="color:var(--accent);">FACTURA DE VENTA</div>
+            <div style="font-size:0.7rem; font-weight:800;" id="lblFacNumero">FAC-0001</div>
+            <div style="font-size:0.62rem; color:var(--text-muted);" id="lblFacFecha">Fecha: 25/09/2026</div>
+          </div>
+        </div>
+
+        <div style="font-size:0.72rem; margin-bottom:12px;">
+          CLIENTE: <strong id="lblFacCliente">-</strong> | ID: <span id="lblFacDocCliente">-</span>
+        </div>
+
+        <table class="doc-table">
+          <thead>
+            <tr>
+              <th>Descripción</th>
+              <th style="text-align:right;">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td id="lblFacItemDesc">-</td>
+              <td id="lblFacItemTotal" style="text-align:right;">$0</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="doc-total-box">
+          <span>TOTAL PAGADO:</span>
+          <span id="lblFacGranTotal" style="color:var(--status-ok);">$0</span>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 8px; margin-top: 12px;" class="no-print">
+        <button class="btn-success" style="flex:1;" onclick="exportarFacturaJPG()">📸 Exportar Factura JPG</button>
+        <button class="btn-secondary" style="flex:1;" onclick="window.print()">📄 Guardar PDF / Imprimir</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= SUBMÓDULO 6: CUENTAS FINANCIERAS ================= -->
+  <div id="tabCuentas" class="tab-section">
+    <div class="card">
+      <div class="card-title">Crear Cuenta Financiera</div>
+      <form id="formCrearCuenta" onsubmit="crearCuenta(event)">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <div class="form-group">
+            <label>Nombre de Cuenta</label>
+            <input type="text" id="ctaNombre" class="form-control" placeholder="Caja Menor / Bancolombia" required>
+          </div>
+          <div class="form-group">
+            <label>Tipo de Cuenta</label>
+            <select id="ctaTipo" class="form-control" required>
+              <option value="efectivo">Efectivo</option>
+              <option value="banco">Banco</option>
+              <option value="ahorro">Ahorro</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Saldo Inicial ($ COP)</label>
+          <input type="number" id="ctaSaldoInicial" class="form-control" value="0" min="0" step="any">
+        </div>
+        <button type="submit" class="btn">Crear Cuenta</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Cuentas Registradas</div>
+      <div id="listaCuentas">Cargando cuentas...</div>
+    </div>
+  </div>
+
+  <!-- MODAL RÁPIDO PARA REDIMIR MEMBRESÍA -->
+  <div id="modalRedimir" class="modal-overlay">
+    <div style="background:#141416; border:1px solid #333; border-radius:8px; padding:18px; width:100%; max-width:380px;">
+      <div style="font-weight:900; font-size:0.85rem; color:#fff; text-transform:uppercase; margin-bottom:6px;">Redimir Membresía a Caja</div>
+      <p style="font-size:0.7rem; color:var(--text-muted); margin-bottom:12px;" id="modalRedimirDetalle">Selecciona a qué cuenta ingresará el dinero.</p>
+      
+      <div class="form-group">
+        <label>Cuenta de Destino</label>
+        <select id="selectCuentaRedimir" class="form-control"></select>
+      </div>
+
+      <div style="display:flex; gap:8px; margin-top:14px;">
+        <button class="btn" onclick="confirmarRedencion()">Confirmar Ingreso</button>
+        <button class="btn-secondary" onclick="cerrarModalRedimir()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL PARA ASENTAR PAGO DE DIVIDENDOS -->
+  <div id="modalPagarDividendo" class="modal-overlay">
+    <div style="background:#141416; border:1px solid #333; border-radius:8px; padding:18px; width:100%; max-width:380px;">
+      <div style="font-weight:900; font-size:0.85rem; color:#fff; text-transform:uppercase; margin-bottom:6px;">Asentar Pago de Dividendos</div>
+      <p style="font-size:0.7rem; color:var(--text-muted); margin-bottom:12px;" id="modalDividendoDetalle">-</p>
+      
+      <div class="form-group">
+        <label>Cuenta Desde Donde se Transfiere</label>
+        <select id="selectCuentaDividendo" class="form-control"></select>
+      </div>
+
+      <div style="display:flex; gap:8px; margin-top:14px;">
+        <button class="btn" style="background:var(--status-info);" onclick="confirmarPagoDividendo()">Registrar Egreso</button>
+        <button class="btn-secondary" onclick="cerrarModalPagarDividendo()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://fprvbvucmtdpxdihuvrw.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_xAMs8LpCwyMyoql3ohoJUQ_BIRhBQoD';
+    const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+    let cachedAccounts = [];
+    let cachedTransactions = [];
+    let cachedPayments = [];
+    let cachedInvestors = [];
+    let chartDonaInstance = null;
+    let tipoDonaActual = 'gasto';
+    let currentContadorEmail = 'contador@apexboxing.com';
+    let pagoParaRedimir = null;
+    let inversionistaSeleccionadoReporte = null;
+    let dividendoCalculadoActual = 0;
+
+    function formatCOP(num) {
+      return '$' + Math.round(num || 0).toLocaleString('es-CO');
+    }
+
+    function switchTab(tabId, btn) {
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+
+      if (tabId === 'tabDashboard') FiltroContable.recalcular();
+      if (tabId === 'tabInversionistas') actualizarPanelInversionistas();
+    }
+
+    async function init() {
+      if (sb) {
+        try {
+          const { data: { session } } = await sb.auth.getSession();
+          if (session && session.user) currentContadorEmail = session.user.email;
+        } catch (e) {}
+      }
+
+      await cargarDatos();
+      FiltroContable.init();
+    }
+
+    async function cargarDatos() {
+      if (!sb) return;
+      try {
+        const [resAcc, resTrans, resPay, resInv] = await Promise.all([
+          sb.from('apex_accounts').select('*').order('name'),
+          sb.from('apex_ledger_transactions').select('*').order('transaction_date', { ascending: false }),
+          sb.from('apex_payments').select('*').order('created_at', { ascending: false }),
+          sb.from('apex_investors').select('*').order('name')
+        ]);
+
+        cachedAccounts = resAcc.data || [];
+        cachedTransactions = resTrans.data || [];
+        cachedPayments = resPay.data || [];
+        cachedInvestors = resInv.data || [];
+
+        renderizarCuentas();
+        poblarSelectsCuentas();
+        renderizarMembresiasCoach();
+        renderizarInversionistas();
+      } catch (e) {
+        console.warn("Fallo cargando datos:", e);
+      }
+    }
+
+    function poblarSelectsCuentas() {
+      const selects = [
+        document.getElementById('facCuentaDestino'), 
+        document.getElementById('selectCuentaRedimir'),
+        document.getElementById('selectCuentaDividendo')
+      ];
+      selects.forEach(sel => {
+        if (!sel) return;
+        sel.innerHTML = '';
+        cachedAccounts.forEach(c => {
+          sel.innerHTML += `<option value="${c.id}">${c.name} (${formatCOP(c.current_balance)})</option>`;
+        });
+      });
+    }
+
+    /* ================= SUBMÓDULO 2: INVERSIONISTAS & DIVIDENDOS ================= */
+    async function crearInversionista(e) {
+      e.preventDefault();
+      const nombre = document.getElementById('invNombre').value.trim();
+      const doc = document.getElementById('invDoc').value.trim();
+      const capital = parseFloat(document.getElementById('invCapital').value) || 0;
+      const pct = parseFloat(document.getElementById('invPorcentaje').value) || 0;
+      const ctaPago = document.getElementById('invCuentaPago').value.trim();
+
+      const { error } = await sb.from('apex_investors').insert([{
+        name: nombre,
+        id_document: doc,
+        capital_invested: capital,
+        profit_percentage: pct,
+        payout_account_details: ctaPago
+      }]);
+
+      if (error) {
+        alert("Error al registrar inversionista: " + error.message);
+      } else {
+        alert("¡Inversionista registrado con éxito!");
+        document.getElementById('formCrearInversionista').reset();
+        await cargarDatos();
+        actualizarPanelInversionistas();
+      }
+    }
+
+    function renderizarInversionistas() {
+      const cont = document.getElementById('listaInversionistas');
+      document.getElementById('invCountTxt').innerText = `${cachedInvestors.length} Socios`;
+
+      if (cachedInvestors.length === 0) {
+        cont.innerHTML = '<span style="color:var(--text-muted); font-size:0.75rem;">No hay inversionistas registrados aún.</span>';
+        return;
+      }
+
+      cont.innerHTML = '';
+      cachedInvestors.forEach(inv => {
+        const div = document.createElement('div');
+        div.className = 'investor-card';
+        div.innerHTML = `
+          <div>
+            <strong style="color:#fff; font-size:0.82rem;">${inv.name}</strong>
+            <div style="font-size:0.68rem; color:var(--text-muted); margin-top:2px;">
+              Participación: <strong style="color:var(--status-ok);">${inv.profit_percentage}%</strong> · Capital: ${formatCOP(inv.capital_invested)}
+            </div>
+            <div style="font-size:0.62rem; color:#aaa;">${inv.payout_account_details || 'Sin datos de cuenta'}</div>
+          </div>
+          <div>
+            <button class="btn-secondary" onclick="generarReporteInversionistaIndividual('${inv.id}')">📊 Reporte</button>
+          </div>
+        `;
+        cont.appendChild(div);
+      });
+    }
+
+    function actualizarPanelInversionistas() {
+      // Tomar transacciones del período seleccionado en FiltroContable
+      const trans = cachedTransactions.filter(t => {
+        const f = new Date(t.transaction_date + 'T12:00:00');
+        return f >= FiltroContable.desde && f <= FiltroContable.hasta;
+      });
+
+      let ing = 0, gas = 0;
+      trans.forEach(t => {
+        if (t.type === 'ingreso') ing += parseFloat(t.amount);
+        else if (t.type === 'gasto') gas += parseFloat(t.amount);
+      });
+
+      const utilNet = ing - gas;
+      document.getElementById('invPeriodoEtiqueta').innerText = `Período: ${document.getElementById('periodDisplayTxt').innerText}`;
+
+      const elUtil = document.getElementById('invKpiUtilidadNet');
+      elUtil.innerText = formatCOP(utilNet);
+      elUtil.style.color = utilNet >= 0 ? 'var(--status-ok)' : 'var(--accent)';
+
+      let baseSocios = 0;
+      let reservaApex = 0;
+
+      if (utilNet > 0) {
+        reservaApex = utilNet * 0.30;
+        baseSocios = utilNet * 0.70;
+      }
+
+      document.getElementById('invKpiReservaApex').innerText = formatCOP(reservaApex);
+      document.getElementById('invKpiBaseSocios').innerText = formatCOP(baseSocios);
+    }
+
+    function generarReporteInversionistaIndividual(investorId) {
+      const inv = cachedInvestors.find(i => i.id === investorId);
+      if (!inv) return;
+      inversionistaSeleccionadoReporte = inv;
+
+      const trans = cachedTransactions.filter(t => {
+        const f = new Date(t.transaction_date + 'T12:00:00');
+        return f >= FiltroContable.desde && f <= FiltroContable.hasta;
+      });
+
+      let ing = 0, gas = 0;
+      trans.forEach(t => {
+        if (t.type === 'ingreso') ing += parseFloat(t.amount);
+        else if (t.type === 'gasto') gas += parseFloat(t.amount);
+      });
+
+      const utilNet = ing - gas;
+      const baseDistribuible = utilNet > 0 ? (utilNet * 0.70) : 0;
+      const dividendo = baseDistribuible > 0 ? (baseDistribuible * (inv.profit_percentage / 100)) : 0;
+      dividendoCalculadoActual = dividendo;
+
+      document.getElementById('lblRepInvNumero').innerText = `REP-INV-${Date.now().toString().slice(-4)}`;
+      document.getElementById('lblRepInvFecha').innerText = `Fecha: ${new Date().toLocaleDateString('es-CO')}`;
+      document.getElementById('lblRepInvNombre').innerText = inv.name;
+      document.getElementById('lblRepInvCapital').innerText = formatCOP(inv.capital_invested);
+      document.getElementById('lblRepInvPorcentaje').innerText = `${inv.profit_percentage}% (sobre 70% distribuible)`;
+      document.getElementById('lblRepInvPeriodo').innerText = document.getElementById('periodDisplayTxt').innerText;
+
+      const tbody = document.getElementById('repInvTableBody');
+      tbody.innerHTML = `
+        <tr><td>Ingresos Totales del Período</td><td style="text-align:right; color:var(--status-ok);">${formatCOP(ing)}</td></tr>
+        <tr><td>Gastos Operativos del Período</td><td style="text-align:right; color:var(--accent);">${formatCOP(gas)}</td></tr>
+        <tr><td><strong>Utilidad Neta Generada</strong></td><td style="text-align:right;"><strong>${formatCOP(utilNet)}</strong></td></tr>
+        <tr><td>Reserva Apex (30% Reinversión)</td><td style="text-align:right;">${formatCOP(utilNet > 0 ? utilNet * 0.30 : 0)}</td></tr>
+        <tr><td>Base Distribuible a Socios (70%)</td><td style="text-align:right;">${formatCOP(baseDistribuible)}</td></tr>
+        <tr><td>Cuota de Participación (${inv.profit_percentage}%)</td><td style="text-align:right; color:var(--status-ok);"><strong>${formatCOP(dividendo)}</strong></td></tr>
+      `;
+
+      const granTotalEl = document.getElementById('lblRepInvGranTotal');
+      granTotalEl.innerText = formatCOP(dividendo);
+      granTotalEl.style.color = dividendo > 0 ? 'var(--status-ok)' : (utilNet <= 0 ? 'var(--accent)' : '#fff');
+
+      document.getElementById('lblRepInvNotaExplicativa').innerText = utilNet <= 0 
+        ? "* El balance del período fue deficitario o neutro. No se causan dividendos económicos." 
+        : `* El dividendo de ${formatCOP(dividendo)} corresponde a la cuota del ${inv.profit_percentage}% pactada sobre el fondo distribuible.`;
+
+      document.getElementById('vistaReporteInversionistaWrap').style.display = 'block';
+      document.getElementById('vistaReporteInversionistaWrap').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function abrirReporteGlobalInversionistas() {
+      inversionistaSeleccionadoReporte = { name: "TODOS LOS SOCIOS (CONSOLIDADO)", profit_percentage: 100, capital_invested: 0 };
+      const trans = cachedTransactions.filter(t => {
+        const f = new Date(t.transaction_date + 'T12:00:00');
+        return f >= FiltroContable.desde && f <= FiltroContable.hasta;
+      });
+
+      let ing = 0, gas = 0;
+      trans.forEach(t => {
+        if (t.type === 'ingreso') ing += parseFloat(t.amount);
+        else if (t.type === 'gasto') gas += parseFloat(t.amount);
+      });
+
+      const utilNet = ing - gas;
+      const baseDistribuible = utilNet > 0 ? (utilNet * 0.70) : 0;
+      dividendoCalculadoActual = baseDistribuible;
+
+      document.getElementById('lblRepInvNumero').innerText = `CONSOLIDADO-${Date.now().toString().slice(-4)}`;
+      document.getElementById('lblRepInvFecha').innerText = `Fecha: ${new Date().toLocaleDateString('es-CO')}`;
+      document.getElementById('lblRepInvNombre').innerText = "JUNTA DE INVERSIONISTAS APEX";
+      document.getElementById('lblRepInvCapital').innerText = formatCOP(cachedInvestors.reduce((a, b) => a + parseFloat(b.capital_invested || 0), 0));
+      document.getElementById('lblRepInvPorcentaje').innerText = "100% de la Base Distribuible";
+      document.getElementById('lblRepInvPeriodo').innerText = document.getElementById('periodDisplayTxt').innerText;
+
+      let filasSocios = '';
+      cachedInvestors.forEach(s => {
+        const porcion = baseDistribuible * (s.profit_percentage / 100);
+        filasSocios += `<tr><td>↳ ${s.name} (${s.profit_percentage}%)</td><td style="text-align:right;">${formatCOP(porcion)}</td></tr>`;
+      });
+
+      const tbody = document.getElementById('repInvTableBody');
+      tbody.innerHTML = `
+        <tr><td>Ingresos Totales del Período</td><td style="text-align:right; color:var(--status-ok);">${formatCOP(ing)}</td></tr>
+        <tr><td>Gastos Operativos del Período</td><td style="text-align:right; color:var(--accent);">${formatCOP(gas)}</td></tr>
+        <tr><td><strong>Utilidad Neta Generada</strong></td><td style="text-align:right;"><strong>${formatCOP(utilNet)}</strong></td></tr>
+        <tr><td>Reserva Apex (30% Reinversión)</td><td style="text-align:right;">${formatCOP(utilNet > 0 ? utilNet * 0.30 : 0)}</td></tr>
+        <tr><td><strong>Fondo Distribuible Socios (70%)</strong></td><td style="text-align:right;"><strong>${formatCOP(baseDistribuible)}</strong></td></tr>
+        ${filasSocios}
+      `;
+
+      document.getElementById('lblRepInvGranTotal').innerText = formatCOP(baseDistribuible);
+      document.getElementById('lblRepInvNotaExplicativa').innerText = "* Consolidado general de rendición de cuentas para el cuerpo de inversionistas.";
+      document.getElementById('vistaReporteInversionistaWrap').style.display = 'block';
+      document.getElementById('vistaReporteInversionistaWrap').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function exportarReporteInversionistaJPG() {
+      const area = document.getElementById('docInversionistaArea');
+      html2canvas(area, { backgroundColor: '#000000', scale: 2 }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `Reporte_Inversionista_Apex_${Date.now()}.jpg`;
+        link.href = canvas.toDataURL('image/jpeg', 0.95);
+        link.click();
+      });
+    }
+
+    function abrirModalPagarDividendo() {
+      if (dividendoCalculadoActual <= 0) {
+        alert("No hay dividendos positivos para asentar en este período.");
+        return;
+      }
+      document.getElementById('modalDividendoDetalle').innerText = `Beneficiario: ${inversionistaSeleccionadoReporte?.name || 'Socio'} | Monto a Pagar: ${formatCOP(dividendoCalculadoActual)}`;
+      document.getElementById('modalPagarDividendo').style.display = 'flex';
+    }
+
+    function cerrarModalPagarDividendo() {
+      document.getElementById('modalPagarDividendo').style.display = 'none';
+    }
+
+    async function confirmarPagoDividendo() {
+      if (!sb || dividendoCalculadoActual <= 0) return;
+      const ctaId = document.getElementById('selectCuentaDividendo').value;
+      const cta = cachedAccounts.find(c => c.id === ctaId);
+
+      if (cta.current_balance < dividendoCalculadoActual) {
+        alert("Saldo insuficiente en la cuenta seleccionada.");
+        return;
+      }
+
+      try {
+        // 1. Reducir saldo cuenta
+        await sb.from('apex_accounts').update({ current_balance: cta.current_balance - dividendoCalculadoActual }).eq('id', ctaId);
+
+        // 2. Registrar Egreso en Libro Mayor
+        await sb.from('apex_ledger_transactions').insert([{
+          type: 'gasto',
+          category: 'Distribución de Utilidades',
+          amount: dividendoCalculadoActual,
+          account_id: ctaId,
+          description: `Pago de dividendos a ${inversionistaSeleccionadoReporte?.name || 'Inversionista'} (${document.getElementById('periodDisplayTxt').innerText})`,
+          registered_by: currentContadorEmail
+        }]);
+
+        alert("¡Egreso asentado correctamente en " + cta.name + "!");
+        cerrarModalPagarDividendo();
+        await cargarDatos();
+        FiltroContable.recalcular();
+        actualizarPanelInversionistas();
+      } catch (err) {
+        alert("Error al asentar egreso: " + err.message);
+      }
+    }
+
+    /* ================= SUBMÓDULO 3: MEMBRESÍAS DEL COACH ================= */
+    function renderizarMembresiasCoach() {
+      const cont = document.getElementById('listaMembresiasPendientes');
+      const pendientes = cachedPayments.filter(p => !p.accounting_status || p.accounting_status === 'pendiente_contabilidad');
+
+      const badge = document.getElementById('badgeCoachCount');
+      if (pendientes.length > 0) {
+        badge.style.display = 'inline-block';
+        badge.innerText = pendientes.length;
+        document.getElementById('lblCoachPendientesTxt').innerText = `${pendientes.length} Pendientes`;
+      } else {
+        badge.style.display = 'none';
+        document.getElementById('lblCoachPendientesTxt').innerText = `0 Pendientes`;
+      }
+
+      if (pendientes.length === 0) {
+        cont.innerHTML = '<span style="color:var(--text-muted); font-size:0.75rem;">No hay membresías pendientes de redimir.</span>';
+        return;
+      }
+
+      cont.innerHTML = '';
+      pendientes.forEach(p => {
+        const f = new Date(p.created_at || Date.now());
+        const fStr = `${f.getDate()}/${f.getMonth() + 1} ${f.getHours()}:${String(f.getMinutes()).padStart(2, '0')}`;
+        const monto = parseFloat(p.amount) || 120000;
+
+        const div = document.createElement('div');
+        div.className = 'inflow-item';
+        div.innerHTML = `
+          <div>
+            <strong style="color:#fff; font-size:0.8rem;">${p.user_email || 'Striker'}</strong>
+            <div class="inflow-meta">${fStr} · Plan: <strong>${p.plan_type || 'Mensualidad'}</strong> · ${formatCOP(monto)}</div>
+          </div>
+          <div style="display:flex; gap:6px;">
+            <button class="btn-success" onclick="abrirModalRedimir('${p.id}')">Redimir ➔</button>
+            <button class="btn-secondary" onclick="descartarPagoCoach('${p.id}')">✕</button>
+          </div>
+        `;
+        cont.appendChild(div);
+      });
+    }
+
+    function abrirModalRedimir(pagoId) {
+      pagoParaRedimir = cachedPayments.find(p => p.id === pagoId);
+      if (!pagoParaRedimir) return;
+
+      const monto = parseFloat(pagoParaRedimir.amount) || 120000;
+      document.getElementById('modalRedimirDetalle').innerText = `Striker: ${pagoParaRedimir.user_email} | Monto: ${formatCOP(monto)}`;
+      document.getElementById('modalRedimir').style.display = 'flex';
+    }
+
+    function cerrarModalRedimir() {
+      pagoParaRedimir = null;
+      document.getElementById('modalRedimir').style.display = 'none';
+    }
+
+    async function confirmarRedencion() {
+      if (!pagoParaRedimir || !sb) return;
+      const ctaId = document.getElementById('selectCuentaRedimir').value;
+      const cta = cachedAccounts.find(c => c.id === ctaId);
+      const monto = parseFloat(pagoParaRedimir.amount) || 120000;
+
+      try {
+        await sb.from('apex_accounts').update({ current_balance: cta.current_balance + monto }).eq('id', ctaId);
+
+        await sb.from('apex_ledger_transactions').insert([{
+          type: 'ingreso',
+          category: 'Membresías Striker',
+          amount: monto,
+          account_id: ctaId,
+          description: `Membresía validada en sala: ${pagoParaRedimir.user_email} (${pagoParaRedimir.plan_type || 'Plan'})`,
+          registered_by: currentContadorEmail
+        }]);
+
+        await sb.from('apex_payments').update({ accounting_status: 'redimido' }).eq('id', pagoParaRedimir.id);
+
+        alert("¡Membresía redimida e ingresada a " + cta.name + "!");
+        cerrarModalRedimir();
+        await cargarDatos();
+        FiltroContable.recalcular();
+        actualizarPanelInversionistas();
+      } catch (err) {
+        alert("Error al redimir: " + err.message);
+      }
+    }
+
+    async function descartarPagoCoach(pagoId) {
+      if (!confirm("¿Deseas descartar este registro de cobro? No afectará la caja.")) return;
+      await sb.from('apex_payments').update({ accounting_status: 'descartado' }).eq('id', pagoId);
+      await cargarDatos();
+    }
+
+    /* ================= SUBMÓDULO 4: CUENTA DE COBRO AL GIMNASIO ================= */
+    const GeneradorCobro = {
+      periodo: '1q',
+
+      setPeriodo: function(p, btn) {
+        this.periodo = p;
+        document.querySelectorAll('#tabCobroGym .filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      },
+
+      generarVista: function() {
+        const entidad = document.getElementById('cobroEntidad').value.trim();
+        const d = new Date();
+        const y = d.getFullYear();
+        const m = d.getMonth();
+
+        let fDesde, fHasta, etiquetaPeriodo;
+        if (this.periodo === '1q') {
+          fDesde = new Date(y, m, 1, 0,0,0);
+          fHasta = new Date(y, m, 15, 23,59,59);
+          etiquetaPeriodo = `1ra Quincena · ${m + 1}/${y}`;
+        } else if (this.periodo === '2q') {
+          const ult = new Date(y, m + 1, 0).getDate();
+          fDesde = new Date(y, m, 16, 0,0,0);
+          fHasta = new Date(y, m, ult, 23,59,59);
+          etiquetaPeriodo = `2da Quincena · ${m + 1}/${y}`;
+        } else {
+          const ult = new Date(y, m + 1, 0).getDate();
+          fDesde = new Date(y, m, 1, 0,0,0);
+          fHasta = new Date(y, m, ult, 23,59,59);
+          etiquetaPeriodo = `Mes Completo · ${m + 1}/${y}`;
+        }
+
+        const pagosRango = cachedPayments.filter(p => {
+          const fp = new Date(p.created_at);
+          return fp >= fDesde && fp <= fHasta;
+        });
+
+        document.getElementById('lblCobroDeudor').innerText = entidad;
+        document.getElementById('lblCobroPeriodo').innerText = etiquetaPeriodo;
+        document.getElementById('lblCobroFecha').innerText = `Fecha: ${d.toLocaleDateString('es-CO')}`;
+        document.getElementById('lblCobroNumero').innerText = `CC-${y}-${Date.now().toString().slice(-4)}`;
+
+        const tbody = document.getElementById('cobroTableBody');
+        tbody.innerHTML = '';
+
+        let granTotal = 0;
+        if (pagosRango.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#777;">Sin membresías reportadas en este período.</td></tr>';
+        } else {
+          pagosRango.forEach(p => {
+            const fp = new Date(p.created_at);
+            const monto = parseFloat(p.amount) || 120000;
+            granTotal += monto;
+            tbody.innerHTML += `
+              <tr>
+                <td>${fp.getDate()}/${fp.getMonth() + 1}</td>
+                <td><strong>${p.user_email}</strong></td>
+                <td>${p.plan_type || 'Mensualidad'}</td>
+                <td style="text-align:right;">${formatCOP(monto)}</td>
+              </tr>
+            `;
+          });
+        }
+
+        document.getElementById('lblCobroGranTotal').innerText = formatCOP(granTotal);
+        document.getElementById('vistaCuentaCobroWrap').style.display = 'block';
+      }
+    };
+
+    function exportarCuentaCobroJPG() {
+      const area = document.getElementById('docCuentaCobroArea');
+      html2canvas(area, { backgroundColor: '#000000', scale: 2 }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `Cuenta_Cobro_Apex_${Date.now()}.jpg`;
+        link.href = canvas.toDataURL('image/jpeg', 0.95);
+        link.click();
+      });
+    }
+
+    /* ================= SUBMÓDULO 5: FACTURACIÓN ================= */
+    async function emitirFactura(e) {
+      e.preventDefault();
+      const cliente = document.getElementById('facCliente').value.trim();
+      const doc = document.getElementById('facDocCliente').value.trim() || 'N/A';
+      const item = document.getElementById('facItem').value.trim();
+      const monto = parseFloat(document.getElementById('facMonto').value);
+      const ctaId = document.getElementById('facCuentaDestino').value;
+
+      const cta = cachedAccounts.find(c => c.id === ctaId);
+      const facNum = `FAC-${Date.now().toString().slice(-4)}`;
+
+      try {
+        await sb.from('apex_accounts').update({ current_balance: cta.current_balance + monto }).eq('id', ctaId);
+
+        await sb.from('apex_ledger_transactions').insert([{
+          type: 'ingreso',
+          category: 'Ventas Directas / Factura',
+          amount: monto,
+          account_id: ctaId,
+          description: `Factura ${facNum} - ${cliente} (${item})`,
+          registered_by: currentContadorEmail
+        }]);
+
+        document.getElementById('lblFacNumero').innerText = facNum;
+        document.getElementById('lblFacFecha').innerText = `Fecha: ${new Date().toLocaleDateString('es-CO')}`;
+        document.getElementById('lblFacCliente').innerText = cliente;
+        document.getElementById('lblFacDocCliente').innerText = doc;
+        document.getElementById('lblFacItemDesc').innerText = item;
+        document.getElementById('lblFacItemTotal').innerText = formatCOP(monto);
+        document.getElementById('lblFacGranTotal').innerText = formatCOP(monto);
+
+        document.getElementById('vistaFacturaWrap').style.display = 'block';
+        alert(`¡Factura ${facNum} emitida e ingresada a ${cta.name}!`);
+        await cargarDatos();
+        FiltroContable.recalcular();
+        actualizarPanelInversionistas();
+      } catch (err) {
+        alert("Error al emitir factura: " + err.message);
+      }
+    }
+
+    function exportarFacturaJPG() {
+      const area = document.getElementById('docFacturaArea');
+      html2canvas(area, { backgroundColor: '#000000', scale: 2 }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `Factura_Apex_${Date.now()}.jpg`;
+        link.href = canvas.toDataURL('image/jpeg', 0.95);
+        link.click();
+      });
+    }
+
+    /* ================= SUBMÓDULO 6: CUENTAS FINANCIERAS ================= */
+    async function crearCuenta(e) {
+      e.preventDefault();
+      const nombre = document.getElementById('ctaNombre').value.trim();
+      const tipo = document.getElementById('ctaTipo').value;
+      const saldo = parseFloat(document.getElementById('ctaSaldoInicial').value) || 0;
+
+      const { error } = await sb.from('apex_accounts').insert([{ name: nombre, type: tipo, current_balance: saldo }]);
+      if (error) {
+        alert("Error: " + error.message);
+      } else {
+        alert("¡Cuenta financiera creada!");
+        document.getElementById('formCrearCuenta').reset();
+        await cargarDatos();
+      }
+    }
+
+    function renderizarCuentas() {
+      const cont = document.getElementById('listaCuentas');
+      if (cachedAccounts.length === 0) {
+        cont.innerHTML = '<span style="color:var(--text-muted); font-size:0.75rem;">No hay cuentas registradas.</span>';
+        return;
+      }
+
+      cont.innerHTML = '';
+      cachedAccounts.forEach(c => {
+        cont.innerHTML += `
+          <div style="background:#161618; border:1px solid var(--border); border-radius:6px; padding:10px 12px; margin-top:8px; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <strong style="color:#fff; font-size:0.85rem;">${c.name}</strong>
+              <div style="font-size:0.68rem; color:var(--text-muted); text-transform:uppercase;">${c.type}</div>
+            </div>
+            <div style="font-weight:900; font-size:0.95rem; color:#fff;">${formatCOP(c.current_balance)}</div>
+          </div>
+        `;
+      });
+    }
+
+    /* ================= DASHBOARD & DONA ================= */
+    const FiltroContable = {
+      modo: 'quincenal',
+      fechaBase: new Date(),
+      desde: null,
+      hasta: null,
+
+      init: function() { this.recalcular(); },
+
+      setModo: function(modo, btn) {
+        this.modo = modo;
+        document.querySelectorAll('.period-filter-wrap .filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        const navBox = document.getElementById('periodNavBox');
+        const customBox = document.getElementById('customDateRangeBox');
+
+        if (modo === 'libre') {
+          navBox.style.display = 'none';
+          customBox.style.display = 'grid';
+          const hoy = new Date().toISOString().split('T')[0];
+          document.getElementById('dateRangeStart').value = hoy;
+          document.getElementById('dateRangeEnd').value = hoy;
+          this.aplicarLibre();
+        } else {
+          navBox.style.display = 'flex';
+          customBox.style.display = 'none';
+          this.recalcular();
+        }
+      },
+
+      navegar: function(delta) {
+        if (this.modo === 'semanal') {
+          this.fechaBase.setDate(this.fechaBase.getDate() + (delta * 7));
+        } else if (this.modo === 'quincenal') {
+          const dia = this.fechaBase.getDate();
+          if (delta > 0) {
+            if (dia <= 15) this.fechaBase.setDate(16);
+            else { this.fechaBase.setMonth(this.fechaBase.getMonth() + 1); this.fechaBase.setDate(1); }
+          } else {
+            if (dia > 15) this.fechaBase.setDate(1);
+            else { this.fechaBase.setMonth(this.fechaBase.getMonth() - 1); this.fechaBase.setDate(16); }
+          }
+        } else if (this.modo === 'mensual') {
+          this.fechaBase.setMonth(this.fechaBase.getMonth() + delta);
+        }
+        this.recalcular();
+      },
+
+      aplicarLibre: function() {
+        const s = document.getElementById('dateRangeStart').value;
+        const e = document.getElementById('dateRangeEnd').value;
+        if (!s) return;
+        this.desde = new Date(s + 'T00:00:00');
+        this.hasta = e ? new Date(e + 'T23:59:59') : new Date();
+        this.renderVista();
+      },
+
+      recalcular: function() {
+        const d = new Date(this.fechaBase);
+        const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+
+        if (this.modo === 'semanal') {
+          const diaSemana = d.getDay() === 0 ? 6 : d.getDay() - 1;
+          const lunes = new Date(d);
+          lunes.setDate(d.getDate() - diaSemana);
+          lunes.setHours(0,0,0,0);
+          const domingo = new Date(lunes);
+          domingo.setDate(lunes.getDate() + 6);
+          domingo.setHours(23,59,59,999);
+
+          this.desde = lunes;
+          this.hasta = domingo;
+          document.getElementById('periodDisplayTxt').innerText = `Sem: ${lunes.getDate()} ${meses[lunes.getMonth()]} - ${domingo.getDate()} ${meses[domingo.getMonth()]} ${domingo.getFullYear()}`;
+
+        } else if (this.modo === 'quincenal') {
+          const y = d.getFullYear();
+          const m = d.getMonth();
+          const dia = d.getDate();
+
+          if (dia <= 15) {
+            this.desde = new Date(y, m, 1, 0,0,0);
+            this.hasta = new Date(y, m, 15, 23,59,59);
+            document.getElementById('periodDisplayTxt').innerText = `1ra Quincena · ${meses[m]} ${y}`;
+          } else {
+            const ult = new Date(y, m + 1, 0).getDate();
+            this.desde = new Date(y, m, 16, 0,0,0);
+            this.hasta = new Date(y, m, ult, 23,59,59);
+            document.getElementById('periodDisplayTxt').innerText = `2da Quincena · ${meses[m]} ${y}`;
+          }
+
+        } else if (this.modo === 'mensual') {
+          const y = d.getFullYear();
+          const m = d.getMonth();
+          const ult = new Date(y, m + 1, 0).getDate();
+
+          this.desde = new Date(y, m, 1, 0,0,0);
+          this.hasta = new Date(y, m, ult, 23,59,59);
+          document.getElementById('periodDisplayTxt').innerText = `${meses[m]} ${y}`;
+        }
+
+        this.renderVista();
+      },
+
+      renderVista: function() {
+        const transFiltradas = cachedTransactions.filter(t => {
+          const f = new Date(t.transaction_date + 'T12:00:00');
+          return f >= this.desde && f <= this.hasta;
+        });
+
+        let ing = 0, gas = 0;
+        transFiltradas.forEach(t => {
+          if (t.type === 'ingreso') ing += parseFloat(t.amount);
+          else if (t.type === 'gasto') gas += parseFloat(t.amount);
+        });
+
+        document.getElementById('kpiIngresos').innerText = formatCOP(ing);
+        document.getElementById('kpiGastos').innerText = formatCOP(gas);
+        const neto = ing - gas;
+        const netoEl = document.getElementById('kpiUtilidad');
+        netoEl.innerText = formatCOP(neto);
+        netoEl.style.color = neto >= 0 ? 'var(--status-ok)' : 'var(--accent)';
+
+        actualizarGraficaDona(transFiltradas);
+        actualizarPanelInversionistas();
+      }
+    };
+
+    function alternarTipoDona(tipo) {
+      tipoDonaActual = tipo;
+      document.getElementById('tituloDona').innerText = tipo === 'gasto' ? 'Distribución de Gastos' : 'Distribución de Ingresos';
+      FiltroContable.renderVista();
+    }
+
+    function actualizarGraficaDona(transaccionesPeriodo) {
+      const transTipo = transaccionesPeriodo.filter(t => t.type === tipoDonaActual);
+      const desgloseEl = document.getElementById('listaDesgloseCategorias');
+
+      if (transTipo.length === 0) {
+        if (chartDonaInstance) chartDonaInstance.destroy();
+        desgloseEl.innerHTML = `<span style="color:var(--text-muted); font-size:0.72rem;">Sin registros de ${tipoDonaActual}s en este período.</span>`;
+        return;
+      }
+
+      const mapCat = {};
+      let granTotal = 0;
+
+      transTipo.forEach(t => {
+        const cat = t.category || 'Otros';
+        const monto = parseFloat(t.amount) || 0;
+        granTotal += monto;
+        if (!mapCat[cat]) mapCat[cat] = { monto: 0, count: 0 };
+        mapCat[cat].monto += monto;
+        mapCat[cat].count += 1;
+      });
+
+      const labels = Object.keys(mapCat);
+      const dataValores = labels.map(k => mapCat[k].monto);
+      const paleta = ['#e50914', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899'];
+      const colores = labels.map((_, idx) => paleta[idx % paleta.length]);
+
+      if (chartDonaInstance) chartDonaInstance.destroy();
+      const ctx = document.getElementById('chartDona').getContext('2d');
+      chartDonaInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{ data: dataValores, backgroundColor: colores, borderWidth: 2, borderColor: '#121212' }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', labels: { color: '#ccc', font: { size: 9, weight: '700' } } } }
+        }
+      });
+
+      desgloseEl.innerHTML = '';
+      labels.forEach((catName, i) => {
+        const obj = mapCat[catName];
+        const pct = granTotal > 0 ? ((obj.monto / granTotal) * 100).toFixed(1) : 0;
+        const color = colores[i];
+
+        desgloseEl.innerHTML += `
+          <div class="cat-stat-item">
+            <div>
+              <span class="cat-pill" style="background:${color};"></span>
+              <strong>${catName}</strong>
+              <span style="color:var(--text-muted); font-size:0.68rem;">(${obj.count} ops)</span>
+            </div>
+            <div style="text-align:right;">
+              <strong>${formatCOP(obj.monto)}</strong>
+              <span style="color:${color}; font-size:0.68rem; margin-left:4px; font-weight:800;">${pct}%</span>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
