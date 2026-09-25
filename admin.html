@@ -17,6 +17,7 @@
       --accent-hover: #b80710;
       --text-main: #ffffff;
       --text-muted: #888888;
+      --status-ok: #22c55e;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background: var(--bg); color: var(--text-main); padding: 16px; max-width: 680px; margin: 0 auto; min-height: 100vh; }
@@ -59,7 +60,7 @@
 
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
-    .checkbox-list { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; max-height: 180px; overflow-y: auto; }
+    .checkbox-list { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; max-height: 200px; overflow-y: auto; }
     .checkbox-item { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
     .checkbox-item input { accent-color: var(--accent); width: 16px; height: 16px; }
 
@@ -127,12 +128,9 @@
           </div>
         </div>
         <div class="form-group">
-          <label>Rol Asignado</label>
+          <label>Rol Asignado (Dinámico)</label>
           <select id="nuRole" class="form-control">
-            <option value="estudiante">ESTUDIANTE</option>
-            <option value="coach">COACH</option>
-            <option value="supervisor">SUPERVISOR</option>
-            <option value="coordinador">COORDINADOR</option>
+            <option value="">Cargando roles...</option>
           </select>
         </div>
         <button class="btn" onclick="crearUsuarioAdmin()">Crear y Habilitar</button>
@@ -143,7 +141,7 @@
           <span>2. Directorio de Usuarios</span>
           <button class="btn-secondary" onclick="cargarUsuarios()" style="margin:0; padding: 4px 8px;">Actualizar</button>
         </div>
-        <div id="usersListContainer" style="max-height: 280px; overflow-y: auto;">Cargando directorio...</div>
+        <div id="usersListContainer" style="max-height: 320px; overflow-y: auto;">Cargando directorio...</div>
       </div>
     </div>
 
@@ -153,11 +151,11 @@
         <div class="section-title">Registrar Mini-App (Bloque)</div>
         <div class="form-group">
           <label>Título del Bloque</label>
-          <input type="text" id="newBlockTitle" class="form-control" placeholder="Ej: Crono Apex">
+          <input type="text" id="newBlockTitle" class="form-control" placeholder="Ej: Libro Contable Apex">
         </div>
         <div class="form-group">
           <label>Archivo o URL (.html)</label>
-          <input type="text" id="newBlockUrl" class="form-control" placeholder="Ej: crono.html">
+          <input type="text" id="newBlockUrl" class="form-control" placeholder="Ej: contador.html">
         </div>
         <button class="btn" onclick="registerBlock()">Guardar Bloque en Supabase</button>
       </div>
@@ -171,23 +169,23 @@
     <!-- MÓDULO 3: GESTIÓN DE ROLES Y MATRIZ -->
     <div id="tabRoles" class="tab-content">
       <div class="section-card">
-        <div class="section-title">Configuración de Rol</div>
+        <div class="section-title">Configuración y Creación de Roles</div>
         <div class="form-group">
-          <label>Seleccionar Perfil para Editar</label>
+          <label>Seleccionar Perfil para Editar o Crear Nuevo</label>
           <select id="profileSelect" class="form-control" onchange="cargarDatosPerfil(this.value)">
-            <option value="">-- Seleccionar Perfil --</option>
+            <option value="">[ + CREAR NUEVO PERFIL / ROL ]</option>
           </select>
         </div>
         <div class="form-group">
           <label>Nombre del Perfil</label>
-          <input type="text" id="profileName" class="form-control" placeholder="Nombre del perfil">
+          <input type="text" id="profileName" class="form-control" placeholder="Ej: Contador / Coordinador / Fisioterapeuta">
         </div>
         <div class="form-group">
           <label>Bloques visibles para este perfil:</label>
-          <div class="checkbox-list" id="blocksCheckboxContainer">Cargando...</div>
+          <div class="checkbox-list" id="blocksCheckboxContainer">Cargando bloques...</div>
         </div>
-        <button class="btn" onclick="saveProfile()">Guardar Asignaciones</button>
-        <button class="btn btn-secondary" onclick="limpiarFormularioPerfil()">Limpiar Formulario</button>
+        <button class="btn" onclick="saveProfile()">Guardar Asignaciones del Perfil</button>
+        <button class="btn btn-secondary" onclick="limpiarFormularioPerfil()">Nuevo Perfil</button>
       </div>
 
       <div class="section-card">
@@ -215,7 +213,6 @@
         document.getElementById('adminAuthGate').style.display = 'none';
         document.getElementById('adminMainContent').style.display = 'block';
         loadAdminData();
-        cargarUsuarios();
       } else {
         alert('Credenciales incorrectas.');
       }
@@ -238,84 +235,53 @@
         document.getElementById('adminAuthGate').style.display = 'none';
         document.getElementById('adminMainContent').style.display = 'block';
         loadAdminData();
-        cargarUsuarios();
       }
     };
 
-    async function crearUsuarioAdmin() {
-      const name = document.getElementById('nuName').value.trim();
-      const email = document.getElementById('nuEmail').value.trim();
-      const password = document.getElementById('nuPassword').value.trim();
-      const role = document.getElementById('nuRole').value;
-
-      if (!name || !email || !password) return alert('Completa todos los campos.');
-      if (password.length < 6) return alert('Contraseña mínimo 6 caracteres.');
-
-      const { data, error } = await sb.rpc('admin_crear_usuario', {
-        p_email: email, p_password: password, p_name: name, p_role: role
-      });
-
-      if (error) return alert('Error: ' + error.message);
-      if (data && data.success) {
-        alert(`¡Usuario creado!\nEmail: ${email}\nClave: ${password}\nRol: ${role.toUpperCase()}`);
-        document.getElementById('nuName').value = '';
-        document.getElementById('nuEmail').value = '';
-        document.getElementById('nuPassword').value = '';
-        cargarUsuarios();
-      } else {
-        alert('Fallo: ' + (data ? data.message : 'Error desconocido'));
-      }
-    }
-
-    async function cargarUsuarios() {
-      const container = document.getElementById('usersListContainer');
-      container.innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;">Consultando...</span>';
-
-      const { data: users, error } = await sb.from('apex_users').select('*').order('created_at', { ascending: false });
-      if (error || !users) return container.innerHTML = '<span style="color:var(--text-muted);">Error al cargar.</span>';
-
-      container.innerHTML = '';
-      users.forEach(u => {
-        container.innerHTML += `
-          <div class="list-item">
-            <div>
-              <strong>${u.name || 'Sin nombre'}</strong><br>
-              <span style="color: var(--text-muted); font-size: 0.72rem;">${u.email}</span>
-            </div>
-            <div>
-              <select class="form-control" style="padding: 4px 6px; font-size: 0.72rem;" onchange="actualizarRolUsuario('${u.id}', this.value)">
-                <option value="estudiante" ${u.profile_id === 'estudiante' ? 'selected' : ''}>ESTUDIANTE</option>
-                <option value="coach" ${u.profile_id === 'coach' ? 'selected' : ''}>COACH</option>
-                <option value="supervisor" ${u.profile_id === 'supervisor' ? 'selected' : ''}>SUPERVISOR</option>
-                <option value="coordinador" ${u.profile_id === 'coordinador' ? 'selected' : ''}>COORDINADOR</option>
-              </select>
-            </div>
-          </div>
-        `;
-      });
-    }
-
-    async function actualizarRolUsuario(userId, newRole) {
-      const { error } = await sb.from('apex_users').update({ profile_id: newRole }).eq('id', userId);
-      if (error) alert('Error: ' + error.message);
-      else alert('Rol actualizado a ' + newRole.toUpperCase());
-    }
-
+    /* ================= GESTIÓN CENTRAL DE DATOS ================= */
     async function loadAdminData() {
-      const { data: blocks } = await sb.from('apex_blocks').select('*').order('created_at', { ascending: true });
-      if (blocks) dbBlocks = blocks;
+      if (!sb) return;
 
-      const { data: profiles } = await sb.from('apex_profiles').select('*').order('created_at', { ascending: true });
-      if (profiles) dbProfiles = profiles;
+      const [resBlocks, resProfiles, resRels] = await Promise.all([
+        sb.from('apex_blocks').select('*').order('created_at', { ascending: true }),
+        sb.from('apex_profiles').select('*').order('name', { ascending: true }),
+        sb.from('apex_profile_blocks').select('*').order('display_order', { ascending: true })
+      ]);
 
-      const { data: rels } = await sb.from('apex_profile_blocks').select('*').order('display_order', { ascending: true });
-      if (rels) dbProfileBlocks = rels;
+      dbBlocks = resBlocks.data || [];
+      dbProfiles = resProfiles.data || [];
+      dbProfileBlocks = resRels.data || [];
+
+      // Si apex_profiles está vacía, sincronizar con los roles base
+      if (dbProfiles.length === 0) {
+        const base = [
+          { id: 'estudiante', name: 'Estudiante (Striker)' },
+          { id: 'coach', name: 'Coach' },
+          { id: 'supervisor', name: 'Supervisor' },
+          { id: 'coordinador', name: 'Coordinador' },
+          { id: 'contador', name: 'Contador' },
+          { id: 'admin', name: 'Administrador' }
+        ];
+        await sb.from('apex_profiles').upsert(base);
+        const { data: recProfiles } = await sb.from('apex_profiles').select('*').order('name', { ascending: true });
+        dbProfiles = recProfiles || base;
+      }
 
       renderUI();
+      actualizarSelectorRolesNuevoUsuario();
+      cargarUsuarios();
+    }
+
+    function actualizarSelectorRolesNuevoUsuario() {
+      const nuSelect = document.getElementById('nuRole');
+      nuSelect.innerHTML = '';
+      dbProfiles.forEach(p => {
+        nuSelect.innerHTML += `<option value="${p.id}">${p.name.toUpperCase()}</option>`;
+      });
     }
 
     function renderUI() {
-      // Checkboxes de bloques
+      // 1. Checkboxes de bloques disponibles
       const bContainer = document.getElementById('blocksCheckboxContainer');
       bContainer.innerHTML = '';
       dbBlocks.forEach(b => {
@@ -327,26 +293,29 @@
         `;
       });
 
-      // Lista de bloques en tab bloques
+      // 2. Lista de bloques en tab bloques
       const blkList = document.getElementById('blocksListContainer');
       blkList.innerHTML = '';
       dbBlocks.forEach(b => {
         blkList.innerHTML += `
           <div class="list-item">
-            <strong>${b.title}</strong>
+            <div>
+              <strong>${b.title}</strong><br>
+              <small style="color:var(--accent); font-weight:800;">ID: ${b.id}</small>
+            </div>
             <span style="color:var(--text-muted); font-size:0.75rem;">${b.url}</span>
           </div>
         `;
       });
 
-      // Selector de perfiles
+      // 3. Selector dinámico de perfiles en tab roles
       const select = document.getElementById('profileSelect');
-      select.innerHTML = '<option value="">-- Seleccionar Perfil --</option>';
+      select.innerHTML = '<option value="">[ + CREAR NUEVO PERFIL / ROL ]</option>';
       dbProfiles.forEach(p => {
-        select.innerHTML += `<option value="${p.id}">${p.name.toUpperCase()}</option>`;
+        select.innerHTML += `<option value="${p.id}">${p.name.toUpperCase()} (${p.id})</option>`;
       });
 
-      // Resumen de roles
+      // 4. Resumen de perfiles y sus bloques asignados
       const listCont = document.getElementById('profilesListContainer');
       listCont.innerHTML = '';
       dbProfiles.forEach(p => {
@@ -360,14 +329,85 @@
         listCont.innerHTML += `
           <div class="list-item">
             <div>
-              <strong>${p.name.toUpperCase()}</strong><br>
-              <span style="color: var(--text-muted); font-size: 0.72rem;">Bloques: ${assigned || 'Ninguno'}</span>
+              <strong>${p.name.toUpperCase()}</strong> <span class="badge" style="color:var(--status-ok);">${p.id}</span><br>
+              <span style="color: var(--text-muted); font-size: 0.72rem;">Bloques: ${assigned || 'Ninguno asignado'}</span>
             </div>
           </div>
         `;
       });
     }
 
+    /* ================= MÓDULO USUARIOS ================= */
+    async function crearUsuarioAdmin() {
+      const name = document.getElementById('nuName').value.trim();
+      const email = document.getElementById('nuEmail').value.trim();
+      const password = document.getElementById('nuPassword').value.trim();
+      const role = document.getElementById('nuRole').value;
+
+      if (!name || !email || !password || !role) return alert('Completa todos los campos.');
+      if (password.length < 6) return alert('Contraseña mínimo 6 caracteres.');
+
+      const { data, error } = await sb.rpc('admin_crear_usuario', {
+        p_email: email, p_password: password, p_name: name, p_role: role
+      });
+
+      if (error) return alert('Error al crear usuario: ' + error.message);
+      if (data && data.success) {
+        alert(`¡Usuario creado!\nEmail: ${email}\nClave: ${password}\nRol: ${role.toUpperCase()}`);
+        document.getElementById('nuName').value = '';
+        document.getElementById('nuEmail').value = '';
+        document.getElementById('nuPassword').value = '';
+        cargarUsuarios();
+      } else {
+        alert('Fallo: ' + (data ? data.message : 'Error desconocido'));
+      }
+    }
+
+    async function cargarUsuarios() {
+      const container = document.getElementById('usersListContainer');
+      container.innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;">Consultando directorio...</span>';
+
+      const { data: users, error } = await sb.from('apex_users').select('*').order('created_at', { ascending: false });
+      if (error || !users) return container.innerHTML = '<span style="color:var(--text-muted);">Error al cargar.</span>';
+
+      container.innerHTML = '';
+      users.forEach(u => {
+        const userRolActual = u.profile_id || u.role || 'estudiante';
+
+        // Generar dinámicamente las opciones usando dbProfiles
+        let opcionesRolesHTML = '';
+        dbProfiles.forEach(p => {
+          opcionesRolesHTML += `<option value="${p.id}" ${userRolActual === p.id ? 'selected' : ''}>${p.name.toUpperCase()}</option>`;
+        });
+
+        container.innerHTML += `
+          <div class="list-item">
+            <div>
+              <strong>${u.name || 'Sin nombre'}</strong><br>
+              <span style="color: var(--text-muted); font-size: 0.72rem;">${u.email}</span>
+            </div>
+            <div>
+              <select class="form-control" style="padding: 4px 6px; font-size: 0.72rem;" onchange="actualizarRolUsuario('${u.id}', this.value)">
+                ${opcionesRolesHTML}
+              </select>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    async function actualizarRolUsuario(userId, newRole) {
+      // Sincroniza tanto profile_id como role
+      const { error } = await sb.from('apex_users').update({ 
+        profile_id: newRole,
+        role: newRole 
+      }).eq('id', userId);
+
+      if (error) alert('Error: ' + error.message);
+      else alert('Rol de usuario actualizado a ' + newRole.toUpperCase());
+    }
+
+    /* ================= MÓDULO BLOQUES ================= */
     async function registerBlock() {
       const title = document.getElementById('newBlockTitle').value.trim();
       const url = document.getElementById('newBlockUrl').value.trim();
@@ -379,10 +419,11 @@
 
       document.getElementById('newBlockTitle').value = '';
       document.getElementById('newBlockUrl').value = '';
-      alert('Bloque registrado.');
+      alert('Bloque registrado con ID: ' + id);
       loadAdminData();
     }
 
+    /* ================= MÓDULO ROLES Y MATRIZ ================= */
     function cargarDatosPerfil(profileId) {
       if (!profileId) return limpiarFormularioPerfil();
       const perfil = dbProfiles.find(p => p.id === profileId);
@@ -403,12 +444,16 @@
 
     async function saveProfile() {
       const name = document.getElementById('profileName').value.trim();
-      if (!name) return alert('Ingresa el nombre del perfil.');
+      if (!name) return alert('Ingresa el nombre del perfil o rol.');
 
       const selectedId = document.getElementById('profileSelect').value;
-      const profileId = selectedId || name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+      const profileId = selectedId || name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, '_');
 
-      await sb.from('apex_profiles').upsert([{ id: profileId, name }]);
+      // 1. Guardar en apex_profiles (creación o actualización dinámica)
+      const { error: pErr } = await sb.from('apex_profiles').upsert([{ id: profileId, name }]);
+      if (pErr) return alert('Error al guardar perfil: ' + pErr.message);
+
+      // 2. Limpiar y reasignar bloques
       await sb.from('apex_profile_blocks').delete().eq('profile_id', profileId);
 
       const checkboxes = document.querySelectorAll('.profile-block-checkbox:checked');
@@ -422,9 +467,9 @@
         await sb.from('apex_profile_blocks').insert(inserts);
       }
 
-      alert(`Perfil "${name}" sincronizado con éxito.`);
+      alert(`¡Perfil/Rol "${name.toUpperCase()}" (${profileId}) sincronizado con éxito!`);
       limpiarFormularioPerfil();
-      loadAdminData();
+      await loadAdminData();
     }
   </script>
 </body>
