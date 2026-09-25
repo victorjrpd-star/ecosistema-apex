@@ -17,6 +17,7 @@
       --accent: #e50914;
       --text-main: #ffffff;
       --text-muted: #888888;
+      --status-ok: #22c55e;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     html, body { background: var(--bg); color: var(--text-main); width: 100vw; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
@@ -37,6 +38,7 @@
     
     .btn { background: var(--accent); color: #fff; border: none; padding: 12px; width: 100%; font-weight: 900; text-transform: uppercase; border-radius: 6px; cursor: pointer; margin-top: 6px; font-size: 0.85rem; }
     .btn:active { filter: brightness(0.85); }
+    .btn:disabled { background: #333; color: #777; cursor: not-allowed; }
     .btn-secondary { background: #1c1c1c; border: 1px solid #333; color: #aaa; margin-top: 8px; }
 
     .form-switch-text { text-align: center; font-size: 0.75rem; color: var(--text-muted); margin-top: 14px; font-weight: 700; cursor: pointer; }
@@ -75,7 +77,7 @@
     .block-frame { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; display: none; background: var(--bg); }
     .block-frame.active { display: block; }
 
-    /* MODAL DE AJUSTES */
+    /* MODAL DE AJUSTES & SUBIDA DE FOTO */
     .modal-overlay {
       display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.85); z-index: 3000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(4px);
@@ -84,8 +86,24 @@
     .modal-box { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; max-width: 360px; width: 100%; }
     .modal-title { font-size: 1rem; font-weight: 900; text-transform: uppercase; margin-bottom: 14px; text-align: center; color: #fff; }
     
-    .profile-preview { width: 70px; height: 70px; border-radius: 50%; background: #222; border: 2px solid var(--accent); margin: 0 auto 12px auto; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .profile-preview-wrapper {
+      position: relative; width: 80px; height: 80px; margin: 0 auto 10px auto; cursor: pointer;
+    }
+    .profile-preview {
+      width: 100%; height: 100%; border-radius: 50%; background: #222;
+      border: 2px solid var(--accent); display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+    }
     .profile-preview img { width: 100%; height: 100%; object-fit: cover; }
+    .avatar-camera-pill {
+      position: absolute; bottom: -2px; right: -2px; background: var(--accent);
+      color: #fff; border-radius: 50%; width: 24px; height: 24px; font-size: 0.75rem;
+      display: flex; align-items: center; justify-content: center; border: 2px solid #000;
+    }
+    .upload-hint {
+      text-align: center; font-size: 0.65rem; color: var(--text-muted); font-weight: 700;
+      text-transform: uppercase; margin-bottom: 12px;
+    }
   </style>
 </head>
 <body>
@@ -167,21 +185,24 @@
     <div class="modal-box">
       <div class="modal-title">Ajustes de Cuenta</div>
       
-      <div class="profile-preview" id="profilePicContainer">
-        <span style="font-size: 1.5rem; color: #555;">👤</span>
-      </div>
+      <!-- INPUT NATIVO DIRECTO PARA CÁMARA Y DISPOSITIVO -->
+      <input type="file" id="inputFotoDispositivo" accept="image/*" style="display: none;" onchange="subirFotoDesdeDispositivo(this.files)">
 
-      <div class="form-group">
-        <label>URL de Foto / GIF de Perfil</label>
-        <input type="text" id="cfgPhotoUrl" class="form-control" placeholder="https://...">
+      <!-- PREVIEW CON DISPARADOR TÁCTICO -->
+      <div class="profile-preview-wrapper" onclick="document.getElementById('inputFotoDispositivo').click()" title="Toca para tomar foto o elegir archivo">
+        <div class="profile-preview" id="profilePicContainer">
+          <span style="font-size: 1.5rem; color: #555;">👤</span>
+        </div>
+        <div class="avatar-camera-pill">📷</div>
       </div>
+      <div class="upload-hint" id="txtUploadState">Toca la foto para cambiarla</div>
 
       <div class="form-group">
         <label>Nombre Completo</label>
         <input type="text" id="cfgName" class="form-control">
       </div>
 
-      <button class="btn" onclick="guardarAjustes()">Guardar Cambios</button>
+      <button class="btn" id="btnGuardarAjustes" onclick="guardarAjustes()">Guardar Cambios</button>
       <button class="btn btn-secondary" onclick="closeConfigModal()">Cancelar</button>
     </div>
   </div>
@@ -197,7 +218,6 @@
     async function initPortal() {
       if (!sb) return;
 
-      // Comprobar sesión activa previa en el navegador
       try {
         const { data: { session } } = await sb.auth.getSession();
         if (session) {
@@ -243,6 +263,7 @@
             name, 
             profile_id, 
             photo_url: null,
+            avatar_url: null,
             is_active: true,
             subscription_status: 'activo',
             last_active_at: new Date().toISOString()
@@ -269,7 +290,6 @@
         return;
       }
 
-      // Actualizar marca de actividad
       await sb.from('apex_users').update({ last_active_at: new Date().toISOString() }).eq('id', data.user.id);
       await cargarDatosUsuario(data.user.id);
     }
@@ -282,12 +302,11 @@
         .single();
 
       if (!profileData) {
-        profileData = { id: userId, email: '', name: 'Usuario Apex', profile_id: 'estudiante', photo_url: null };
+        profileData = { id: userId, email: '', name: 'Usuario Apex', profile_id: 'estudiante', photo_url: null, avatar_url: null };
       }
 
       currentSessionUser = profileData;
 
-      // Cargar dinámicamente los bloques asignados a este perfil desde la nube
       const { data: rels } = await sb
         .from('apex_profile_blocks')
         .select('block_id, display_order')
@@ -298,12 +317,9 @@
       if (rels && rels.length > 0) {
         const blockIds = rels.map(r => r.block_id);
         const { data: blocks } = await sb.from('apex_blocks').select('*').in('id', blockIds);
-        
-        // Conservar el orden exacto configurado
         userModules = rels.map(r => blocks.find(b => b.id === r.block_id)).filter(Boolean);
       }
 
-      // Respaldo de seguridad en caso de perfil sin bloques asignados
       if (userModules.length === 0) {
         userModules = [{ id: 'b_usuario', title: 'Ficha Estudiante', url: 'usuario.html' }];
       }
@@ -360,8 +376,7 @@
     function openConfigModal() {
       if (!currentSessionUser) return;
       document.getElementById('cfgName').value = currentSessionUser.name || '';
-      document.getElementById('cfgPhotoUrl').value = currentSessionUser.photo_url || '';
-      actualizarPreviewFoto(currentSessionUser.photo_url);
+      actualizarPreviewFoto(currentSessionUser.photo_url || currentSessionUser.avatar_url);
       document.getElementById('configModal').classList.add('open');
     }
 
@@ -378,15 +393,60 @@
       }
     }
 
+    /* SUBIDA DIRECTA DESDE DISPOSITIVO AL BUCKET AVATARS */
+    async function subirFotoDesdeDispositivo(files) {
+      if (!files || files.length === 0 || !sb || !currentSessionUser) return;
+      
+      const file = files[0];
+      const hint = document.getElementById('txtUploadState');
+      const btnGuardar = document.getElementById('btnGuardarAjustes');
+      
+      hint.innerText = 'Subiendo imagen a Apex...';
+      hint.style.color = 'var(--status-ok)';
+      btnGuardar.disabled = true;
+
+      try {
+        const ext = file.name.split('.').pop();
+        const cleanEmail = (currentSessionUser.email || currentSessionUser.id).replace(/[^a-zA-Z0-9]/g, '_');
+        const filePath = `avatars/usr_${Date.now()}_${cleanEmail}.${ext}`;
+
+        // 1. Subida al bucket
+        const { error: uploadErr } = await sb.storage.from('avatars').upload(filePath, file, { upsert: true });
+        if (uploadErr) throw uploadErr;
+
+        // 2. Obtención de URL Pública
+        const { data: urlData } = sb.storage.from('avatars').getPublicUrl(filePath);
+        const publicUrl = urlData.publicUrl;
+
+        // 3. Actualización directa en la base de datos
+        await sb.from('apex_users').update({ 
+          photo_url: publicUrl,
+          avatar_url: publicUrl,
+          last_active_at: new Date().toISOString()
+        }).eq('id', currentSessionUser.id);
+
+        currentSessionUser.photo_url = publicUrl;
+        currentSessionUser.avatar_url = publicUrl;
+        actualizarPreviewFoto(publicUrl);
+
+        hint.innerText = '¡Foto actualizada con éxito!';
+        hint.style.color = 'var(--status-ok)';
+      } catch (err) {
+        alert('Error al subir la imagen: ' + err.message);
+        hint.innerText = 'Error al subir imagen';
+        hint.style.color = 'var(--accent)';
+      }
+
+      btnGuardar.disabled = false;
+    }
+
     async function guardarAjustes() {
       const newName = document.getElementById('cfgName').value.trim();
-      const finalPhoto = document.getElementById('cfgPhotoUrl').value.trim() || null;
 
       const { error } = await sb
         .from('apex_users')
         .update({ 
           name: newName, 
-          photo_url: finalPhoto,
           last_active_at: new Date().toISOString()
         })
         .eq('id', currentSessionUser.id);
@@ -397,9 +457,7 @@
       }
 
       currentSessionUser.name = newName;
-      currentSessionUser.photo_url = finalPhoto;
-      actualizarPreviewFoto(finalPhoto);
-      alert('¡Ajustes actualizados en Supabase!');
+      alert('¡Ajustes guardados con éxito!');
       closeConfigModal();
     }
 
