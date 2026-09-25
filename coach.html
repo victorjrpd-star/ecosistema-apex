@@ -3,179 +3,534 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Apex - Panel Coach</title>
+  <title>Apex - Control Coach</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
-      --bg: #0c0c0c;
-      --card-bg: #141414;
-      --border: #222222;
+      --bg: #050505;
+      --card-bg: #0e0e10;
+      --card-sub: #141416;
+      --border: #202024;
+      --border-focus: #383840;
       --accent: #e50914;
-      --text-main: #ffffff;
-      --text-muted: #888888;
+      --accent-dim: rgba(229, 9, 20, 0.15);
+      --text-main: #f5f5f7;
+      --text-muted: #73737a;
+      --status-ok: #22c55e;
+      --status-warn: #eab308;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     html, body { background: var(--bg); color: var(--text-main); width: 100vw; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
-    /* BARRA DE NAVEGACIÓN DINÁMICA DE BLOQUES (Pestañas del Coach) */
+    /* NAVEGACIÓN SUPERIOR ENTRE MÓDULOS */
     .coach-nav-bar {
-      display: flex; height: 46px; background: var(--card-bg); border-bottom: 1px solid var(--border);
-      align-items: center; padding: 0 12px; gap: 8px; overflow-x: auto; scrollbar-width: none; flex-shrink: 0;
+      display: flex; height: 48px; background: var(--card-bg); border-bottom: 1px solid var(--border);
+      align-items: center; padding: 0 12px; gap: 8px; flex-shrink: 0;
     }
-    .coach-nav-bar::-webkit-scrollbar { display: none; }
-
     .nav-tab-btn {
-      background: #1a1a1a; border: 1px solid var(--border); color: var(--text-muted);
-      padding: 6px 12px; border-radius: 6px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase;
-      cursor: pointer; white-space: nowrap; transition: 0.2s;
+      background: #121214; border: 1px solid var(--border); color: var(--text-muted);
+      padding: 7px 14px; border-radius: 4px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.6px; cursor: pointer; transition: 0.2s;
     }
-    .nav-tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .nav-tab-btn.active { background: #fff; color: #000; border-color: #fff; }
 
-    /* CONTENEDOR DE LAS MINI-APPS ASIGNADAS */
-    .coach-viewport { flex: 1; width: 100%; position: relative; background: var(--bg); overflow: hidden; }
-    .sub-block-frame { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; display: none; background: var(--bg); }
-    .sub-block-frame.active { display: block; }
+    /* VIEWPORT Y PANELES */
+    .coach-viewport { flex: 1; width: 100%; position: relative; overflow-y: auto; padding: 16px; max-width: 600px; margin: 0 auto; }
+    .panel-view { display: none; }
+    .panel-view.active { display: block; }
 
-    /* VISTA NATIVA INTERNA DEL PANEL COACH (Panel de Control y Validación) */
-    .native-panel-content {
-      padding: 16px; max-width: 600px; margin: 0 auto; height: 100%; overflow-y: auto; padding-bottom: 40px; display: none;
-    }
-    .native-panel-content.active { display: block; }
-
-    .header { border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
-    .title { font-size: 1.1rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
+    .header { border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+    .title { font-size: 1rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px; }
     .title span { color: var(--accent); }
-    .badge-coach { font-size: 0.7rem; font-weight: 800; background: #222; color: #fff; border: 1px solid #444; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; }
+    .badge-coach { font-size: 0.65rem; font-weight: 700; background: #141416; color: var(--text-muted); border: 1px solid var(--border); padding: 4px 8px; border-radius: 3px; }
 
-    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 12px; }
-    .card-title { font-size: 0.75rem; font-weight: 900; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 14px; }
+    .card-title { font-size: 0.74rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #fff; margin-bottom: 4px; }
+    .card-desc { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 12px; }
 
-    .btn { background: var(--accent); color: #fff; border: none; padding: 10px 14px; font-weight: 900; text-transform: uppercase; border-radius: 6px; cursor: pointer; font-size: 0.78rem; }
-    .btn:active { filter: brightness(0.85); }
-    .btn-secondary { background: #1c1c1c; border: 1px solid #333; color: #ccc; }
-    .list-item { background: #1c1c1c; border: 1px solid #2a2a2a; padding: 10px; border-radius: 6px; margin-top: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; }
+    /* FORMULARIO & INPUTS */
+    .form-group { margin-bottom: 12px; position: relative; }
+    .form-label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; display: block; }
+    .input-apex {
+      width: 100%; padding: 11px 12px; background: #121214; border: 1px solid var(--border);
+      color: #fff; border-radius: 5px; font-size: 0.8rem; outline: none; transition: 0.2s;
+    }
+    .input-apex:focus { border-color: var(--border-focus); }
+
+    /* SUGERENCIAS PREDICTIVAS */
+    .suggestions-box {
+      position: absolute; top: calc(100% + 2px); left: 0; right: 0; background: #141418;
+      border: 1px solid var(--border-focus); border-radius: 5px; max-height: 180px; overflow-y: auto;
+      z-index: 50; display: none; box-shadow: 0 8px 24px rgba(0,0,0,0.8);
+    }
+    .suggestion-item {
+      padding: 10px 12px; border-bottom: 1px solid var(--border); cursor: pointer; font-size: 0.78rem;
+    }
+    .suggestion-item:last-child { border-bottom: none; }
+    .suggestion-item:hover, .suggestion-item:active { background: #1c1c22; }
+    .suggestion-item strong { color: #fff; display: block; font-size: 0.8rem; }
+    .suggestion-item span { color: var(--text-muted); font-size: 0.7rem; }
+
+    /* TARJETA DE CONFIRMACIÓN DEL STRIKER */
+    .striker-summary-card {
+      background: var(--card-sub); border: 1px solid var(--border); border-radius: 6px;
+      padding: 12px; margin-top: 10px; display: none;
+    }
+    .striker-summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+    .info-box { background: #0a0a0c; border: 1px solid var(--border); padding: 8px 10px; border-radius: 4px; }
+    .info-box-label { font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; }
+    .info-box-val { font-size: 0.85rem; font-weight: 800; color: #fff; margin-top: 2px; }
+
+    /* CHECK-INS LIST */
+    .checkin-card { background: var(--card-sub); border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-bottom: 10px; }
+    .metrics-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #0a0a0c;
+      border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin: 10px 0;
+    }
+    .metric-row { display: flex; flex-direction: column; gap: 3px; }
+    .metric-label { font-size: 0.62rem; color: var(--text-muted); text-transform: uppercase; }
+    .metric-control { display: flex; align-items: center; justify-content: space-between; background: #141416; border: 1px solid var(--border); border-radius: 4px; padding: 2px 6px; }
+    .metric-btn { background: transparent; border: none; color: #fff; font-size: 0.95rem; font-weight: 800; width: 24px; height: 24px; cursor: pointer; }
+    .metric-btn:active { color: var(--accent); }
+    .metric-val { font-size: 0.8rem; font-weight: 800; color: #fff; }
+    .metric-penalty-tag { font-size: 0.6rem; color: var(--accent); font-weight: 800; display: none; margin-left: 2px; }
+
+    /* BOTONES */
+    .btn-main {
+      width: 100%; background: #fff; color: #000; border: none; padding: 12px;
+      font-weight: 800; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.8px;
+      border-radius: 5px; cursor: pointer; transition: 0.2s;
+    }
+    .btn-main:disabled { background: #222; color: #555; cursor: not-allowed; border: 1px solid #333; }
+    .btn-danger { background: transparent; border: 1px solid var(--accent); color: var(--accent); }
+    .btn-danger:active { background: var(--accent-dim); }
   </style>
 </head>
 <body>
 
-  <!-- BARRA DE PESTAÑAS SUPERIOR (Se genera dinámicamente con los bloques del Coach) -->
-  <nav class="coach-nav-bar" id="coachNavBar">
-    <!-- Pestaña fija nativa del panel de control -->
-    <button class="nav-tab-btn active" onclick="switchCoachTab('native_panel', this)">Panel Operativo</button>
+  <!-- PESTAÑAS DEL COACH -->
+  <nav class="coach-nav-bar">
+    <button class="nav-tab-btn active" onclick="cambiarModulo('modulo_checkins', this)">Validación Check-ins</button>
+    <button class="nav-tab-btn" onclick="cambiarModulo('modulo_membresias', this)">Gestión Membresías</button>
   </nav>
 
-  <!-- CONTENEDOR DE VISUALIZACIÓN -->
-  <div class="coach-viewport" id="coachViewport">
+  <div class="coach-viewport">
     
-    <!-- 1. VISTA NATIVA: Panel Operativo del Coach (Check-ins y Pagos) -->
-    <div class="native-panel-content active" id="view_native_panel">
+    <!-- SUBMÓDULO 1: VALIDACIÓN CHECK-INS -->
+    <div class="panel-view active" id="modulo_checkins">
       <div class="header">
-        <div class="title">Panel <span>Coach</span></div>
-        <div class="badge-coach">Control Operativo</div>
+        <div class="title">Apex <span>Check-ins</span></div>
+        <div class="badge-coach">Antifraude</div>
       </div>
-
-      <!-- VALIDACIÓN DE CHECK-INS -->
       <div class="card">
-        <div class="card-title">Validación de Check-ins (Anti-Fraude)</div>
-        <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 8px;">
-          Revisa que las métricas de los estudiantes coincidan con lo dictado en clase.
-        </p>
+        <div class="card-title">Sesiones en Espera</div>
+        <div class="card-desc">Toda reducción métrica aplica -1 punto directo por discrepancia.</div>
         <div id="checkinsList">
-          <div class="list-item">
-            <div>
-              <strong>Isabella Machado</strong><br>
-              <span style="color: var(--text-muted); font-size: 0.7rem;">Check-in Diario · Pendiente de visto bueno</span>
-            </div>
-            <div style="display: flex; gap: 6px;">
-              <button class="btn" style="padding: 6px 10px;" onclick="aprobarCheckin(this)">✔</button>
-              <button class="btn btn-secondary" style="padding: 6px 10px;" onclick="rechazarCheckin(this)">✕</button>
-            </div>
+          <div style="font-size: 0.75rem; color: var(--text-muted); text-align: center; padding: 16px;">
+            Consultando registros en base de datos...
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- RECEPCIÓN DE PAGOS Y MEMBRESÍAS -->
+    <!-- SUBMÓDULO 2: GESTIÓN DE MEMBRESÍAS -->
+    <div class="panel-view" id="modulo_membresias">
+      <div class="header">
+        <div class="title">Apex <span>Membresías</span></div>
+        <div class="badge-coach">Auditoría</div>
+      </div>
+
       <div class="card">
-        <div class="card-title">Recepción de Pagos / Membresías</div>
-        <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 8px;">
-          Registra el comprobante físico o digital para levantar la tapa de acceso del estudiante.
-        </p>
-        <div style="display: flex; gap: 8px;">
-          <input type="text" id="studentEmailPay" placeholder="Correo del estudiante" style="flex: 1; padding: 10px; background: #1c1c1c; border: 1px solid #333; color: #fff; border-radius: 6px; font-size: 0.8rem; outline: none;">
-          <button class="btn" onclick="registrarPago()">Validar Pago</button>
+        <div class="card-title">Habilitación y Control</div>
+        <div class="card-desc">Buscador predictivo de Strikers. La evidencia visual es obligatoria.</div>
+
+        <!-- Buscador Predictivo -->
+        <div class="form-group">
+          <label class="form-label">Striker (Buscar por correo o nombre)</label>
+          <input type="text" id="studentEmailSearch" placeholder="Escribe para buscar..." class="input-apex" autocomplete="off" oninput="buscarSugerencias(this.value)">
+          <div class="suggestions-box" id="suggestionsBox"></div>
         </div>
+
+        <!-- Ficha de Confirmación del Striker Seleccionado -->
+        <div class="striker-summary-card" id="strikerCard">
+          <div style="display: flex; justify-content: space-between; align-items: baseline;">
+            <strong id="strikerName" style="color: #fff; font-size: 0.85rem;">-</strong>
+            <span id="strikerStatusBadge" style="font-size: 0.65rem; font-weight: 800; padding: 2px 6px; border-radius: 3px;">-</span>
+          </div>
+          <div class="striker-summary-grid">
+            <div class="info-box">
+              <div class="info-box-label">Días Restantes</div>
+              <div class="info-box-val" id="strikerDaysVal">-</div>
+            </div>
+            <div class="info-box">
+              <div class="info-box-label">Vencimiento Actual</div>
+              <div class="info-box-val" id="strikerEndVal">-</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Parámetros de la Membresía -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px;">
+          <div class="form-group">
+            <label class="form-label">Fecha de Pago (Opcional)</label>
+            <input type="date" id="paymentDateInput" class="input-apex" style="color-scheme: dark;">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Plan / Vigencia</label>
+            <select id="membershipPlan" class="input-apex" style="height: 42px;">
+              <option value="30">30 Días (Mes)</option>
+              <option value="15">15 Días (Quincena)</option>
+              <option value="90">90 Días (Trimestre)</option>
+              <option value="1">1 Día (Pase)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Evidencia Fotográfica Obligatoria -->
+        <div class="form-group">
+          <label class="form-label">Evidencia Obligatoria (Cámara o Galería)</label>
+          <input type="file" id="evidenceFileInput" accept="image/*" class="input-apex" onchange="validarEvidencia()" style="font-size: 0.72rem;">
+        </div>
+
+        <!-- Botón de Habilitación -->
+        <button class="btn-main" id="btnSubmitMembership" disabled onclick="procesarHabilitacion()">
+          Adjunta Evidencia Para Habilitar
+        </button>
       </div>
     </div>
 
   </div>
 
   <script>
-    // Cargar bloques autorizados desde el localStorage configurado en el Admin para el perfil Coach
-    const profiles = JSON.parse(localStorage.getItem('apex_admin_profiles')) || [];
-    const allBlocks = JSON.parse(localStorage.getItem('apex_admin_blocks')) || [];
+    // Inicialización de Supabase con fallback a almacenamiento local
+    const SUPABASE_URL = localStorage.getItem('supabase_url') || 'https://TU_PROYECTO.supabase.co';
+    const SUPABASE_KEY = localStorage.getItem('supabase_anon_key') || 'TU_ANON_KEY';
+    const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
-    function initCoachSubModules() {
-      const coachProfile = profiles.find(p => p.name.toLowerCase() === 'coach');
-      if (!coachProfile || !coachProfile.blocks) return;
+    let selectedStriker = null;
+    let registeredUsersCache = [];
+    let pendingRecords = [];
 
-      const navBar = document.getElementById('coachNavBar');
-      const viewport = document.getElementById('coachViewport');
+    const METRIC_KEYS = [
+      { key: 'rendimiento', label: 'Rendimiento' },
+      { key: 'rpe', label: 'RPE' },
+      { key: 'soltura', label: 'Soltura / Flex' },
+      { key: 'fluidez', label: 'Fluidez Técnica' },
+      { key: 'diversion', label: 'Diversión' },
+      { key: 'recuperacion', label: 'Recuperación' }
+    ];
 
-      coachProfile.blocks.forEach(blockId => {
-        const blockFound = allBlocks.find(b => b.id === blockId);
-        if (!blockFound) return;
+    function cambiarModulo(moduloId, btn) {
+      document.querySelectorAll('.coach-nav-bar .nav-tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.panel-view').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(moduloId).classList.add('active');
+    }
 
-        // Evitar duplicar si la URL ya apunta al coach u otro repetido
-        if (blockFound.url === 'coach.html') return;
+    // --- SUBMÓDULO MEMBRESÍAS & BUSCADOR PREDICTIVO ---
+    async function cargarDirectorioUsuarios() {
+      if (!supabase) return;
+      try {
+        const { data } = await supabase.from('apex_users').select('id, email, name, subscription_status, membership_start, membership_end');
+        if (data) registeredUsersCache = data;
+      } catch (e) {
+        console.warn("Directorio local activo.");
+      }
+    }
 
-        // Crear Pestaña en la barra superior
-        const tabBtn = document.createElement('button');
-        tabBtn.className = 'nav-tab-btn';
-        tabBtn.textContent = blockFound.title;
-        tabBtn.onclick = () => switchCoachTab(`sub_block_${blockFound.id}`, tabBtn);
-        navBar.appendChild(tabBtn);
+    function buscarSugerencias(query) {
+      const q = query.trim().toLowerCase();
+      const box = document.getElementById('suggestionsBox');
+      box.innerHTML = '';
 
-        // Crear el iframe incrustado para ese bloque (ej: crono.html o usuario.html)
-        const iframe = document.createElement('iframe');
-        iframe.className = 'sub-block-frame';
-        iframe.id = `sub_block_${blockFound.id}`;
-        iframe.src = blockFound.url;
-        viewport.appendChild(iframe);
+      if (q.length < 1) {
+        box.style.display = 'none';
+        return;
+      }
+
+      const matches = registeredUsersCache.filter(u => 
+        (u.email && u.email.toLowerCase().includes(q)) || 
+        (u.name && u.name.toLowerCase().includes(q))
+      );
+
+      if (matches.length === 0) {
+        box.innerHTML = '<div style="padding:10px; font-size:0.75rem; color:#777;">Sin coincidencias</div>';
+        box.style.display = 'block';
+        return;
+      }
+
+      matches.forEach(user => {
+        const item = document.createElement('div');
+        item.className = 'suggestion-item';
+        item.innerHTML = `<strong>${user.name || 'Sin nombre'}</strong><span>${user.email}</span>`;
+        item.onclick = () => seleccionarStriker(user);
+        box.appendChild(item);
+      });
+      box.style.display = 'block';
+    }
+
+    function seleccionarStriker(user) {
+      selectedStriker = user;
+      document.getElementById('studentEmailSearch').value = user.email;
+      document.getElementById('suggestionsBox').style.display = 'none';
+
+      // Calcular vigencia y días restantes
+      const hoy = new Date();
+      hoy.setHours(0,0,0,0);
+      let diasRestantes = 0;
+
+      if (user.membership_end) {
+        const fechaFin = new Date(user.membership_end + 'T00:00:00');
+        const diffMs = fechaFin - hoy;
+        diasRestantes = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+      }
+
+      const card = document.getElementById('strikerCard');
+      const nameEl = document.getElementById('strikerName');
+      const statusBadge = document.getElementById('strikerStatusBadge');
+      const daysVal = document.getElementById('strikerDaysVal');
+      const endVal = document.getElementById('strikerEndVal');
+
+      nameEl.textContent = `${user.name || 'Striker'} (${user.email})`;
+      endVal.textContent = user.membership_end || 'Sin registro';
+
+      if (diasRestantes > 0) {
+        daysVal.textContent = `${diasRestantes} días`;
+        daysVal.style.color = 'var(--status-ok)';
+        statusBadge.textContent = 'AL DÍA';
+        statusBadge.style.background = 'rgba(34, 197, 94, 0.2)';
+        statusBadge.style.color = 'var(--status-ok)';
+      } else {
+        daysVal.textContent = 'Vencido';
+        daysVal.style.color = 'var(--accent)';
+        statusBadge.textContent = 'INACTIVO';
+        statusBadge.style.background = 'var(--accent-dim)';
+        statusBadge.style.color = 'var(--accent)';
+      }
+
+      card.style.display = 'block';
+      validarEvidencia();
+    }
+
+    function validarEvidencia() {
+      const fileInput = document.getElementById('evidenceFileInput');
+      const btn = document.getElementById('btnSubmitMembership');
+      const hasFile = fileInput.files && fileInput.files.length > 0;
+
+      if (selectedStriker && hasFile) {
+        btn.disabled = false;
+        btn.textContent = "Validar y Habilitar Membresía";
+      } else {
+        btn.disabled = true;
+        btn.textContent = !selectedStriker ? "Selecciona un Striker" : "Adjunta Evidencia Para Habilitar";
+      }
+    }
+
+    async function procesarHabilitacion() {
+      if (!selectedStriker) return;
+      const fileInput = document.getElementById('evidenceFileInput');
+      const file = fileInput.files[0];
+      const planDays = parseInt(document.getElementById('membershipPlan').value, 10);
+      const dateVal = document.getElementById('paymentDateInput').value;
+
+      // Si no ingresa fecha, o ingresa hoy, toma la fecha de hoy
+      const baseDate = dateVal ? new Date(dateVal + 'T00:00:00') : new Date();
+      baseDate.setHours(0,0,0,0);
+
+      const expDate = new Date(baseDate);
+      expDate.setDate(expDate.getDate() + planDays);
+
+      const startDateStr = baseDate.toISOString().split('T')[0];
+      const expDateStr = expDate.toISOString().split('T')[0];
+
+      const btn = document.getElementById('btnSubmitMembership');
+      btn.disabled = true;
+      btn.textContent = "Subiendo auditoría...";
+
+      try {
+        let receiptUrl = null;
+
+        if (supabase && file) {
+          const fileExt = file.name.split('.').pop();
+          const filePath = `comprobantes/${Date.now()}_${selectedStriker.email.replace(/[^a-zA-Z0-9]/g, '_')}.${fileExt}`;
+          const { error: uploadError } = await supabase.storage.from('comprobantes').upload(filePath, file);
+
+          if (!uploadError) {
+            const { data: urlData } = supabase.storage.from('comprobantes').getPublicUrl(filePath);
+            receiptUrl = urlData.publicUrl;
+          }
+
+          // Guardar pago
+          const { data: authUser } = await supabase.auth.getUser();
+          await supabase.from('apex_payments').insert({
+            student_email: selectedStriker.email,
+            payment_date: startDateStr,
+            expiration_date: expDateStr,
+            receipt_url: receiptUrl,
+            registered_by: authUser?.user?.email || 'coach'
+          });
+
+          // Actualizar membresía en apex_users
+          await supabase.from('apex_users').update({
+            subscription_status: 'activo',
+            is_active: true,
+            membership_start: startDateStr,
+            membership_end: expDateStr
+          }).eq('email', selectedStriker.email);
+        }
+
+        alert(`Membresía habilitada con éxito.\nStriker: ${selectedStriker.email}\nInicio: ${startDateStr}\nVence: ${expDateStr}`);
+        
+        // Limpieza de formulario
+        document.getElementById('studentEmailSearch').value = '';
+        document.getElementById('strikerCard').style.display = 'none';
+        fileInput.value = '';
+        selectedStriker = null;
+        validarEvidencia();
+        cargarDirectorioUsuarios();
+
+      } catch (err) {
+        alert("Error procesando membresía: " + err.message);
+        validarEvidencia();
+      }
+    }
+
+    // --- SUBMÓDULO CHECK-INS (ANTIFRAUDE) ---
+    async function cargarCheckins() {
+      const container = document.getElementById('checkinsList');
+      if (!supabase) return;
+
+      const { data, error } = await supabase
+        .from('apex_checkins')
+        .select('*')
+        .eq('status', 'pendiente')
+        .order('created_at', { ascending: false });
+
+      if (error || !data || data.length === 0) {
+        container.innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); text-align:center; padding:16px;">No hay check-ins pendientes por validar.</div>';
+        return;
+      }
+
+      pendingRecords = data.map(item => ({
+        ...item,
+        original: { ...item },
+        current: { ...item }
+      }));
+      renderCheckins();
+    }
+
+    function renderCheckins() {
+      const container = document.getElementById('checkinsList');
+      container.innerHTML = '';
+
+      pendingRecords.forEach((rec, idx) => {
+        let totalPenalty = 0;
+        METRIC_KEYS.forEach(m => {
+          if ((rec.current[m.key] ?? 7) < (rec.original[m.key] ?? 7)) totalPenalty += 1;
+        });
+
+        const card = document.createElement('div');
+        card.className = 'checkin-card';
+        card.id = `rec_${rec.id}`;
+
+        let metricsHtml = '';
+        METRIC_KEYS.forEach(m => {
+          const orig = rec.original[m.key] ?? 7;
+          const curr = rec.current[m.key] ?? 7;
+          const isPenalized = curr < orig;
+
+          metricsHtml += `
+            <div class="metric-row">
+              <div class="metric-label">${m.label} <span style="color:#555;">(${orig})</span></div>
+              <div class="metric-control">
+                <button class="metric-btn" onclick="ajustarMetrica(${idx}, '${m.key}', -1)">-</button>
+                <div style="display:flex; align-items:center;">
+                  <span class="metric-val" id="val_${idx}_${m.key}">${curr}</span>
+                  <span class="metric-penalty-tag" id="tag_${idx}_${m.key}" style="display: ${isPenalized ? 'inline' : 'none'};">-1p</span>
+                </div>
+                <button class="metric-btn" onclick="ajustarMetrica(${idx}, '${m.key}', 1)">+</button>
+              </div>
+            </div>
+          `;
+        });
+
+        card.innerHTML = `
+          <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+            <div>
+              <strong style="font-size:0.85rem; color:#fff;">${rec.student_name || rec.student_email}</strong>
+              <div style="font-size:0.68rem; color:var(--text-muted);">${rec.student_email}</div>
+            </div>
+            <span style="font-size:0.65rem; color:var(--accent); font-weight:800;" id="sum_${idx}">
+              ${totalPenalty > 0 ? `-${totalPenalty} pts` : ''}
+            </span>
+          </div>
+          <div class="metrics-grid">${metricsHtml}</div>
+          <div style="display:flex; gap:8px;">
+            <button class="btn-main btn-danger" style="flex:1;" onclick="resolverCheckin(${idx}, 'rechazado')">Rechazar</button>
+            <button class="btn-main" style="flex:2;" onclick="resolverCheckin(${idx}, 'aprobado')">Aprobar Check-in</button>
+          </div>
+        `;
+        container.appendChild(card);
       });
     }
 
-    function switchCoachTab(viewId, btnElement) {
-      document.querySelectorAll('.coach-nav-bar .nav-tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.coach-viewport > div, .coach-viewport > iframe').forEach(v => v.classList.remove('active'));
+    function ajustarMetrica(idx, key, delta) {
+      const rec = pendingRecords[idx];
+      let val = (rec.current[key] ?? 7) + delta;
+      if (val < 1) val = 1;
+      if (val > 10) val = 10;
+      rec.current[key] = val;
 
-      btnElement.classList.add('active');
-      const targetView = document.getElementById(`view_${viewId}`) || document.getElementById(viewId);
-      if (targetView) targetView.classList.add('active');
+      const valEl = document.getElementById(`val_${idx}_${key}`);
+      const tagEl = document.getElementById(`tag_${idx}_${key}`);
+      const isPenalized = val < (rec.original[key] ?? 7);
+
+      if (valEl) valEl.textContent = val;
+      if (tagEl) tagEl.style.display = isPenalized ? 'inline' : 'none';
+
+      let totalPenalty = 0;
+      METRIC_KEYS.forEach(m => {
+        if ((rec.current[m.key] ?? 7) < (rec.original[m.key] ?? 7)) totalPenalty += 1;
+      });
+      const sumEl = document.getElementById(`sum_${idx}`);
+      if (sumEl) sumEl.textContent = totalPenalty > 0 ? `-${totalPenalty} pts` : '';
     }
 
-    function aprobarCheckin(btn) {
-      const item = btn.closest('.list-item');
-      item.style.opacity = '0.4';
-      alert("Check-in validado y sumado al puntaje oficial del alumno.");
-      setTimeout(() => item.remove(), 400);
-    }
+    async function resolverCheckin(idx, status) {
+      const rec = pendingRecords[idx];
+      let penalty = 0;
+      const finalVals = {};
 
-    function rechazarCheckin(btn) {
-      const item = btn.closest('.list-item');
-      alert("Check-in marcado con incongruencia.");
-      item.remove();
-    }
+      METRIC_KEYS.forEach(m => {
+        const orig = rec.original[m.key] ?? 7;
+        let curr = rec.current[m.key] ?? 7;
+        if (curr < orig) {
+          penalty += 1;
+          curr = Math.max(0, curr - 1);
+        }
+        finalVals[m.key] = curr;
+      });
 
-    function registrarPago() {
-      const email = document.getElementById('studentEmailPay').value.trim();
-      if (!email) {
-        alert("Ingresa el correo del estudiante.");
-        return;
+      if (supabase) {
+        await supabase.from('apex_checkins').update({
+          status: status,
+          penalty_points: penalty,
+          ...finalVals
+        }).eq('id', rec.id);
       }
-      alert(`Pago registrado con éxito para ${email}. Tapa de membresía levantada.`);
-      document.getElementById('studentEmailPay').value = '';
+
+      alert(status === 'aprobado' ? 'Check-in aprobado y calibrado.' : 'Check-in desestimado.');
+      document.getElementById(`rec_${rec.id}`).remove();
+      pendingRecords.splice(idx, 1);
+      if (pendingRecords.length === 0) {
+        document.getElementById('checkinsList').innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); text-align:center; padding:16px;">No hay check-ins pendientes por validar.</div>';
+      }
     }
 
-    window.onload = initCoachSubModules;
+    window.onload = () => {
+      cargarDirectorioUsuarios();
+      cargarCheckins();
+    };
   </script>
 </body>
 </html>
