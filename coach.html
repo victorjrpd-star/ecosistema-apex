@@ -124,7 +124,7 @@
       </div>
       <div class="card">
         <div class="card-title">Sesiones en Espera</div>
-        <div class="card-desc">Toda reducción métrica aplica -1 punto directo por discrepancia.</div>
+        <div class="card-desc">Toda corrección a la baja aplica -1 punto de penalización automática por métrica.</div>
         <div id="checkinsList">
           <div style="font-size: 0.75rem; color: var(--text-muted); text-align: center; padding: 16px;">
             Consultando registros en base de datos...
@@ -172,7 +172,7 @@
         <!-- Parámetros de la Membresía -->
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px;">
           <div class="form-group">
-            <label class="form-label">Fecha de Pago (Opcional)</label>
+            <label class="form-label">Fecha de Pago (Opcional - Hoy por defecto)</label>
             <input type="date" id="paymentDateInput" class="input-apex" style="color-scheme: dark;">
           </div>
           <div class="form-group">
@@ -202,10 +202,12 @@
   </div>
 
   <script>
-    // Inicialización de Supabase con fallback a almacenamiento local
+    // Inicialización de Supabase usando credenciales almacenadas o definidas en el proyecto
     const SUPABASE_URL = localStorage.getItem('supabase_url') || 'https://TU_PROYECTO.supabase.co';
     const SUPABASE_KEY = localStorage.getItem('supabase_anon_key') || 'TU_ANON_KEY';
-    const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+    const supabase = (window.supabase && SUPABASE_URL.startsWith('http')) 
+      ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) 
+      : null;
 
     let selectedStriker = null;
     let registeredUsersCache = [];
@@ -234,7 +236,7 @@
         const { data } = await supabase.from('apex_users').select('id, email, name, subscription_status, membership_start, membership_end');
         if (data) registeredUsersCache = data;
       } catch (e) {
-        console.warn("Directorio local activo.");
+        console.warn("Directorio en espera de conectividad.");
       }
     }
 
@@ -274,7 +276,7 @@
       document.getElementById('studentEmailSearch').value = user.email;
       document.getElementById('suggestionsBox').style.display = 'none';
 
-      // Calcular vigencia y días restantes
+      // Cálculo de vigencia fecha a fecha
       const hoy = new Date();
       hoy.setHours(0,0,0,0);
       let diasRestantes = 0;
@@ -333,12 +335,13 @@
       const planDays = parseInt(document.getElementById('membershipPlan').value, 10);
       const dateVal = document.getElementById('paymentDateInput').value;
 
-      // Si no ingresa fecha, o ingresa hoy, toma la fecha de hoy
+      // Base: fecha seleccionada o fecha actual
       const baseDate = dateVal ? new Date(dateVal + 'T00:00:00') : new Date();
       baseDate.setHours(0,0,0,0);
 
+      // Regla de vigencia real: Fecha Inicio + (Plan Días - 1)
       const expDate = new Date(baseDate);
-      expDate.setDate(expDate.getDate() + planDays);
+      expDate.setDate(expDate.getDate() + (planDays - 1));
 
       const startDateStr = baseDate.toISOString().split('T')[0];
       const expDateStr = expDate.toISOString().split('T')[0];
@@ -360,7 +363,7 @@
             receiptUrl = urlData.publicUrl;
           }
 
-          // Guardar pago
+          // Guardar registro en historial de pagos
           const { data: authUser } = await supabase.auth.getUser();
           await supabase.from('apex_payments').insert({
             student_email: selectedStriker.email,
@@ -370,7 +373,7 @@
             registered_by: authUser?.user?.email || 'coach'
           });
 
-          // Actualizar membresía en apex_users
+          // Actualizar estado y fechas en apex_users
           await supabase.from('apex_users').update({
             subscription_status: 'activo',
             is_active: true,
@@ -381,8 +384,9 @@
 
         alert(`Membresía habilitada con éxito.\nStriker: ${selectedStriker.email}\nInicio: ${startDateStr}\nVence: ${expDateStr}`);
         
-        // Limpieza de formulario
+        // Reset de campos
         document.getElementById('studentEmailSearch').value = '';
+        document.getElementById('paymentDateInput').value = '';
         document.getElementById('strikerCard').style.display = 'none';
         fileInput.value = '';
         selectedStriker = null;
@@ -400,10 +404,11 @@
       const container = document.getElementById('checkinsList');
       if (!supabase) return;
 
+      // Consulta flexible para atrapar 'pendiente_coach', 'pendiente/coach' o 'pendiente'
       const { data, error } = await supabase
         .from('apex_checkins')
         .select('*')
-        .eq('status', 'pendiente')
+        .ilike('status', '%pendiente%')
         .order('created_at', { ascending: false });
 
       if (error || !data || data.length === 0) {
@@ -413,8 +418,22 @@
 
       pendingRecords = data.map(item => ({
         ...item,
-        original: { ...item },
-        current: { ...item }
+        original: {
+          rendimiento: item.rendimiento ?? 7,
+          rpe: item.rpe ?? 7,
+          soltura: item.soltura ?? 6,
+          fluidez: item.fluidez ?? 5,
+          diversion: item.diversion ?? 8,
+          recuperacion: item.recuperacion ?? 7
+        },
+        current: {
+          rendimiento: item.rendimiento ?? 7,
+          rpe: item.rpe ?? 7,
+          soltura: item.soltura ?? 6,
+          fluidez: item.fluidez ?? 5,
+          diversion: item.diversion ?? 8,
+          recuperacion: item.recuperacion ?? 7
+        }
       }));
       renderCheckins();
     }
@@ -426,7 +445,7 @@
       pendingRecords.forEach((rec, idx) => {
         let totalPenalty = 0;
         METRIC_KEYS.forEach(m => {
-          if ((rec.current[m.key] ?? 7) < (rec.original[m.key] ?? 7)) totalPenalty += 1;
+          if (rec.current[m.key] < rec.original[m.key]) totalPenalty += 1;
         });
 
         const card = document.createElement('div');
@@ -435,13 +454,13 @@
 
         let metricsHtml = '';
         METRIC_KEYS.forEach(m => {
-          const orig = rec.original[m.key] ?? 7;
-          const curr = rec.current[m.key] ?? 7;
+          const orig = rec.original[m.key];
+          const curr = rec.current[m.key];
           const isPenalized = curr < orig;
 
           metricsHtml += `
             <div class="metric-row">
-              <div class="metric-label">${m.label} <span style="color:#555;">(${orig})</span></div>
+              <div class="metric-label">${m.label} <span style="color:#555;">(Orig: ${orig})</span></div>
               <div class="metric-control">
                 <button class="metric-btn" onclick="ajustarMetrica(${idx}, '${m.key}', -1)">-</button>
                 <div style="display:flex; align-items:center;">
@@ -454,11 +473,14 @@
           `;
         });
 
+        const emailMostrado = rec.student_email || rec.user_email || 'correo@estudiante.com';
+        const nombreMostrado = rec.student_name || emailMostrado;
+
         card.innerHTML = `
           <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
             <div>
-              <strong style="font-size:0.85rem; color:#fff;">${rec.student_name || rec.student_email}</strong>
-              <div style="font-size:0.68rem; color:var(--text-muted);">${rec.student_email}</div>
+              <strong style="font-size:0.85rem; color:#fff;">${nombreMostrado}</strong>
+              <div style="font-size:0.68rem; color:var(--text-muted);">${emailMostrado}</div>
             </div>
             <span style="font-size:0.65rem; color:var(--accent); font-weight:800;" id="sum_${idx}">
               ${totalPenalty > 0 ? `-${totalPenalty} pts` : ''}
@@ -476,21 +498,21 @@
 
     function ajustarMetrica(idx, key, delta) {
       const rec = pendingRecords[idx];
-      let val = (rec.current[key] ?? 7) + delta;
+      let val = rec.current[key] + delta;
       if (val < 1) val = 1;
       if (val > 10) val = 10;
       rec.current[key] = val;
 
       const valEl = document.getElementById(`val_${idx}_${key}`);
       const tagEl = document.getElementById(`tag_${idx}_${key}`);
-      const isPenalized = val < (rec.original[key] ?? 7);
+      const isPenalized = val < rec.original[key];
 
       if (valEl) valEl.textContent = val;
       if (tagEl) tagEl.style.display = isPenalized ? 'inline' : 'none';
 
       let totalPenalty = 0;
       METRIC_KEYS.forEach(m => {
-        if ((rec.current[m.key] ?? 7) < (rec.original[m.key] ?? 7)) totalPenalty += 1;
+        if (rec.current[m.key] < rec.original[m.key]) totalPenalty += 1;
       });
       const sumEl = document.getElementById(`sum_${idx}`);
       if (sumEl) sumEl.textContent = totalPenalty > 0 ? `-${totalPenalty} pts` : '';
@@ -502,11 +524,11 @@
       const finalVals = {};
 
       METRIC_KEYS.forEach(m => {
-        const orig = rec.original[m.key] ?? 7;
-        let curr = rec.current[m.key] ?? 7;
+        const orig = rec.original[m.key];
+        let curr = rec.current[m.key];
         if (curr < orig) {
           penalty += 1;
-          curr = Math.max(0, curr - 1);
+          curr = Math.max(0, curr - 1); // Descuento efectivo de 1 punto adicional
         }
         finalVals[m.key] = curr;
       });
@@ -514,13 +536,19 @@
       if (supabase) {
         await supabase.from('apex_checkins').update({
           status: status,
+          coach_validated_at: new Date().toISOString(),
           penalty_points: penalty,
           ...finalVals
         }).eq('id', rec.id);
       }
 
-      alert(status === 'aprobado' ? 'Check-in aprobado y calibrado.' : 'Check-in desestimado.');
-      document.getElementById(`rec_${rec.id}`).remove();
+      alert(status === 'aprobado' 
+        ? `Check-in aprobado y calibrado.${penalty > 0 ? ' Penalización aplicada: -' + penalty + ' pts.' : ''}` 
+        : 'Check-in desestimado.');
+
+      const el = document.getElementById(`rec_${rec.id}`);
+      if (el) el.remove();
+
       pendingRecords.splice(idx, 1);
       if (pendingRecords.length === 0) {
         document.getElementById('checkinsList').innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); text-align:center; padding:16px;">No hay check-ins pendientes por validar.</div>';
