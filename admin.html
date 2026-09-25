@@ -372,7 +372,7 @@
       });
     }
 
-    /* ================= USUARIOS CON FILTRO ================= */
+    /* ================= USUARIOS CON FILTRO TOLERANTE ================= */
     async function cargarUsuarios() {
       const container = document.getElementById('usersListContainer');
       container.innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;">Consultando directorio...</span>';
@@ -381,7 +381,7 @@
         const { data: users, error } = await sb.from('apex_users').select('*');
         if (error) throw error;
 
-        rawUsersList = users || [];
+        rawUsersList = Array.isArray(users) ? users : [];
         filtrarUsuarios();
       } catch (err) {
         container.innerHTML = `<span style="color:var(--accent);font-size:0.75rem;">Error al cargar usuarios: ${err.message}</span>`;
@@ -389,13 +389,18 @@
     }
 
     function filtrarUsuarios() {
-      const roleFilter = document.getElementById('userRoleFilter').value;
-      const search = document.getElementById('userSearchInput').value.toLowerCase().trim();
+      const roleFilter = (document.getElementById('userRoleFilter')?.value || 'todos').toLowerCase();
+      const search = (document.getElementById('userSearchInput')?.value || '').toLowerCase().trim();
       const container = document.getElementById('usersListContainer');
 
+      if (!rawUsersList || rawUsersList.length === 0) {
+        container.innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;padding:8px;display:block;">No hay usuarios en la base de datos.</span>';
+        return;
+      }
+
       let filtrados = rawUsersList.filter(u => {
-        const rol = (u.profile_id || u.role || 'estudiante').toLowerCase();
-        const coincideRol = (roleFilter === 'todos') || (rol === roleFilter.toLowerCase());
+        const rolUsuario = (u.profile_id || u.role || 'estudiante').toLowerCase();
+        const coincideRol = (roleFilter === 'todos') || (rolUsuario === roleFilter);
 
         const name = (u.name || '').toLowerCase();
         const email = (u.email || '').toLowerCase();
@@ -411,11 +416,12 @@
 
       container.innerHTML = '';
       filtrados.forEach(u => {
-        const userRolActual = u.profile_id || u.role || 'estudiante';
+        const userRolActual = (u.profile_id || u.role || 'estudiante').toLowerCase();
 
         let opcionesRolesHTML = '';
         dbProfiles.forEach(p => {
-          opcionesRolesHTML += `<option value="${p.id}" ${userRolActual === p.id ? 'selected' : ''}>${p.name.toUpperCase()}</option>`;
+          const pid = p.id.toLowerCase();
+          opcionesRolesHTML += `<option value="${p.id}" ${userRolActual === pid ? 'selected' : ''}>${p.name.toUpperCase()}</option>`;
         });
 
         container.innerHTML += `
@@ -443,7 +449,6 @@
       if (error) alert('Error: ' + error.message);
       else {
         alert('Rol actualizado a ' + newRole.toUpperCase());
-        // Actualizar en memoria local
         const userObj = rawUsersList.find(u => u.id === userId);
         if (userObj) {
           userObj.profile_id = newRole;
@@ -471,7 +476,7 @@
         document.getElementById('nuName').value = '';
         document.getElementById('nuEmail').value = '';
         document.getElementById('nuPassword').value = '';
-        cargarUsuarios();
+        await cargarUsuarios();
       } else {
         alert('Fallo: ' + (data ? data.message : 'Error desconocido'));
       }
@@ -486,12 +491,10 @@
       if (!title || !url) return alert('Completa título y URL.');
 
       if (editId) {
-        // Actualización de bloque existente
         const { error } = await sb.from('apex_blocks').update({ title, url }).eq('id', editId);
         if (error) return alert('Error al actualizar bloque: ' + error.message);
         alert('¡Bloque actualizado con éxito!');
       } else {
-        // Creación
         const id = 'b_' + title.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, '_');
         const { error } = await sb.from('apex_blocks').upsert([{ id, title, url }]);
         if (error) return alert('Error al registrar bloque: ' + error.message);
@@ -575,11 +578,9 @@
       const selectedId = document.getElementById('profileSelect').value;
       const profileId = selectedId || name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, '_');
 
-      // 1. Guardar en apex_profiles
       const { error: pErr } = await sb.from('apex_profiles').upsert([{ id: profileId, name }]);
       if (pErr) return alert('Error al guardar perfil: ' + pErr.message);
 
-      // 2. Limpiar y reasignar bloques
       await sb.from('apex_profile_blocks').delete().eq('profile_id', profileId);
 
       const checkboxes = document.querySelectorAll('.profile-block-checkbox:checked');
