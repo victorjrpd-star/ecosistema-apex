@@ -70,6 +70,7 @@
     .btn-secondary { background: #1c1c1c; border: 1px solid #333; color: #ccc; margin-top: 6px; padding: 8px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; font-weight: 800; }
     .btn-danger { background: #380d0d; border: 1px solid #7f1d1d; color: #f87171; padding: 5px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; cursor: pointer; }
     .btn-edit { background: #1e293b; border: 1px solid #334155; color: #94a3b8; padding: 5px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; cursor: pointer; margin-right: 4px; }
+    .btn-pw { background: #1e1b4b; border: 1px solid #4338ca; color: #a5b4fc; padding: 5px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; cursor: pointer; margin-left: 4px; }
 
     .list-item { background: #1c1c1c; border: 1px solid #2a2a2a; padding: 10px; border-radius: 6px; margin-top: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; gap: 8px; }
     .badge { font-size: 0.65rem; font-weight: 900; text-transform: uppercase; padding: 3px 6px; border-radius: 4px; background: #222; border: 1px solid #444; }
@@ -77,6 +78,13 @@
     /* FILTROS USUARIOS */
     .filter-bar { display: flex; gap: 8px; margin-bottom: 12px; }
     .filter-bar .form-control { padding: 8px 10px; font-size: 0.78rem; }
+
+    /* MODAL FLOTANTE CONTRASEÑA */
+    #pwModal {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.85); backdrop-filter: blur(4px);
+      z-index: 10000; display: none; justify-content: center; align-items: center; padding: 20px;
+    }
   </style>
 </head>
 <body>
@@ -96,6 +104,23 @@
         <input type="password" id="adminPass" class="form-control" placeholder="••••••••">
       </div>
       <button class="btn" onclick="verificarAccesoAdmin()">Entrar al Panel</button>
+    </div>
+  </div>
+
+  <!-- MODAL CAMBIAR CONTRASEÑA -->
+  <div id="pwModal">
+    <div class="auth-card" style="position: relative;">
+      <div class="section-title">🔑 Restablecer Contraseña</div>
+      <p id="pwModalUserDesc" style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 12px;"></p>
+      <input type="hidden" id="pwModalUserId">
+      <div class="form-group">
+        <label>Nueva Contraseña</label>
+        <input type="text" id="pwModalNewInput" class="form-control" placeholder="Mín 6 caracteres">
+      </div>
+      <div style="display: flex; gap: 8px; margin-top: 10px;">
+        <button class="btn" style="flex: 1;" onclick="ejecutarCambioPassword()">Guardar</button>
+        <button class="btn-secondary" style="flex: 1;" onclick="cerrarModalPassword()">Cancelar</button>
+      </div>
     </div>
   </div>
 
@@ -286,14 +311,12 @@
     }
 
     function actualizarSelectorRoles() {
-      // 1. Selector en formulario nuevo usuario
       const nuSelect = document.getElementById('nuRole');
       nuSelect.innerHTML = '';
       dbProfiles.forEach(p => {
         nuSelect.innerHTML += `<option value="${p.id}">${p.name.toUpperCase()}</option>`;
       });
 
-      // 2. Selector en barra de filtro
       const filterSelect = document.getElementById('userRoleFilter');
       const valActual = filterSelect.value;
       filterSelect.innerHTML = '<option value="todos">Todos los Roles</option>';
@@ -304,7 +327,6 @@
     }
 
     function renderUI() {
-      // 1. Checkboxes en roles
       const bContainer = document.getElementById('blocksCheckboxContainer');
       bContainer.innerHTML = '';
       dbBlocks.forEach(b => {
@@ -316,7 +338,6 @@
         `;
       });
 
-      // 2. Lista de bloques con botones de editar y eliminar
       const blkList = document.getElementById('blocksListContainer');
       document.getElementById('blocksCountTxt').innerText = `${dbBlocks.length} Bloques`;
       blkList.innerHTML = '';
@@ -341,7 +362,6 @@
         });
       }
 
-      // 3. Selector de perfiles
       const select = document.getElementById('profileSelect');
       const selectVal = select.value;
       select.innerHTML = '<option value="">[ + CREAR NUEVO PERFIL / ROL ]</option>';
@@ -350,7 +370,6 @@
       });
       select.value = selectVal;
 
-      // 4. Resumen de perfiles en la nube
       const listCont = document.getElementById('profilesListContainer');
       listCont.innerHTML = '';
       dbProfiles.forEach(p => {
@@ -372,7 +391,7 @@
       });
     }
 
-    /* ================= USUARIOS CON FILTRO TOLERANTE ================= */
+    /* ================= USUARIOS CON GÉNERO, PROGRAMA Y CAMBIO DE CLAVE ================= */
     async function cargarUsuarios() {
       const container = document.getElementById('usersListContainer');
       container.innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;">Consultando directorio...</span>';
@@ -404,7 +423,8 @@
 
         const name = (u.name || '').toLowerCase();
         const email = (u.email || '').toLowerCase();
-        const coincideTexto = !search || name.includes(search) || email.includes(search);
+        const programa = (u.programa || '').toLowerCase();
+        const coincideTexto = !search || name.includes(search) || email.includes(search) || programa.includes(search);
 
         return coincideRol && coincideTexto;
       });
@@ -424,16 +444,21 @@
           opcionesRolesHTML += `<option value="${p.id}" ${userRolActual === pid ? 'selected' : ''}>${p.name.toUpperCase()}</option>`;
         });
 
+        const generoTxt = u.genero ? ` · <span style="color:#aaa;">${u.genero}</span>` : '';
+        const programaTxt = u.programa ? `<br><small style="color:var(--accent); font-weight:700;">Carrera/Prog: ${u.programa}</small>` : '';
+
         container.innerHTML += `
           <div class="list-item">
             <div>
-              <strong>${u.name || 'Sin nombre'}</strong><br>
-              <span style="color: var(--text-muted); font-size: 0.72rem;">${u.email}</span>
+              <strong>${u.name || 'Sin nombre'}</strong>${generoTxt}<br>
+              <span style="color: var(--text-muted); font-size: 0.72rem;">${u.email || 'Sin correo'}</span>
+              ${programaTxt}
             </div>
-            <div>
+            <div style="display:flex; align-items:center; gap: 4px;">
               <select class="form-control" style="padding: 4px 6px; font-size: 0.72rem;" onchange="actualizarRolUsuario('${u.id}', this.value)">
                 ${opcionesRolesHTML}
               </select>
+              <button class="btn-pw" title="Restablecer Contraseña" onclick="abrirModalPassword('${u.id}', '${u.email || ''}', '${u.name || ''}')">🔑</button>
             </div>
           </div>
         `;
@@ -454,6 +479,47 @@
           userObj.profile_id = newRole;
           userObj.role = newRole;
         }
+      }
+    }
+
+    /* ================= GESTIÓN DE CONTRASEÑA SOBRESCRITA ================= */
+    function abrirModalPassword(userId, email, name) {
+      document.getElementById('pwModalUserId').value = userId;
+      document.getElementById('pwModalUserDesc').innerText = `Sobrescribir clave para: ${name ? name + ' (' + email + ')' : email}`;
+      document.getElementById('pwModalNewInput').value = '';
+      document.getElementById('pwModal').style.display = 'flex';
+      document.getElementById('pwModalNewInput').focus();
+    }
+
+    function cerrarModalPassword() {
+      document.getElementById('pwModal').style.display = 'none';
+      document.getElementById('pwModalUserId').value = '';
+      document.getElementById('pwModalNewInput').value = '';
+    }
+
+    async function ejecutarCambioPassword() {
+      const userId = document.getElementById('pwModalUserId').value;
+      const newPassword = document.getElementById('pwModalNewInput').value.trim();
+
+      if (!newPassword || newPassword.length < 6) {
+        return alert('La contraseña debe tener mínimo 6 caracteres.');
+      }
+
+      const { data, error } = await sb.rpc('admin_cambiar_password', {
+        p_user_id: userId,
+        p_new_password: newPassword
+      });
+
+      if (error) {
+        alert('Error al actualizar contraseña: ' + error.message);
+        return;
+      }
+
+      if (data && data.success) {
+        alert(`¡Contraseña sobrescrita exitosamente!\nNueva clave: ${newPassword}`);
+        cerrarModalPassword();
+      } else {
+        alert('Fallo: ' + (data ? data.message : 'Error desconocido al procesar la clave.'));
       }
     }
 
