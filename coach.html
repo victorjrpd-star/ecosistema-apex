@@ -176,7 +176,7 @@
     .carousel-card-title span { font-size: 0.62rem; color: var(--text-muted); text-transform: uppercase; }
 
     .carousel-progress-track { width: 100%; height: 5px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; margin: 6px 0; }
-    .carousel-progress-fill { height: 100%; width: 0%; background: var(--status-ok); border-radius: 3px; }
+    .carousel-progress-fill { height: 100%; width: 0%; background: var(--status-ok); border-radius: 3px; transition: width 0.5s ease; }
 
     /* BOTONES */
     .btn-main {
@@ -316,7 +316,7 @@
       </div>
     </div>
 
-    <!-- SUBMÓDULO 3: EQUIPO & ANALÍTICA UNIFICADA (TARJETAS INMERSIVAS CON VIDEO Y MALLA HEXAGONAL) -->
+    <!-- SUBMÓDULO 3: EQUIPO & ANALÍTICA UNIFICADA -->
     <div class="panel-view" id="modulo_equipo">
       <div class="header">
         <div class="title">Apex <span>Equipo</span></div>
@@ -1035,7 +1035,7 @@
     };
 
     /* ==========================================================================
-       6. MÓDULO DE EQUIPO Y ANALÍTICA (TARJETAS INMERSIVAS CON VIDEO Y MALLA)
+       6. MÓDULO DE EQUIPO Y ANALÍTICA (PURGA AUTOMÁTICA > 3 MESES INACTIVOS)
        ========================================================================== */
     let globalTeamUsers = [];
     let globalTeamCheckins = [];
@@ -1109,15 +1109,32 @@
         haceSesentaDias.setDate(haceSesentaDias.getDate() - 60);
         haceSesentaDias.setHours(0, 0, 0, 0);
 
-        const filteredUsers = globalTeamUsers.filter(user => {
-          if (currentTeamFilter === 'todos') return true;
+        // Regla de inactividad de 3 meses (90 días) para purgar registros sin actividad
+        const haceTresMeses = new Date();
+        haceTresMeses.setMonth(haceTresMeses.getMonth() - 3);
 
-          let activo = false;
+        const filteredUsers = globalTeamUsers.filter(user => {
+          const emailUser = user.email?.toLowerCase();
+
+          // Verificar última actividad (check-in, calificación o ajuste en los últimos 3 meses)
+          const ultimaActividadCheckin = globalTeamCheckins.find(c => c.user_email?.toLowerCase() === emailUser && new Date(c.created_at) >= haceTresMeses);
+          const ultimaActividadRating = globalTeamRatings.find(r => r.user_email?.toLowerCase() === emailUser && new Date(r.created_at) >= haceTresMeses);
+          const ultimaActividadSup = globalTeamSupervisions.find(s => s.user_email?.toLowerCase() === emailUser && new Date(s.created_at) >= haceTresMeses);
+          const tieneActividadReciente = ultimaActividadCheckin || ultimaActividadRating || ultimaActividadSup;
+
           const rol = (user.role || '').toLowerCase();
           const perfil = (user.profile_id || '').toLowerCase();
           const esStaff = ['admin', 'administrador', 'coach', 'supervisor', 'coordinador'].includes(rol) || 
                           ['admin', 'administrador', 'coach', 'supervisor', 'coordinador'].includes(perfil);
 
+          // Si no es staff y lleva más de 3 meses sin ninguna actividad, se descarta del carretel
+          if (!esStaff && !tieneActividadReciente) {
+            return false;
+          }
+
+          if (currentTeamFilter === 'todos') return true;
+
+          let activo = false;
           if (esStaff) return true;
 
           if (user.subscription_status === 'activo' && user.is_active !== false) {
@@ -1132,7 +1149,7 @@
         });
 
         if (filteredUsers.length === 0) {
-          carousel.innerHTML = '<div style="font-size:0.7rem; color:var(--text-muted); padding:10px;">No hay strikers en este filtro.</div>';
+          carousel.innerHTML = '<div style="font-size:0.7rem; color:var(--text-muted); padding:10px;">No hay strikers activos recientes.</div>';
           return;
         }
 
@@ -1169,7 +1186,6 @@
           let ptsBimestrales = ptsCheckins + ptsRatings + ptsSupervisions + ptsAdjustments;
           let progPercent = Math.min(110, Math.round((ptsBimestrales / 240) * 100));
 
-          // Inyección de video de fondo y malla hexagonal superpuesta
           item.innerHTML = `
             <video class="card-video-bg" autoplay muted loop playsinline>
               <source src="https://assets.mixkit.co/videos/preview/mixkit-digital-animation-of-screens-and-numbers-31998-large.mp4" type="video/mp4">
