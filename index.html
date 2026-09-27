@@ -83,7 +83,7 @@
       background: rgba(0,0,0,0.85); z-index: 3000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(4px);
     }
     .modal-overlay.open { display: flex; }
-    .modal-box { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; max-width: 360px; width: 100%; }
+    .modal-box { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; max-width: 380px; width: 100%; max-height: 90vh; overflow-y: auto; }
     .modal-title { font-size: 1rem; font-weight: 900; text-transform: uppercase; margin-bottom: 14px; text-align: center; color: #fff; }
     
     .profile-preview-wrapper {
@@ -104,6 +104,7 @@
       text-align: center; font-size: 0.65rem; color: var(--text-muted); font-weight: 700;
       text-transform: uppercase; margin-bottom: 12px;
     }
+    .modal-divider { border: 0; border-top: 1px solid var(--border); margin: 16px 0; }
   </style>
 </head>
 <body>
@@ -195,7 +196,21 @@
       </div>
 
       <button class="btn" id="btnGuardarAjustes" onclick="guardarAjustes()">Guardar Cambios</button>
-      <button class="btn btn-secondary" onclick="closeConfigModal()">Cancelar</button>
+
+      <hr class="modal-divider">
+
+      <div class="modal-title" style="font-size: 0.9rem; margin-bottom: 10px;">Seguridad</div>
+      <div class="form-group">
+        <label>Nueva Contraseña</label>
+        <input type="password" id="cfgNewPassword" class="form-control" placeholder="Mínimo 6 caracteres">
+      </div>
+      <div class="form-group">
+        <label>Confirmar Nueva Contraseña</label>
+        <input type="password" id="cfgConfirmPassword" class="form-control" placeholder="Repite la contraseña">
+      </div>
+      <button class="btn btn-secondary" onclick="actualizarContrasenaCuenta()">Actualizar Contraseña</button>
+
+      <button class="btn btn-secondary" style="margin-top: 14px;" onclick="closeConfigModal()">Cerrar</button>
     </div>
   </div>
 
@@ -413,6 +428,8 @@
     function openConfigModal() {
       if (!currentSessionUser) return;
       document.getElementById('cfgName').value = currentSessionUser.name || '';
+      document.getElementById('cfgNewPassword').value = '';
+      document.getElementById('cfgConfirmPassword').value = '';
       actualizarPreviewFoto(currentSessionUser.photo_url || currentSessionUser.avatar_url);
       document.getElementById('configModal').classList.add('open');
     }
@@ -503,6 +520,31 @@
       currentSessionUser.name = newName;
       alert('¡Ajustes guardados con éxito!');
       closeConfigModal();
+    }
+
+    async function actualizarContrasenaCuenta() {
+      const p1 = document.getElementById('cfgNewPassword').value.trim();
+      const p2 = document.getElementById('cfgConfirmPassword').value.trim();
+
+      if (!p1 || p1.length < 6) {
+        alert('La nueva contraseña debe tener al menos 6 caracteres.');
+        return;
+      }
+      if (p1 !== p2) {
+        alert('Las contraseñas no coinciden.');
+        return;
+      }
+
+      const { error } = await sb.auth.updateUser({ password: p1 });
+
+      if (error) {
+        alert('Error al actualizar la contraseña: ' + error.message);
+      } else {
+        alert('¡Contraseña actualizada con éxito! Úsala en tu próximo inicio de sesión.');
+        document.getElementById('cfgNewPassword').value = '';
+        document.getElementById('cfgConfirmPassword').value = '';
+        closeConfigModal();
+      }
     }
 
     window.onload = initPortal;
