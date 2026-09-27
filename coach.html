@@ -133,18 +133,35 @@
     .metric-val { font-size: 0.8rem; font-weight: 800; color: #fff; }
     .metric-penalty-tag { font-size: 0.6rem; color: var(--accent); font-weight: 800; display: none; margin-left: 2px; }
 
-    /* CARRETEL TÁCTICO DE EQUIPO */
+    /* FILTROS DE EQUIPO (ACTIVOS / TODOS) */
+    .team-filter-bar { display: flex; gap: 8px; margin-bottom: 12px; }
+    .filter-chip {
+      background: #121214; border: 1px solid var(--border); color: var(--text-muted);
+      padding: 6px 12px; border-radius: 20px; font-size: 0.68rem; font-weight: 800; text-transform: uppercase;
+      cursor: pointer; transition: 0.2s; user-select: none;
+    }
+    .filter-chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    /* CARRETEL TÁCTICO DE EQUIPO GRANDE (FICHA STRIKER) */
     .team-carousel {
-      display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none; margin-bottom: 14px;
+      display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none; margin-bottom: 14px;
     }
     .team-carousel::-webkit-scrollbar { display: none; }
-    .carousel-item {
-      background: #121214; border: 1px solid var(--border); border-radius: 8px; padding: 8px;
-      min-width: 80px; display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: 0.2s; flex-shrink: 0;
+    
+    .carousel-card-item {
+      background: #121214; border: 1px solid var(--border); border-radius: 10px; padding: 12px;
+      min-width: 220px; max-width: 220px; display: flex; flex-direction: column; cursor: pointer; transition: 0.2s; flex-shrink: 0;
+      position: relative; overflow: hidden;
     }
-    .carousel-item.active { border-color: var(--accent); background: rgba(229,9,20,0.08); }
-    .carousel-item img, .carousel-item .avatar-circle { width: 42px; height: 42px; margin-bottom: 6px; }
-    .carousel-name { font-size: 0.65rem; font-weight: 800; text-align: center; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+    .carousel-card-item.active { border-color: var(--accent); background: rgba(229,9,20,0.06); }
+    
+    .carousel-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .carousel-card-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border); }
+    .carousel-card-title strong { display: block; font-size: 0.8rem; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; }
+    .carousel-card-title span { font-size: 0.62rem; color: var(--text-muted); text-transform: uppercase; }
+
+    .carousel-progress-track { width: 100%; height: 5px; background: #1a1a20; border-radius: 3px; overflow: hidden; margin: 6px 0; }
+    .carousel-progress-fill { height: 100%; width: 0%; background: var(--status-ok); border-radius: 3px; }
 
     /* BOTONES */
     .btn-main {
@@ -318,12 +335,17 @@
         </div>
       </div>
 
-      <!-- Carretel Táctico de Strikers -->
+      <!-- Carretel Táctico de Fichas de Strikers con Filtro Activos/Todos -->
       <div class="card">
-        <div class="card-title">Carretel de Strikers</div>
-        <div class="card-desc">Selecciona un miembro para desplegar su ficha de rendimiento.</div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <div class="card-title" style="margin-bottom:0;">Fichas de Strikers</div>
+          <div class="team-filter-bar" style="margin-bottom:0;">
+            <div class="filter-chip active" id="chipActivos" onclick="ApexEquipo.filtrarCarretel('activos')">Activos</div>
+            <div class="filter-chip" id="chipTodos" onclick="ApexEquipo.filtrarCarretel('todos')">Todos</div>
+          </div>
+        </div>
         <div class="team-carousel" id="teamCarouselContainer">
-          <div style="font-size:0.7rem; color:var(--text-muted); padding:10px;">Cargando carretel...</div>
+          <div style="font-size:0.7rem; color:var(--text-muted); padding:10px;">Cargando carretel táctico...</div>
         </div>
       </div>
 
@@ -959,64 +981,124 @@
     /* ==========================================================================
        6. MÓDULO DE EQUIPO Y ANALÍTICA GLOBAL (ESTILO LOOKER STUDIO)
        ========================================================================== */
+    let globalTeamUsers = [];
+    let globalTeamCheckins = [];
+    let currentTeamFilter = 'activos';
+
     const ApexEquipo = {
       cargarAnaliticaGlobal: async function() {
         if (!supabaseClient) return;
 
         try {
-          // Consultar todos los check-ins y usuarios
           const { data: checkins } = await supabaseClient.from('apex_checkins').select('*');
           const { data: users } = await supabaseClient.from('apex_users').select('*');
 
           if (!users) return;
 
+          globalTeamUsers = users;
+          globalTeamCheckins = checkins || [];
+
           // KPIs Generales del Equipo
           document.getElementById('teamTotalStrikers').innerText = users.length;
-          document.getElementById('teamTotalCheckins').innerText = checkins ? checkins.length : 0;
+          document.getElementById('teamTotalCheckins').innerText = globalTeamCheckins.length;
 
-          if (checkins && checkins.length > 0) {
+          if (globalTeamCheckins.length > 0) {
             let totalRpe = 0;
             let totalFun = 0;
-            checkins.forEach(c => {
+            globalTeamCheckins.forEach(c => {
               totalRpe += parseFloat(c.rpe || c.rendimiento || 0);
               totalFun += parseFloat(c.divertiste || 0);
             });
-            document.getElementById('teamAvgRpe').innerText = (totalRpe / checkins.length).toFixed(1);
-            document.getElementById('teamAvgFun').innerText = (totalFun / checkins.length).toFixed(1);
+            document.getElementById('teamAvgRpe').innerText = (totalRpe / globalTeamCheckins.length).toFixed(1);
+            document.getElementById('teamAvgFun').innerText = (totalFun / globalTeamCheckins.length).toFixed(1);
           } else {
             document.getElementById('teamAvgRpe').innerText = '0';
             document.getElementById('teamAvgFun').innerText = '0';
           }
 
-          // Renderizar Carretel Táctico
-          const carousel = document.getElementById('teamCarouselContainer');
-          carousel.innerHTML = '';
-
-          users.forEach(user => {
-            const item = document.createElement('div');
-            item.className = 'carousel-item';
-            item.onclick = () => ApexEquipo.seleccionarStriker(user, checkins || []);
-
-            const avatarHtml = user.photo_url 
-              ? `<img src="${user.photo_url}" class="avatar-circle" alt="Avatar">`
-              : `<div class="avatar-circle">${(user.name || user.email || 'ST').substring(0,2).toUpperCase()}</div>`;
-
-            item.innerHTML = `
-              ${avatarHtml}
-              <span class="carousel-name">${user.name || user.email.split('@')[0]}</span>
-            `;
-            carousel.appendChild(item);
-          });
+          this.renderCarretel();
 
         } catch (err) {
           console.warn("Error cargando analítica de equipo:", err);
         }
       },
 
-      seleccionarStriker: function(user, checkins) {
-        // Marcar activo en el carretel
-        document.querySelectorAll('.carousel-item').forEach(el => el.classList.remove('active'));
-        event.currentTarget.classList.add('active');
+      filtrarCarretel: function(tipo) {
+        currentTeamFilter = tipo;
+        document.getElementById('chipActivos').classList.toggle('active', tipo === 'activos');
+        document.getElementById('chipTodos').classList.toggle('active', tipo === 'todos');
+        this.renderCarretel();
+      },
+
+      renderCarretel: function() {
+        const carousel = document.getElementById('teamCarouselContainer');
+        carousel.innerHTML = '';
+
+        const hoy = new Date();
+
+        const filteredUsers = globalTeamUsers.filter(user => {
+          if (currentTeamFilter === 'todos') return true;
+
+          // Validar si está activo por fecha de vencimiento o estatus
+          let activo = false;
+          if (user.subscription_status === 'activo' && user.is_active !== false) {
+            if (user.subscription_expires_at) {
+              const expDate = new Date(user.subscription_expires_at);
+              if (expDate >= hoy) activo = true;
+            } else {
+              activo = true;
+            }
+          }
+          return activo;
+        });
+
+        if (filteredUsers.length === 0) {
+          carousel.innerHTML = '<div style="font-size:0.7rem; color:var(--text-muted); padding:10px;">No hay strikers en este filtro.</div>';
+          return;
+        }
+
+        filteredUsers.forEach(user => {
+          const item = document.createElement('div');
+          item.className = 'carousel-card-item';
+          item.onclick = (e) => ApexEquipo.seleccionarStriker(user, globalTeamCheckins, e.currentTarget);
+
+          const avatarUrl = user.photo_url || user.avatar_url;
+          const avatarHtml = avatarUrl 
+            ? `<img src="${avatarUrl}" class="carousel-card-avatar" alt="Avatar">`
+            : `<div class="carousel-card-avatar avatar-circle" style="width:40px;height:40px;">${(user.name || 'ST').substring(0,2).toUpperCase()}</div>`;
+
+          // Calcular progreso y estadísticas rápidas del striker
+          const userCheckins = globalTeamCheckins.filter(c => c.user_email?.toLowerCase() === user.email?.toLowerCase());
+          const totalCheckins = userCheckins.length;
+          const progPercent = Math.min(100, Math.round((totalCheckins / 30) * 100)); // Meta base de 30 check-ins
+
+          item.innerHTML = `
+            <div class="carousel-card-header">
+              ${avatarHtml}
+              <div class="carousel-card-title">
+                <strong>${user.name || 'Striker'}</strong>
+                <span>${user.subscription_status === 'activo' ? 'Activo' : 'Inactivo'}</span>
+              </div>
+            </div>
+            <div style="font-size:0.62rem; color:var(--text-muted); display:flex; justify-content:space-between; margin-top:4px;">
+              <span>Progreso</span>
+              <span style="color:#fff; font-weight:800;">${progPercent}%</span>
+            </div>
+            <div class="carousel-progress-track">
+              <div class="carousel-progress-fill" style="width: ${progPercent}%;"></div>
+            </div>
+            <div style="font-size:0.6rem; color:var(--text-muted); margin-top:4px; display:flex; justify-content:space-between;">
+              <span>Check-ins: <strong style="color:#fff;">${totalCheckins}</strong></span>
+              <span style="color:var(--accent);">Ver ficha ➔</span>
+            </div>
+          `;
+          carousel.appendChild(item);
+        });
+      },
+
+      seleccionarStriker: function(user, checkins, elementNode) {
+        document.querySelectorAll('.carousel-card-item').forEach(el => el.classList.remove('active'));
+        elementNode.classList.add('active');
 
         const card = document.getElementById('teamIndividualCard');
         card.style.display = 'block';
@@ -1030,13 +1112,13 @@
         statusBadge.style.color = user.subscription_status === 'activo' ? 'var(--status-ok)' : 'var(--accent)';
 
         const avatarContainer = document.getElementById('indAvatar');
-        if (user.photo_url) {
-          avatarContainer.outerHTML = `<img id="indAvatar" src="${user.photo_url}" class="avatar-circle avatar-sm" alt="Foto">`;
+        const avatarUrl = user.photo_url || user.avatar_url;
+        if (avatarUrl) {
+          avatarContainer.outerHTML = `<img id="indAvatar" src="${avatarUrl}" class="avatar-circle avatar-sm" alt="Foto">`;
         } else {
           avatarContainer.outerHTML = `<div id="indAvatar" class="avatar-circle avatar-sm">${(user.name || 'ST').substring(0,2).toUpperCase()}</div>`;
         }
 
-        // Filtrar check-ins personales del striker
         const userCheckins = checkins.filter(c => c.user_email?.toLowerCase() === user.email?.toLowerCase());
         document.getElementById('indCheckinsCount').innerText = userCheckins.length;
 
