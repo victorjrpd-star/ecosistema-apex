@@ -17,6 +17,7 @@
       --text-main: #f5f5f7;
       --text-muted: #73737a;
       --status-ok: #22c55e;
+      --tier-color: #ffffff;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     html, body { background: var(--bg); color: var(--text-main); width: 100vw; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
@@ -43,6 +44,47 @@
     .title span { color: var(--accent); }
     .badge-coach { font-size: 0.65rem; font-weight: 700; background: #141416; color: var(--text-muted); border: 1px solid var(--border); padding: 4px 8px; border-radius: 3px; }
 
+    /* CABECERA DE PERFIL COACH (SOLO LECTURA) */
+    .profile-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px 14px; margin-bottom: 12px;
+    }
+    .profile-info { display: flex; align-items: center; gap: 12px; }
+    .avatar-wrapper { position: relative; flex-shrink: 0; }
+    .avatar-circle {
+      width: 44px; height: 44px; border-radius: 50%; object-fit: cover;
+      border: 1px solid var(--border); background: #1c1c22; display: flex;
+      align-items: center; justify-content: center; font-weight: 800; font-size: 0.8rem; color: #fff;
+      flex-shrink: 0;
+    }
+    .avatar-sm { width: 34px; height: 34px; font-size: 0.75rem; }
+    .profile-text strong { display: block; font-size: 0.88rem; color: #fff; }
+    .profile-text span { font-size: 0.68rem; color: var(--text-muted); }
+    .role-pill {
+      font-size: 0.65rem; font-weight: 800; padding: 4px 8px; border-radius: 4px;
+      text-transform: uppercase; background: #1c1c1c; border: 1px solid var(--border); color: var(--accent);
+    }
+
+    /* BARRA DE PROGRESO GLOBAL APEX */
+    .progress-card {
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px 14px; margin-bottom: 14px;
+    }
+    .progress-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+    .progress-tier-title { font-size: 0.75rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; color: var(--tier-color); }
+    .progress-percent-val { font-size: 1rem; font-weight: 900; color: var(--tier-color); }
+    .progress-bar-track {
+      width: 100%; height: 8px; background: #18181c; border-radius: 4px;
+      overflow: hidden; border: 1px solid #25252a; margin-bottom: 6px;
+    }
+    .progress-bar-fill {
+      height: 100%; width: 0%; background: var(--tier-color);
+      border-radius: 4px; transition: width 0.6s ease;
+      box-shadow: 0 0 10px var(--tier-color);
+    }
+    .progress-meta-grid { display: flex; justify-content: space-between; font-size: 0.65rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
+
     .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 14px; }
     .card-title { font-size: 0.74rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #fff; margin-bottom: 4px; }
     .card-desc { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 12px; }
@@ -65,15 +107,6 @@
     .suggestion-item { padding: 10px 12px; border-bottom: 1px solid var(--border); cursor: pointer; font-size: 0.78rem; display: flex; align-items: center; gap: 10px; }
     .suggestion-item:last-child { border-bottom: none; }
     .suggestion-item:hover, .suggestion-item:active { background: #1c1c22; }
-
-    /* AVATARES */
-    .avatar-circle {
-      width: 42px; height: 42px; border-radius: 50%; object-fit: cover;
-      border: 1px solid var(--border); background: #1c1c22; display: flex;
-      align-items: center; justify-content: center; font-weight: 800; font-size: 0.8rem; color: #fff;
-      flex-shrink: 0;
-    }
-    .avatar-sm { width: 34px; height: 34px; font-size: 0.75rem; }
 
     /* FICHA DEL STRIKER */
     .striker-summary-card { background: var(--card-sub); border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-top: 10px; display: none; }
@@ -119,6 +152,38 @@
   </nav>
 
   <div class="coach-viewport">
+
+    <!-- CABECERA RESUMEN DEL COACH (VINCULADA A INDEX.HTML) -->
+    <div class="profile-bar">
+      <div class="profile-info">
+        <div class="avatar-wrapper">
+          <div id="displayAvatarCoach" class="avatar-circle">CO</div>
+        </div>
+        <div class="profile-text">
+          <strong id="displayNombreCoach">Coach Apex</strong>
+          <span id="displayEmailCoach">coach@apexboxing.com</span>
+        </div>
+      </div>
+      <div class="role-pill">COACH</div>
+    </div>
+
+    <!-- TARJETA DE NIVEL GLOBAL UNIFICADA -->
+    <div class="progress-card">
+      <div class="progress-header">
+        <div>
+          <span style="font-size: 0.58rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800;">Nivel Bimestral Global</span>
+          <div class="progress-tier-title" id="coachTierLabel">INICIADO</div>
+        </div>
+        <div class="progress-percent-val" id="coachTierPercent">0%</div>
+      </div>
+      <div class="progress-bar-track">
+        <div class="progress-bar-fill" id="coachTierBarFill"></div>
+      </div>
+      <div class="progress-meta-grid">
+        <span id="coachPtsTxt">0 / 240 PTS</span>
+        <span id="coachMetaTxt">Escala Global Apex</span>
+      </div>
+    </div>
     
     <!-- SUBMÓDULO 1: VALIDACIÓN CHECK-INS -->
     <div class="panel-view is-visible" id="modulo_checkins">
@@ -236,6 +301,7 @@
     const CONFIG_SUPABASE_KEY = 'sb_publishable_xAMs8LpCwyMyoql3ohoJUQ_BIRhBQoD';
 
     let supabaseClient = null;
+    let currentCoachEmail = 'coach@apexboxing.com';
 
     function initSupabase() {
       let url = CONFIG_SUPABASE_URL;
@@ -256,7 +322,94 @@
     }
 
     /* ==========================================================================
-       3. GESTIÓN DE CHECK-INS CON FOTO Y NOMBRE
+       3. PERFIL Y NIVEL GLOBAL UNIFICADO (RPC)
+       ========================================================================== */
+    async function initPerfilCoach() {
+      const cachedAvatar = localStorage.getItem('apex_user_avatar');
+      if (cachedAvatar) {
+        renderAvatarVisualCoach(cachedAvatar);
+      }
+
+      if (supabaseClient) {
+        try {
+          const { data: { session } } = await supabaseClient.auth.getSession();
+          if (session && session.user) {
+            currentCoachEmail = session.user.email;
+          }
+        } catch (e) {}
+      }
+
+      if (!currentCoachEmail || currentCoachEmail === 'coach@apexboxing.com') {
+        currentCoachEmail = localStorage.getItem('apex_coach_email') || localStorage.getItem('apex_user_email') || 'coach@apexboxing.com';
+      }
+
+      document.getElementById('displayEmailCoach').innerText = currentCoachEmail;
+
+      await cargarDatosPerfilCoach();
+      await actualizarNivelGlobalCoach();
+    }
+
+    function renderAvatarVisualCoach(url, fallback = 'CO') {
+      const displayEl = document.getElementById('displayAvatarCoach');
+      if (!displayEl) return;
+      if (url) {
+        if (displayEl.tagName === 'IMG') {
+          displayEl.src = url;
+        } else {
+          displayEl.outerHTML = `<img id="displayAvatarCoach" src="${url}" class="avatar-circle" alt="Foto">`;
+        }
+      } else {
+        displayEl.outerHTML = `<div id="displayAvatarCoach" class="avatar-circle">${fallback.substring(0, 2).toUpperCase()}</div>`;
+      }
+    }
+
+    async function cargarDatosPerfilCoach() {
+      if (!supabaseClient || !currentCoachEmail) return;
+      try {
+        const { data } = await supabaseClient
+          .from('apex_users')
+          .select('*')
+          .eq('email', currentCoachEmail)
+          .single();
+
+        if (data) {
+          document.getElementById('displayNombreCoach').innerText = data.name || 'Coach Apex';
+          const avatarUrl = data.photo_url || data.avatar_url || localStorage.getItem('apex_user_avatar');
+          renderAvatarVisualCoach(avatarUrl, data.name || data.email || 'CO');
+        }
+      } catch (err) {
+        console.warn("Perfil coach en espera.");
+      }
+    }
+
+    async function actualizarNivelGlobalCoach() {
+      if (!supabaseClient || !currentCoachEmail) return;
+
+      try {
+        const { data: res, error } = await supabaseClient.rpc('obtener_puntos_globales_apex', { p_email: currentCoachEmail });
+        if (error || !res) return;
+
+        const ptsTotales = parseFloat(res.pts_totales) || 0;
+        const porcentaje = parseInt(res.porcentaje) || 0;
+        const nivel = res.nivel || 'INICIADO';
+        const color = res.color || '#ffffff';
+
+        document.getElementById('coachPtsTxt').innerText = `${ptsTotales.toFixed(1)} / 240 PTS`;
+        document.getElementById('coachTierPercent').innerText = `${porcentaje}%`;
+        document.getElementById('coachTierLabel').innerText = nivel;
+        document.documentElement.style.setProperty('--tier-color', color);
+
+        const fill = document.getElementById('coachTierBarFill');
+        fill.style.width = `${Math.min(100, porcentaje)}%`;
+        fill.style.background = color;
+        fill.style.boxShadow = `0 0 10px ${color}66`;
+      } catch (err) {
+        console.warn("Error en RPC global coach:", err);
+      }
+    }
+
+    /* ==========================================================================
+       4. GESTIÓN DE CHECK-INS CON FOTO Y NOMBRE
        ========================================================================== */
     const METRIC_KEYS = [
       { key: 'rendimiento', label: 'Rendimiento' },
@@ -516,11 +669,13 @@
         if (pendingRecords.length === 0) {
           document.getElementById('checkinsList').innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); text-align:center; padding:16px;">No hay check-ins pendientes por validar.</div>';
         }
+
+        await actualizarNivelGlobalCoach();
       }
     };
 
     /* ==========================================================================
-       4. GESTIÓN DE MEMBRESÍAS CON BÚSQUEDA VISUAL
+       5. GESTIÓN DE MEMBRESÍAS CON BÚSQUEDA VISUAL
        ========================================================================== */
     let selectedStriker = null;
 
@@ -711,10 +866,20 @@
     };
 
     /* ==========================================================================
-       5. ARRANQUE
+       6. ESCUCHA DE EVENTOS EN VIVO DESDE APEX CORE (INDEX.HTML)
        ========================================================================== */
-    window.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'APEX_AVATAR_UPDATED' && event.data.avatarUrl) {
+        renderAvatarVisualCoach(event.data.avatarUrl);
+      }
+    });
+
+    /* ==========================================================================
+       7. ARRANQUE
+       ========================================================================== */
+    window.addEventListener('DOMContentLoaded', async () => {
       initSupabase();
+      await initPerfilCoach();
       ApexCheckins.cargar();
       ApexMembresias.cargarDirectorio();
     });
