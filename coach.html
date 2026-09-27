@@ -279,15 +279,13 @@
         }
 
         try {
-          // 1. Asegurar usuarios en memoria para cruzar foto y nombre
           if (registeredUsersCache.length === 0) {
             const { data: usersData } = await supabaseClient
               .from('apex_users')
-              .select('id, email, name, avatar_url, photo_url');
+              .select('id, email, name, photo_url, role, is_active, subscription_status, subscription_expires_at');
             if (usersData) registeredUsersCache = usersData;
           }
 
-          // 2. Traer check-ins pendientes
           const { data, error } = await supabaseClient
             .from('apex_checkins')
             .select('*')
@@ -314,7 +312,6 @@
               curr[m.key] = num;
             });
 
-            // Encontrar perfil de usuario
             const user = registeredUsersCache.find(u => 
               (u.id && u.id === item.user_id) || 
               (u.email && u.email.toLowerCase() === (item.user_email || '').toLowerCase())
@@ -325,7 +322,7 @@
               original: orig,
               current: curr,
               userName: user?.name || null,
-              userAvatar: user?.avatar_url || user?.photo_url || null
+              userAvatar: user?.photo_url || null
             };
           });
 
@@ -345,7 +342,7 @@
             year: 'numeric' 
           }) + ' - ' + d.toLocaleTimeString('es-CO', { 
             hour: '2-digit', 
-            minute: '2-digit',
+            minute: '2-digit', 
             hour12: true 
           });
         } catch(e) {
@@ -494,7 +491,6 @@
             return;
           }
 
-          // Enviar notificación técnica al Striker (máx 7 días vigencia)
           try {
             const notifTitle = status === 'aprobado' ? 'Check-in Calibrado' : 'Check-in No Aprobado';
             const notifMsg = status === 'aprobado'
@@ -532,10 +528,13 @@
       cargarDirectorio: async function() {
         if (!supabaseClient) return;
         try {
-          const { data } = await supabaseClient
+          const { data, error } = await supabaseClient
             .from('apex_users')
-            .select('id, email, name, avatar_url, photo_url, subscription_status, membership_start, membership_end');
-          if (data) registeredUsersCache = data;
+            .select('id, email, name, photo_url, role, is_active, subscription_status, subscription_expires_at');
+          
+          if (!error && data) {
+            registeredUsersCache = data;
+          }
         } catch (e) {
           console.warn("Directorio en espera.");
         }
@@ -567,7 +566,7 @@
           const item = document.createElement('div');
           item.className = 'suggestion-item';
           const displayName = user.name || 'Sin nombre registrado';
-          const avatarUrl = user.avatar_url || user.photo_url;
+          const avatarUrl = user.photo_url;
           const avatarImg = avatarUrl 
             ? `<img src="${avatarUrl}" class="avatar-circle avatar-sm" alt="Foto">` 
             : `<div class="avatar-circle avatar-sm">${displayName.substring(0,2).toUpperCase()}</div>`;
@@ -591,23 +590,27 @@
         document.getElementById('suggestionsBox').style.display = 'none';
 
         const hoy = new Date();
-        hoy.setHours(0,0,0,0);
         let diasRestantes = 0;
 
-        if (user.membership_end) {
-          const fechaFin = new Date(user.membership_end + 'T00:00:00');
-          const diffMs = fechaFin - hoy;
+        if (user.subscription_expires_at) {
+          const fechaFin = new Date(user.subscription_expires_at);
+          const diffMs = fechaFin.getTime() - hoy.getTime();
           diasRestantes = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
         }
 
         const card = document.getElementById('strikerCard');
         document.getElementById('strikerName').textContent = user.name || 'Striker';
         document.getElementById('strikerEmailTxt').textContent = user.email;
-        document.getElementById('strikerEndVal').textContent = user.membership_end || 'Sin registro';
+        
+        let fechaVencStr = 'Sin registro';
+        if (user.subscription_expires_at) {
+          const fv = new Date(user.subscription_expires_at);
+          fechaVencStr = `${fv.getUTCDate()}/${fv.getUTCMonth() + 1}/${fv.getUTCFullYear()}`;
+        }
+        document.getElementById('strikerEndVal').textContent = fechaVencStr;
 
-        // Avatar de la tarjeta
         const avatarContainer = document.getElementById('strikerCardAvatar');
-        const avatarUrl = user.avatar_url || user.photo_url;
+        const avatarUrl = user.photo_url;
         if (avatarUrl) {
           avatarContainer.outerHTML = `<img id="strikerCardAvatar" src="${avatarUrl}" class="avatar-circle avatar-sm" alt="Striker">`;
         } else {
@@ -617,14 +620,14 @@
         const daysVal = document.getElementById('strikerDaysVal');
         const statusBadge = document.getElementById('strikerStatusBadge');
 
-        if (diasRestantes > 0) {
+        if (diasRestantes > 0 && user.subscription_status === 'activo') {
           daysVal.textContent = `${diasRestantes} días`;
           daysVal.style.color = 'var(--status-ok)';
           statusBadge.textContent = 'AL DÍA';
           statusBadge.style.background = 'rgba(34, 197, 94, 0.2)';
           statusBadge.style.color = 'var(--status-ok)';
         } else {
-          daysVal.textContent = 'Vencido';
+          daysVal.textContent = diasRestantes <= 0 ? 'Vencido' : 'Inactivo';
           daysVal.style.color = 'var(--accent)';
           statusBadge.textContent = 'INACTIVO';
           statusBadge.style.background = 'var(--accent-dim)';
@@ -657,13 +660,11 @@
         const dateVal = document.getElementById('paymentDateInput').value;
 
         const baseDate = dateVal ? new Date(dateVal + 'T00:00:00') : new Date();
-        baseDate.setHours(0,0,0,0);
-
         const expDate = new Date(baseDate);
-        expDate.setDate(expDate.getDate() + (planDays - 1));
+        expDate.setDate(expDate.getDate() + planDays);
 
-        const startDateStr = baseDate.toISOString().split('T')[0];
-        const expDateStr = expDate.toISOString().split('T')[0];
+        const expDateISO = expDate.toISOString();
+        const expDateLegible = `${expDate.getUTCDate()}/${expDate.getUTCMonth() + 1}/${expDate.getUTCFullYear()}`;
 
         const btn = document.getElementById('btnSubmitMembership');
         btn.disabled = true;
@@ -681,37 +682,27 @@
               receiptUrl = urlData.publicUrl;
             }
 
-            await supabaseClient.from('apex_payments').insert({
-              student_email: selectedStriker.email,
-              payment_date: startDateStr,
-              expiration_date: expDateStr,
-              receipt_url: receiptUrl,
-              registered_by: 'coach'
-            });
-
             await supabaseClient.from('apex_users').update({
               subscription_status: 'activo',
               is_active: true,
-              membership_start: startDateStr,
-              membership_end: expDateStr
+              subscription_expires_at: expDateISO
             }).eq('email', selectedStriker.email);
 
-            // Notificación al Striker de membresía activa
             await supabaseClient.from('apex_notifications').insert({
               user_email: selectedStriker.email,
               title: 'Membresía Activada',
-              message: `Tu acceso fue habilitado hasta el ${expDateStr}. ¡A entrenar!`,
+              message: `Tu acceso fue habilitado hasta el ${expDateLegible}. ¡A entrenar!`,
               type: 'membresia'
             });
           }
 
-          alert(`Membresía activada:\n${selectedStriker.email}\nVence: ${expDateStr}`);
+          alert(`Membresía activada:\n${selectedStriker.email}\nVence: ${expDateLegible}`);
           document.getElementById('studentEmailSearch').value = '';
           document.getElementById('strikerCard').style.display = 'none';
           fileInput.value = '';
           selectedStriker = null;
           this.validarEvidencia();
-          this.cargarDirectorio();
+          await this.cargarDirectorio();
         } catch (err) {
           alert("Error: " + err.message);
           this.validarEvidencia();
