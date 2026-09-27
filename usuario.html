@@ -22,6 +22,7 @@
       --status-ok: #22c55e;
       --tier-color: #ffffff;
       --radar-theme: #cd7f32;
+      --aura-color: #e50914;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -109,7 +110,7 @@
     .notif-btn-close:hover { color: #fff; }
     .notif-body { font-size: 0.72rem; color: #ccc; line-height: 1.35; }
 
-    /* NAVEGACIÓN TRIPLE */
+    /* NAVEGACIÓN TRIPLE (PERFIL PRIMERO) */
     .module-nav { display: flex; gap: 6px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px; }
     .nav-btn {
       flex: 1; padding: 10px 6px; background: #181818; border: 1px solid var(--border-color); color: var(--text-muted);
@@ -164,48 +165,153 @@
 
     .history-card { background: #161616; border: 1px solid #282828; border-radius: 4px; padding: 10px; margin-top: 8px; font-size: 0.75rem; }
 
-    /* SUBMÓDULO 3: PERFIL STRIKER (TELARAÑA) */
+    /* ================= SUBMÓDULO PERFIL STRIKER 9:16 ================= */
     .profile-dossier-card {
-      position: relative; background: var(--card-bg); border: 1px solid var(--border-color);
-      border-radius: 6px; padding: 20px; overflow: hidden; margin-bottom: 16px;
+      position: relative;
+      background: #080808;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      width: 100%;
+      aspect-ratio: 9 / 16;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
     }
+
+    /* Video de Fondo 9:16 */
+    .dossier-video-bg {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      object-fit: cover;
+      z-index: 1;
+      filter: drop-shadow(0 0 20px var(--aura-color));
+      transition: filter 0.3s ease;
+    }
+
+    /* Overlay táctico para legibilidad */
+    .dossier-tactical-overlay {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(180deg, rgba(8,8,8,0.75) 0%, rgba(8,8,8,0.25) 40%, rgba(8,8,8,0.85) 100%);
+      z-index: 2;
+      pointer-events: none;
+    }
+
     .dossier-watermark {
       position: absolute; top: 12px; right: 14px; text-align: right;
-      font-size: 0.62rem; color: #222; text-transform: uppercase; font-weight: 900;
-      letter-spacing: 1px; line-height: 1.4; user-select: none; pointer-events: none; z-index: 1;
+      font-size: 0.58rem; color: rgba(255,255,255,0.4); text-transform: uppercase; font-weight: 900;
+      letter-spacing: 1px; line-height: 1.3; user-select: none; pointer-events: none; z-index: 3;
     }
-    .dossier-header { position: relative; z-index: 2; margin-bottom: 16px; }
-    .dossier-name { font-size: 1.2rem; font-weight: 900; text-transform: uppercase; color: #fff; letter-spacing: 0.5px; }
-    .dossier-sub { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; margin-top: 2px; }
+
+    .dossier-header { position: relative; z-index: 3; padding: 16px 16px 0 16px; }
+    .dossier-name { font-size: 1.25rem; font-weight: 900; text-transform: uppercase; color: #fff; letter-spacing: 0.5px; text-shadow: 0 2px 8px #000; }
+    .dossier-sub { font-size: 0.68rem; color: #ccc; text-transform: uppercase; margin-top: 2px; text-shadow: 0 1px 4px #000; }
+
+    .dossier-middle-actions {
+      position: relative; z-index: 3; padding: 0 16px; display: flex; justify-content: space-between; align-items: center;
+    }
+    .btn-action-aura {
+      background: rgba(18, 18, 20, 0.7); backdrop-filter: blur(8px);
+      border: 1px solid var(--border-color); color: #fff; padding: 6px 10px;
+      font-size: 0.65rem; font-weight: 800; border-radius: 4px; text-transform: uppercase;
+      cursor: pointer; display: flex; align-items: center; gap: 6px;
+    }
+    .btn-action-aura:active { border-color: var(--accent); }
+
+    .dossier-bottom-content {
+      position: relative; z-index: 3; padding: 14px 16px 16px 16px;
+      background: linear-gradient(180deg, transparent 0%, rgba(8,8,8,0.95) 25%);
+    }
 
     .discipline-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px;
-      position: relative; z-index: 2;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;
     }
     .discipline-box {
-      background: #0f0f11; border: 1px solid var(--border-color); border-radius: 6px;
-      padding: 12px; text-align: center;
+      background: rgba(15, 15, 17, 0.75); backdrop-filter: blur(6px);
+      border: 1px solid var(--border-color); border-radius: 6px;
+      padding: 8px; text-align: center;
     }
-    .discipline-num { font-size: 1.7rem; font-weight: 900; color: #fff; }
-    .discipline-txt { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800; margin-top: 2px; }
-    .discipline-subtxt { font-size: 0.58rem; color: #666; margin-top: 2px; }
+    .discipline-num { font-size: 1.4rem; font-weight: 900; color: #fff; }
+    .discipline-txt { font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800; }
+    .discipline-subtxt { font-size: 0.55rem; color: #888; }
 
     .radar-wrapper {
-      position: relative; z-index: 2; width: 100%; height: 320px;
-      background: radial-gradient(circle at center, rgba(255,255,255,0.02) 0%, transparent 70%);
-      border: 1px solid #1c1c1f; border-radius: 6px; padding: 10px;
+      position: relative; width: 100%; height: 210px;
+      background: rgba(10, 10, 12, 0.6); backdrop-filter: blur(6px);
+      border: 1px solid #1c1c1f; border-radius: 6px; padding: 6px;
     }
     .radar-legend {
-      display: flex; justify-content: space-between; font-size: 0.65rem;
-      color: var(--text-muted); text-transform: uppercase; font-weight: 800;
-      margin-top: 8px; padding: 0 4px;
+      display: flex; justify-content: space-between; font-size: 0.62rem;
+      color: #aaa; text-transform: uppercase; font-weight: 800;
+      margin-top: 6px; padding: 0 4px;
     }
+
+    /* MODAL DE GESTIÓN DE VIDEO & AURA */
+    #videoModal {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.85); backdrop-filter: blur(6px);
+      z-index: 9999; display: none; justify-content: center; align-items: center; padding: 16px;
+    }
+    .modal-box {
+      background: var(--card-bg); border: 1px solid var(--border-color);
+      border-radius: 8px; padding: 16px; width: 100%; max-width: 380px;
+    }
+    .color-picker-group { display: flex; gap: 8px; margin: 10px 0; justify-content: center; }
+    .color-swatch {
+      width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 2px solid #333; transition: 0.2s;
+    }
+    .color-swatch.selected { border-color: #fff; transform: scale(1.15); }
   </style>
 </head>
 <body>
 
-  <!-- INPUT DIRECTO DE ARCHIVO (CÁMARA / GALERÍA) -->
+  <!-- INPUTS OCULTOS DE ARCHIVO -->
   <input type="file" id="inputFotoPerfil" accept="image/*" style="display: none;" onchange="subirFotoPerfil(this.files)">
+  <input type="file" id="inputVideoPerfil" accept="video/*" style="display: none;" onchange="procesarSeleccionVideo(this.files)">
+
+  <!-- MODAL PARA VIDEO & AURA -->
+  <div id="videoModal">
+    <div class="modal-box">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <span style="font-size: 0.8rem; font-weight: 900; text-transform: uppercase;">Avatar 9:16 & Aura</span>
+        <button onclick="cerrarModalVideo()" style="background:none; border:none; color:#fff; font-size:1rem; cursor:pointer;">✕</button>
+      </div>
+
+      <div style="font-size: 0.7rem; color: var(--text-muted); margin-bottom: 10px;">
+        Sube o graba un video de cuerpo completo (máx. 10s).
+      </div>
+
+      <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+        <button class="btn-action-aura" style="flex: 1; justify-content: center;" onclick="document.getElementById('inputVideoPerfil').removeAttribute('capture'); document.getElementById('inputVideoPerfil').click();">
+          📁 Galería
+        </button>
+        <button class="btn-action-aura" style="flex: 1; justify-content: center;" onclick="document.getElementById('inputVideoPerfil').setAttribute('capture', 'environment'); document.getElementById('inputVideoPerfil').click();">
+          🎥 Cámara
+        </button>
+      </div>
+
+      <div id="videoPreviewWrap" style="display:none; margin-bottom: 10px; text-align: center;">
+        <video id="videoPreview" autoplay loop muted playsinline style="width: 120px; height: 213px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-color);"></video>
+        <div style="font-size: 0.65rem; color: var(--text-muted); margin-top: 4px;" id="videoDuracionTxt"></div>
+      </div>
+
+      <label style="font-size: 0.68rem; margin-top: 8px;">Color del Aura Táctica</label>
+      <div class="color-picker-group">
+        <div class="color-swatch selected" style="background: #e50914;" onclick="seleccionarColorAura('#e50914', this)"></div>
+        <div class="color-swatch" style="background: #ffd700;" onclick="seleccionarColorAura('#ffd700', this)"></div>
+        <div class="color-swatch" style="background: #00d2be;" onclick="seleccionarColorAura('#00d2be', this)"></div>
+        <div class="color-swatch" style="background: #22c55e;" onclick="seleccionarColorAura('#22c55e', this)"></div>
+        <div class="color-swatch" style="background: #a855f7;" onclick="seleccionarColorAura('#a855f7', this)"></div>
+      </div>
+
+      <button id="btnGuardarVideo" class="btn-submit" style="margin-top: 8px;" onclick="guardarVideoYAura()">
+        Guardar Configuración
+      </button>
+    </div>
+  </div>
 
   <!-- BARRA DE PERFIL SUPERIOR -->
   <div class="profile-bar">
@@ -260,18 +366,120 @@
     </div>
   </div>
 
-  <!-- BANDEJA DE OBSERVACIONES Y CALIBRACIONES (MÁXIMO 3) -->
+  <!-- BANDEJA DE OBSERVACIONES Y CALIBRACIONES -->
   <div id="notifArea" class="notif-container"></div>
 
-  <!-- NAVEGACIÓN TRIPLE -->
+  <!-- NAVEGACIÓN TRIPLE (PERFIL COMO PANTALLA PRINCIPAL) -->
   <nav class="module-nav">
-    <button class="nav-btn active" onclick="switchFichaTab('viewForm', this)">📝 Check-in</button>
+    <button class="nav-btn active" onclick="switchFichaTab('viewProfile', this)">👤 Perfil Striker</button>
     <button class="nav-btn" onclick="switchFichaTab('viewDash', this)">📊 Dashboard</button>
-    <button class="nav-btn" onclick="switchFichaTab('viewProfile', this)">👤 Perfil Striker</button>
+    <button class="nav-btn" onclick="switchFichaTab('viewForm', this)">📝 Check-in</button>
   </nav>
 
-  <!-- ================= SUBMÓDULO 1: FORMULARIO CHECK-IN ================= -->
-  <div id="viewForm" class="view-section active">
+  <!-- ================= SUBMÓDULO 1: PERFIL STRIKER 9:16 (VISTA PRINCIPAL) ================= -->
+  <div id="viewProfile" class="view-section active">
+    <div class="profile-dossier-card" id="dossierCard">
+      <!-- Video de Fondo y Filtro Aura -->
+      <video id="dossierVideo" class="dossier-video-bg" autoplay loop muted playsinline style="display: none;"></video>
+      <div class="dossier-tactical-overlay"></div>
+
+      <div class="dossier-watermark">
+        APEX SYSTEM // TACTICAL DOSSIER<br>
+        EQUILIBRIUM RADAR // 9:16 FICHA<br>
+        FIGHTER REPORT
+      </div>
+
+      <div class="dossier-header">
+        <div class="dossier-name" id="dossierName">Striker Apex</div>
+        <div class="dossier-sub" id="dossierMeta">Iniciado // 0 Clases Registradas</div>
+      </div>
+
+      <div class="dossier-middle-actions">
+        <button class="btn-action-aura" onclick="abrirModalVideo()">
+          ⚡ Personalizar Aura / Video
+        </button>
+      </div>
+
+      <div class="dossier-bottom-content">
+        <div class="discipline-grid">
+          <div class="discipline-box">
+            <div class="discipline-num" id="dossierDisciplinaVal">0%</div>
+            <div class="discipline-txt">Disciplina de Periodo</div>
+            <div class="discipline-subtxt" id="dossierClasesRatio">0 / 24 Clases Meta</div>
+          </div>
+          <div class="discipline-box">
+            <div class="discipline-num" id="dossierTotalVal">0</div>
+            <div class="discipline-txt">Historial Total</div>
+            <div class="discipline-subtxt">Clases de Carrera</div>
+          </div>
+        </div>
+
+        <div class="chart-title" style="margin-bottom: 4px; font-size: 0.68rem;">Equilibrio Biomecánico & Mental</div>
+        <div class="radar-wrapper">
+          <canvas id="chartRadar"></canvas>
+        </div>
+
+        <div class="radar-legend">
+          <span>Escala 1 - 10</span>
+          <span id="radarStatusLabel">Equilibrio: Calculando...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= SUBMÓDULO 2: DASHBOARD MÉTRICAS ================= -->
+  <div id="viewDash" class="view-section">
+    <div class="card">
+      <div class="header">
+        <h1>Métricas <span>Striker</span></h1>
+        <p>Seguimiento Individual de Rendimiento</p>
+      </div>
+
+      <div class="summary-grid">
+        <div class="summary-box">
+          <div class="summary-num" id="statSesiones">0</div>
+          <div class="summary-txt">Sesiones Registradas</div>
+        </div>
+        <div class="summary-box">
+          <div class="summary-num" id="statRendProm">0.0</div>
+          <div class="summary-txt">Promedio Rendimiento</div>
+        </div>
+      </div>
+
+      <div class="chart-container">
+        <div class="chart-title">Rendimiento del Día (1 - 10)</div>
+        <div class="canvas-wrap"><canvas id="chartRendimiento"></canvas></div>
+      </div>
+
+      <div class="chart-container">
+        <div class="chart-title">RPE - Esfuerzo Percibido (1 - 10)</div>
+        <div class="canvas-wrap"><canvas id="chartRpe"></canvas></div>
+      </div>
+
+      <div class="chart-container">
+        <div class="chart-title">Soltura y Flexibilidad (1 - 10)</div>
+        <div class="canvas-wrap"><canvas id="chartSoltura"></canvas></div>
+      </div>
+
+      <div class="chart-container">
+        <div class="chart-title">Fluidez Técnica / Coach (1 - 10)</div>
+        <div class="canvas-wrap"><canvas id="chartFluidez"></canvas></div>
+      </div>
+
+      <div class="chart-container">
+        <div class="chart-title">Nivel de Diversión (1 - 10)</div>
+        <div class="canvas-wrap"><canvas id="chartDiversion"></canvas></div>
+      </div>
+
+      <div style="margin-top: 18px;">
+        <label>Últimas Sesiones Filtradas</label>
+        <div id="historyContainer">Cargando sesiones...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= SUBMÓDULO 3: FORMULARIO CHECK-IN ================= -->
+  <div id="viewForm" class="view-section">
     <div class="card">
       <div class="header">
         <h1>Apex <span>Boxing</span></h1>
@@ -331,102 +539,6 @@
     </div>
   </div>
 
-  <!-- ================= SUBMÓDULO 2: DASHBOARD MÉTRICAS ================= -->
-  <div id="viewDash" class="view-section">
-    <div class="card">
-      <div class="header">
-        <h1>Métricas <span>Striker</span></h1>
-        <p>Seguimiento Individual de Rendimiento</p>
-      </div>
-
-      <div class="summary-grid">
-        <div class="summary-box">
-          <div class="summary-num" id="statSesiones">0</div>
-          <div class="summary-txt">Sesiones Registradas</div>
-        </div>
-        <div class="summary-box">
-          <div class="summary-num" id="statRendProm">0.0</div>
-          <div class="summary-txt">Promedio Rendimiento</div>
-        </div>
-      </div>
-
-      <!-- GRÁFICA 1: RENDIMIENTO -->
-      <div class="chart-container">
-        <div class="chart-title">Rendimiento del Día (1 - 10)</div>
-        <div class="canvas-wrap"><canvas id="chartRendimiento"></canvas></div>
-      </div>
-
-      <!-- GRÁFICA 2: RPE -->
-      <div class="chart-container">
-        <div class="chart-title">RPE - Esfuerzo Percibido (1 - 10)</div>
-        <div class="canvas-wrap"><canvas id="chartRpe"></canvas></div>
-      </div>
-
-      <!-- GRÁFICA 3: SOLTURA Y FLEXIBILIDAD -->
-      <div class="chart-container">
-        <div class="chart-title">Soltura y Flexibilidad (1 - 10)</div>
-        <div class="canvas-wrap"><canvas id="chartSoltura"></canvas></div>
-      </div>
-
-      <!-- GRÁFICA 4: FLUIDEZ TÉCNICA -->
-      <div class="chart-container">
-        <div class="chart-title">Fluidez Técnica / Coach (1 - 10)</div>
-        <div class="canvas-wrap"><canvas id="chartFluidez"></canvas></div>
-      </div>
-
-      <!-- GRÁFICA 5: DIVERSIÓN -->
-      <div class="chart-container">
-        <div class="chart-title">Nivel de Diversión (1 - 10)</div>
-        <div class="canvas-wrap"><canvas id="chartDiversion"></canvas></div>
-      </div>
-
-      <!-- LISTADO RECIENTE -->
-      <div style="margin-top: 18px;">
-        <label>Últimas Sesiones Filtradas</label>
-        <div id="historyContainer">Cargando sesiones...</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ================= SUBMÓDULO 3: PERFIL STRIKER & TELARAÑA ================= -->
-  <div id="viewProfile" class="view-section">
-    <div class="profile-dossier-card">
-      <div class="dossier-watermark">
-        APEX SYSTEM // TACTICAL DOSSIER<br>
-        EQUILIBRIUM RADAR // PROGRESSION MATRIX<br>
-        FIGHTER REPORT
-      </div>
-
-      <div class="dossier-header">
-        <div class="dossier-name" id="dossierName">Striker Apex</div>
-        <div class="dossier-sub" id="dossierMeta">Iniciado // 0 Clases Registradas</div>
-      </div>
-
-      <div class="discipline-grid">
-        <div class="discipline-box">
-          <div class="discipline-num" id="dossierDisciplinaVal">0%</div>
-          <div class="discipline-txt">Disciplina de Periodo</div>
-          <div class="discipline-subtxt" id="dossierClasesRatio">0 / 24 Clases Meta</div>
-        </div>
-        <div class="discipline-box">
-          <div class="discipline-num" id="dossierTotalVal">0</div>
-          <div class="discipline-txt">Historial Total</div>
-          <div class="discipline-subtxt">Clases de Carrera</div>
-        </div>
-      </div>
-
-      <div class="chart-title" style="margin-bottom: 6px;">Equilibrio Biomecánico & Mental</div>
-      <div class="radar-wrapper">
-        <canvas id="chartRadar"></canvas>
-      </div>
-
-      <div class="radar-legend">
-        <span>Radial: 1 - 10</span>
-        <span id="radarStatusLabel">Equilibrio: Calculando...</span>
-      </div>
-    </div>
-  </div>
-
   <script>
     const SUPABASE_URL = 'https://fprvbvucmtdpxdihuvrw.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_xAMs8LpCwyMyoql3ohoJUQ_BIRhBQoD';
@@ -436,10 +548,12 @@
     let userProfile = null;
     let cachedRecords = [];
     let chartInstances = {};
+    let tempVideoFile = null;
+    let currentAuraColor = '#e50914';
 
     /* CONTROL DE FILTROS TEMPORALES */
     const ApexFiltros = {
-      tipo: 60, // 60, 30, 'all', 'custom'
+      tipo: 60,
       desde: null,
       hasta: null,
 
@@ -468,9 +582,7 @@
       obtenerRegistrosFiltrados: function() {
         if (!cachedRecords || cachedRecords.length === 0) return [];
 
-        if (this.tipo === 'all') {
-          return cachedRecords;
-        }
+        if (this.tipo === 'all') return cachedRecords;
 
         if (this.tipo === 'custom') {
           if (!this.desde) return cachedRecords;
@@ -513,6 +625,114 @@
 
       if (tabId === 'viewDash' || tabId === 'viewProfile') {
         ApexFiltros.recalcularVistas();
+      }
+    }
+
+    /* GESTIÓN DEL VIDEO Y AURA TÁCTICA */
+    function abrirModalVideo() {
+      document.getElementById('videoModal').style.display = 'flex';
+    }
+
+    function cerrarModalVideo() {
+      document.getElementById('videoModal').style.display = 'none';
+      tempVideoFile = null;
+      document.getElementById('videoPreviewWrap').style.display = 'none';
+      const preview = document.getElementById('videoPreview');
+      preview.pause();
+      preview.src = '';
+    }
+
+    function seleccionarColorAura(color, el) {
+      currentAuraColor = color;
+      document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+      el.classList.add('selected');
+      document.documentElement.style.setProperty('--aura-color', color);
+
+      const preview = document.getElementById('videoPreview');
+      if (preview) preview.style.filter = `drop-shadow(0 0 15px ${color})`;
+    }
+
+    function procesarSeleccionVideo(files) {
+      if (!files || files.length === 0) return;
+      const file = files[0];
+
+      const tempVideo = document.createElement('video');
+      tempVideo.preload = 'metadata';
+
+      tempVideo.onloadedmetadata = function() {
+        window.URL.revokeObjectURL(tempVideo.src);
+        const duracion = tempVideo.duration;
+
+        if (duracion > 10.5) {
+          alert(`El video dura ${duracion.toFixed(1)} segundos. El límite máximo permitido es de 10 segundos.`);
+          document.getElementById('inputVideoPerfil').value = '';
+          return;
+        }
+
+        tempVideoFile = file;
+        const previewWrap = document.getElementById('videoPreviewWrap');
+        const preview = document.getElementById('videoPreview');
+        preview.src = URL.createObjectURL(file);
+        preview.style.filter = `drop-shadow(0 0 15px ${currentAuraColor})`;
+        document.getElementById('videoDuracionTxt').innerText = `Duración: ${duracion.toFixed(1)}s (Óptimo)`;
+        previewWrap.style.display = 'block';
+      };
+
+      tempVideo.src = URL.createObjectURL(file);
+    }
+
+    async function guardarVideoYAura() {
+      const email = document.getElementById('ciEmail').value.trim();
+      const btn = document.getElementById('btnGuardarVideo');
+      btn.disabled = true;
+      btn.innerText = 'Guardando...';
+
+      try {
+        let videoUrl = userProfile?.video_url || null;
+
+        if (tempVideoFile && sb) {
+          const ext = tempVideoFile.name.split('.').pop() || 'mp4';
+          const filePath = `videos/${Date.now()}_${email.replace(/[^a-zA-Z0-9]/g, '_')}.${ext}`;
+
+          const { error: uploadError } = await sb.storage.from('avatars').upload(filePath, tempVideoFile, { upsert: true });
+          if (uploadError) throw uploadError;
+
+          const { data: urlData } = sb.storage.from('avatars').getPublicUrl(filePath);
+          videoUrl = urlData.publicUrl;
+        }
+
+        if (sb) {
+          const { error: dbError } = await sb.from('apex_users').update({
+            video_url: videoUrl,
+            aura_color: currentAuraColor
+          }).eq('email', email);
+
+          if (dbError) throw dbError;
+        }
+
+        if (videoUrl) {
+          aplicarVideoEnFicha(videoUrl, currentAuraColor);
+        }
+
+        alert('¡Perfil táctico 9:16 actualizado con éxito!');
+        cerrarModalVideo();
+      } catch (err) {
+        alert('Error al guardar: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Guardar Configuración';
+      }
+    }
+
+    function aplicarVideoEnFicha(url, auraColor) {
+      const vEl = document.getElementById('dossierVideo');
+      if (url) {
+        vEl.src = url;
+        vEl.style.display = 'block';
+      }
+      if (auraColor) {
+        currentAuraColor = auraColor;
+        document.documentElement.style.setProperty('--aura-color', auraColor);
       }
     }
 
@@ -569,6 +789,12 @@
             displayEl.innerText = iniciales;
           }
 
+          if (data.video_url) {
+            aplicarVideoEnFicha(data.video_url, data.aura_color || '#e50914');
+          } else if (data.aura_color) {
+            seleccionarColorAura(data.aura_color, document.querySelector(`[onclick*="${data.aura_color}"]`) || document.body);
+          }
+
           const hoy = new Date(); hoy.setHours(0,0,0,0);
           let activa = false;
           if (data.subscription_expires_at) {
@@ -592,6 +818,44 @@
         }
       } catch (e) {
         console.warn("Perfil en espera.");
+      }
+    }
+
+    /* SUBIDA DE FOTO DE PERFIL CON PERSISTENCIA */
+    async function subirFotoPerfil(files) {
+      if (!files || files.length === 0 || !sb) return;
+      const file = files[0];
+      const email = document.getElementById('ciEmail').value.trim();
+      const ext = file.name.split('.').pop();
+      const filePath = `avatars/${Date.now()}_${email.replace(/[^a-zA-Z0-9]/g, '_')}.${ext}`;
+
+      alert('Subiendo foto...');
+      try {
+        const { error: uploadError } = await sb.storage.from('avatars').upload(filePath, file, { upsert: true });
+
+        if (uploadError) {
+          alert('Error al subir: ' + uploadError.message);
+          return;
+        }
+
+        const { data: urlData } = sb.storage.from('avatars').getPublicUrl(filePath);
+        const publicUrl = urlData.publicUrl;
+
+        await sb.from('apex_users').update({
+          avatar_url: publicUrl,
+          photo_url: publicUrl
+        }).eq('email', email);
+
+        const displayEl = document.getElementById('displayAvatar');
+        if (displayEl.tagName === 'IMG') {
+          displayEl.src = publicUrl;
+        } else {
+          displayEl.outerHTML = `<img id="displayAvatar" src="${publicUrl}" class="avatar-circle" alt="Foto">`;
+        }
+
+        alert('¡Foto de perfil actualizada!');
+      } catch (err) {
+        alert('Error: ' + err.message);
       }
     }
 
@@ -652,7 +916,6 @@
       barFill.style.boxShadow = `0 0 10px ${nivelInfo.color}66`;
     }
 
-    /* ESCALA APEX BOXING */
     function determinarEscalaOficial(porcentaje) {
       if (porcentaje >= 101) return { nombre: "APEX+", color: "#ffd700", estado: "Equilibrio Apex+" };
       if (porcentaje >= 76) return { nombre: "APEX", color: "#d4af37", estado: "Equilibrio Apex" };
@@ -797,11 +1060,11 @@
               min: 0,
               max: 10,
               ticks: { stepSize: 2, display: false },
-              angleLines: { color: 'rgba(255, 255, 255, 0.15)' },
-              grid: { color: 'rgba(255, 255, 255, 0.12)' },
+              angleLines: { color: 'rgba(255, 255, 255, 0.25)' },
+              grid: { color: 'rgba(255, 255, 255, 0.2)' },
               pointLabels: {
-                color: '#ddd',
-                font: { size: 10, weight: '700' }
+                color: '#fff',
+                font: { size: 9, weight: '800' }
               }
             }
           }
@@ -845,45 +1108,7 @@
       });
     }
 
-    /* SUBIDA DE FOTO */
-    async function subirFotoPerfil(files) {
-      if (!files || files.length === 0 || !sb) return;
-      const file = files[0];
-      const email = document.getElementById('ciEmail').value.trim();
-      const ext = file.name.split('.').pop();
-      const filePath = `avatars/${Date.now()}_${email.replace(/[^a-zA-Z0-9]/g, '_')}.${ext}`;
-
-      alert('Subiendo foto...');
-      try {
-        const { error: uploadError } = await sb.storage.from('avatars').upload(filePath, file, { upsert: true });
-
-        if (uploadError) {
-          alert('Error al subir: ' + uploadError.message);
-          return;
-        }
-
-        const { data: urlData } = sb.storage.from('avatars').getPublicUrl(filePath);
-        const publicUrl = urlData.publicUrl;
-
-        await sb.from('apex_users').update({
-          avatar_url: publicUrl,
-          photo_url: publicUrl
-        }).eq('email', email);
-
-        const displayEl = document.getElementById('displayAvatar');
-        if (displayEl.tagName === 'IMG') {
-          displayEl.src = publicUrl;
-        } else {
-          displayEl.outerHTML = `<img id="displayAvatar" src="${publicUrl}" class="avatar-circle" alt="Foto">`;
-        }
-
-        alert('¡Foto de perfil actualizada!');
-      } catch (err) {
-        alert('Error: ' + err.message);
-      }
-    }
-
-    /* BANDEJA DE OBSERVACIONES (PERSISTENCIA CONFIRMADA) */
+    /* BANDEJA DE OBSERVACIONES */
     async function cargarNotificaciones(email) {
       if (!sb || !email) return;
       const area = document.getElementById('notifArea');
@@ -931,7 +1156,6 @@
     }
 
     async function descartarNotif(id) {
-      // 1. Eliminar elemento visual de inmediato
       const cardEl = document.getElementById(`notif_${id}`);
       if (cardEl) cardEl.remove();
 
@@ -940,19 +1164,11 @@
         area.style.display = 'none';
       }
 
-      // 2. Persistir borrado en la base de datos
       if (sb) {
         try {
-          const { error } = await sb
-            .from('apex_notifications')
-            .delete()
-            .eq('id', id);
-
-          if (error) {
-            console.error("Fallo al persistir borrado en Supabase:", error.message);
-          }
+          await sb.from('apex_notifications').delete().eq('id', id);
         } catch (err) {
-          console.error("Error de red al borrar notificación:", err);
+          console.error("Error al borrar notificación:", err);
         }
       }
     }
