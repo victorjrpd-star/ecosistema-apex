@@ -246,7 +246,7 @@
     }
     .sub-gear-item:hover { color: #fff; background: #16161a; }
 
-    /* Encabezado Táctico (Fecha corrida hacia el centro) */
+    /* Encabezado Táctico */
     .dossier-top-meta { position: relative; z-index: 5; }
     .dossier-header-title {
       font-size: 1.35rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px;
@@ -353,7 +353,7 @@
   <!-- INPUT OCULTO EXCLUSIVO PARA VIDEO -->
   <input type="file" id="inputVideoRaw" accept="video/*" style="display: none;" onchange="procesarVideoSeleccionado(this.files)">
 
-  <!-- MODAL TÁCTICO: VIDEO, 5 OPCIONES DE TRANSICIÓN Y COLOR PULSO -->
+  <!-- MODAL TÁCTICO -->
   <div id="videoModal">
     <div class="modal-box">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
@@ -374,7 +374,6 @@
         </button>
       </div>
 
-      <!-- 5 OPCIONES DE TRANSICIÓN PROFESIONALES -->
       <div class="form-group" style="margin-top: 8px;">
         <label>Efecto de Transición Profesional</label>
         <select id="transitionModeSelect" class="input-apex" style="width:100%; padding:8px; background:#09090b; border:1px solid var(--border-color); color:#fff; border-radius:4px; font-size:0.75rem;">
@@ -386,7 +385,6 @@
         </select>
       </div>
 
-      <!-- Selector de Color de Pulso / Ninguno -->
       <label style="font-size:0.68rem; margin-top:8px;">Color de Pulso / Iluminación Gráfica</label>
       <div class="color-swatch-bar">
         <div class="swatch-btn selected" style="background:#e50914;" onclick="seleccionarColorPulso('#e50914', this)" title="Rojo Apex"></div>
@@ -480,7 +478,7 @@
       <video id="nativeProfileVideo" class="dossier-video-bg" playsinline muted loop autoplay crossorigin="anonymous"></video>
       <div class="dossier-ambient-overlay"></div>
 
-      <!-- Engranaje Minimalista Blanco Flotante (Sin marco) -->
+      <!-- Engranaje Minimalista Blanco Flotante -->
       <div class="hud-controls-bar">
         <button class="btn-gear" onclick="toggleGearMenu(event)" title="Configuración">⚙️</button>
         <div class="gear-dropdown" id="gearDropdown">
@@ -493,7 +491,7 @@
         </div>
       </div>
 
-      <!-- Branding Oficial (Boxing en blanco, doble tamaño) -->
+      <!-- Branding Oficial -->
       <div class="dossier-branding">
         <div>
           <div class="brand-title">APEX <span style="color:#fff;">BOXING</span></div>
@@ -501,7 +499,7 @@
         </div>
       </div>
 
-      <!-- Encabezado Táctico (Fecha corrida hacia el centro) -->
+      <!-- Encabezado Táctico -->
       <div class="dossier-top-meta">
         <div class="dossier-header-title" id="dossierName">Striker Apex</div>
         <div class="dossier-header-sub">
@@ -510,7 +508,7 @@
         </div>
       </div>
 
-      <!-- Métricas Clave (Con pulso sutil de color opcional) -->
+      <!-- Métricas Clave -->
       <div class="floating-stats-row">
         <div class="floating-stat-item">
           <div class="floating-stat-num" id="dossierDisciplinaVal">0%</div>
@@ -524,7 +522,7 @@
         </div>
       </div>
 
-      <!-- Telaraña Radar con Animación de Pulso Sutil (Cada 5s) -->
+      <!-- Telaraña Radar -->
       <div class="radar-floating-wrap pulse-mesh">
         <canvas id="chartRadar"></canvas>
       </div>
@@ -949,15 +947,12 @@
 
       const vid = document.getElementById('nativeProfileVideo');
       
-      // Motor de Fundidos y Transiciones Profesionales Suaves
       vid.addEventListener('timeupdate', () => {
         const currentTime = vid.currentTime;
-        const totalSegment = videoEndTime - videoStartTime;
-        const progressInSegment = currentTime - videoStartTime;
         const timeLeft = videoEndTime - currentTime;
+        const progressInSegment = currentTime - videoStartTime;
 
         if (selectedTransitionMode === 'fade_sutil') {
-          // Opción 1: Fundido Sutil Extendido (2 segundos de entrada y salida suave)
           if (progressInSegment <= 2.0) {
             vid.style.opacity = Math.min(0.85, 0.1 + (progressInSegment / 2.0) * 0.75);
           } else if (timeLeft <= 2.0) {
@@ -966,7 +961,6 @@
             vid.style.opacity = 0.85;
           }
         } else if (selectedTransitionMode === 'escaneo') {
-          // Opción 2: Escaneo Láser Vertical (Contraste y brillo simulando barrido)
           if (timeLeft <= 1.5) {
             let factor = timeLeft / 1.5;
             vid.style.filter = `contrast(${1 + (1-factor)*0.5}) brightness(${factor * 0.95})`;
@@ -976,7 +970,6 @@
             vid.style.opacity = 0.85;
           }
         } else if (selectedTransitionMode === 'blur') {
-          // Opción 3: Enfoque Dinámico (Borrón a nitidez)
           if (progressInSegment <= 1.5) {
             let blurVal = (1.5 - progressInSegment) * 6;
             vid.style.filter = `blur(${blurVal}px) brightness(0.95)`;
@@ -987,14 +980,12 @@
             vid.style.filter = 'blur(0px) brightness(0.95)';
           }
         } else if (selectedTransitionMode === 'glitch_suave') {
-          // Opción 4: Pulso de Contraste y Saturación Suave
           if (timeLeft <= 1.0) {
             vid.style.filter = `saturate(${1 + (1-timeLeft)*1.5}) brightness(${timeLeft})`;
           } else {
             vid.style.filter = 'saturate(1) brightness(0.95)';
           }
         } else if (selectedTransitionMode === 'flash_cinematico') {
-          // Opción 5: Flash de Exposición Profesional
           if (timeLeft <= 0.8) {
             vid.style.filter = `brightness(${1 + (0.8 - timeLeft) * 2})`;
           } else {
@@ -1005,7 +996,6 @@
           vid.style.filter = 'none';
         }
 
-        // Bucle limpio dentro del rango seleccionado
         if (currentTime >= videoEndTime) {
           vid.currentTime = videoStartTime;
           vid.play();
@@ -1291,13 +1281,24 @@
       } catch (e) {}
     }
 
+    /* CHECK-IN CON BÚSQUEDA SEGURA DE USER_ID (OPCIÓN 2) */
     async function enviarCheckin(event) {
       event.preventDefault();
       const btn = document.getElementById('btnEnviar');
       btn.disabled = true; btn.innerText = 'Enviando...';
 
+      const emailInput = document.getElementById('ciEmail').value.trim();
+
+      // Resolución automática del UUID mediante el correo para proteger las relaciones
+      let resolvedUserId = userProfile?.id || null;
+      if (!resolvedUserId && sb) {
+        const { data: userLookup } = await sb.from('apex_users').select('id').eq('email', emailInput).single();
+        if (userLookup) resolvedUserId = userLookup.id;
+      }
+
       const payload = {
-        user_email: document.getElementById('ciEmail').value.trim(),
+        user_id: resolvedUserId,
+        user_email: emailInput,
         focus: document.getElementById('ciEnfoque').value,
         rendimiento: parseFloat(document.getElementById('ciRendimiento').value),
         rpe: parseFloat(document.getElementById('ciRpe').value),
@@ -1310,8 +1311,14 @@
       };
 
       const { error } = await sb.from('apex_checkins').insert([payload]);
-      if (error) { alert('Error: ' + error.message); } 
-      else { alert('¡Check-in registrado!'); document.getElementById('checkinForm').reset(); await cargarRegistrosBD(payload.user_email); }
+      if (error) { 
+        alert('Error: ' + error.message); 
+      } else { 
+        alert('¡Check-in registrado con éxito!'); 
+        document.getElementById('checkinForm').reset(); 
+        document.getElementById('ciEmail').value = emailInput;
+        await cargarRegistrosBD(emailInput); 
+      }
       btn.disabled = false; btn.innerText = 'Enviar Registro';
     }
 
