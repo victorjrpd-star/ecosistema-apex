@@ -25,12 +25,13 @@
     /* NAVEGACIÓN SUPERIOR */
     .coach-nav-bar {
       display: flex; height: 50px; background: var(--card-bg); border-bottom: 1px solid var(--border);
-      align-items: center; padding: 0 12px; gap: 8px; flex-shrink: 0; z-index: 100;
+      align-items: center; padding: 0 12px; gap: 8px; flex-shrink: 0; z-index: 100; overflow-x: auto; scrollbar-width: none;
     }
+    .coach-nav-bar::-webkit-scrollbar { display: none; }
     .nav-tab-btn {
       background: #121214; border: 1px solid var(--border); color: var(--text-muted);
       padding: 8px 14px; border-radius: 4px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase;
-      letter-spacing: 0.6px; cursor: pointer; transition: 0.2s; user-select: none;
+      letter-spacing: 0.6px; cursor: pointer; transition: 0.2s; user-select: none; white-space: nowrap;
     }
     .nav-tab-btn.active { background: #fff; color: #000; border-color: #fff; }
 
@@ -132,6 +133,19 @@
     .metric-val { font-size: 0.8rem; font-weight: 800; color: #fff; }
     .metric-penalty-tag { font-size: 0.6rem; color: var(--accent); font-weight: 800; display: none; margin-left: 2px; }
 
+    /* CARRETEL TÁCTICO DE EQUIPO */
+    .team-carousel {
+      display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none; margin-bottom: 14px;
+    }
+    .team-carousel::-webkit-scrollbar { display: none; }
+    .carousel-item {
+      background: #121214; border: 1px solid var(--border); border-radius: 8px; padding: 8px;
+      min-width: 80px; display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: 0.2s; flex-shrink: 0;
+    }
+    .carousel-item.active { border-color: var(--accent); background: rgba(229,9,20,0.08); }
+    .carousel-item img, .carousel-item .avatar-circle { width: 42px; height: 42px; margin-bottom: 6px; }
+    .carousel-name { font-size: 0.65rem; font-weight: 800; text-align: center; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+
     /* BOTONES */
     .btn-main {
       width: 100%; background: #fff; color: #000; border: none; padding: 12px;
@@ -149,6 +163,7 @@
   <nav class="coach-nav-bar">
     <button class="nav-tab-btn active" id="btn_nav_checkins" onclick="ApexNav.irA('modulo_checkins')">Validación Check-ins</button>
     <button class="nav-tab-btn" id="btn_nav_membresias" onclick="ApexNav.irA('modulo_membresias')">Gestión Membresías</button>
+    <button class="nav-tab-btn" id="btn_nav_equipo" onclick="ApexNav.irA('modulo_equipo')">Equipo & Analítica</button>
   </nav>
 
   <div class="coach-viewport">
@@ -272,6 +287,79 @@
       </div>
     </div>
 
+    <!-- SUBMÓDULO 3: EQUIPO & ANALÍTICA (ESTILO LOOKER STUDIO NATIVO) -->
+    <div class="panel-view" id="modulo_equipo">
+      <div class="header">
+        <div class="title">Apex <span>Equipo</span></div>
+        <div class="badge-coach">Analítica Global</div>
+      </div>
+
+      <!-- Kpis Generales del Equipo -->
+      <div class="card">
+        <div class="card-title">Métricas Generales del Equipo</div>
+        <div class="card-desc">Pulso de rendimiento y estadísticas globales de la academia.</div>
+        <div class="striker-summary-grid">
+          <div class="info-box">
+            <div class="info-box-label">Strikers Activos</div>
+            <div class="info-box-val" id="teamTotalStrikers">-</div>
+          </div>
+          <div class="info-box">
+            <div class="info-box-label">RPE Promedio Global</div>
+            <div class="info-box-val" id="teamAvgRpe">-</div>
+          </div>
+          <div class="info-box">
+            <div class="info-box-label">Check-ins Totales</div>
+            <div class="info-box-val" id="teamTotalCheckins">-</div>
+          </div>
+          <div class="info-box">
+            <div class="info-box-label">Índice de Diversión</div>
+            <div class="info-box-val" id="teamAvgFun">-</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Carretel Táctico de Strikers -->
+      <div class="card">
+        <div class="card-title">Carretel de Strikers</div>
+        <div class="card-desc">Selecciona un miembro para desplegar su ficha de rendimiento.</div>
+        <div class="team-carousel" id="teamCarouselContainer">
+          <div style="font-size:0.7rem; color:var(--text-muted); padding:10px;">Cargando carretel...</div>
+        </div>
+      </div>
+
+      <!-- Ficha Individual Desplegada -->
+      <div class="card" id="teamIndividualCard" style="display: none;">
+        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 10px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div id="indAvatar" class="avatar-circle avatar-sm">ST</div>
+            <div>
+              <strong id="indName" style="color: #fff; font-size: 0.9rem; display: block;">-</strong>
+              <span id="indEmail" style="font-size: 0.65rem; color: var(--text-muted);">-</span>
+            </div>
+          </div>
+          <span id="indStatus" style="font-size: 0.65rem; font-weight: 800; padding: 2px 6px; border-radius: 3px;">-</span>
+        </div>
+        <div class="striker-summary-grid">
+          <div class="info-box">
+            <div class="info-box-label">Check-ins Realizados</div>
+            <div class="info-box-val" id="indCheckinsCount">0</div>
+          </div>
+          <div class="info-box">
+            <div class="info-box-label">RPE Personal Promedio</div>
+            <div class="info-box-val" id="indAvgRpe">0</div>
+          </div>
+          <div class="info-box">
+            <div class="info-box-label">Soltura Promedio</div>
+            <div class="info-box-val" id="indAvgSoltura">0</div>
+          </div>
+          <div class="info-box">
+            <div class="info-box-label">Disfrute Promedio</div>
+            <div class="info-box-val" id="indAvgFun">0</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <script>
@@ -288,8 +376,11 @@
 
         if (panelId === 'modulo_checkins') {
           document.getElementById('btn_nav_checkins')?.classList.add('active');
-        } else {
+        } else if (panelId === 'modulo_membresias') {
           document.getElementById('btn_nav_membresias')?.classList.add('active');
+        } else if (panelId === 'modulo_equipo') {
+          document.getElementById('btn_nav_equipo')?.classList.add('active');
+          ApexEquipo.cargarAnaliticaGlobal();
         }
       }
     };
@@ -866,7 +957,109 @@
     };
 
     /* ==========================================================================
-       6. ESCUCHA DE EVENTOS EN VIVO DESDE APEX CORE (INDEX.HTML)
+       6. MÓDULO DE EQUIPO Y ANALÍTICA GLOBAL (ESTILO LOOKER STUDIO)
+       ========================================================================== */
+    const ApexEquipo = {
+      cargarAnaliticaGlobal: async function() {
+        if (!supabaseClient) return;
+
+        try {
+          // Consultar todos los check-ins y usuarios
+          const { data: checkins } = await supabaseClient.from('apex_checkins').select('*');
+          const { data: users } = await supabaseClient.from('apex_users').select('*');
+
+          if (!users) return;
+
+          // KPIs Generales del Equipo
+          document.getElementById('teamTotalStrikers').innerText = users.length;
+          document.getElementById('teamTotalCheckins').innerText = checkins ? checkins.length : 0;
+
+          if (checkins && checkins.length > 0) {
+            let totalRpe = 0;
+            let totalFun = 0;
+            checkins.forEach(c => {
+              totalRpe += parseFloat(c.rpe || c.rendimiento || 0);
+              totalFun += parseFloat(c.divertiste || 0);
+            });
+            document.getElementById('teamAvgRpe').innerText = (totalRpe / checkins.length).toFixed(1);
+            document.getElementById('teamAvgFun').innerText = (totalFun / checkins.length).toFixed(1);
+          } else {
+            document.getElementById('teamAvgRpe').innerText = '0';
+            document.getElementById('teamAvgFun').innerText = '0';
+          }
+
+          // Renderizar Carretel Táctico
+          const carousel = document.getElementById('teamCarouselContainer');
+          carousel.innerHTML = '';
+
+          users.forEach(user => {
+            const item = document.createElement('div');
+            item.className = 'carousel-item';
+            item.onclick = () => ApexEquipo.seleccionarStriker(user, checkins || []);
+
+            const avatarHtml = user.photo_url 
+              ? `<img src="${user.photo_url}" class="avatar-circle" alt="Avatar">`
+              : `<div class="avatar-circle">${(user.name || user.email || 'ST').substring(0,2).toUpperCase()}</div>`;
+
+            item.innerHTML = `
+              ${avatarHtml}
+              <span class="carousel-name">${user.name || user.email.split('@')[0]}</span>
+            `;
+            carousel.appendChild(item);
+          });
+
+        } catch (err) {
+          console.warn("Error cargando analítica de equipo:", err);
+        }
+      },
+
+      seleccionarStriker: function(user, checkins) {
+        // Marcar activo en el carretel
+        document.querySelectorAll('.carousel-item').forEach(el => el.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+
+        const card = document.getElementById('teamIndividualCard');
+        card.style.display = 'block';
+
+        document.getElementById('indName').innerText = user.name || 'Striker';
+        document.getElementById('indEmail').innerText = user.email;
+        
+        const statusBadge = document.getElementById('indStatus');
+        statusBadge.innerText = user.subscription_status === 'activo' ? 'ACTIVO' : 'INACTIVO';
+        statusBadge.style.background = user.subscription_status === 'activo' ? 'rgba(34, 197, 94, 0.2)' : 'var(--accent-dim)';
+        statusBadge.style.color = user.subscription_status === 'activo' ? 'var(--status-ok)' : 'var(--accent)';
+
+        const avatarContainer = document.getElementById('indAvatar');
+        if (user.photo_url) {
+          avatarContainer.outerHTML = `<img id="indAvatar" src="${user.photo_url}" class="avatar-circle avatar-sm" alt="Foto">`;
+        } else {
+          avatarContainer.outerHTML = `<div id="indAvatar" class="avatar-circle avatar-sm">${(user.name || 'ST').substring(0,2).toUpperCase()}</div>`;
+        }
+
+        // Filtrar check-ins personales del striker
+        const userCheckins = checkins.filter(c => c.user_email?.toLowerCase() === user.email?.toLowerCase());
+        document.getElementById('indCheckinsCount').innerText = userCheckins.length;
+
+        if (userCheckins.length > 0) {
+          let sumRpe = 0, sumSol = 0, sumFun = 0;
+          userCheckins.forEach(c => {
+            sumRpe += parseFloat(c.rpe || 0);
+            sumSol += parseFloat(c.soltura || 0);
+            sumFun += parseFloat(c.divertiste || 0);
+          });
+          document.getElementById('indAvgRpe').innerText = (sumRpe / userCheckins.length).toFixed(1);
+          document.getElementById('indAvgSoltura').innerText = (sumSol / userCheckins.length).toFixed(1);
+          document.getElementById('indAvgFun').innerText = (sumFun / userCheckins.length).toFixed(1);
+        } else {
+          document.getElementById('indAvgRpe').innerText = '0';
+          document.getElementById('indAvgSoltura').innerText = '0';
+          document.getElementById('indAvgFun').innerText = '0';
+        }
+      }
+    };
+
+    /* ==========================================================================
+       7. ESCUCHA DE EVENTOS EN VIVO DESDE APEX CORE (INDEX.HTML)
        ========================================================================== */
     window.addEventListener('message', (event) => {
       if (event.data && event.data.type === 'APEX_AVATAR_UPDATED' && event.data.avatarUrl) {
@@ -875,7 +1068,7 @@
     });
 
     /* ==========================================================================
-       7. ARRANQUE
+       8. ARRANQUE
        ========================================================================== */
     window.addEventListener('DOMContentLoaded', async () => {
       initSupabase();
