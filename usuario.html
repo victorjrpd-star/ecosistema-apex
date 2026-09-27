@@ -22,7 +22,7 @@
       --accent-white: #ffffff;
       --status-ok: #22c55e;
       --tier-color: #ffffff;
-      --aura-color: #e50914;
+      --pulse-color: #e50914;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -133,7 +133,7 @@
       margin-bottom: 24px;
     }
 
-    /* Video Nativo Limpio */
+    /* Video Nativo Limpio con Filtros de Transición dinámicos */
     .dossier-video-bg {
       position: absolute;
       top: 0; left: 0; width: 100%; height: 100%;
@@ -141,6 +141,7 @@
       z-index: 1;
       opacity: 0.85;
       filter: contrast(1.05) brightness(0.95);
+      transition: filter 0.1s ease;
     }
 
     .dossier-ambient-overlay {
@@ -152,7 +153,16 @@
       z-index: 2;
     }
 
-    /* Branding Táctico Duplicado de Tamaño */
+    /* Animación de Pulso Sutil en la Malla Radar (Cada 5s) */
+    @keyframes sutilPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.025); }
+    }
+    .pulse-mesh {
+      animation: sutilPulse 5s ease-in-out infinite;
+    }
+
+    /* Branding Táctico */
     .dossier-branding {
       position: relative; z-index: 5;
       border-bottom: 2px solid rgba(255, 255, 255, 0.2);
@@ -163,31 +173,32 @@
       font-size: 1.25rem; font-weight: 900; letter-spacing: 2px;
       text-transform: uppercase; color: #fff; text-shadow: 0 2px 10px #000;
     }
-    .brand-title span { color: #fff; } /* Boxing en Blanco */
+    .brand-title span { color: #fff; }
     .brand-sub {
       font-size: 0.72rem; font-weight: 700; letter-spacing: 1px;
       text-transform: uppercase; color: var(--text-muted);
     }
 
-    /* Rueda de Configuración y Menú Flotante Minimalista */
+    /* Rueda Minimalista Flotante Blanca sin marco */
     .hud-controls-bar {
       position: absolute;
       top: 14px; right: 14px;
       z-index: 20;
     }
     .btn-gear {
-      background: rgba(18, 18, 22, 0.8);
-      backdrop-filter: blur(8px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      color: #fff;
+      background: transparent;
+      border: none;
+      color: #ffffff;
       width: 36px; height: 36px;
       border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
-      font-size: 1rem;
+      font-size: 1.3rem;
       cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.6);
-      transition: 0.2s;
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,0.8));
+      transition: transform 0.2s;
     }
+    .btn-gear:active { transform: scale(0.9); }
+
     .gear-dropdown {
       position: absolute;
       top: 44px; right: 0;
@@ -218,7 +229,6 @@
     .gear-item:last-child { border-bottom: none; }
     .gear-item:active { background: #22222a; }
 
-    /* Submenú de descarga */
     .download-submenu {
       display: none;
       flex-direction: column;
@@ -236,7 +246,7 @@
     }
     .sub-gear-item:hover { color: #fff; background: #16161a; }
 
-    /* Encabezado Táctico */
+    /* Encabezado Táctico (Fecha corrida hacia el centro) */
     .dossier-top-meta { position: relative; z-index: 5; }
     .dossier-header-title {
       font-size: 1.35rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px;
@@ -245,6 +255,7 @@
     .dossier-header-sub {
       font-size: 0.68rem; color: #d0d0d8; text-transform: uppercase; font-weight: 700;
       letter-spacing: 0.5px; text-shadow: 0 2px 6px rgba(0,0,0,0.9); margin-top: 2px;
+      display: flex; justify-content: space-between; align-items: center;
     }
 
     /* Métricas Flotantes Dinámicas */
@@ -319,7 +330,7 @@
     .summary-txt { font-size: 0.62rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800; }
     .history-card { background: #141418; border: 1px solid #222226; border-radius: 4px; padding: 8px 10px; margin-top: 6px; font-size: 0.72rem; }
 
-    /* MODAL DE CONFIGURACIÓN DE VIDEO CON SELECTOR DE EFECTO */
+    /* MODAL DE CONFIGURACIÓN */
     #videoModal {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       background: rgba(0,0,0,0.88); backdrop-filter: blur(8px);
@@ -329,45 +340,62 @@
       background: var(--card-bg); border: 1px solid var(--border-color);
       border-radius: 10px; padding: 18px; width: 100%; max-width: 390px;
     }
+    .color-swatch-bar { display: flex; gap: 8px; justify-content: center; margin: 10px 0; flex-wrap: wrap; }
+    .swatch-btn {
+      width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 2px solid #333; transition: 0.2s;
+    }
+    .swatch-btn.selected { border-color: #fff; transform: scale(1.15); }
     .range-cutter-box { background: #0b0b0e; border: 1px solid var(--border-color); border-radius: 6px; padding: 10px; margin-top: 8px; display: none; }
   </style>
 </head>
 <body>
 
-  <!-- INPUT OCULTO EXCLUSIVO PARA VIDEO (Hasta 60s permitido) -->
+  <!-- INPUT OCULTO EXCLUSIVO PARA VIDEO -->
   <input type="file" id="inputVideoRaw" accept="video/*" style="display: none;" onchange="procesarVideoSeleccionado(this.files)">
 
-  <!-- MODAL TÁCTICO: VIDEO & CONFIGURACIÓN DE REPRODUCCIÓN -->
+  <!-- MODAL TÁCTICO: VIDEO, 5 OPCIONES DE TRANSICIÓN Y COLOR PULSO -->
   <div id="videoModal">
     <div class="modal-box">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <span style="font-size:0.8rem; font-weight:900; text-transform:uppercase;">Configuración de Video Táctico</span>
+        <span style="font-size:0.8rem; font-weight:900; text-transform:uppercase;">Configuración Táctica</span>
         <button onclick="cerrarModalVideo()" style="background:none; border:none; color:#fff; font-size:1.1rem; cursor:pointer;">✕</button>
       </div>
 
       <p style="font-size:0.68rem; color:var(--text-muted); line-height:1.35; margin-bottom:12px;">
-        Sube o graba tu video en acción (hasta 60 segundos). Selecciona cómo se comportará en bucle tu perfil.
+        Sube o graba tu video (hasta 60s). Elige transición sutil y color de iluminación para las métricas.
       </p>
 
       <div style="display:flex; gap:8px; margin-bottom:10px;">
         <button class="filter-btn" style="padding:9px 6px;" onclick="document.getElementById('inputVideoRaw').removeAttribute('capture'); document.getElementById('inputVideoRaw').click();">
-          📁 Desde Galería
+          📁 Galería
         </button>
         <button class="filter-btn" style="padding:9px 6px;" onclick="document.getElementById('inputVideoRaw').setAttribute('capture','environment'); document.getElementById('inputVideoRaw').click();">
-          🎥 Grabar Ahora
+          🎥 Grabar
         </button>
       </div>
 
-      <!-- Selector de Transición / Comportamiento Loop -->
-      <div class="form-group" style="margin-top: 10px;">
-        <label>Efecto de Reproducción en Bucle</label>
-        <select id="loopModeSelect" class="input-apex" style="width:100%; padding:8px; background:#09090b; border:1px solid var(--border-color); color:#fff; border-radius:4px; font-size:0.75rem;">
-          <option value="loop">Bucle Directo (Reinicia al final)</option>
-          <option value="fade">Fundido Suave (Fade in/out)</option>
+      <!-- 5 OPCIONES DE TRANSICIÓN PROFESIONALES -->
+      <div class="form-group" style="margin-top: 8px;">
+        <label>Efecto de Transición Profesional</label>
+        <select id="transitionModeSelect" class="input-apex" style="width:100%; padding:8px; background:#09090b; border:1px solid var(--border-color); color:#fff; border-radius:4px; font-size:0.75rem;">
+          <option value="fade_sutil">1. Fundido Sutil Extendido (Lento y Profesional)</option>
+          <option value="escaneo">2. Escaneo Láser Vertical (Cinematográfico)</option>
+          <option value="blur">3. Enfoque Dinámico (Borrón a Nitidez)</option>
+          <option value="glitch_suave">4. Transición Pulso / Contraste Suave</option>
+          <option value="flash_cinematico">5. Flash de Exposición Profesional</option>
         </select>
       </div>
 
-      <!-- Recortador si excede 60s -->
+      <!-- Selector de Color de Pulso / Ninguno -->
+      <label style="font-size:0.68rem; margin-top:8px;">Color de Pulso / Iluminación Gráfica</label>
+      <div class="color-swatch-bar">
+        <div class="swatch-btn selected" style="background:#e50914;" onclick="seleccionarColorPulso('#e50914', this)" title="Rojo Apex"></div>
+        <div class="swatch-btn" style="background:#00f0ff;" onclick="seleccionarColorPulso('#00f0ff', this)" title="Cian Táctico"></div>
+        <div class="swatch-btn" style="background:#22c55e;" onclick="seleccionarColorPulso('#22c55e', this)" title="Verde OK"></div>
+        <div class="swatch-btn" style="background:#ffd700;" onclick="seleccionarColorPulso('#ffd700', this)" title="Oro"></div>
+        <div class="swatch-btn" style="background:transparent; border:2px dashed #777; display:flex; align-items:center; justify-content:center; font-size:0.6rem; color:#aaa;" onclick="seleccionarColorPulso('none', this)" title="Sin Color">∅</div>
+      </div>
+
       <div id="trimmerBox" class="range-cutter-box">
         <div style="display:flex; justify-content:space-between; font-size:0.65rem; color:#aaa; margin-bottom:4px;">
           <span>VENTANA DE REPRODUCCIÓN:</span>
@@ -376,8 +404,8 @@
         <input type="range" id="trimSlider" min="0" max="60" step="1" value="0" style="width:100%;" oninput="actualizarVentanaCorte(this.value)">
       </div>
 
-      <button id="btnGuardarAvatar" class="btn-submit" style="margin-top:12px;" onclick="guardarAvatarVideo()">
-        Aplicar al Perfil
+      <button id="btnGuardarAvatar" class="btn-submit" style="margin-top:10px;" onclick="guardarConfiguracionVideo()">
+        Aplicar Configuración
       </button>
     </div>
   </div>
@@ -444,7 +472,7 @@
     <button class="nav-btn" onclick="switchFichaTab('viewForm', this)">📝 Check-in</button>
   </nav>
 
-  <!-- ================= SUBMÓDULO 1: PERFIL FLOTANTE CON RUEDA DE CONFIGURACIÓN ================= -->
+  <!-- ================= SUBMÓDULO 1: PERFIL FLOTANTE ================= -->
   <div id="viewProfile" class="view-section active">
     <div class="dossier-viewport" id="dossierViewport">
       
@@ -452,7 +480,7 @@
       <video id="nativeProfileVideo" class="dossier-video-bg" playsinline muted loop autoplay crossorigin="anonymous"></video>
       <div class="dossier-ambient-overlay"></div>
 
-      <!-- Rueda de Configuración Contextual (Esquina Superior Derecha) -->
+      <!-- Engranaje Minimalista Blanco Flotante (Sin marco) -->
       <div class="hud-controls-bar">
         <button class="btn-gear" onclick="toggleGearMenu(event)" title="Configuración">⚙️</button>
         <div class="gear-dropdown" id="gearDropdown">
@@ -465,25 +493,24 @@
         </div>
       </div>
 
-      <!-- Branding Oficial Duplicado y con "Boxing" en Blanco -->
+      <!-- Branding Oficial (Boxing en blanco, doble tamaño) -->
       <div class="dossier-branding">
         <div>
           <div class="brand-title">APEX <span style="color:#fff;">BOXING</span></div>
           <div class="brand-sub">Escuela de Striker</div>
         </div>
-        <div style="text-align: right;">
-          <div class="brand-sub" style="color:#fff; font-weight:800;">PERFIL STRIKER</div>
-          <div class="brand-sub" id="dossierDateTag">SISTEMA TÁCTICO</div>
+      </div>
+
+      <!-- Encabezado Táctico (Fecha corrida hacia el centro) -->
+      <div class="dossier-top-meta">
+        <div class="dossier-header-title" id="dossierName">Striker Apex</div>
+        <div class="dossier-header-sub">
+          <span id="dossierMeta">Iniciado // 0 Clases</span>
+          <span id="dossierDateTag" style="letter-spacing:1px;">SISTEMA TÁCTICO</span>
         </div>
       </div>
 
-      <!-- Encabezado Táctico del Atleta -->
-      <div class="dossier-top-meta">
-        <div class="dossier-header-title" id="dossierName">Striker Apex</div>
-        <div class="dossier-header-sub" id="dossierMeta">Iniciado // 0 Clases</div>
-      </div>
-
-      <!-- Métricas Clave -->
+      <!-- Métricas Clave (Con pulso sutil de color opcional) -->
       <div class="floating-stats-row">
         <div class="floating-stat-item">
           <div class="floating-stat-num" id="dossierDisciplinaVal">0%</div>
@@ -497,15 +524,15 @@
         </div>
       </div>
 
-      <!-- Telaraña Radar -->
-      <div class="radar-floating-wrap">
+      <!-- Telaraña Radar con Animación de Pulso Sutil (Cada 5s) -->
+      <div class="radar-floating-wrap pulse-mesh">
         <canvas id="chartRadar"></canvas>
       </div>
 
       <!-- Pie Táctico -->
       <div class="radar-floating-footer">
         <span style="color:#aaa;">Escala: 1 - 10</span>
-        <span id="radarStatusLabel" style="color:var(--accent);">Calculando equilibrio...</span>
+        <span id="radarStatusLabel" style="color:var(--pulse-color);">Calculando equilibrio...</span>
       </div>
     </div>
   </div>
@@ -644,7 +671,8 @@
     let tempVideoFile = null;
     let videoStartTime = 0;
     let videoEndTime = 60;
-    let loopTransitionMode = 'loop';
+    let selectedTransitionMode = 'fade_sutil';
+    let selectedPulseColor = '#e50914';
 
     /* CONTROL DE MENÚ FLOTANTE */
     function toggleGearMenu(e) {
@@ -665,7 +693,7 @@
       document.getElementById('downloadSubmenu')?.classList.remove('show');
     });
 
-    /* MOTOR DE EXPORTACIÓN SIN DESPLAZAMIENTOS */
+    /* MOTOR DE EXPORTACIÓN */
     const DossierExporter = {
       descargarImagen: async function() {
         try {
@@ -815,12 +843,21 @@
       else emojiEl.innerText = "🤩";
     }
 
-    /* GESTIÓN DE VIDEO Y MODAL */
+    /* GESTIÓN DE VIDEO Y MODAL DE CONFIGURACIÓN */
     function abrirModalVideo() { document.getElementById('videoModal').style.display = 'flex'; }
     function cerrarModalVideo() {
       document.getElementById('videoModal').style.display = 'none';
       tempVideoFile = null;
       document.getElementById('trimmerBox').style.display = 'none';
+    }
+
+    function seleccionarColorPulso(color, el) {
+      selectedPulseColor = color;
+      document.querySelectorAll('.swatch-btn').forEach(s => s.classList.remove('selected'));
+      if (el) el.classList.add('selected');
+      
+      const val = color === 'none' ? 'transparent' : color;
+      document.documentElement.style.setProperty('--pulse-color', val);
     }
 
     function procesarVideoSeleccionado(files) {
@@ -857,10 +894,10 @@
       document.getElementById('trimRangeTxt').innerText = `${videoStartTime.toFixed(0)}s - ${videoEndTime.toFixed(0)}s`;
     }
 
-    async function guardarAvatarVideo() {
+    async function guardarConfiguracionVideo() {
       const email = document.getElementById('ciEmail').value.trim();
       const btn = document.getElementById('btnGuardarAvatar');
-      loopTransitionMode = document.getElementById('loopModeSelect').value;
+      selectedTransitionMode = document.getElementById('transitionModeSelect').value;
       btn.disabled = true;
       btn.innerText = 'Guardando...';
 
@@ -881,7 +918,8 @@
         if (sb) {
           await sb.from('apex_users').update({
             video_url: videoUrl,
-            loop_mode: loopTransitionMode
+            loop_mode: selectedTransitionMode,
+            aura_color: selectedPulseColor
           }).eq('email', email);
         }
 
@@ -891,17 +929,17 @@
           vid.play().catch(() => {});
         }
 
-        alert('¡Configuración de video aplicada!');
+        alert('¡Configuración táctica aplicada con éxito!');
         cerrarModalVideo();
       } catch (err) {
         alert('Error: ' + err.message);
       } finally {
         btn.disabled = false;
-        btn.innerText = 'Aplicar al Perfil';
+        btn.innerText = 'Aplicar Configuración';
       }
     }
 
-    /* INICIALIZACIÓN */
+    /* INICIALIZACIÓN Y MOTOR DE 5 OPCIONES DE TRANSICIÓN PROFESIONAL */
     async function init() {
       const hoy = new Date();
       document.getElementById('dossierDateTag').innerText = `${hoy.getDate()}/${hoy.getMonth() + 1}/${hoy.getFullYear()}`;
@@ -910,20 +948,65 @@
       if (cachedAvatar) renderAvatarVisual(cachedAvatar);
 
       const vid = document.getElementById('nativeProfileVideo');
+      
+      // Motor de Fundidos y Transiciones Profesionales Suaves
       vid.addEventListener('timeupdate', () => {
-        if (loopTransitionMode === 'fade') {
-          const timeLeft = videoEndTime - vid.currentTime;
-          if (timeLeft <= 0.5) {
-            vid.style.opacity = Math.max(0.1, timeLeft / 0.5);
-          } else if (vid.currentTime - videoStartTime <= 0.4) {
-            vid.style.opacity = Math.min(1, (vid.currentTime - videoStartTime) / 0.4);
+        const currentTime = vid.currentTime;
+        const totalSegment = videoEndTime - videoStartTime;
+        const progressInSegment = currentTime - videoStartTime;
+        const timeLeft = videoEndTime - currentTime;
+
+        if (selectedTransitionMode === 'fade_sutil') {
+          // Opción 1: Fundido Sutil Extendido (2 segundos de entrada y salida suave)
+          if (progressInSegment <= 2.0) {
+            vid.style.opacity = Math.min(0.85, 0.1 + (progressInSegment / 2.0) * 0.75);
+          } else if (timeLeft <= 2.0) {
+            vid.style.opacity = Math.max(0.1, (timeLeft / 2.0) * 0.75);
           } else {
             vid.style.opacity = 0.85;
           }
+        } else if (selectedTransitionMode === 'escaneo') {
+          // Opción 2: Escaneo Láser Vertical (Contraste y brillo simulando barrido)
+          if (timeLeft <= 1.5) {
+            let factor = timeLeft / 1.5;
+            vid.style.filter = `contrast(${1 + (1-factor)*0.5}) brightness(${factor * 0.95})`;
+            vid.style.opacity = factor * 0.85;
+          } else {
+            vid.style.filter = 'contrast(1.05) brightness(0.95)';
+            vid.style.opacity = 0.85;
+          }
+        } else if (selectedTransitionMode === 'blur') {
+          // Opción 3: Enfoque Dinámico (Borrón a nitidez)
+          if (progressInSegment <= 1.5) {
+            let blurVal = (1.5 - progressInSegment) * 6;
+            vid.style.filter = `blur(${blurVal}px) brightness(0.95)`;
+          } else if (timeLeft <= 1.5) {
+            let blurVal = (1.5 - timeLeft) * 6;
+            vid.style.filter = `blur(${blurVal}px) brightness(0.95)`;
+          } else {
+            vid.style.filter = 'blur(0px) brightness(0.95)';
+          }
+        } else if (selectedTransitionMode === 'glitch_suave') {
+          // Opción 4: Pulso de Contraste y Saturación Suave
+          if (timeLeft <= 1.0) {
+            vid.style.filter = `saturate(${1 + (1-timeLeft)*1.5}) brightness(${timeLeft})`;
+          } else {
+            vid.style.filter = 'saturate(1) brightness(0.95)';
+          }
+        } else if (selectedTransitionMode === 'flash_cinematico') {
+          // Opción 5: Flash de Exposición Profesional
+          if (timeLeft <= 0.8) {
+            vid.style.filter = `brightness(${1 + (0.8 - timeLeft) * 2})`;
+          } else {
+            vid.style.filter = 'brightness(0.95)';
+          }
         } else {
           vid.style.opacity = 0.85;
+          vid.style.filter = 'none';
         }
-        if (vid.currentTime >= videoEndTime) {
+
+        // Bucle limpio dentro del rango seleccionado
+        if (currentTime >= videoEndTime) {
           vid.currentTime = videoStartTime;
           vid.play();
         }
@@ -971,7 +1054,16 @@
           const avatarUrl = data.photo_url || data.avatar_url || localStorage.getItem('apex_user_avatar');
           renderAvatarVisual(avatarUrl, data.name || data.email || 'ST');
 
-          if (data.loop_mode) loopTransitionMode = data.loop_mode;
+          if (data.loop_mode) {
+            selectedTransitionMode = data.loop_mode;
+            document.getElementById('transitionModeSelect').value = selectedTransitionMode;
+          }
+
+          if (data.aura_color) {
+            selectedPulseColor = data.aura_color;
+            const val = data.aura_color === 'none' ? 'transparent' : data.aura_color;
+            document.documentElement.style.setProperty('--pulse-color', val);
+          }
 
           if (data.video_url) {
             const vid = document.getElementById('nativeProfileVideo');
@@ -1139,7 +1231,6 @@
 
       const statusLabel = document.getElementById('radarStatusLabel');
       statusLabel.innerText = `${escala.estado} (${globalPct}%)`;
-      statusLabel.style.color = escala.color;
 
       renderRadarChart(averages, escala.color, escala.color + '28');
     }
