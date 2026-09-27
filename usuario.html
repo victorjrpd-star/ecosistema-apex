@@ -467,7 +467,6 @@
 
       obtenerRegistrosFiltrados: function() {
         if (!cachedRecords || cachedRecords.length === 0) return [];
-        const ahora = new Date();
 
         if (this.tipo === 'all') {
           return cachedRecords;
@@ -483,7 +482,6 @@
           });
         }
 
-        // Días (30 o 60)
         const fLimite = new Date();
         fLimite.setDate(fLimite.getDate() - parseInt(this.tipo));
         return cachedRecords.filter(r => new Date(r.created_at) >= fLimite);
@@ -562,7 +560,7 @@
           document.getElementById('displayNombre').innerText = data.name || 'Striker';
           document.getElementById('displayEmail').innerText = data.email;
 
-          const avatarUrl = data.avatar_url || data.photo_url;
+          const avatarUrl = data.photo_url || data.avatar_url;
           const displayEl = document.getElementById('displayAvatar');
           if (avatarUrl) {
             displayEl.outerHTML = `<img id="displayAvatar" src="${avatarUrl}" class="avatar-circle" alt="Foto">`;
@@ -573,13 +571,16 @@
 
           const hoy = new Date(); hoy.setHours(0,0,0,0);
           let activa = false;
-          if (data.membership_end) {
+          if (data.subscription_expires_at) {
+            const exp = new Date(data.subscription_expires_at);
+            activa = exp >= hoy;
+          } else if (data.membership_end) {
             const exp = new Date(data.membership_end + 'T00:00:00');
             activa = exp >= hoy;
           }
 
           const badge = document.getElementById('displayStatus');
-          if (activa) {
+          if (activa && data.subscription_status === 'activo') {
             badge.innerText = 'AL DÍA';
             badge.style.color = 'var(--status-ok)';
             badge.style.borderColor = 'rgba(34, 197, 94, 0.4)';
@@ -609,10 +610,7 @@
         if (error || !data) return;
         cachedRecords = data;
 
-        // 1. Calcular Nivel Oficial Bimestral (Base 240 PTS Rendimiento)
         calcularNivelOficialBimestral(data);
-
-        // 2. Renderizar Vistas iniciales con filtro por defecto (60 días)
         ApexFiltros.recalcularVistas();
 
       } catch (e) {
@@ -620,7 +618,7 @@
       }
     }
 
-    /* PROGRESO OFICIAL BIMESTRAL (BASE 240 PTS - RENDIMIENTO) */
+    /* PROGRESO OFICIAL BIMESTRAL */
     function calcularNivelOficialBimestral(records) {
       const totalClases = records.length;
       document.getElementById('totalSesionesTxt').innerText = `${totalClases} Clases Totales`;
@@ -654,7 +652,7 @@
       barFill.style.boxShadow = `0 0 10px ${nivelInfo.color}66`;
     }
 
-    /* REGLA OFICIAL DE RANGOS APEX BOXING */
+    /* ESCALA APEX BOXING */
     function determinarEscalaOficial(porcentaje) {
       if (porcentaje >= 101) return { nombre: "APEX+", color: "#ffd700", estado: "Equilibrio Apex+" };
       if (porcentaje >= 76) return { nombre: "APEX", color: "#d4af37", estado: "Equilibrio Apex" };
@@ -663,7 +661,7 @@
       return { nombre: "INICIADO", color: "#ffffff", estado: "En Desarrollo" };
     }
 
-    /* ACTUALIZAR DASHBOARD */
+    /* DASHBOARD */
     function actualizarDashboardConDatos(records) {
       const container = document.getElementById('historyContainer');
 
@@ -710,13 +708,12 @@
       });
     }
 
-    /* ACTUALIZAR TELARAÑA Y PERFIL STRIKER */
+    /* TELARAÑA Y DOSSIER */
     function actualizarRadarConDatos(records) {
       const email = currentUser ? currentUser.email : document.getElementById('ciEmail').value.trim();
       const totalClasesCarrera = cachedRecords.length;
       const clasesPeriodo = records.length;
 
-      // Meta estándar de 24 clases por bimestre (proporcional a 30 días = 12 clases)
       const metaPeriodo = ApexFiltros.tipo === 30 ? 12 : 24;
       const disciplinaPct = Math.min(100, Math.round((clasesPeriodo / metaPeriodo) * 100));
 
@@ -753,14 +750,12 @@
         +(sum.diversion / count).toFixed(1)
       ];
 
-      // Promedio global y conversión a porcentaje (10 pts = 100%)
       const globalAvg = averages.reduce((a, b) => a + b, 0) / 6;
       const globalPct = Math.round((globalAvg / 10) * 100);
 
-      // Color dinámico según escala oficial
       const escala = determinarEscalaOficial(globalPct);
       const themeColor = escala.color;
-      const themeBg = themeColor + '33'; // 20% transparencia
+      const themeBg = themeColor + '33';
 
       const statusLabel = document.getElementById('radarStatusLabel');
       statusLabel.innerText = `${escala.estado} (${globalPct}%)`;
@@ -850,7 +845,7 @@
       });
     }
 
-    /* SUBIDA DIRECTA DE FOTO (CÁMARA / GALERÍA) */
+    /* SUBIDA DE FOTO */
     async function subirFotoPerfil(files) {
       if (!files || files.length === 0 || !sb) return;
       const file = files[0];
@@ -888,7 +883,7 @@
       }
     }
 
-    /* BANDEJA DE OBSERVACIONES (MÁXIMO 3, 7 DÍAS) */
+    /* BANDEJA DE OBSERVACIONES (PERSISTENCIA CONFIRMADA) */
     async function cargarNotificaciones(email) {
       if (!sb || !email) return;
       const area = document.getElementById('notifArea');
@@ -936,12 +931,29 @@
     }
 
     async function descartarNotif(id) {
-      document.getElementById(`notif_${id}`)?.remove();
-      const area = document.getElementById('notifArea');
-      if (area.children.length === 0) area.style.display = 'none';
+      // 1. Eliminar elemento visual de inmediato
+      const cardEl = document.getElementById(`notif_${id}`);
+      if (cardEl) cardEl.remove();
 
+      const area = document.getElementById('notifArea');
+      if (area && area.children.length === 0) {
+        area.style.display = 'none';
+      }
+
+      // 2. Persistir borrado en la base de datos
       if (sb) {
-        await sb.from('apex_notifications').delete().eq('id', id);
+        try {
+          const { error } = await sb
+            .from('apex_notifications')
+            .delete()
+            .eq('id', id);
+
+          if (error) {
+            console.error("Fallo al persistir borrado en Supabase:", error.message);
+          }
+        } catch (err) {
+          console.error("Error de red al borrar notificación:", err);
+        }
       }
     }
 
