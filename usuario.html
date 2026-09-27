@@ -28,7 +28,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background-color: var(--bg-color); color: var(--text-main); padding: 12px; max-width: 580px; margin: 0 auto; min-height: 100vh; overflow-x: hidden; }
 
-    /* CABECERA RESUMEN */
+    /* CABECERA RESUMEN CON AVATAR SOLO LECTURA */
     .profile-bar {
       display: flex; align-items: center; justify-content: space-between;
       background: rgba(18, 18, 20, 0.85); backdrop-filter: blur(10px);
@@ -36,17 +36,12 @@
       padding: 10px 14px; margin-bottom: 10px;
     }
     .profile-info { display: flex; align-items: center; gap: 10px; }
-    .avatar-wrapper { position: relative; cursor: pointer; flex-shrink: 0; }
+    .avatar-wrapper { position: relative; flex-shrink: 0; }
     .avatar-circle {
       width: 44px; height: 44px; border-radius: 50%; object-fit: cover;
       background: #1c1c20; border: 2px solid var(--border-color);
       display: flex; align-items: center; justify-content: center;
       font-size: 0.85rem; font-weight: 900; color: #fff;
-    }
-    .avatar-btn-badge {
-      position: absolute; bottom: -2px; right: -2px; background: var(--accent);
-      color: #fff; border-radius: 50%; width: 16px; height: 16px; font-size: 0.65rem;
-      display: flex; align-items: center; justify-content: center; border: 2px solid #000;
     }
     .profile-text strong { display: block; font-size: 0.85rem; color: #fff; }
     .profile-text span { font-size: 0.68rem; color: var(--text-muted); }
@@ -286,8 +281,7 @@
 </head>
 <body>
 
-  <!-- INPUTS OCULTOS -->
-  <input type="file" id="inputFotoPerfil" accept="image/*" style="display: none;" onchange="subirFotoPerfil(this.files)">
+  <!-- INPUT OCULTO EXCLUSIVO PARA VIDEO (Foto se gestiona desde Apex Core) -->
   <input type="file" id="inputVideoRaw" accept="video/*" style="display: none;" onchange="procesarVideoSeleccionado(this.files)">
 
   <!-- MODAL TÁCTICO: VIDEO & AURA -->
@@ -335,12 +329,11 @@
     </div>
   </div>
 
-  <!-- CABECERA RESUMEN -->
+  <!-- CABECERA RESUMEN (AVATAR SOLO LECTURA) -->
   <div class="profile-bar">
     <div class="profile-info">
-      <div class="avatar-wrapper" onclick="document.getElementById('inputFotoPerfil').click()" title="Cambiar foto de carnet">
+      <div class="avatar-wrapper">
         <div id="displayAvatar" class="avatar-circle">ST</div>
-        <div class="avatar-btn-badge">📷</div>
       </div>
       <div class="profile-text">
         <strong id="displayNombre">Striker Apex</strong>
@@ -588,7 +581,6 @@
       },
 
       bindEvents: function() {
-        // Tocar el canvas para seleccionar el color exacto a eliminar
         this.canvas.addEventListener('click', (e) => {
           const rect = this.canvas.getBoundingClientRect();
           const scaleX = this.canvas.width / rect.width;
@@ -638,7 +630,6 @@
         const offCtx = offCanvas.getContext('2d');
         offCtx.drawImage(this.video, 0, 0, 100, 180);
 
-        // Muestreo de las cuatro esquinas exteriores
         const p1 = offCtx.getImageData(5, 5, 1, 1).data;
         const p2 = offCtx.getImageData(95, 5, 1, 1).data;
         const p3 = offCtx.getImageData(5, 175, 1, 1).data;
@@ -859,6 +850,13 @@
     /* INICIALIZACIÓN */
     async function init() {
       CanvasVideoEngine.init();
+
+      // Carga inmediata del avatar desde localStorage si existe
+      const cachedAvatar = localStorage.getItem('apex_user_avatar');
+      if (cachedAvatar) {
+        renderAvatarVisual(cachedAvatar);
+      }
+
       if (!sb) return;
 
       let email = null;
@@ -886,6 +884,20 @@
       await cargarNotificaciones(email);
     }
 
+    function renderAvatarVisual(url, nombreFallback = 'ST') {
+      const displayEl = document.getElementById('displayAvatar');
+      if (!displayEl) return;
+      if (url) {
+        if (displayEl.tagName === 'IMG') {
+          displayEl.src = url;
+        } else {
+          displayEl.outerHTML = `<img id="displayAvatar" src="${url}" class="avatar-circle" alt="Foto">`;
+        }
+      } else {
+        displayEl.outerHTML = `<div id="displayAvatar" class="avatar-circle">${nombreFallback.substring(0, 2).toUpperCase()}</div>`;
+      }
+    }
+
     async function cargarDatosPerfil(email) {
       if (!sb || !email) return;
 
@@ -897,13 +909,7 @@
           document.getElementById('displayEmail').innerText = data.email;
 
           const avatarUrl = data.photo_url || data.avatar_url;
-          const displayEl = document.getElementById('displayAvatar');
-          if (avatarUrl) {
-            displayEl.outerHTML = `<img id="displayAvatar" src="${avatarUrl}" class="avatar-circle" alt="Foto">`;
-          } else {
-            const iniciales = (data.name || data.email || 'ST').substring(0, 2).toUpperCase();
-            displayEl.innerText = iniciales;
-          }
+          renderAvatarVisual(avatarUrl, data.name || data.email || 'ST');
 
           if (data.aura_color) {
             selectedAura = data.aura_color;
@@ -935,39 +941,6 @@
         }
       } catch (e) {
         console.warn("Perfil en espera.");
-      }
-    }
-
-    async function subirFotoPerfil(files) {
-      if (!files || files.length === 0 || !sb) return;
-      const file = files[0];
-      const email = document.getElementById('ciEmail').value.trim();
-      const ext = file.name.split('.').pop();
-      const filePath = `avatars/${Date.now()}_${email.replace(/[^a-zA-Z0-9]/g, '_')}.${ext}`;
-
-      alert('Subiendo carnet...');
-      try {
-        const { error: uploadError } = await sb.storage.from('avatars').upload(filePath, file, { upsert: true });
-        if (uploadError) throw uploadError;
-
-        const { data: urlData } = sb.storage.from('avatars').getPublicUrl(filePath);
-        const publicUrl = urlData.publicUrl;
-
-        await sb.from('apex_users').update({
-          avatar_url: publicUrl,
-          photo_url: publicUrl
-        }).eq('email', email);
-
-        const displayEl = document.getElementById('displayAvatar');
-        if (displayEl.tagName === 'IMG') {
-          displayEl.src = publicUrl;
-        } else {
-          displayEl.outerHTML = `<img id="displayAvatar" src="${publicUrl}" class="avatar-circle" alt="Foto">`;
-        }
-
-        alert('¡Foto de perfil actualizada!');
-      } catch (err) {
-        alert('Error: ' + err.message);
       }
     }
 
@@ -1316,6 +1289,13 @@
       btn.disabled = false;
       btn.innerText = 'Enviar Registro';
     }
+
+    /* ESCUCHAR ACTUALIZACIONES DE FOTO EN VIVO DESDE APEX CORE (INDEX.HTML) */
+    window.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'APEX_AVATAR_UPDATED' && event.data.avatarUrl) {
+        renderAvatarVisual(event.data.avatarUrl);
+      }
+    });
 
     window.onload = init;
   </script>
