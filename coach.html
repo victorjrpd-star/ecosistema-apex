@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Apex - Control Coach</title>
+  <title>Apex - Panel Coach</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
@@ -142,7 +142,7 @@
     }
     .filter-chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
-    /* CARRETEL TÁCTICO */
+    /* CARRETEL TÁCTICO CON VIDEO DE FONDO Y MALLA HEXAGONAL */
     .team-carousel {
       display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none; margin-bottom: 14px;
     }
@@ -150,17 +150,32 @@
     
     .carousel-card-item {
       background: #121214; border: 1px solid var(--border); border-radius: 10px; padding: 12px;
-      min-width: 220px; max-width: 220px; display: flex; flex-direction: column; cursor: pointer; transition: 0.2s; flex-shrink: 0;
+      min-width: 230px; max-width: 230px; display: flex; flex-direction: column; cursor: pointer; transition: 0.2s; flex-shrink: 0;
       position: relative; overflow: hidden;
     }
-    .carousel-card-item.active { border-color: var(--accent); background: rgba(229,9,20,0.06); }
-    
+    .carousel-card-item.active { border-color: var(--accent); box-shadow: 0 0 12px rgba(229,9,20,0.3); }
+
+    /* Video de fondo y Textura Hexagonal */
+    .card-video-bg {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; opacity: 0.45; pointer-events: none;
+    }
+    .card-hex-overlay {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none;
+      background-image: radial-gradient(rgba(229,9,20,0.15) 1px, transparent 1px), radial-gradient(rgba(0,0,0,0.7) 1px, #08080a 1px);
+      background-size: 16px 16px; background-position: 0 0, 8px 8px; mix-blend-mode: overlay;
+    }
+    .card-dark-gradient {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 3; pointer-events: none;
+      background: linear-gradient(180deg, rgba(8,8,10,0.85) 0%, rgba(14,14,16,0.92) 100%);
+    }
+    .carousel-card-item > * { position: relative; z-index: 4; }
+
     .carousel-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
     .carousel-card-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border); }
     .carousel-card-title strong { display: block; font-size: 0.8rem; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; }
     .carousel-card-title span { font-size: 0.62rem; color: var(--text-muted); text-transform: uppercase; }
 
-    .carousel-progress-track { width: 100%; height: 5px; background: #1a1a20; border-radius: 3px; overflow: hidden; margin: 6px 0; }
+    .carousel-progress-track { width: 100%; height: 5px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; margin: 6px 0; }
     .carousel-progress-fill { height: 100%; width: 0%; background: var(--status-ok); border-radius: 3px; }
 
     /* BOTONES */
@@ -301,7 +316,7 @@
       </div>
     </div>
 
-    <!-- SUBMÓDULO 3: EQUIPO & ANALÍTICA UNIFICADA (VENTANA 2 MESES) -->
+    <!-- SUBMÓDULO 3: EQUIPO & ANALÍTICA UNIFICADA (TARJETAS INMERSIVAS CON VIDEO Y MALLA HEXAGONAL) -->
     <div class="panel-view" id="modulo_equipo">
       <div class="header">
         <div class="title">Apex <span>Equipo</span></div>
@@ -1020,7 +1035,7 @@
     };
 
     /* ==========================================================================
-       6. MÓDULO DE EQUIPO Y ANALÍTICA (VENTANA DE 2 MESES + 4 PILARES UNIFICADOS)
+       6. MÓDULO DE EQUIPO Y ANALÍTICA (TARJETAS INMERSIVAS CON VIDEO Y MALLA)
        ========================================================================== */
     let globalTeamUsers = [];
     let globalTeamCheckins = [];
@@ -1048,11 +1063,11 @@
           globalTeamSupervisions = supervisions || [];
           globalTeamAdjustments = adjustments || [];
 
-          // Filtrar datos de los últimos 2 meses (Ventana Bimestral Rodante)
-          const haceDosMeses = new Date();
-          haceDosMeses.setMonth(haceDosMeses.getMonth() - 2);
+          const haceSesentaDias = new Date();
+          haceSesentaDias.setDate(haceSesentaDias.getDate() - 60);
+          haceSesentaDias.setHours(0, 0, 0, 0);
 
-          const checkinsBimestre = globalTeamCheckins.filter(c => new Date(c.created_at) >= haceDosMeses);
+          const checkinsBimestre = globalTeamCheckins.filter(c => new Date(c.created_at) >= haceSesentaDias);
 
           document.getElementById('teamTotalStrikers').innerText = users.length;
           document.getElementById('teamTotalCheckins').innerText = checkinsBimestre.length;
@@ -1090,8 +1105,9 @@
         carousel.innerHTML = '';
 
         const hoy = new Date();
-        const haceDosMeses = new Date();
-        haceDosMeses.setMonth(haceDosMeses.getMonth() - 2);
+        const haceSesentaDias = new Date();
+        haceSesentaDias.setDate(haceSesentaDias.getDate() - 60);
+        haceSesentaDias.setHours(0, 0, 0, 0);
 
         const filteredUsers = globalTeamUsers.filter(user => {
           if (currentTeamFilter === 'todos') return true;
@@ -1131,29 +1147,36 @@
             : `<div class="carousel-card-avatar avatar-circle" style="width:40px;height:40px;">${(user.name || 'ST').substring(0,2).toUpperCase()}</div>`;
 
           // 1. Check-ins
-          const userCheckins = globalTeamCheckins.filter(c => c.user_email?.toLowerCase() === user.email?.toLowerCase() && new Date(c.created_at) >= haceDosMeses);
+          const userCheckins = globalTeamCheckins.filter(c => c.user_email?.toLowerCase() === user.email?.toLowerCase() && new Date(c.created_at) >= haceSesentaDias);
           let ptsCheckins = 0;
           userCheckins.forEach(c => ptsCheckins += parseFloat(c.final_score || c.rendimiento || 0));
 
           // 2. Calificaciones Coach
-          const userRatings = globalTeamRatings.filter(r => r.user_email?.toLowerCase() === user.email?.toLowerCase() && new Date(r.created_at) >= haceDosMeses);
+          const userRatings = globalTeamRatings.filter(r => r.user_email?.toLowerCase() === user.email?.toLowerCase() && new Date(r.created_at) >= haceSesentaDias);
           let ptsRatings = 0;
           userRatings.forEach(r => ptsRatings += parseFloat(r.note || 0));
 
           // 3. Supervisiones
-          const userSupervisions = globalTeamSupervisions.filter(s => s.user_email?.toLowerCase() === user.email?.toLowerCase() && new Date(s.created_at) >= haceDosMeses);
+          const userSupervisions = globalTeamSupervisions.filter(s => s.user_email?.toLowerCase() === user.email?.toLowerCase() && new Date(s.created_at) >= haceSesentaDias);
           let ptsSupervisions = 0;
           userSupervisions.forEach(s => ptsSupervisions += parseFloat(s.score || 0));
 
-          // 4. Ajustes Administrativos / Coordinación
-          const userAdjustments = globalTeamAdjustments.filter(a => a.user_email?.toLowerCase() === user.email?.toLowerCase() && new Date(a.created_at) >= haceDosMeses);
+          // 4. Ajustes Administrativos
+          const userAdjustments = globalTeamAdjustments.filter(a => a.user_email?.toLowerCase() === user.email?.toLowerCase() && new Date(a.created_at) >= haceSesentaDias);
           let ptsAdjustments = 0;
           userAdjustments.forEach(a => ptsAdjustments += parseFloat(a.note || 0));
 
           let ptsBimestrales = ptsCheckins + ptsRatings + ptsSupervisions + ptsAdjustments;
           let progPercent = Math.min(110, Math.round((ptsBimestrales / 240) * 100));
 
+          // Inyección de video de fondo y malla hexagonal superpuesta
           item.innerHTML = `
+            <video class="card-video-bg" autoplay muted loop playsinline>
+              <source src="https://assets.mixkit.co/videos/preview/mixkit-digital-animation-of-screens-and-numbers-31998-large.mp4" type="video/mp4">
+            </video>
+            <div class="card-hex-overlay"></div>
+            <div class="card-dark-gradient"></div>
+
             <div class="carousel-card-header">
               ${avatarHtml}
               <div class="carousel-card-title">
@@ -1169,7 +1192,7 @@
               <div class="carousel-progress-fill" style="width: ${Math.min(100, progPercent)}%; background: ${progPercent > 100 ? 'var(--accent)' : 'var(--status-ok)'};"></div>
             </div>
             <div style="font-size:0.6rem; color:var(--text-muted); margin-top:4px; display:flex; justify-content:space-between;">
-              <span>Clases: <strong style="color:#fff;">${userCheckins.length}</strong></span>
+              <span>Pts: <strong style="color:#fff;">${ptsBimestrales.toFixed(1)}</strong></span>
               <span style="color:var(--accent);">Ver ficha ➔</span>
             </div>
           `;
@@ -1200,13 +1223,14 @@
           avatarContainer.outerHTML = `<div id="indAvatar" class="avatar-circle avatar-sm">${(user.name || 'ST').substring(0,2).toUpperCase()}</div>`;
         }
 
-        const haceDosMeses = new Date();
-        haceDosMeses.setMonth(haceDosMeses.getMonth() - 2);
+        const haceSesentaDias = new Date();
+        haceSesentaDias.setDate(haceSesentaDias.getDate() - 60);
+        haceSesentaDias.setHours(0, 0, 0, 0);
 
-        const userCheckins = checkins.filter(c => c.user_email?.toLowerCase() === user.email?.toLowerCase() && new Date(c.created_at) >= haceDosMeses);
-        const userRatings = ratings.filter(r => r.user_email?.toLowerCase() === user.email?.toLowerCase() && new Date(r.created_at) >= haceDosMeses);
-        const userSupervisions = supervisions.filter(s => s.user_email?.toLowerCase() === user.email?.toLowerCase() && new Date(s.created_at) >= haceDosMeses);
-        const userAdjustments = adjustments.filter(a => a.user_email?.toLowerCase() === user.email?.toLowerCase() && new Date(a.created_at) >= haceDosMeses);
+        const userCheckins = checkins.filter(c => c.user_email?.toLowerCase() === user.email?.toLowerCase() && new Date(c.created_at) >= haceSesentaDias);
+        const userRatings = ratings.filter(r => r.user_email?.toLowerCase() === user.email?.toLowerCase() && new Date(r.created_at) >= haceSesentaDias);
+        const userSupervisions = supervisions.filter(s => s.user_email?.toLowerCase() === user.email?.toLowerCase() && new Date(s.created_at) >= haceSesentaDias);
+        const userAdjustments = adjustments.filter(a => a.user_email?.toLowerCase() === user.email?.toLowerCase() && new Date(a.created_at) >= haceSesentaDias);
 
         let ptsCheckins = 0;
         userCheckins.forEach(c => ptsCheckins += parseFloat(c.final_score || c.rendimiento || 0));
