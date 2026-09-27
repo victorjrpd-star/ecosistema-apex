@@ -371,14 +371,13 @@
 
     function renderizarGrupoStrikers() {
       const strikers = cachedUsers.filter(u => !u.role || u.role === 'striker' || u.role === 'usuario');
-      const hoy = new Date(); hoy.setHours(0,0,0,0);
+      const hoy = new Date();
 
       let alDia = 0;
       let vencidos = 0;
       strikers.forEach(s => {
-        if (s.membership_end) {
-          const exp = new Date(s.membership_end + 'T00:00:00');
-          if (exp >= hoy) alDia++; else vencidos++;
+        if (s.subscription_status === 'activo' || (s.subscription_expires_at && new Date(s.subscription_expires_at) >= hoy)) {
+          alDia++;
         } else {
           vencidos++;
         }
@@ -407,7 +406,7 @@
 
     function renderizarGrupoCoaches() {
       const coaches = cachedUsers.filter(u => u.role === 'coach' || u.role === 'instructor');
-      const supervisados = cachedSupervisiones.filter(s => s.coordinator_status !== 'pendiente_revision');
+      const supervisados = cachedSupervisiones.filter(s => s.coordinator_status && s.coordinator_status !== 'pendiente_revision');
 
       const totalSuperv = supervisados.length;
       const sumPuntos = supervisados.reduce((a, b) => a + (b.coach_points || 0), 0);
@@ -437,7 +436,7 @@
 
     function renderizarGrupoSupervisores() {
       const supervisores = cachedUsers.filter(u => u.role === 'supervisor');
-      const resueltas = cachedSupervisiones.filter(s => s.coordinator_status !== 'pendiente_revision');
+      const resueltas = cachedSupervisiones.filter(s => s.coordinator_status && s.coordinator_status !== 'pendiente_revision');
 
       const aprobadasLimpias = resueltas.filter(s => s.coordinator_status === 'aprobado').length;
       const sanciones = resueltas.filter(s => s.coordinator_status === 'sancionado').length;
@@ -504,20 +503,23 @@
 
       // Cálculo de Vigencia Estricta
       const pill = document.getElementById('indivVigenciaPill');
-      const hoy = new Date(); hoy.setHours(0,0,0,0);
+      const hoy = new Date();
 
-      if (user.membership_end) {
-        const exp = new Date(user.membership_end + 'T00:00:00');
+      if (user.subscription_expires_at) {
+        const exp = new Date(user.subscription_expires_at);
         const diffTiempo = exp.getTime() - hoy.getTime();
         const diasRestantes = Math.ceil(diffTiempo / (1000 * 60 * 60 * 24));
 
-        if (diasRestantes >= 0) {
+        if (diasRestantes >= 0 && user.subscription_status === 'activo') {
           pill.className = "vigencia-pill vigencia-ok";
           pill.innerText = `AL DÍA (${diasRestantes} Días)`;
         } else {
           pill.className = "vigencia-pill vigencia-vencida";
-          pill.innerText = `VENCIDO (Hace ${Math.abs(diasRestantes)} Días)`;
+          pill.innerText = `VENCIDO (${Math.abs(diasRestantes)} Días)`;
         }
+      } else if (user.subscription_status === 'activo') {
+        pill.className = "vigencia-pill vigencia-ok";
+        pill.innerText = "ACTIVO INDEFINIDO";
       } else {
         pill.className = "vigencia-pill vigencia-vencida";
         pill.innerText = "SIN MEMBRESÍA ACTIVA";
@@ -538,7 +540,7 @@
       document.getElementById('indivSesionesLabel').innerText = "Clases Bimestre (60d)";
       document.getElementById('indivChartTitle').innerText = "Radar de Equilibrio Biomecánico";
 
-      const checkins = cachedCheckins.filter(c => c.user_email === user.email);
+      const checkins = cachedCheckins.filter(c => c.user_email === user.email || c.user_id === user.id);
       document.getElementById('indivSesionesTotal').innerText = checkins.length;
 
       const f60 = new Date(); f60.setDate(f60.getDate() - 60);
@@ -567,7 +569,6 @@
 
       renderChartIndividualRadar(['Rendimiento', 'RPE', 'Soltura', 'Técnica', 'RAM', 'Disfrute'], dataRadar);
 
-      // Tabla detalle
       const cont = document.getElementById('indivRecentList');
       cont.innerHTML = '';
       if (checkins.length === 0) {
@@ -580,9 +581,9 @@
           <div class="review-item" style="cursor:default;">
             <div class="review-top">
               <span>${f} — ${r.focus}</span>
-              <span style="color:var(--status-ok);">Rend: ${r.rendimiento}/10</span>
+              <span style="color:var(--status-ok);">Rend: ${r.rendimiento || 0}/10</span>
             </div>
-            <div class="review-meta">RPE: ${r.rpe} | Soltura: ${r.soltura} | Técnica: ${r.preguntacoach || r.student_tech_score}</div>
+            <div class="review-meta">RPE: ${r.rpe || '-'} | Soltura: ${r.soltura || '-'} | Técnica: ${r.preguntacoach || r.student_tech_score || '-'}</div>
           </div>
         `;
       });
@@ -592,7 +593,7 @@
       document.getElementById('indivSesionesLabel').innerText = "Clases Impartidas (60d)";
       document.getElementById('indivChartTitle').innerText = "Puntos Obtenidos en Auditorías (-10 a +10)";
 
-      const clases = cachedSupervisiones.filter(s => s.coach_email === user.email);
+      const clases = cachedSupervisiones.filter(s => s.coach_email === user.email || s.coach_id === user.id);
       document.getElementById('indivSesionesTotal').innerText = clases.length;
 
       const f60 = new Date(); f60.setDate(f60.getDate() - 60);
@@ -601,7 +602,7 @@
 
       const labels = clases.slice(0, 10).reverse().map(c => {
         const d = new Date(c.session_date);
-        return `${d.getDate() + 1}/${d.getMonth() + 1}`;
+        return `${d.getUTCDate()}/${d.getUTCMonth() + 1}`;
       });
       const dataPoints = clases.slice(0, 10).reverse().map(c => c.coach_points);
 
@@ -614,8 +615,8 @@
         return;
       }
       clases.slice(0, 5).forEach(c => {
-        const f = new Date(c.session_date);
-        const fechaStr = `${f.getDate() + 1}/${f.getMonth() + 1}`;
+        const d = new Date(c.session_date);
+        const fechaStr = `${d.getUTCDate()}/${d.getUTCMonth() + 1}`;
         const scoreCol = c.coach_points >= 0 ? 'var(--status-ok)' : 'var(--accent)';
         cont.innerHTML += `
           <div class="review-item" style="cursor:default;">
@@ -623,7 +624,7 @@
               <span>${fechaStr} · ${c.class_time}</span>
               <span style="color:${scoreCol};">${c.coach_points > 0 ? '+' : ''}${c.coach_points} Pts</span>
             </div>
-            <div class="review-meta">Supervisor: ${c.supervisor_email} · Estado: ${c.coordinator_status.toUpperCase()}</div>
+            <div class="review-meta">Supervisor: ${c.supervisor_email} · Estado: ${(c.coordinator_status || '').toUpperCase()}</div>
           </div>
         `;
       });
@@ -642,7 +643,7 @@
 
       const labels = envios.slice(0, 10).reverse().map(c => {
         const d = new Date(c.session_date);
-        return `${d.getDate() + 1}/${d.getMonth() + 1}`;
+        return `${d.getUTCDate()}/${d.getUTCMonth() + 1}`;
       });
       const dataPoints = envios.slice(0, 10).reverse().map(c => c.supervisor_points || 0);
 
@@ -655,8 +656,8 @@
         return;
       }
       envios.slice(0, 5).forEach(c => {
-        const f = new Date(c.session_date);
-        const fechaStr = `${f.getDate() + 1}/${f.getMonth() + 1}`;
+        const d = new Date(c.session_date);
+        const fechaStr = `${d.getUTCDate()}/${d.getUTCMonth() + 1}`;
         const esAprobada = c.coordinator_status === 'aprobado';
         cont.innerHTML += `
           <div class="review-item" style="cursor:default;">
@@ -757,8 +758,8 @@
           div.id = `cola_${item.id}`;
           div.onclick = () => abrirAuditoria(item);
 
-          const f = new Date(item.session_date);
-          const fechaStr = `${f.getDate() + 1}/${f.getMonth() + 1}`;
+          const d = new Date(item.session_date);
+          const fechaStr = `${d.getUTCDate()}/${d.getUTCMonth() + 1}`;
           const colorScore = item.coach_points >= 0 ? 'var(--status-ok)' : 'var(--accent)';
 
           div.innerHTML = `
@@ -801,7 +802,7 @@
 
       for (let i = 1; i <= 10; i++) {
         const key = `c${i}`;
-        const checked = originalChecks[key];
+        const checked = !!originalChecks[key];
 
         const label = document.createElement('label');
         label.className = `check-item ${checked ? 'active' : ''}`;
@@ -836,7 +837,7 @@
       for (let i = 1; i <= 10; i++) {
         const chk = document.getElementById(`coord_c${i}`);
         const box = document.getElementById(`box_coord_c${i}`);
-        const originalVal = originalChecks[`c${i}`];
+        const originalVal = !!originalChecks[`c${i}`];
 
         if (chk.checked) {
           marcados++;
@@ -887,8 +888,8 @@
       for (let i = 1; i <= 10; i++) {
         const val = document.getElementById(`coord_c${i}`).checked;
         if (val) marcados++;
-        if (val !== originalChecks[`c${i}`]) {
-          criteriosModificados.push(`Criterio ${i}: "${DESCRIPCIONES_CRITERIOS[i - 1]}"`);
+        if (val !== !!originalChecks[`c${i}`]) {
+          criteriosModificados.push(`Criterio ${i}`);
         }
       }
 
@@ -923,36 +924,50 @@
 
         if (supError) throw supError;
 
-        const fSesion = new Date(sessionSeleccionada.session_date);
-        const fechaLegible = `${fSesion.getDate() + 1}/${fSesion.getMonth() + 1}`;
-
-        let notifPayload = {};
-        if (tieneDiscrepancias) {
-          notifPayload = {
-            user_email: sessionSeleccionada.supervisor_email,
-            title: 'Sanción Disciplinaria (-10 Pts)',
-            message: `Discrepancia en clase del ${fechaLegible} (${sessionSeleccionada.class_time}) con el coach ${sessionSeleccionada.coach_email}. Puntos corregidos por coordinación: ${criteriosModificados.join(' | ')}. ${notaCoord ? 'Nota: ' + notaCoord : ''}`
-          };
-        } else {
-          notifPayload = {
-            user_email: sessionSeleccionada.supervisor_email,
-            title: 'Auditoría Aprobada (+2 Pts)',
-            message: `Tu evaluación del ${fechaLegible} (${sessionSeleccionada.class_time}) para ${sessionSeleccionada.coach_email} fue validada sin alteraciones. +2 Puntos sumados a tu récord.`
-          };
-        }
+        // Notificación opcional
+        const d = new Date(sessionSeleccionada.session_date);
+        const fechaLegible = `${d.getUTCDate()}/${d.getUTCMonth() + 1}`;
+        const notifPayload = tieneDiscrepancias ? {
+          user_email: sessionSeleccionada.supervisor_email,
+          title: 'Sanción Disciplinaria (-10 Pts)',
+          message: `Discrepancia en clase del ${fechaLegible} (${sessionSeleccionada.class_time}) coach ${sessionSeleccionada.coach_email}. Corregido: ${criteriosModificados.join(', ')}.`
+        } : {
+          user_email: sessionSeleccionada.supervisor_email,
+          title: 'Auditoría Aprobada (+2 Pts)',
+          message: `Tu evaluación del ${fechaLegible} (${sessionSeleccionada.class_time}) para ${sessionSeleccionada.coach_email} fue aprobada limpia (+2 Pts).`
+        };
 
         await sb.from('apex_notifications').insert([notifPayload]);
 
-        alert(tieneDiscrepancias ? '¡Auditoría sellada con Sanción de -10 Pts al supervisor!' : '¡Auditoría sellada y aprobada limpiamente (+2 Pts al supervisor)!');
+        // Mutación inmediata local
+        const idx = cachedSupervisiones.findIndex(s => s.id === sessionSeleccionada.id);
+        if (idx !== -1) {
+          cachedSupervisiones[idx] = { ...cachedSupervisiones[idx], ...payloadSupervision };
+        } else {
+          cachedSupervisiones.unshift({ ...sessionSeleccionada, ...payloadSupervision });
+        }
+
+        // Remover visualmente de pendientes de una vez
+        const elCola = document.getElementById(`cola_${sessionSeleccionada.id}`);
+        if (elCola) elCola.remove();
+
+        const restantes = document.querySelectorAll('#colaList .review-item').length;
+        document.getElementById('pendientesCount').innerText = `${restantes} Pendientes`;
+        if (restantes === 0) {
+          document.getElementById('colaList').innerHTML = '<span style="color:var(--text-muted); font-size:0.75rem;">No hay auditorías pendientes de revisión.</span>';
+        }
+
         cerrarAuditoria();
-        await cargarColaPendientes();
-        await cargarCensoCompleto();
+        alert(tieneDiscrepancias ? '¡Auditoría sellada con Sanción de -10 Pts!' : '¡Auditoría sellada y aprobada limpiamente (+2 Pts)!');
+
+        // Recarga de fondo para asegurar sincronía
+        cargarCensoCompleto();
 
       } catch (err) {
         alert('Error al sellar auditoría: ' + err.message);
+      } finally {
+        btn.disabled = false;
       }
-
-      btn.disabled = false;
     }
 
     /* ================= HISTORIAL RESUELTO ================= */
@@ -964,12 +979,17 @@
     }
 
     async function cargarHistorialResuelto() {
+      // Si la caché está vacía, hacemos fetch directo
+      if (cachedSupervisiones.length === 0) {
+        const { data } = await sb.from('apex_coach_supervisions').select('*').order('session_date', { ascending: false });
+        if (data) cachedSupervisiones = data;
+      }
       renderizarHistorial();
     }
 
     function renderizarHistorial() {
       const cont = document.getElementById('historialList');
-      let filtrados = cachedSupervisiones.filter(s => s.coordinator_status !== 'pendiente_revision');
+      let filtrados = cachedSupervisiones.filter(s => s.coordinator_status && s.coordinator_status !== 'pendiente_revision');
 
       if (diasFiltroHistorial !== 'all') {
         const fLim = new Date();
@@ -990,8 +1010,8 @@
         div.className = 'review-item';
         div.style.cursor = 'default';
 
-        const f = new Date(item.session_date);
-        const fechaStr = `${f.getDate() + 1}/${f.getMonth() + 1}`;
+        const d = new Date(item.session_date);
+        const fechaStr = `${d.getUTCDate()}/${d.getUTCMonth() + 1}`;
         const esAprobada = item.coordinator_status === 'aprobado';
         const colorEstado = esAprobada ? 'var(--status-ok)' : 'var(--accent)';
         const badgeSup = esAprobada ? '+2 Pts Supervisor' : '-10 Pts Supervisor';
