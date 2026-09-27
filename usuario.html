@@ -23,7 +23,6 @@
       --status-ok: #22c55e;
       --tier-color: #ffffff;
       --aura-color: #e50914;
-      --glow-shadow: drop-shadow(0 0 16px var(--aura-color));
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -134,13 +133,13 @@
       margin-bottom: 24px;
     }
 
-    /* Video Nativo Limpio sin Croma */
+    /* Video Nativo Limpio */
     .dossier-video-bg {
       position: absolute;
       top: 0; left: 0; width: 100%; height: 100%;
       object-fit: cover;
       z-index: 1;
-      opacity: 0.82;
+      opacity: 0.85;
       filter: contrast(1.05) brightness(0.95);
     }
 
@@ -148,54 +147,94 @@
       position: absolute;
       top: 0; left: 0; width: 100%; height: 100%;
       background: radial-gradient(circle at center, transparent 35%, rgba(6,6,8,0.7) 100%),
-                  linear-gradient(180deg, rgba(6,6,8,0.8) 0%, transparent 25%, rgba(6,6,8,0.85) 90%);
+                  linear-gradient(180deg, rgba(6,6,8,0.85) 0%, transparent 25%, rgba(6,6,8,0.9) 90%);
       pointer-events: none;
       z-index: 2;
     }
 
-    /* Branding Táctico Oficial Apex */
+    /* Branding Táctico Duplicado de Tamaño */
     .dossier-branding {
       position: relative; z-index: 5;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-      padding-bottom: 6px; margin-bottom: 4px;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+      padding-bottom: 8px; margin-bottom: 6px;
       display: flex; justify-content: space-between; align-items: flex-end;
     }
     .brand-title {
-      font-size: 0.72rem; font-weight: 900; letter-spacing: 1.5px;
-      text-transform: uppercase; color: #fff; text-shadow: 0 2px 8px #000;
+      font-size: 1.25rem; font-weight: 900; letter-spacing: 2px;
+      text-transform: uppercase; color: #fff; text-shadow: 0 2px 10px #000;
     }
-    .brand-title span { color: var(--accent); }
+    .brand-title span { color: #fff; } /* Boxing en Blanco */
     .brand-sub {
-      font-size: 0.58rem; font-weight: 700; letter-spacing: 1px;
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 1px;
       text-transform: uppercase; color: var(--text-muted);
     }
 
-    /* Acciones Flotantes */
+    /* Rueda de Configuración y Menú Flotante Minimalista */
     .hud-controls-bar {
       position: absolute;
       top: 14px; right: 14px;
-      z-index: 10;
-      display: flex;
-      gap: 6px;
+      z-index: 20;
     }
-    .btn-hud {
-      background: rgba(18, 18, 22, 0.75);
+    .btn-gear {
+      background: rgba(18, 18, 22, 0.8);
       backdrop-filter: blur(8px);
-      border: 1px solid rgba(255, 255, 255, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.2);
       color: #fff;
-      padding: 6px 9px;
-      font-size: 0.62rem;
-      font-weight: 800;
-      border-radius: 20px;
-      text-transform: uppercase;
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 4px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.6);
       transition: 0.2s;
     }
-    .btn-hud:active { border-color: var(--accent); transform: scale(0.96); }
+    .gear-dropdown {
+      position: absolute;
+      top: 44px; right: 0;
+      background: #141418;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      width: 155px;
+      display: none;
+      flex-direction: column;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.9);
+      overflow: hidden;
+      z-index: 30;
+    }
+    .gear-dropdown.show { display: flex; }
+    .gear-item {
+      padding: 10px 12px;
+      font-size: 0.7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #fff;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid #1f1f24;
+      cursor: pointer;
+      text-align: left;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .gear-item:last-child { border-bottom: none; }
+    .gear-item:active { background: #22222a; }
+
+    /* Submenú de descarga */
+    .download-submenu {
+      display: none;
+      flex-direction: column;
+      background: #0d0d10;
+    }
+    .download-submenu.show { display: flex; }
+    .sub-gear-item {
+      padding: 8px 12px 8px 24px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      background: transparent;
+      border: none; border-bottom: 1px solid #18181c;
+      cursor: pointer; text-align: left;
+    }
+    .sub-gear-item:hover { color: #fff; background: #16161a; }
 
     /* Encabezado Táctico */
     .dossier-top-meta { position: relative; z-index: 5; }
@@ -230,7 +269,7 @@
       font-size: 0.55rem; color: #a0a0ab; text-transform: uppercase; font-weight: 600;
     }
 
-    /* Telaraña Radar Flotante Minimalista */
+    /* Telaraña Radar Flotante */
     .radar-floating-wrap {
       position: relative; z-index: 5;
       width: 100%; height: 230px;
@@ -280,7 +319,7 @@
     .summary-txt { font-size: 0.62rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800; }
     .history-card { background: #141418; border: 1px solid #222226; border-radius: 4px; padding: 8px 10px; margin-top: 6px; font-size: 0.72rem; }
 
-    /* MODAL DE CONFIGURACIÓN DE VIDEO */
+    /* MODAL DE CONFIGURACIÓN DE VIDEO CON SELECTOR DE EFECTO */
     #videoModal {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       background: rgba(0,0,0,0.88); backdrop-filter: blur(8px);
@@ -290,11 +329,6 @@
       background: var(--card-bg); border: 1px solid var(--border-color);
       border-radius: 10px; padding: 18px; width: 100%; max-width: 390px;
     }
-    .color-swatch-bar { display: flex; gap: 8px; justify-content: center; margin: 12px 0; }
-    .swatch-btn {
-      width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 2px solid #333; transition: 0.2s;
-    }
-    .swatch-btn.selected { border-color: #fff; transform: scale(1.18); }
     .range-cutter-box { background: #0b0b0e; border: 1px solid var(--border-color); border-radius: 6px; padding: 10px; margin-top: 8px; display: none; }
   </style>
 </head>
@@ -303,17 +337,16 @@
   <!-- INPUT OCULTO EXCLUSIVO PARA VIDEO (Hasta 60s permitido) -->
   <input type="file" id="inputVideoRaw" accept="video/*" style="display: none;" onchange="procesarVideoSeleccionado(this.files)">
 
-  <!-- MODAL TÁCTICO: VIDEO & AURA -->
+  <!-- MODAL TÁCTICO: VIDEO & CONFIGURACIÓN DE REPRODUCCIÓN -->
   <div id="videoModal">
     <div class="modal-box">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <span style="font-size:0.8rem; font-weight:900; text-transform:uppercase;">Video de Fondo Striker</span>
+        <span style="font-size:0.8rem; font-weight:900; text-transform:uppercase;">Configuración de Video Táctico</span>
         <button onclick="cerrarModalVideo()" style="background:none; border:none; color:#fff; font-size:1.1rem; cursor:pointer;">✕</button>
       </div>
 
-      <!-- NOTA DE INTERFAZ SOLICITADA -->
       <p style="font-size:0.68rem; color:var(--text-muted); line-height:1.35; margin-bottom:12px;">
-        Sube o graba tu video en acción (duración máxima sugerida: 30 segundos). Fondo nativo limpio optimizado.
+        Sube o graba tu video en acción (hasta 60 segundos). Selecciona cómo se comportará en bucle tu perfil.
       </p>
 
       <div style="display:flex; gap:8px; margin-bottom:10px;">
@@ -325,25 +358,25 @@
         </button>
       </div>
 
-      <!-- Recortador si excede el límite del sistema (60s) -->
+      <!-- Selector de Transición / Comportamiento Loop -->
+      <div class="form-group" style="margin-top: 10px;">
+        <label>Efecto de Reproducción en Bucle</label>
+        <select id="loopModeSelect" class="input-apex" style="width:100%; padding:8px; background:#09090b; border:1px solid var(--border-color); color:#fff; border-radius:4px; font-size:0.75rem;">
+          <option value="loop">Bucle Directo (Reinicia al final)</option>
+          <option value="fade">Fundido Suave (Fade in/out)</option>
+        </select>
+      </div>
+
+      <!-- Recortador si excede 60s -->
       <div id="trimmerBox" class="range-cutter-box">
         <div style="display:flex; justify-content:space-between; font-size:0.65rem; color:#aaa; margin-bottom:4px;">
-          <span>VENTANA DE REPRODUCCIÓN (60s Máx):</span>
+          <span>VENTANA DE REPRODUCCIÓN:</span>
           <span id="trimRangeTxt">0s - 30s</span>
         </div>
         <input type="range" id="trimSlider" min="0" max="60" step="1" value="0" style="width:100%;" oninput="actualizarVentanaCorte(this.value)">
       </div>
 
-      <label style="font-size:0.68rem; margin-top:10px;">Color del Acento Táctico</label>
-      <div class="color-swatch-bar">
-        <div class="swatch-btn selected" style="background:#e50914;" onclick="seleccionarColorAura('#e50914', this)"></div>
-        <div class="swatch-btn" style="background:#ffd700;" onclick="seleccionarColorAura('#ffd700', this)"></div>
-        <div class="swatch-btn" style="background:#00f0ff;" onclick="seleccionarColorAura('#00f0ff', this)"></div>
-        <div class="swatch-btn" style="background:#22c55e;" onclick="seleccionarColorAura('#22c55e', this)"></div>
-        <div class="swatch-btn" style="background:#c026d3;" onclick="seleccionarColorAura('#c026d3', this)"></div>
-      </div>
-
-      <button id="btnGuardarAvatar" class="btn-submit" style="margin-top:8px;" onclick="guardarAvatarVideo()">
+      <button id="btnGuardarAvatar" class="btn-submit" style="margin-top:12px;" onclick="guardarAvatarVideo()">
         Aplicar al Perfil
       </button>
     </div>
@@ -411,25 +444,31 @@
     <button class="nav-btn" onclick="switchFichaTab('viewForm', this)">📝 Check-in</button>
   </nav>
 
-  <!-- ================= SUBMÓDULO 1: PERFIL FLOTANTE MINIMALISTA ================= -->
+  <!-- ================= SUBMÓDULO 1: PERFIL FLOTANTE CON RUEDA DE CONFIGURACIÓN ================= -->
   <div id="viewProfile" class="view-section active">
     <div class="dossier-viewport" id="dossierViewport">
       
-      <!-- Video Nativo de Fondo sin Croma -->
+      <!-- Video Nativo de Fondo -->
       <video id="nativeProfileVideo" class="dossier-video-bg" playsinline muted loop autoplay crossorigin="anonymous"></video>
       <div class="dossier-ambient-overlay"></div>
 
-      <!-- Controles Superiores: Ajustes y Descargas -->
+      <!-- Rueda de Configuración Contextual (Esquina Superior Derecha) -->
       <div class="hud-controls-bar">
-        <button class="btn-hud" onclick="abrirModalVideo()">⚙️ Video</button>
-        <button class="btn-hud" id="btnExportImg" onclick="DossierExporter.descargarImagen()">📸 Foto</button>
-        <button class="btn-hud" id="btnExportVid" onclick="DossierExporter.descargarVideo()">🎥 Video</button>
+        <button class="btn-gear" onclick="toggleGearMenu(event)" title="Configuración">⚙️</button>
+        <div class="gear-dropdown" id="gearDropdown">
+          <button class="gear-item" onclick="abrirModalVideo(); toggleGearMenu();">📁 Cargar Video</button>
+          <button class="gear-item" onclick="toggleDownloadSubmenu(event)">⬇️ Descargar ▾</button>
+          <div class="download-submenu" id="downloadSubmenu">
+            <button class="sub-gear-item" onclick="DossierExporter.descargarImagen(); toggleGearMenu();">📸 Foto PNG</button>
+            <button class="sub-gear-item" onclick="DossierExporter.descargarVideo(); toggleGearMenu();">🎥 Video WebM</button>
+          </div>
+        </div>
       </div>
 
-      <!-- Branding Oficial Integrado en HUD -->
+      <!-- Branding Oficial Duplicado y con "Boxing" en Blanco -->
       <div class="dossier-branding">
         <div>
-          <div class="brand-title">APEX <span>BOXING</span></div>
+          <div class="brand-title">APEX <span style="color:#fff;">BOXING</span></div>
           <div class="brand-sub">Escuela de Striker</div>
         </div>
         <div style="text-align: right;">
@@ -444,7 +483,7 @@
         <div class="dossier-header-sub" id="dossierMeta">Iniciado // 0 Clases</div>
       </div>
 
-      <!-- Métricas Flotantes Dinámicas Clave -->
+      <!-- Métricas Clave -->
       <div class="floating-stats-row">
         <div class="floating-stat-item">
           <div class="floating-stat-num" id="dossierDisciplinaVal">0%</div>
@@ -458,20 +497,20 @@
         </div>
       </div>
 
-      <!-- Telaraña Radar Flotante -->
+      <!-- Telaraña Radar -->
       <div class="radar-floating-wrap">
         <canvas id="chartRadar"></canvas>
       </div>
 
-      <!-- Pie Táctico Minimalista -->
+      <!-- Pie Táctico -->
       <div class="radar-floating-footer">
         <span style="color:#aaa;">Escala: 1 - 10</span>
-        <span id="radarStatusLabel" style="color:var(--aura-color);">Calculando equilibrio...</span>
+        <span id="radarStatusLabel" style="color:var(--accent);">Calculando equilibrio...</span>
       </div>
     </div>
   </div>
 
-  <!-- ================= SUBMÓDULO 2: DASHBOARD Y MÉTRICAS AVANZADAS ================= -->
+  <!-- ================= SUBMÓDULO 2: DASHBOARD ================= -->
   <div id="viewDash" class="view-section">
     <div class="card">
       <div class="header">
@@ -490,7 +529,6 @@
         </div>
       </div>
 
-      <!-- NUEVAS GRÁFICAS AVANZADAS -->
       <div class="chart-container" style="border-left: 3px solid #22c55e;">
         <div class="chart-title" style="color: #22c55e;">Índice de Eficiencia (Rendimiento vs. Esfuerzo RPE)</div>
         <div class="canvas-wrap"><canvas id="chartEficiencia"></canvas></div>
@@ -501,7 +539,6 @@
         <div class="canvas-wrap"><canvas id="chartFluidezReal"></canvas></div>
       </div>
 
-      <!-- GRÁFICAS DE SEGUIMIENTO HABITUALES -->
       <div class="chart-container">
         <div class="chart-title">Rendimiento (1 - 10)</div>
         <div class="canvas-wrap"><canvas id="chartRendimiento"></canvas></div>
@@ -605,18 +642,32 @@
     let cachedRecords = [];
     let chartInstances = {};
     let tempVideoFile = null;
-    let selectedAura = '#e50914';
     let videoStartTime = 0;
-    let videoEndTime = 60; // Sistema permite hasta 60s internamente
+    let videoEndTime = 60;
+    let loopTransitionMode = 'loop';
 
-    /* MOTOR DE EXPORTACIÓN (FOTO Y VIDEO CON BRANDING) */
+    /* CONTROL DE MENÚ FLOTANTE */
+    function toggleGearMenu(e) {
+      if (e) e.stopPropagation();
+      const menu = document.getElementById('gearDropdown');
+      menu.classList.toggle('show');
+      document.getElementById('downloadSubmenu').classList.remove('show');
+    }
+
+    function toggleDownloadSubmenu(e) {
+      if (e) e.stopPropagation();
+      const sub = document.getElementById('downloadSubmenu');
+      sub.classList.toggle('show');
+    }
+
+    window.addEventListener('click', () => {
+      document.getElementById('gearDropdown')?.classList.remove('show');
+      document.getElementById('downloadSubmenu')?.classList.remove('show');
+    });
+
+    /* MOTOR DE EXPORTACIÓN SIN DESPLAZAMIENTOS */
     const DossierExporter = {
       descargarImagen: async function() {
-        const btn = document.getElementById('btnExportImg');
-        const originalText = btn.innerText;
-        btn.innerText = '📸 Generando...';
-        btn.disabled = true;
-
         try {
           const viewport = document.getElementById('dossierViewport');
           const canvas = await html2canvas(viewport, {
@@ -632,36 +683,24 @@
           link.click();
         } catch (err) {
           alert('Error al generar la imagen: ' + err.message);
-        } finally {
-          btn.innerText = originalText;
-          btn.disabled = false;
         }
       },
 
       descargarVideo: async function() {
-        const btn = document.getElementById('btnExportVid');
         const video = document.getElementById('nativeProfileVideo');
-        
         if (!video.src || video.src === window.location.href) {
-          alert('Primero sube o configura un video en tu perfil.');
+          alert('Primero sube un video en configuración.');
           return;
         }
 
-        const originalText = btn.innerText;
-        btn.innerText = '🔴 Grabando HUD (5s)...';
-        btn.disabled = true;
-
         try {
           const viewport = document.getElementById('dossierViewport');
-          
-          // Renderizar base gráfica del HUD sin controles
           const hudCanvas = await html2canvas(viewport, {
             scale: 1.5,
             backgroundColor: null,
             ignoreElements: (el) => el.classList.contains('hud-controls-bar') || el.id === 'nativeProfileVideo'
           });
 
-          // Canvas de composición a 30 FPS
           const compCanvas = document.createElement('canvas');
           compCanvas.width = 720;
           compCanvas.height = 1280;
@@ -679,32 +718,23 @@
             a.download = `Apex_Striker_${(userProfile?.name || 'Clip').replace(/\s+/g, '_')}.webm`;
             a.href = url;
             a.click();
-            btn.innerText = originalText;
-            btn.disabled = false;
           };
 
           recorder.start();
-
           video.currentTime = 0;
           video.play();
 
           const renderInterval = setInterval(() => {
-            // 1. Dibujar frame actual de video nativo
             compCtx.drawImage(video, 0, 0, compCanvas.width, compCanvas.height);
-            // 2. Superponer capas HUD y branding oficial
             compCtx.drawImage(hudCanvas, 0, 0, compCanvas.width, compCanvas.height);
           }, 1000 / 30);
 
-          // Grabar loop de 5 segundos
           setTimeout(() => {
             clearInterval(renderInterval);
             recorder.stop();
           }, 5000);
-
         } catch (err) {
           alert('Error al grabar el clip táctico: ' + err.message);
-          btn.innerText = originalText;
-          btn.disabled = false;
         }
       }
     };
@@ -785,22 +815,12 @@
       else emojiEl.innerText = "🤩";
     }
 
-    /* GESTIÓN DE VIDEO NATIVO & AURA */
-    function abrirModalVideo() {
-      document.getElementById('videoModal').style.display = 'flex';
-    }
-
+    /* GESTIÓN DE VIDEO Y MODAL */
+    function abrirModalVideo() { document.getElementById('videoModal').style.display = 'flex'; }
     function cerrarModalVideo() {
       document.getElementById('videoModal').style.display = 'none';
       tempVideoFile = null;
       document.getElementById('trimmerBox').style.display = 'none';
-    }
-
-    function seleccionarColorAura(color, el) {
-      selectedAura = color;
-      document.querySelectorAll('.swatch-btn').forEach(s => s.classList.remove('selected'));
-      el.classList.add('selected');
-      document.documentElement.style.setProperty('--aura-color', color);
     }
 
     function procesarVideoSeleccionado(files) {
@@ -817,7 +837,6 @@
         const trimmerBox = document.getElementById('trimmerBox');
         const slider = document.getElementById('trimSlider');
 
-        // Permite hasta 60s en el sistema
         if (duration > 60.5) {
           trimmerBox.style.display = 'block';
           slider.max = Math.max(0, Math.floor(duration - 60));
@@ -829,7 +848,6 @@
           videoEndTime = duration;
         }
       };
-
       tempVideo.src = URL.createObjectURL(file);
     }
 
@@ -842,6 +860,7 @@
     async function guardarAvatarVideo() {
       const email = document.getElementById('ciEmail').value.trim();
       const btn = document.getElementById('btnGuardarAvatar');
+      loopTransitionMode = document.getElementById('loopModeSelect').value;
       btn.disabled = true;
       btn.innerText = 'Guardando...';
 
@@ -862,18 +881,17 @@
         if (sb) {
           await sb.from('apex_users').update({
             video_url: videoUrl,
-            aura_color: selectedAura
+            loop_mode: loopTransitionMode
           }).eq('email', email);
         }
 
-        document.documentElement.style.setProperty('--aura-color', selectedAura);
         if (videoUrl) {
           const vid = document.getElementById('nativeProfileVideo');
           vid.src = videoUrl;
           vid.play().catch(() => {});
         }
 
-        alert('¡Video táctico y estilo sincronizados!');
+        alert('¡Configuración de video aplicada!');
         cerrarModalVideo();
       } catch (err) {
         alert('Error: ' + err.message);
@@ -889,31 +907,41 @@
       document.getElementById('dossierDateTag').innerText = `${hoy.getDate()}/${hoy.getMonth() + 1}/${hoy.getFullYear()}`;
 
       const cachedAvatar = localStorage.getItem('apex_user_avatar');
-      if (cachedAvatar) {
-        renderAvatarVisual(cachedAvatar);
-      }
+      if (cachedAvatar) renderAvatarVisual(cachedAvatar);
+
+      const vid = document.getElementById('nativeProfileVideo');
+      vid.addEventListener('timeupdate', () => {
+        if (loopTransitionMode === 'fade') {
+          const timeLeft = videoEndTime - vid.currentTime;
+          if (timeLeft <= 0.5) {
+            vid.style.opacity = Math.max(0.1, timeLeft / 0.5);
+          } else if (vid.currentTime - videoStartTime <= 0.4) {
+            vid.style.opacity = Math.min(1, (vid.currentTime - videoStartTime) / 0.4);
+          } else {
+            vid.style.opacity = 0.85;
+          }
+        } else {
+          vid.style.opacity = 0.85;
+        }
+        if (vid.currentTime >= videoEndTime) {
+          vid.currentTime = videoStartTime;
+          vid.play();
+        }
+      });
 
       if (!sb) return;
 
       let email = null;
       try {
         const { data: { session } } = await sb.auth.getSession();
-        if (session) {
-          currentUser = session.user;
-          email = currentUser.email;
-        }
+        if (session) { currentUser = session.user; email = currentUser.email; }
       } catch (e) {}
 
-      if (!email) {
-        email = localStorage.getItem('apex_user_email') || 'isabelgg2394@gmail.com';
-      }
+      if (!email) { email = localStorage.getItem('apex_user_email') || 'isabelgg2394@gmail.com'; }
 
       const emailInput = document.getElementById('ciEmail');
       emailInput.value = email;
-      if (currentUser) {
-        emailInput.setAttribute('readonly', 'true');
-        emailInput.style.opacity = '0.7';
-      }
+      if (currentUser) { emailInput.setAttribute('readonly', 'true'); emailInput.style.opacity = '0.7'; }
 
       await cargarDatosPerfil(email);
       await cargarRegistrosBD(email);
@@ -924,11 +952,8 @@
       const displayEl = document.getElementById('displayAvatar');
       if (!displayEl) return;
       if (url) {
-        if (displayEl.tagName === 'IMG') {
-          displayEl.src = url;
-        } else {
-          displayEl.outerHTML = `<img id="displayAvatar" src="${url}" class="avatar-circle" alt="Foto">`;
-        }
+        if (displayEl.tagName === 'IMG') { displayEl.src = url; } 
+        else { displayEl.outerHTML = `<img id="displayAvatar" src="${url}" class="avatar-circle" alt="Foto">`; }
       } else {
         displayEl.outerHTML = `<div id="displayAvatar" class="avatar-circle">${nombreFallback.substring(0, 2).toUpperCase()}</div>`;
       }
@@ -936,7 +961,6 @@
 
     async function cargarDatosPerfil(email) {
       if (!sb || !email) return;
-
       try {
         const { data } = await sb.from('apex_users').select('*').eq('email', email).single();
         if (data) {
@@ -944,23 +968,17 @@
           document.getElementById('displayNombre').innerText = data.name || 'Striker';
           document.getElementById('displayEmail').innerText = data.email;
 
-          // 1. Tomar foto centralizada de Ajustes (index.html)
           const avatarUrl = data.photo_url || data.avatar_url || localStorage.getItem('apex_user_avatar');
           renderAvatarVisual(avatarUrl, data.name || data.email || 'ST');
 
-          if (data.aura_color) {
-            selectedAura = data.aura_color;
-            document.documentElement.style.setProperty('--aura-color', data.aura_color);
-          }
+          if (data.loop_mode) loopTransitionMode = data.loop_mode;
 
-          // 2. Cargar Video Nativo
           if (data.video_url) {
             const vid = document.getElementById('nativeProfileVideo');
             vid.src = data.video_url;
             vid.play().catch(() => {});
           }
 
-          // 3. Membresía y días disponibles
           const hoy = new Date(); hoy.setHours(0,0,0,0);
           const fechaExpStr = data.subscription_expires_at || data.membership_end;
           const badge = document.getElementById('displayStatus');
@@ -969,30 +987,23 @@
             const expDate = new Date(fechaExpStr.includes('T') ? fechaExpStr : fechaExpStr + 'T00:00:00');
             const diffMs = expDate - hoy;
             const diasRestantes = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-
             if (diasRestantes >= 0 && data.subscription_status === 'activo') {
               badge.innerText = `AL DÍA (${diasRestantes} DÍAS)`;
               badge.style.color = 'var(--status-ok)';
-              badge.style.borderColor = 'rgba(34, 197, 94, 0.4)';
             } else {
               badge.innerText = 'VENCIDO';
               badge.style.color = 'var(--accent)';
-              badge.style.borderColor = 'rgba(229, 9, 20, 0.4)';
             }
           } else {
             badge.innerText = 'SIN PLAN';
             badge.style.color = 'var(--text-muted)';
-            badge.style.borderColor = 'var(--border-color)';
           }
         }
-      } catch (e) {
-        console.warn("Perfil en espera.");
-      }
+      } catch (e) {}
     }
 
     async function cargarRegistrosBD(email) {
       if (!sb || !email) return;
-
       try {
         const { data, error } = await sb
           .from('apex_checkins')
@@ -1003,19 +1014,13 @@
 
         if (error || !data) return;
         cachedRecords = data;
-
         await calcularNivelOficialBimestral(data, email);
         ApexFiltros.recalcularVistas();
-      } catch (e) {
-        console.warn("Error cargando check-ins:", e);
-      }
+      } catch (e) {}
     }
 
-    /* BOLSA GLOBAL APEX (4 FUENTES Y TOPE 110%) */
     async function calcularNivelOficialBimestral(records, email) {
-      const totalClases = records.length;
-      document.getElementById('totalSesionesTxt').innerText = `${totalClases} Clases Totales`;
-
+      document.getElementById('totalSesionesTxt').innerText = `${records.length} Clases Totales`;
       try {
         const { data: res, error } = await sb.rpc('obtener_puntos_globales_apex', { p_email: email });
         if (error || !res) return;
@@ -1034,9 +1039,7 @@
         barFill.style.width = `${Math.min(100, porcentaje)}%`;
         barFill.style.background = color;
         barFill.style.boxShadow = `0 0 10px ${color}66`;
-      } catch (e) {
-        console.warn("RPC global en espera.");
-      }
+      } catch (e) {}
     }
 
     function determinarEscalaOficial(porcentaje) {
@@ -1049,7 +1052,6 @@
 
     function actualizarDashboardConDatos(records) {
       const container = document.getElementById('historyContainer');
-
       if (!records || records.length === 0) {
         document.getElementById('statSesiones').innerText = '0';
         document.getElementById('statRendProm').innerText = '0.0';
@@ -1069,22 +1071,8 @@
         return `${d.getDate()}/${d.getMonth() + 1}`;
       });
 
-      // 1. Métricas Cruzadas Avanzadas en Dashboard
-      const dataEficiencia = records.map(r => {
-        const rend = parseFloat(r.rendimiento) || 0;
-        const rpe = parseFloat(r.rpe) || 1;
-        return +((rend / rpe) * 5).toFixed(1); // Ratio normalizado base 10
-      });
-      renderSingleChart('chartEficiencia', labels, dataEficiencia, '#22c55e');
-
-      const dataFluidezReal = records.map(r => {
-        const tec = parseFloat(r.preguntacoach || r.student_tech_score) || 0;
-        const sol = parseFloat(r.soltura) || 0;
-        return +((tec + sol) / 2).toFixed(1);
-      });
-      renderSingleChart('chartFluidezReal', labels, dataFluidezReal, '#00f0ff');
-
-      // 2. Gráficas Base
+      renderSingleChart('chartEficiencia', labels, records.map(r => +((parseFloat(r.rendimiento) / (parseFloat(r.rpe) || 1)) * 5).toFixed(1)), '#22c55e');
+      renderSingleChart('chartFluidezReal', labels, records.map(r => +((parseFloat(r.preguntacoach || r.student_tech_score) + parseFloat(r.soltura)) / 2).toFixed(1)), '#00f0ff');
       renderSingleChart('chartRendimiento', labels, records.map(r => r.rendimiento), '#e50914');
       renderSingleChart('chartRpe', labels, records.map(r => r.rpe), '#f39c12');
       renderSingleChart('chartSoltura', labels, records.map(r => r.soltura), '#3498db');
@@ -1094,15 +1082,11 @@
       container.innerHTML = '';
       records.slice(-5).reverse().forEach(r => {
         const f = new Date(r.created_at).toLocaleDateString();
-        const calTag = r.coach_point_mod > 0 ? ` <span style="color:var(--accent);">(-${r.coach_point_mod}p)</span>` : '';
         container.innerHTML += `
           <div class="history-card">
             <div style="display:flex; justify-content:space-between; font-weight:800;">
               <span>${f} — ${r.focus}</span>
-              <span style="color:var(--accent);">Rend: ${r.rendimiento}/10${calTag}</span>
-            </div>
-            <div style="color:var(--text-muted); font-size:0.68rem; margin-top:4px;">
-              RPE: ${r.rpe} | Soltura: ${r.soltura} | Fluidez: ${r.preguntacoach || r.student_tech_score} | Disfrute: ${r.divertiste}/10
+              <span style="color:var(--accent);">Rend: ${r.rendimiento}/10</span>
             </div>
           </div>
         `;
@@ -1151,54 +1135,35 @@
 
       const globalAvg = averages.reduce((a, b) => a + b, 0) / 6;
       const globalPct = Math.round((globalAvg / 10) * 100);
-
       const escala = determinarEscalaOficial(globalPct);
-      const themeColor = escala.color;
-      const themeBg = themeColor + '28';
 
       const statusLabel = document.getElementById('radarStatusLabel');
       statusLabel.innerText = `${escala.estado} (${globalPct}%)`;
-      statusLabel.style.color = themeColor;
+      statusLabel.style.color = escala.color;
 
-      renderRadarChart(averages, themeColor, themeBg);
+      renderRadarChart(averages, escala.color, escala.color + '28');
     }
 
     function renderRadarChart(dataPoints, color, bgColor) {
       if (chartInstances['chartRadar']) chartInstances['chartRadar'].destroy();
-
       const canvasEl = document.getElementById('chartRadar');
       if (!canvasEl) return;
-      const ctx = canvasEl.getContext('2d');
 
-      chartInstances['chartRadar'] = new Chart(ctx, {
+      chartInstances['chartRadar'] = new Chart(canvasEl.getContext('2d'), {
         type: 'radar',
         data: {
           labels: ['Rendimiento', 'RPE', 'Soltura', 'Técnica', 'RAM', 'Disfrute'],
-          datasets: [{
-            data: dataPoints,
-            borderColor: color,
-            backgroundColor: bgColor,
-            borderWidth: 2,
-            pointBackgroundColor: color,
-            pointBorderColor: '#fff',
-            pointRadius: 3
-          }]
+          datasets: [{ data: dataPoints, borderColor: color, backgroundColor: bgColor, borderWidth: 2, pointRadius: 3 }]
         },
         options: {
-          responsive: true,
-          maintainAspectRatio: false,
+          responsive: true, maintainAspectRatio: false,
           plugins: { legend: { display: false } },
           scales: {
             r: {
-              min: 0,
-              max: 10,
-              ticks: { display: false, stepSize: 2 },
+              min: 0, max: 10, ticks: { display: false, stepSize: 2 },
               angleLines: { color: 'rgba(255, 255, 255, 0.25)' },
               grid: { color: 'rgba(255, 255, 255, 0.18)' },
-              pointLabels: {
-                color: '#f0f0f5',
-                font: { size: 9, weight: '800' }
-              }
+              pointLabels: { color: '#f0f0f5', font: { size: 9, weight: '800' } }
             }
           }
         }
@@ -1207,29 +1172,14 @@
 
     function renderSingleChart(canvasId, labels, dataPoints, color) {
       if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
-
       const canvasEl = document.getElementById(canvasId);
       if (!canvasEl) return;
-      const ctx = canvasEl.getContext('2d');
 
-      chartInstances[canvasId] = new Chart(ctx, {
+      chartInstances[canvasId] = new Chart(canvasEl.getContext('2d'), {
         type: 'line',
-        data: {
-          labels: labels,
-          datasets: [{
-            data: dataPoints,
-            borderColor: color,
-            backgroundColor: color + '22',
-            borderWidth: 2,
-            tension: 0.3,
-            fill: true,
-            pointRadius: 3,
-            pointBackgroundColor: color
-          }]
-        },
+        data: { labels: labels, datasets: [{ data: dataPoints, borderColor: color, backgroundColor: color + '22', borderWidth: 2, tension: 0.3, fill: true, pointRadius: 3 }] },
         options: {
-          responsive: true,
-          maintainAspectRatio: false,
+          responsive: true, maintainAspectRatio: false,
           plugins: { legend: { display: false } },
           scales: {
             x: { ticks: { color: '#666', font: { size: 9 } }, grid: { display: false } },
@@ -1242,114 +1192,38 @@
     async function cargarNotificaciones(email) {
       if (!sb || !email) return;
       const area = document.getElementById('notifArea');
-      area.innerHTML = '';
-
       try {
-        const hace7Dias = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-        const { data, error } = await sb
-          .from('apex_notifications')
-          .select('*')
-          .eq('user_email', email)
-          .gte('created_at', hace7Dias)
-          .order('created_at', { ascending: false })
-          .limit(3);
-
-        if (error || !data || data.length === 0) {
-          area.style.display = 'none';
-          return;
-        }
-
+        const { data } = await sb.from('apex_notifications').select('*').eq('user_email', email).limit(3);
+        if (!data || data.length === 0) { area.style.display = 'none'; return; }
         area.style.display = 'flex';
-        data.forEach(n => {
-          const card = document.createElement('div');
-          card.className = 'notif-card';
-          card.id = `notif_${n.id}`;
-
-          const f = new Date(n.created_at);
-          const fechaStr = `${f.getDate()}/${f.getMonth() + 1}`;
-
-          card.innerHTML = `
-            <div class="notif-top">
-              <span class="notif-title">${n.title}</span>
-              <div class="notif-meta">
-                <span class="notif-date">${fechaStr}</span>
-                <button class="notif-btn-close" onclick="descartarNotif('${n.id}')">✕</button>
-              </div>
-            </div>
-            <div class="notif-body">${n.message}</div>
-          `;
-          area.appendChild(card);
-        });
-      } catch (e) {
-        console.warn("Observaciones en espera.");
-      }
-    }
-
-    async function descartarNotif(id) {
-      const cardEl = document.getElementById(`notif_${id}`);
-      if (cardEl) cardEl.remove();
-
-      const area = document.getElementById('notifArea');
-      if (area && area.children.length === 0) area.style.display = 'none';
-
-      if (sb) {
-        try {
-          await sb.from('apex_notifications').delete().eq('id', id);
-        } catch (err) {
-          console.error("Error al borrar notificación:", err);
-        }
-      }
+        area.innerHTML = data.map(n => `<div class="notif-card"><div class="notif-top"><span class="notif-title">${n.title}</span></div><div class="notif-body">${n.message}</div></div>`).join('');
+      } catch (e) {}
     }
 
     async function enviarCheckin(event) {
       event.preventDefault();
       const btn = document.getElementById('btnEnviar');
-      btn.disabled = true;
-      btn.innerText = 'Enviando...';
-
-      const email = document.getElementById('ciEmail').value.trim();
-      const enfoque = document.getElementById('ciEnfoque').value;
-      const rendimiento = parseFloat(document.getElementById('ciRendimiento').value);
-      const rpe = parseFloat(document.getElementById('ciRpe').value);
-      const soltura = parseFloat(document.getElementById('ciSoltura').value);
-      const preguntacoach = parseFloat(document.getElementById('ciPreguntaCoach').value);
-      const divertiste = parseFloat(document.getElementById('ciDivertiste').value);
-
-      const prelim = parseFloat((5.0 + (rendimiento * 0.2) + (preguntacoach * 0.2) + (divertiste >= 8 ? 1.0 : 0)).toFixed(2));
+      btn.disabled = true; btn.innerText = 'Enviando...';
 
       const payload = {
-        user_id: userProfile ? userProfile.id : (currentUser ? currentUser.id : null),
-        user_email: email,
-        focus: enfoque,
-        rendimiento: rendimiento,
-        rpe: rpe,
-        soltura: soltura,
-        preguntacoach: preguntacoach,
-        student_tech_score: preguntacoach,
-        ram: preguntacoach,
-        divertiste: divertiste,
-        had_fun: divertiste >= 7,
-        prelim_score: Math.min(10.0, prelim),
+        user_email: document.getElementById('ciEmail').value.trim(),
+        focus: document.getElementById('ciEnfoque').value,
+        rendimiento: parseFloat(document.getElementById('ciRendimiento').value),
+        rpe: parseFloat(document.getElementById('ciRpe').value),
+        soltura: parseFloat(document.getElementById('ciSoltura').value),
+        preguntacoach: parseFloat(document.getElementById('ciPreguntaCoach').value),
+        student_tech_score: parseFloat(document.getElementById('ciPreguntaCoach').value),
+        ram: parseFloat(document.getElementById('ciPreguntaCoach').value),
+        divertiste: parseFloat(document.getElementById('ciDivertiste').value),
         status: 'pendiente_coach'
       };
 
       const { error } = await sb.from('apex_checkins').insert([payload]);
-
-      if (error) {
-        alert('Error: ' + error.message);
-      } else {
-        alert('¡Check-in registrado! En espera de calibración.');
-        document.getElementById('checkinForm').reset();
-        document.getElementById('ciEmail').value = email;
-        actualizarEmoji(10);
-        await cargarRegistrosBD(email);
-      }
-
-      btn.disabled = false;
-      btn.innerText = 'Enviar Registro';
+      if (error) { alert('Error: ' + error.message); } 
+      else { alert('¡Check-in registrado!'); document.getElementById('checkinForm').reset(); await cargarRegistrosBD(payload.user_email); }
+      btn.disabled = false; btn.innerText = 'Enviar Registro';
     }
 
-    /* ESCUCHAR ACTUALIZACIONES DE FOTO EN VIVO DESDE APEX CORE */
     window.addEventListener('message', (event) => {
       if (event.data && event.data.type === 'APEX_AVATAR_UPDATED' && event.data.avatarUrl) {
         renderAvatarVisual(event.data.avatarUrl);
