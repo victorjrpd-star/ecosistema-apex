@@ -95,7 +95,7 @@
       padding: 6px 8px; font-size: 0.7rem; border-radius: 4px; outline: none; color-scheme: dark;
     }
 
-    /* BANDEJA DE OBSERVACIONES */
+    /* BANDEJA DE NOTIFICACIONES */
     .notif-container { display: none; flex-direction: column; gap: 6px; margin-bottom: 12px; }
     .notif-card {
       background: #161618; border-left: 3px solid var(--accent); border-top: 1px solid var(--border-color);
@@ -137,12 +137,12 @@
       margin-bottom: 24px;
     }
 
-    /* Video procesado en Canvas */
+    /* Capa Canvas para Video Transparente */
     .dossier-canvas-layer {
       position: absolute;
       top: 0; left: 0; width: 100%; height: 100%;
       object-fit: cover;
-      pointer-events: none;
+      cursor: crosshair;
       z-index: 1;
       filter: var(--glow-shadow);
       transition: filter 0.4s ease, opacity 0.5s ease;
@@ -157,7 +157,7 @@
       z-index: 2;
     }
 
-    /* Botón flotante en esquina superior derecha */
+    /* Botón flotante táctico */
     .btn-float-settings {
       position: absolute;
       top: 14px; right: 14px;
@@ -179,7 +179,7 @@
     }
     .btn-float-settings:active { border-color: var(--accent); }
 
-    /* Marcas tácticas del dossier */
+    /* Encabezado Táctico */
     .dossier-top-meta {
       position: relative; z-index: 5;
       padding-top: 4px;
@@ -193,7 +193,7 @@
       letter-spacing: 0.5px; text-shadow: 0 2px 6px rgba(0,0,0,0.9); margin-top: 2px;
     }
 
-    /* Métricas 100% flotantes sin cajas sólidas */
+    /* Métricas Flotantes Dinámicas */
     .floating-stats-row {
       position: relative; z-index: 5;
       display: flex; justify-content: space-around;
@@ -215,7 +215,7 @@
       font-size: 0.55rem; color: #a0a0ab; text-transform: uppercase; font-weight: 600;
     }
 
-    /* Radar telaraña flotante */
+    /* Telaraña Radar Flotante */
     .radar-floating-wrap {
       position: relative; z-index: 5;
       width: 100%; height: 230px;
@@ -231,7 +231,7 @@
     }
     #radarStatusLabel { font-size: 0.72rem; }
 
-    /* VISTAS CLÁSICAS (DASHBOARD Y CHECK-IN) */
+    /* DASHBOARD Y CHECK-IN */
     .card { background-color: var(--card-bg); border: 1px solid var(--border-color); padding: 18px; border-radius: 8px; margin-bottom: 16px; }
     .header { text-align: center; margin-bottom: 18px; }
     .header h1 { font-size: 1.25rem; letter-spacing: 1px; text-transform: uppercase; color: var(--accent-white); }
@@ -299,7 +299,7 @@
       </div>
 
       <p style="font-size:0.68rem; color:var(--text-muted); line-height:1.35; margin-bottom:12px;">
-        Párate frente a una pared contrastante con buena luz. El sistema eliminará el fondo automáticamente.
+        Párate frente a una pared contrastante con buena luz. El sistema eliminará el fondo automáticamente o toca cualquier parte de la pared para calibrar.
       </p>
 
       <div style="display:flex; gap:8px; margin-bottom:10px;">
@@ -403,7 +403,7 @@
     <div class="dossier-viewport" id="dossierViewport">
       
       <!-- Video procesado transparente en Canvas -->
-      <canvas id="dossierCanvas" class="dossier-canvas-layer"></canvas>
+      <canvas id="dossierCanvas" class="dossier-canvas-layer" title="Toca cualquier punto del fondo para eliminarlo"></canvas>
       <video id="hiddenSourceVideo" playsinline muted loop crossorigin="anonymous" style="display:none;"></video>
       <div class="dossier-ambient-overlay"></div>
 
@@ -572,13 +572,13 @@
     let videoEndTime = 8;
     let animFrameId = null;
 
-    /* MOTOR DE CORTE AUTOMÁTICO DE FONDO & BUCLE SUAVE EN CANVAS */
+    /* MOTOR HÍBRIDO DE CROMA: AUTO-MUESTREO + CUENTAGOTAS TÁCTIL */
     const CanvasVideoEngine = {
       canvas: null,
       ctx: null,
       video: null,
       bgColor: null,
-      tolerance: 48,
+      tolerance: 50,
 
       init: function() {
         this.canvas = document.getElementById('dossierCanvas');
@@ -588,8 +588,19 @@
       },
 
       bindEvents: function() {
+        // Tocar el canvas para seleccionar el color exacto a eliminar
+        this.canvas.addEventListener('click', (e) => {
+          const rect = this.canvas.getBoundingClientRect();
+          const scaleX = this.canvas.width / rect.width;
+          const scaleY = this.canvas.height / rect.height;
+          const x = Math.floor((e.clientX - rect.left) * scaleX);
+          const y = Math.floor((e.clientY - rect.top) * scaleY);
+
+          const pixel = this.ctx.getImageData(x, y, 1, 1).data;
+          this.bgColor = { r: pixel[0], g: pixel[1], b: pixel[2] };
+        });
+
         this.video.addEventListener('timeupdate', () => {
-          // Bucle con desvanecimiento a negro en el último segundo
           const timeLeft = videoEndTime - this.video.currentTime;
           if (timeLeft <= 0.6) {
             const factor = Math.max(0, timeLeft / 0.6);
@@ -613,20 +624,31 @@
         this.video.addEventListener('play', () => {
           this.canvas.width = 360;
           this.canvas.height = 640;
-          this.detectarColorFondo();
+          this.detectarColorFondoUniversal();
           this.renderLoop();
         });
       },
 
-      detectarColorFondo: function() {
-        // Muestra de color en las esquinas superiores para calibrar fondo de pared
+      detectarColorFondoUniversal: function() {
+        if (this.bgColor) return;
+
         const offCanvas = document.createElement('canvas');
-        offCanvas.width = 40;
-        offCanvas.height = 40;
+        offCanvas.width = 100;
+        offCanvas.height = 180;
         const offCtx = offCanvas.getContext('2d');
-        offCtx.drawImage(this.video, 0, 0, 40, 40);
-        const data = offCtx.getImageData(2, 2, 1, 1).data;
-        this.bgColor = { r: data[0], g: data[1], b: data[2] };
+        offCtx.drawImage(this.video, 0, 0, 100, 180);
+
+        // Muestreo de las cuatro esquinas exteriores
+        const p1 = offCtx.getImageData(5, 5, 1, 1).data;
+        const p2 = offCtx.getImageData(95, 5, 1, 1).data;
+        const p3 = offCtx.getImageData(5, 175, 1, 1).data;
+        const p4 = offCtx.getImageData(95, 175, 1, 1).data;
+
+        this.bgColor = {
+          r: Math.round((p1[0] + p2[0] + p3[0] + p4[0]) / 4),
+          g: Math.round((p1[1] + p2[1] + p3[1] + p4[1]) / 4),
+          b: Math.round((p1[2] + p2[2] + p3[2] + p4[2]) / 4)
+        };
       },
 
       renderLoop: function() {
@@ -634,23 +656,19 @@
 
         this.ctx.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
         const frame = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
-        const len = frame.data.length;
+        const data = frame.data;
+        const len = data.length;
 
         if (this.bgColor) {
           const br = this.bgColor.r;
           const bg = this.bgColor.g;
           const bb = this.bgColor.b;
-          const tol = this.tolerance;
+          const tol = this.tolerance * 3;
 
           for (let i = 0; i < len; i += 4) {
-            const r = frame.data[i];
-            const g = frame.data[i + 1];
-            const b = frame.data[i + 2];
-
-            // Distancia euclidiana rápida de color
-            const dist = Math.abs(r - br) + Math.abs(g - bg) + Math.abs(b - bb);
-            if (dist < tol * 3) {
-              frame.data[i + 3] = 0; // Transparencia total de la pared
+            const diff = Math.abs(data[i] - br) + Math.abs(data[i + 1] - bg) + Math.abs(data[i + 2] - bb);
+            if (diff < tol) {
+              data[i + 3] = 0;
             }
           }
           this.ctx.putImageData(frame, 0, 0);
@@ -661,6 +679,7 @@
 
       cargarFuente: function(url) {
         if (!url) return;
+        this.bgColor = null;
         if (animFrameId) cancelAnimationFrame(animFrameId);
         this.video.src = url;
         this.video.currentTime = videoStartTime;
