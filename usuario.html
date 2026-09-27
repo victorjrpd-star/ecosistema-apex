@@ -51,7 +51,7 @@
       letter-spacing: 0.5px;
     }
 
-    /* BARRA DE PROGRESO BIMESTRAL */
+    /* BARRA DE PROGRESO BIMESTRAL GLOBAL */
     .progress-card {
       background: rgba(18, 18, 20, 0.85); border: 1px solid var(--border-color);
       border-radius: 8px; padding: 12px 14px; margin-bottom: 10px;
@@ -344,11 +344,11 @@
     <div id="displayStatus" class="membership-pill">-</div>
   </div>
 
-  <!-- PROGRESO BIMESTRAL -->
+  <!-- PROGRESO BIMESTRAL GLOBAL -->
   <div class="progress-card">
     <div class="progress-header">
       <div>
-        <span style="font-size: 0.58rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800;">Nivel Bimestral</span>
+        <span style="font-size: 0.58rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800;">Nivel Bimestral Global</span>
         <div class="progress-tier-title" id="tierLabel">INICIADO</div>
       </div>
       <div class="progress-percent-val" id="tierPercent">0%</div>
@@ -966,17 +966,47 @@
         if (error || !data) return;
         cachedRecords = data;
 
-        calcularNivelOficialBimestral(data);
+        await calcularNivelOficialBimestral(data, email);
         ApexFiltros.recalcularVistas();
       } catch (e) {
         console.warn("Error cargando check-ins:", e);
       }
     }
 
-    function calcularNivelOficialBimestral(records) {
+    /* CÁLCULO UNIFICADO MEDIANTE RPC GLOBAL APEX */
+    async function calcularNivelOficialBimestral(records, email) {
       const totalClases = records.length;
       document.getElementById('totalSesionesTxt').innerText = `${totalClases} Clases Totales`;
 
+      try {
+        const { data: res, error } = await sb.rpc('obtener_puntos_globales_apex', { p_email: email });
+        
+        if (error || !res) {
+          // Fallback a cálculo local temporal si la función no responde
+          calcularNivelLocalFallback(records);
+          return;
+        }
+
+        const ptsTotales = parseFloat(res.pts_totales) || 0;
+        const porcentaje = parseInt(res.porcentaje) || 0;
+        const nivel = res.nivel || 'INICIADO';
+        const color = res.color || '#ffffff';
+
+        document.getElementById('ptsBimestreTxt').innerText = `${ptsTotales.toFixed(1)} / 240 PTS`;
+        document.getElementById('tierPercent').innerText = `${porcentaje}%`;
+        document.getElementById('tierLabel').innerText = nivel;
+        document.documentElement.style.setProperty('--tier-color', color);
+
+        const barFill = document.getElementById('tierBarFill');
+        barFill.style.width = `${Math.min(100, porcentaje)}%`;
+        barFill.style.background = color;
+        barFill.style.boxShadow = `0 0 10px ${color}66`;
+      } catch (e) {
+        calcularNivelLocalFallback(records);
+      }
+    }
+
+    function calcularNivelLocalFallback(records) {
       const fechaLimite = new Date();
       fechaLimite.setDate(fechaLimite.getDate() - 60);
 
@@ -988,9 +1018,7 @@
         }
       });
 
-      let porcentaje = Math.round((puntosBimestre / 240) * 100);
-      if (porcentaje > 110) porcentaje = 110;
-
+      let porcentaje = Math.min(110, Math.round((puntosBimestre / 240) * 100));
       document.getElementById('ptsBimestreTxt').innerText = `${puntosBimestre.toFixed(1)} / 240 PTS`;
       document.getElementById('tierPercent').innerText = `${porcentaje}%`;
 
