@@ -6,9 +6,10 @@
   <meta name="theme-color" content="#070708">
   <title>Apex Striker | Ficha Táctica</title>
 
-  <!-- Supabase JS & Chart.js -->
+  <!-- Librerías: Supabase, Chart.js y html2canvas -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
   <style>
     :root {
@@ -28,7 +29,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background-color: var(--bg-color); color: var(--text-main); padding: 12px; max-width: 580px; margin: 0 auto; min-height: 100vh; overflow-x: hidden; }
 
-    /* CABECERA RESUMEN (AVATAR VINCULADO AL INDEX) */
+    /* CABECERA RESUMEN */
     .profile-bar {
       display: flex; align-items: center; justify-content: space-between;
       background: rgba(18, 18, 20, 0.85); backdrop-filter: blur(10px);
@@ -120,66 +121,84 @@
     .dossier-viewport {
       position: relative;
       width: 100%;
-      min-height: 82vh;
+      min-height: 84vh;
       border-radius: 12px;
       overflow: hidden;
       border: 1px solid var(--border-color);
-      background: radial-gradient(circle at 50% 30%, #15151c 0%, #060608 100%);
+      background: #000;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding: 16px 14px 28px 14px;
+      padding: 16px 14px 24px 14px;
       box-shadow: 0 16px 36px rgba(0,0,0,0.9);
       margin-bottom: 24px;
     }
 
-    /* Capa Canvas para Video Transparente */
-    .dossier-canvas-layer {
+    /* Video Nativo Limpio sin Croma */
+    .dossier-video-bg {
       position: absolute;
       top: 0; left: 0; width: 100%; height: 100%;
       object-fit: cover;
-      cursor: crosshair;
       z-index: 1;
-      filter: var(--glow-shadow);
-      transition: filter 0.4s ease, opacity 0.5s ease;
+      opacity: 0.82;
+      filter: contrast(1.05) brightness(0.95);
     }
 
     .dossier-ambient-overlay {
       position: absolute;
       top: 0; left: 0; width: 100%; height: 100%;
-      background: radial-gradient(circle at center, transparent 40%, rgba(6,6,8,0.75) 100%),
-                  linear-gradient(180deg, rgba(6,6,8,0.7) 0%, transparent 30%, rgba(6,6,8,0.9) 85%);
+      background: radial-gradient(circle at center, transparent 35%, rgba(6,6,8,0.7) 100%),
+                  linear-gradient(180deg, rgba(6,6,8,0.8) 0%, transparent 25%, rgba(6,6,8,0.85) 90%);
       pointer-events: none;
       z-index: 2;
     }
 
-    /* Botón flotante táctico */
-    .btn-float-settings {
+    /* Branding Táctico Oficial Apex */
+    .dossier-branding {
+      position: relative; z-index: 5;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+      padding-bottom: 6px; margin-bottom: 4px;
+      display: flex; justify-content: space-between; align-items: flex-end;
+    }
+    .brand-title {
+      font-size: 0.72rem; font-weight: 900; letter-spacing: 1.5px;
+      text-transform: uppercase; color: #fff; text-shadow: 0 2px 8px #000;
+    }
+    .brand-title span { color: var(--accent); }
+    .brand-sub {
+      font-size: 0.58rem; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; color: var(--text-muted);
+    }
+
+    /* Acciones Flotantes */
+    .hud-controls-bar {
       position: absolute;
       top: 14px; right: 14px;
       z-index: 10;
-      background: rgba(18, 18, 22, 0.7);
+      display: flex;
+      gap: 6px;
+    }
+    .btn-hud {
+      background: rgba(18, 18, 22, 0.75);
       backdrop-filter: blur(8px);
-      border: 1px solid rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.18);
       color: #fff;
-      padding: 6px 10px;
-      font-size: 0.65rem;
+      padding: 6px 9px;
+      font-size: 0.62rem;
       font-weight: 800;
       border-radius: 20px;
       text-transform: uppercase;
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 4px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+      transition: 0.2s;
     }
-    .btn-float-settings:active { border-color: var(--accent); }
+    .btn-hud:active { border-color: var(--accent); transform: scale(0.96); }
 
     /* Encabezado Táctico */
-    .dossier-top-meta {
-      position: relative; z-index: 5;
-      padding-top: 4px;
-    }
+    .dossier-top-meta { position: relative; z-index: 5; }
     .dossier-header-title {
       font-size: 1.35rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px;
       color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.9);
@@ -193,7 +212,7 @@
     .floating-stats-row {
       position: relative; z-index: 5;
       display: flex; justify-content: space-around;
-      margin: 12px 0 8px 0;
+      margin: 10px 0 6px 0;
     }
     .floating-stat-item {
       text-align: center;
@@ -211,7 +230,7 @@
       font-size: 0.55rem; color: #a0a0ab; text-transform: uppercase; font-weight: 600;
     }
 
-    /* Telaraña Radar Flotante */
+    /* Telaraña Radar Flotante Minimalista */
     .radar-floating-wrap {
       position: relative; z-index: 5;
       width: 100%; height: 230px;
@@ -225,7 +244,6 @@
       padding: 0 6px; text-shadow: 0 2px 8px #000;
       margin-top: 4px;
     }
-    #radarStatusLabel { font-size: 0.72rem; }
 
     /* DASHBOARD Y CHECK-IN */
     .card { background-color: var(--card-bg); border: 1px solid var(--border-color); padding: 18px; border-radius: 8px; margin-bottom: 16px; }
@@ -262,7 +280,7 @@
     .summary-txt { font-size: 0.62rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800; }
     .history-card { background: #141418; border: 1px solid #222226; border-radius: 4px; padding: 8px 10px; margin-top: 6px; font-size: 0.72rem; }
 
-    /* MODAL DE CONFIGURACIÓN DE VIDEO & AURA */
+    /* MODAL DE CONFIGURACIÓN DE VIDEO */
     #videoModal {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       background: rgba(0,0,0,0.88); backdrop-filter: blur(8px);
@@ -282,19 +300,20 @@
 </head>
 <body>
 
-  <!-- INPUT OCULTO EXCLUSIVO PARA VIDEO (La foto se gestiona desde Apex Core) -->
+  <!-- INPUT OCULTO EXCLUSIVO PARA VIDEO (Hasta 60s permitido) -->
   <input type="file" id="inputVideoRaw" accept="video/*" style="display: none;" onchange="procesarVideoSeleccionado(this.files)">
 
   <!-- MODAL TÁCTICO: VIDEO & AURA -->
   <div id="videoModal">
     <div class="modal-box">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <span style="font-size:0.8rem; font-weight:900; text-transform:uppercase;">Avatar de Cuerpo Completo</span>
+        <span style="font-size:0.8rem; font-weight:900; text-transform:uppercase;">Video de Fondo Striker</span>
         <button onclick="cerrarModalVideo()" style="background:none; border:none; color:#fff; font-size:1.1rem; cursor:pointer;">✕</button>
       </div>
 
+      <!-- NOTA DE INTERFAZ SOLICITADA -->
       <p style="font-size:0.68rem; color:var(--text-muted); line-height:1.35; margin-bottom:12px;">
-        Párate frente a una pared contrastante con buena luz. El sistema eliminará el fondo automáticamente o toca cualquier parte de la pared para calibrar.
+        Sube o graba tu video en acción (duración máxima sugerida: 30 segundos). Fondo nativo limpio optimizado.
       </p>
 
       <div style="display:flex; gap:8px; margin-bottom:10px;">
@@ -306,16 +325,16 @@
         </button>
       </div>
 
-      <!-- Recortador si el video excede los 8s -->
+      <!-- Recortador si excede el límite del sistema (60s) -->
       <div id="trimmerBox" class="range-cutter-box">
         <div style="display:flex; justify-content:space-between; font-size:0.65rem; color:#aaa; margin-bottom:4px;">
-          <span>SELECCIONAR VENTANA (8s):</span>
-          <span id="trimRangeTxt">0s - 8s</span>
+          <span>VENTANA DE REPRODUCCIÓN (60s Máx):</span>
+          <span id="trimRangeTxt">0s - 30s</span>
         </div>
-        <input type="range" id="trimSlider" min="0" max="10" step="0.5" value="0" style="width:100%;" oninput="actualizarVentanaCorte(this.value)">
+        <input type="range" id="trimSlider" min="0" max="60" step="1" value="0" style="width:100%;" oninput="actualizarVentanaCorte(this.value)">
       </div>
 
-      <label style="font-size:0.68rem; margin-top:10px;">Color del Aura de Combate</label>
+      <label style="font-size:0.68rem; margin-top:10px;">Color del Acento Táctico</label>
       <div class="color-swatch-bar">
         <div class="swatch-btn selected" style="background:#e50914;" onclick="seleccionarColorAura('#e50914', this)"></div>
         <div class="swatch-btn" style="background:#ffd700;" onclick="seleccionarColorAura('#ffd700', this)"></div>
@@ -325,7 +344,7 @@
       </div>
 
       <button id="btnGuardarAvatar" class="btn-submit" style="margin-top:8px;" onclick="guardarAvatarVideo()">
-        Aplicar a la Ficha
+        Aplicar al Perfil
       </button>
     </div>
   </div>
@@ -392,27 +411,40 @@
     <button class="nav-btn" onclick="switchFichaTab('viewForm', this)">📝 Check-in</button>
   </nav>
 
-  <!-- ================= SUBMÓDULO 1: PERFIL FLOTANTE ================= -->
+  <!-- ================= SUBMÓDULO 1: PERFIL FLOTANTE MINIMALISTA ================= -->
   <div id="viewProfile" class="view-section active">
     <div class="dossier-viewport" id="dossierViewport">
       
-      <!-- Video procesado transparente en Canvas -->
-      <canvas id="dossierCanvas" class="dossier-canvas-layer" title="Toca cualquier punto del fondo para eliminarlo"></canvas>
-      <video id="hiddenSourceVideo" playsinline muted loop crossorigin="anonymous" style="display:none;"></video>
+      <!-- Video Nativo de Fondo sin Croma -->
+      <video id="nativeProfileVideo" class="dossier-video-bg" playsinline muted loop autoplay crossorigin="anonymous"></video>
       <div class="dossier-ambient-overlay"></div>
 
-      <!-- Botón esquina táctica -->
-      <button class="btn-float-settings" onclick="abrirModalVideo()">
-        ⚡ Aura & Video
-      </button>
+      <!-- Controles Superiores: Ajustes y Descargas -->
+      <div class="hud-controls-bar">
+        <button class="btn-hud" onclick="abrirModalVideo()">⚙️ Video</button>
+        <button class="btn-hud" id="btnExportImg" onclick="DossierExporter.descargarImagen()">📸 Foto</button>
+        <button class="btn-hud" id="btnExportVid" onclick="DossierExporter.descargarVideo()">🎥 Video</button>
+      </div>
 
-      <!-- Encabezado Táctico -->
+      <!-- Branding Oficial Integrado en HUD -->
+      <div class="dossier-branding">
+        <div>
+          <div class="brand-title">APEX <span>BOXING</span></div>
+          <div class="brand-sub">Escuela de Striker</div>
+        </div>
+        <div style="text-align: right;">
+          <div class="brand-sub" style="color:#fff; font-weight:800;">PERFIL STRIKER</div>
+          <div class="brand-sub" id="dossierDateTag">SISTEMA TÁCTICO</div>
+        </div>
+      </div>
+
+      <!-- Encabezado Táctico del Atleta -->
       <div class="dossier-top-meta">
         <div class="dossier-header-title" id="dossierName">Striker Apex</div>
         <div class="dossier-header-sub" id="dossierMeta">Iniciado // 0 Clases</div>
       </div>
 
-      <!-- Métricas Flotantes Dinámicas -->
+      <!-- Métricas Flotantes Dinámicas Clave -->
       <div class="floating-stats-row">
         <div class="floating-stat-item">
           <div class="floating-stat-num" id="dossierDisciplinaVal">0%</div>
@@ -431,7 +463,7 @@
         <canvas id="chartRadar"></canvas>
       </div>
 
-      <!-- Pie de Escala Totalmente Visible en Móvil -->
+      <!-- Pie Táctico Minimalista -->
       <div class="radar-floating-footer">
         <span style="color:#aaa;">Escala: 1 - 10</span>
         <span id="radarStatusLabel" style="color:var(--aura-color);">Calculando equilibrio...</span>
@@ -439,7 +471,7 @@
     </div>
   </div>
 
-  <!-- ================= SUBMÓDULO 2: DASHBOARD ================= -->
+  <!-- ================= SUBMÓDULO 2: DASHBOARD Y MÉTRICAS AVANZADAS ================= -->
   <div id="viewDash" class="view-section">
     <div class="card">
       <div class="header">
@@ -458,6 +490,18 @@
         </div>
       </div>
 
+      <!-- NUEVAS GRÁFICAS AVANZADAS -->
+      <div class="chart-container" style="border-left: 3px solid #22c55e;">
+        <div class="chart-title" style="color: #22c55e;">Índice de Eficiencia (Rendimiento vs. Esfuerzo RPE)</div>
+        <div class="canvas-wrap"><canvas id="chartEficiencia"></canvas></div>
+      </div>
+
+      <div class="chart-container" style="border-left: 3px solid #00f0ff;">
+        <div class="chart-title" style="color: #00f0ff;">Índice de Fluidez Real (Técnica vs. Soltura Física)</div>
+        <div class="canvas-wrap"><canvas id="chartFluidezReal"></canvas></div>
+      </div>
+
+      <!-- GRÁFICAS DE SEGUIMIENTO HABITUALES -->
       <div class="chart-container">
         <div class="chart-title">Rendimiento (1 - 10)</div>
         <div class="canvas-wrap"><canvas id="chartRendimiento"></canvas></div>
@@ -563,119 +607,105 @@
     let tempVideoFile = null;
     let selectedAura = '#e50914';
     let videoStartTime = 0;
-    let videoEndTime = 8;
-    let animFrameId = null;
+    let videoEndTime = 60; // Sistema permite hasta 60s internamente
 
-    /* MOTOR HÍBRIDO DE CROMA: AUTO-MUESTREO + CUENTAGOTAS TÁCTIL */
-    const CanvasVideoEngine = {
-      canvas: null,
-      ctx: null,
-      video: null,
-      bgColor: null,
-      tolerance: 50,
+    /* MOTOR DE EXPORTACIÓN (FOTO Y VIDEO CON BRANDING) */
+    const DossierExporter = {
+      descargarImagen: async function() {
+        const btn = document.getElementById('btnExportImg');
+        const originalText = btn.innerText;
+        btn.innerText = '📸 Generando...';
+        btn.disabled = true;
 
-      init: function() {
-        this.canvas = document.getElementById('dossierCanvas');
-        this.ctx = this.canvas.getContext('2d', { willReadFrequently: true });
-        this.video = document.getElementById('hiddenSourceVideo');
-        this.bindEvents();
+        try {
+          const viewport = document.getElementById('dossierViewport');
+          const canvas = await html2canvas(viewport, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: '#070708',
+            ignoreElements: (el) => el.classList.contains('hud-controls-bar')
+          });
+
+          const link = document.createElement('a');
+          link.download = `Apex_Striker_${(userProfile?.name || 'Ficha').replace(/\s+/g, '_')}.png`;
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+        } catch (err) {
+          alert('Error al generar la imagen: ' + err.message);
+        } finally {
+          btn.innerText = originalText;
+          btn.disabled = false;
+        }
       },
 
-      bindEvents: function() {
-        this.canvas.addEventListener('click', (e) => {
-          const rect = this.canvas.getBoundingClientRect();
-          const scaleX = this.canvas.width / rect.width;
-          const scaleY = this.canvas.height / rect.height;
-          const x = Math.floor((e.clientX - rect.left) * scaleX);
-          const y = Math.floor((e.clientY - rect.top) * scaleY);
-
-          const pixel = this.ctx.getImageData(x, y, 1, 1).data;
-          this.bgColor = { r: pixel[0], g: pixel[1], b: pixel[2] };
-        });
-
-        this.video.addEventListener('timeupdate', () => {
-          const timeLeft = videoEndTime - this.video.currentTime;
-          if (timeLeft <= 0.6) {
-            const factor = Math.max(0, timeLeft / 0.6);
-            this.canvas.style.opacity = factor;
-            this.canvas.style.filter = `blur(${(1 - factor) * 8}px) brightness(${factor}) var(--glow-shadow)`;
-          } else if (this.video.currentTime - videoStartTime <= 0.5) {
-            const factor = Math.min(1, (this.video.currentTime - videoStartTime) / 0.5);
-            this.canvas.style.opacity = factor;
-            this.canvas.style.filter = `blur(${(1 - factor) * 8}px) brightness(${factor}) var(--glow-shadow)`;
-          } else {
-            this.canvas.style.opacity = 1;
-            this.canvas.style.filter = 'var(--glow-shadow)';
-          }
-
-          if (this.video.currentTime >= videoEndTime) {
-            this.video.currentTime = videoStartTime;
-            this.video.play();
-          }
-        });
-
-        this.video.addEventListener('play', () => {
-          this.canvas.width = 360;
-          this.canvas.height = 640;
-          this.detectarColorFondoUniversal();
-          this.renderLoop();
-        });
-      },
-
-      detectarColorFondoUniversal: function() {
-        if (this.bgColor) return;
-
-        const offCanvas = document.createElement('canvas');
-        offCanvas.width = 100;
-        offCanvas.height = 180;
-        const offCtx = offCanvas.getContext('2d');
-        offCtx.drawImage(this.video, 0, 0, 100, 180);
-
-        const p1 = offCtx.getImageData(5, 5, 1, 1).data;
-        const p2 = offCtx.getImageData(95, 5, 1, 1).data;
-        const p3 = offCtx.getImageData(5, 175, 1, 1).data;
-        const p4 = offCtx.getImageData(95, 175, 1, 1).data;
-
-        this.bgColor = {
-          r: Math.round((p1[0] + p2[0] + p3[0] + p4[0]) / 4),
-          g: Math.round((p1[1] + p2[1] + p3[1] + p4[1]) / 4),
-          b: Math.round((p1[2] + p2[2] + p3[2] + p4[2]) / 4)
-        };
-      },
-
-      renderLoop: function() {
-        if (this.video.paused || this.video.ended) return;
-
-        this.ctx.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
-        const frame = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
-        const data = frame.data;
-        const len = data.length;
-
-        if (this.bgColor) {
-          const br = this.bgColor.r;
-          const bg = this.bgColor.g;
-          const bb = this.bgColor.b;
-          const tol = this.tolerance * 3;
-
-          for (let i = 0; i < len; i += 4) {
-            const diff = Math.abs(data[i] - br) + Math.abs(data[i + 1] - bg) + Math.abs(data[i + 2] - bb);
-            if (diff < tol) {
-              data[i + 3] = 0;
-            }
-          }
-          this.ctx.putImageData(frame, 0, 0);
+      descargarVideo: async function() {
+        const btn = document.getElementById('btnExportVid');
+        const video = document.getElementById('nativeProfileVideo');
+        
+        if (!video.src || video.src === window.location.href) {
+          alert('Primero sube o configura un video en tu perfil.');
+          return;
         }
 
-        animFrameId = requestAnimationFrame(() => this.renderLoop());
-      },
+        const originalText = btn.innerText;
+        btn.innerText = '🔴 Grabando HUD (5s)...';
+        btn.disabled = true;
 
-      cargarFuente: function(url) {
-        if (!url) return;
-        this.bgColor = null;
-        if (animFrameId) cancelAnimationFrame(animFrameId);
-        this.video.src = url;
-        this.video.currentTime = videoStartTime;
-        this.video.play().catch(() => {});
+        try {
+          const viewport = document.getElementById('dossierViewport');
+          
+          // Renderizar base gráfica del HUD sin controles
+          const hudCanvas = await html2canvas(viewport, {
+            scale: 1.5,
+            backgroundColor: null,
+            ignoreElements: (el) => el.classList.contains('hud-controls-bar') || el.id === 'nativeProfileVideo'
+          });
+
+          // Canvas de composición a 30 FPS
+          const compCanvas = document.createElement('canvas');
+          compCanvas.width = 720;
+          compCanvas.height = 1280;
+          const compCtx = compCanvas.getContext('2d');
+
+          const stream = compCanvas.captureStream(30);
+          const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' });
+          const chunks = [];
+
+          recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
+          recorder.onstop = () => {
+            const blob = new Blob(chunks, { type: 'video/webm' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.download = `Apex_Striker_${(userProfile?.name || 'Clip').replace(/\s+/g, '_')}.webm`;
+            a.href = url;
+            a.click();
+            btn.innerText = originalText;
+            btn.disabled = false;
+          };
+
+          recorder.start();
+
+          video.currentTime = 0;
+          video.play();
+
+          const renderInterval = setInterval(() => {
+            // 1. Dibujar frame actual de video nativo
+            compCtx.drawImage(video, 0, 0, compCanvas.width, compCanvas.height);
+            // 2. Superponer capas HUD y branding oficial
+            compCtx.drawImage(hudCanvas, 0, 0, compCanvas.width, compCanvas.height);
+          }, 1000 / 30);
+
+          // Grabar loop de 5 segundos
+          setTimeout(() => {
+            clearInterval(renderInterval);
+            recorder.stop();
+          }, 5000);
+
+        } catch (err) {
+          alert('Error al grabar el clip táctico: ' + err.message);
+          btn.innerText = originalText;
+          btn.disabled = false;
+        }
       }
     };
 
@@ -755,7 +785,7 @@
       else emojiEl.innerText = "🤩";
     }
 
-    /* GESTIÓN DE VIDEO & AURA */
+    /* GESTIÓN DE VIDEO NATIVO & AURA */
     function abrirModalVideo() {
       document.getElementById('videoModal').style.display = 'flex';
     }
@@ -787,9 +817,10 @@
         const trimmerBox = document.getElementById('trimmerBox');
         const slider = document.getElementById('trimSlider');
 
-        if (duration > 8.5) {
+        // Permite hasta 60s en el sistema
+        if (duration > 60.5) {
           trimmerBox.style.display = 'block';
-          slider.max = Math.max(0, Math.floor(duration - 8));
+          slider.max = Math.max(0, Math.floor(duration - 60));
           slider.value = 0;
           actualizarVentanaCorte(0);
         } else {
@@ -804,15 +835,15 @@
 
     function actualizarVentanaCorte(val) {
       videoStartTime = parseFloat(val);
-      videoEndTime = videoStartTime + 8;
-      document.getElementById('trimRangeTxt').innerText = `${videoStartTime.toFixed(1)}s - ${videoEndTime.toFixed(1)}s`;
+      videoEndTime = Math.min(videoStartTime + 60, videoStartTime + 30);
+      document.getElementById('trimRangeTxt').innerText = `${videoStartTime.toFixed(0)}s - ${videoEndTime.toFixed(0)}s`;
     }
 
     async function guardarAvatarVideo() {
       const email = document.getElementById('ciEmail').value.trim();
       const btn = document.getElementById('btnGuardarAvatar');
       btn.disabled = true;
-      btn.innerText = 'Procesando...';
+      btn.innerText = 'Guardando...';
 
       try {
         let videoUrl = userProfile?.video_url || null;
@@ -836,23 +867,27 @@
         }
 
         document.documentElement.style.setProperty('--aura-color', selectedAura);
-        if (videoUrl) CanvasVideoEngine.cargarFuente(videoUrl);
+        if (videoUrl) {
+          const vid = document.getElementById('nativeProfileVideo');
+          vid.src = videoUrl;
+          vid.play().catch(() => {});
+        }
 
-        alert('¡Avatar táctico sincronizado con éxito!');
+        alert('¡Video táctico y estilo sincronizados!');
         cerrarModalVideo();
       } catch (err) {
         alert('Error: ' + err.message);
       } finally {
         btn.disabled = false;
-        btn.innerText = 'Aplicar a la Ficha';
+        btn.innerText = 'Aplicar al Perfil';
       }
     }
 
     /* INICIALIZACIÓN */
     async function init() {
-      CanvasVideoEngine.init();
+      const hoy = new Date();
+      document.getElementById('dossierDateTag').innerText = `${hoy.getDate()}/${hoy.getMonth() + 1}/${hoy.getFullYear()}`;
 
-      // Carga preliminar del avatar desde localStorage para evitar parpadeos
       const cachedAvatar = localStorage.getItem('apex_user_avatar');
       if (cachedAvatar) {
         renderAvatarVisual(cachedAvatar);
@@ -909,7 +944,7 @@
           document.getElementById('displayNombre').innerText = data.name || 'Striker';
           document.getElementById('displayEmail').innerText = data.email;
 
-          // 1. Tomar la foto guardada en Ajustes de Cuenta (Index)
+          // 1. Tomar foto centralizada de Ajustes (index.html)
           const avatarUrl = data.photo_url || data.avatar_url || localStorage.getItem('apex_user_avatar');
           renderAvatarVisual(avatarUrl, data.name || data.email || 'ST');
 
@@ -918,11 +953,14 @@
             document.documentElement.style.setProperty('--aura-color', data.aura_color);
           }
 
+          // 2. Cargar Video Nativo
           if (data.video_url) {
-            CanvasVideoEngine.cargarFuente(data.video_url);
+            const vid = document.getElementById('nativeProfileVideo');
+            vid.src = data.video_url;
+            vid.play().catch(() => {});
           }
 
-          // 2. Cálculo dinámico de días restantes en la membresía
+          // 3. Membresía y días disponibles
           const hoy = new Date(); hoy.setHours(0,0,0,0);
           const fechaExpStr = data.subscription_expires_at || data.membership_end;
           const badge = document.getElementById('displayStatus');
@@ -973,19 +1011,14 @@
       }
     }
 
-    /* CÁLCULO UNIFICADO MEDIANTE RPC GLOBAL APEX */
+    /* BOLSA GLOBAL APEX (4 FUENTES Y TOPE 110%) */
     async function calcularNivelOficialBimestral(records, email) {
       const totalClases = records.length;
       document.getElementById('totalSesionesTxt').innerText = `${totalClases} Clases Totales`;
 
       try {
         const { data: res, error } = await sb.rpc('obtener_puntos_globales_apex', { p_email: email });
-        
-        if (error || !res) {
-          // Fallback a cálculo local temporal si la función no responde
-          calcularNivelLocalFallback(records);
-          return;
-        }
+        if (error || !res) return;
 
         const ptsTotales = parseFloat(res.pts_totales) || 0;
         const porcentaje = parseInt(res.porcentaje) || 0;
@@ -1002,34 +1035,8 @@
         barFill.style.background = color;
         barFill.style.boxShadow = `0 0 10px ${color}66`;
       } catch (e) {
-        calcularNivelLocalFallback(records);
+        console.warn("RPC global en espera.");
       }
-    }
-
-    function calcularNivelLocalFallback(records) {
-      const fechaLimite = new Date();
-      fechaLimite.setDate(fechaLimite.getDate() - 60);
-
-      let puntosBimestre = 0;
-      records.forEach(r => {
-        const f = new Date(r.created_at);
-        if (f >= fechaLimite) {
-          puntosBimestre += Math.min(10, Math.max(0, parseFloat(r.rendimiento) || 0));
-        }
-      });
-
-      let porcentaje = Math.min(110, Math.round((puntosBimestre / 240) * 100));
-      document.getElementById('ptsBimestreTxt').innerText = `${puntosBimestre.toFixed(1)} / 240 PTS`;
-      document.getElementById('tierPercent').innerText = `${porcentaje}%`;
-
-      const nivelInfo = determinarEscalaOficial(porcentaje);
-      document.documentElement.style.setProperty('--tier-color', nivelInfo.color);
-      document.getElementById('tierLabel').innerText = nivelInfo.nombre;
-
-      const barFill = document.getElementById('tierBarFill');
-      barFill.style.width = `${Math.min(100, porcentaje)}%`;
-      barFill.style.background = nivelInfo.color;
-      barFill.style.boxShadow = `0 0 10px ${nivelInfo.color}66`;
     }
 
     function determinarEscalaOficial(porcentaje) {
@@ -1047,7 +1054,7 @@
         document.getElementById('statSesiones').innerText = '0';
         document.getElementById('statRendProm').innerText = '0.0';
         container.innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;">Sin registros en este periodo.</span>';
-        ['chartRendimiento', 'chartRpe', 'chartSoltura', 'chartFluidez', 'chartDiversion'].forEach(id => {
+        ['chartEficiencia', 'chartFluidezReal', 'chartRendimiento', 'chartRpe', 'chartSoltura', 'chartFluidez', 'chartDiversion'].forEach(id => {
           if (chartInstances[id]) chartInstances[id].destroy();
         });
         return;
@@ -1062,6 +1069,22 @@
         return `${d.getDate()}/${d.getMonth() + 1}`;
       });
 
+      // 1. Métricas Cruzadas Avanzadas en Dashboard
+      const dataEficiencia = records.map(r => {
+        const rend = parseFloat(r.rendimiento) || 0;
+        const rpe = parseFloat(r.rpe) || 1;
+        return +((rend / rpe) * 5).toFixed(1); // Ratio normalizado base 10
+      });
+      renderSingleChart('chartEficiencia', labels, dataEficiencia, '#22c55e');
+
+      const dataFluidezReal = records.map(r => {
+        const tec = parseFloat(r.preguntacoach || r.student_tech_score) || 0;
+        const sol = parseFloat(r.soltura) || 0;
+        return +((tec + sol) / 2).toFixed(1);
+      });
+      renderSingleChart('chartFluidezReal', labels, dataFluidezReal, '#00f0ff');
+
+      // 2. Gráficas Base
       renderSingleChart('chartRendimiento', labels, records.map(r => r.rendimiento), '#e50914');
       renderSingleChart('chartRpe', labels, records.map(r => r.rpe), '#f39c12');
       renderSingleChart('chartSoltura', labels, records.map(r => r.soltura), '#3498db');
@@ -1170,8 +1193,8 @@
               min: 0,
               max: 10,
               ticks: { display: false, stepSize: 2 },
-              angleLines: { color: 'rgba(255, 255, 255, 0.2)' },
-              grid: { color: 'rgba(255, 255, 255, 0.15)' },
+              angleLines: { color: 'rgba(255, 255, 255, 0.25)' },
+              grid: { color: 'rgba(255, 255, 255, 0.18)' },
               pointLabels: {
                 color: '#f0f0f5',
                 font: { size: 9, weight: '800' }
@@ -1326,7 +1349,7 @@
       btn.innerText = 'Enviar Registro';
     }
 
-    /* ESCUCHAR ACTUALIZACIONES DE FOTO EN VIVO DESDE APEX CORE (INDEX.HTML) */
+    /* ESCUCHAR ACTUALIZACIONES DE FOTO EN VIVO DESDE APEX CORE */
     window.addEventListener('message', (event) => {
       if (event.data && event.data.type === 'APEX_AVATAR_UPDATED' && event.data.avatarUrl) {
         renderAvatarVisual(event.data.avatarUrl);
