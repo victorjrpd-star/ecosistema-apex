@@ -31,24 +31,19 @@
     .title span { color: var(--accent); }
     .badge-super { font-size: 0.65rem; font-weight: 800; background: #1a0808; color: var(--accent); border: 1px solid var(--accent); padding: 4px 8px; border-radius: 4px; text-transform: uppercase; }
 
-    /* CABECERA DE PERFIL SUPERVISOR CON FOTO DIRECTA */
+    /* CABECERA DE PERFIL SUPERVISOR (SOLO LECTURA) */
     .profile-bar {
       display: flex; align-items: center; justify-content: space-between;
       background: var(--card-bg); border: 1px solid var(--border);
       border-radius: 8px; padding: 12px 14px; margin-bottom: 12px;
     }
     .profile-info { display: flex; align-items: center; gap: 12px; }
-    .avatar-wrapper { position: relative; cursor: pointer; flex-shrink: 0; }
+    .avatar-wrapper { position: relative; flex-shrink: 0; }
     .avatar-circle {
       width: 48px; height: 48px; border-radius: 50%; object-fit: cover;
       background: #1c1c1c; border: 2px solid var(--border);
       display: flex; align-items: center; justify-content: center;
       font-size: 0.9rem; font-weight: 900; color: #fff;
-    }
-    .avatar-btn-badge {
-      position: absolute; bottom: -2px; right: -2px; background: var(--accent);
-      color: #fff; border-radius: 50%; width: 18px; height: 18px; font-size: 0.7rem;
-      display: flex; align-items: center; justify-content: center; border: 2px solid #000;
     }
     .profile-text strong { display: block; font-size: 0.9rem; color: #fff; }
     .profile-text span { font-size: 0.7rem; color: var(--text-muted); }
@@ -57,7 +52,7 @@
       text-transform: uppercase; background: #1c1c1c; border: 1px solid var(--border); color: var(--accent);
     }
 
-    /* BARRA DE PROGRESO DE NIVEL */
+    /* BARRA DE PROGRESO DE NIVEL GLOBAL */
     .progress-card {
       background: var(--card-bg); border: 1px solid var(--border);
       border-radius: 8px; padding: 14px; margin-bottom: 14px;
@@ -178,20 +173,16 @@
 </head>
 <body>
 
-  <!-- INPUT DIRECTO DE ARCHIVO (CÁMARA / GALERÍA) -->
-  <input type="file" id="inputFotoSupervisor" accept="image/*" style="display: none;" onchange="subirFotoSupervisor(this.files)">
-
   <div class="header">
     <div class="title">Apex <span>Supervisor</span></div>
     <div class="badge-super">Control Audiovisual</div>
   </div>
 
-  <!-- BARRA DE PERFIL SUPERIOR CON FOTO DIRECTA -->
+  <!-- BARRA DE PERFIL SUPERIOR (VINCULADA A INDEX.HTML) -->
   <div class="profile-bar">
     <div class="profile-info">
-      <div class="avatar-wrapper" onclick="document.getElementById('inputFotoSupervisor').click()" title="Toca para tomar o cambiar foto">
+      <div class="avatar-wrapper">
         <div id="displayAvatarSup" class="avatar-circle">SP</div>
-        <div class="avatar-btn-badge">📷</div>
       </div>
       <div class="profile-text">
         <strong id="displayNombreSup">Supervisor Apex</strong>
@@ -201,11 +192,11 @@
     <div class="role-pill">SUPERVISOR</div>
   </div>
 
-  <!-- TARJETA REACTIVA DE NIVEL & PROGRESO DEL SUPERVISOR -->
+  <!-- TARJETA REACTIVA DE NIVEL & PROGRESO GLOBAL APEX -->
   <div class="progress-card">
     <div class="progress-header">
       <div>
-        <span style="font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; display: block; font-weight: 800;">Nivel Supervisor</span>
+        <span style="font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; display: block; font-weight: 800;">Nivel Bimestral Global</span>
         <div class="progress-tier-title" id="supTierLabel">INICIADO</div>
       </div>
       <div class="progress-percent-val" id="supTierPercent">0%</div>
@@ -214,8 +205,8 @@
       <div class="progress-bar-fill" id="supTierBarFill"></div>
     </div>
     <div class="progress-meta-grid">
-      <span id="supPtsTxt">0 Pts Auditoría</span>
-      <span id="supMetaTxt">Escala Oficial Apex</span>
+      <span id="supPtsTxt">0 / 240 PTS</span>
+      <span id="supMetaTxt">Escala Global Apex</span>
     </div>
   </div>
 
@@ -230,7 +221,7 @@
     <button class="nav-btn" onclick="switchTab('tabAuditoriaStrikers', this)">👁️ Strikers</button>
   </div>
 
-  <!-- ================= SUBMÓDULO 1: MI BALANCE (VENTANA DE INICIO) ================= -->
+  <!-- ================= SUBMÓDULO 1: MI BALANCE ================= -->
   <div id="tabBalance" class="tab-section active">
     <div class="card">
       <div class="card-title">Rendimiento Operativo de Supervisión</div>
@@ -271,7 +262,6 @@
 
   <!-- ================= SUBMÓDULO 2: EVALUAR COACH ================= -->
   <div id="tabEvaluar" class="tab-section">
-    <!-- VISUALIZADOR DE PUNTAJE EN VIVO (-10 A +10) -->
     <div class="points-bar">
       <div>
         <span style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800; display: block;">Balance de Clase</span>
@@ -281,7 +271,6 @@
     </div>
 
     <form id="formSupervision" onsubmit="enviarSupervision(event)">
-      <!-- DATOS DE SESIÓN -->
       <div class="card">
         <div class="card-title">Datos de la Sesión a Calificar</div>
 
@@ -378,7 +367,7 @@
       </div>
     </form>
 
-    <!-- HISTORIAL RECIENTE (VIGENCIA SEMANAL: ÚLTIMOS 7 DÍAS) -->
+    <!-- HISTORIAL RECIENTE (ÚLTIMOS 7 DÍAS) -->
     <div class="card">
       <div class="card-title">
         <span>Tus Evaluaciones Recientes (Últimos 7 Días)</span>
@@ -390,7 +379,6 @@
 
   <!-- ================= SUBMÓDULO 3: HISTORIAL COMPLETO DE SUPERVISIONES ================= -->
   <div id="tabHistorialSupervisiones" class="tab-section">
-    <!-- FILTROS TEMPORALES PARA SUPERVISIONES -->
     <div class="time-filter-wrap">
       <div class="filter-btn-group">
         <button class="filter-btn active" id="f_sup_60" onclick="FiltroSupervisiones.set(60, this)">Bimestre (60d)</button>
@@ -419,9 +407,8 @@
     </div>
   </div>
 
-  <!-- ================= SUBMÓDULO 4: AUDITORÍA A STRIKERS CON FILTROS ================= -->
+  <!-- ================= SUBMÓDULO 4: AUDITORÍA A STRIKERS ================= -->
   <div id="tabAuditoriaStrikers" class="tab-section">
-    <!-- BUSCADOR POR USUARIO & FILTROS DE TIEMPO -->
     <div class="time-filter-wrap">
       <div class="form-group" style="margin-bottom: 8px;">
         <input type="text" id="filtroStrikerUser" class="form-control" placeholder="🔍 Filtrar por correo o nombre del Striker..." oninput="FiltroStrikers.aplicar()">
@@ -465,7 +452,6 @@
     let cachedSupervisiones = [];
     let cachedStrikersCheckins = [];
 
-    /* NAVEGACIÓN ENTRE PESTAÑAS */
     function switchTab(tabId, btn) {
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
@@ -479,15 +465,16 @@
       }
     }
 
-    /* INICIALIZACIÓN GENERAL */
     async function init() {
-      // 1. Llenar Selector de 24 Horas
       poblarSelectorHoras();
-
-      // 2. Fecha actual por defecto
       document.getElementById('supFecha').value = new Date().toISOString().split('T')[0];
 
-      // 3. Autenticación y obtención de sesión
+      // Carga rápida del avatar desde caché para evitar parpadeos
+      const cachedAvatar = localStorage.getItem('apex_user_avatar');
+      if (cachedAvatar) {
+        renderAvatarVisual(cachedAvatar);
+      }
+
       if (sb) {
         try {
           const { data: { session } } = await sb.auth.getSession();
@@ -498,22 +485,35 @@
       }
 
       if (!currentSupervisorEmail || currentSupervisorEmail === 'supervisor@apexboxing.com') {
-        currentSupervisorEmail = localStorage.getItem('apex_supervisor_email') || 'supervisor@apexboxing.com';
+        currentSupervisorEmail = localStorage.getItem('apex_supervisor_email') || localStorage.getItem('apex_user_email') || 'supervisor@apexboxing.com';
       }
 
       document.getElementById('displayEmailSup').innerText = currentSupervisorEmail;
       document.getElementById('supSupervisorEmail').value = currentSupervisorEmail;
 
-      // 4. Cargar Datos y Caché
       await cargarPerfilSupervisor();
       await cargarCoaches();
       actualizarCalculo();
       await cargarNotificacionesSupervisor();
       await cargarRegistrosSupervisiones();
       await cargarRegistrosStrikers();
+      await actualizarNivelGlobalSupervisor();
     }
 
-    /* GENERADOR DE 24 HORAS EN EL DESPLEGABLE */
+    function renderAvatarVisual(url, nombreFallback = 'SP') {
+      const displayEl = document.getElementById('displayAvatarSup');
+      if (!displayEl) return;
+      if (url) {
+        if (displayEl.tagName === 'IMG') {
+          displayEl.src = url;
+        } else {
+          displayEl.outerHTML = `<img id="displayAvatarSup" src="${url}" class="avatar-circle" alt="Foto">`;
+        }
+      } else {
+        displayEl.outerHTML = `<div id="displayAvatarSup" class="avatar-circle">${nombreFallback.substring(0, 2).toUpperCase()}</div>`;
+      }
+    }
+
     function poblarSelectorHoras() {
       const select = document.getElementById('supClase');
       select.innerHTML = '<option value="" disabled selected>Selecciona el horario (24h)</option>';
@@ -528,7 +528,6 @@
       }
     }
 
-    /* PERFIL Y CONFIGURACIÓN DEL SUPERVISOR */
     async function cargarPerfilSupervisor() {
       if (!sb || !currentSupervisorEmail) return;
 
@@ -544,14 +543,8 @@
           document.getElementById('displayNombreSup').innerText = data.name || 'Supervisor Apex';
           document.getElementById('inputEditNombre').value = data.name || '';
 
-          const avatarUrl = data.avatar_url || data.photo_url;
-          const displayEl = document.getElementById('displayAvatarSup');
-          if (avatarUrl) {
-            displayEl.outerHTML = `<img id="displayAvatarSup" src="${avatarUrl}" class="avatar-circle" alt="Foto">`;
-          } else {
-            const iniciales = (data.name || data.email || 'SP').substring(0, 2).toUpperCase();
-            displayEl.innerText = iniciales;
-          }
+          const avatarUrl = data.photo_url || data.avatar_url || localStorage.getItem('apex_user_avatar');
+          renderAvatarVisual(avatarUrl, data.name || data.email || 'SP');
         }
       } catch (e) {
         console.warn("Perfil supervisor en espera.");
@@ -579,44 +572,6 @@
       }
     }
 
-    /* SUBIDA DIRECTA DE FOTO SUPERVISOR */
-    async function subirFotoSupervisor(files) {
-      if (!files || files.length === 0 || !sb) return;
-      const file = files[0];
-      const ext = file.name.split('.').pop();
-      const filePath = `avatars/sup_${Date.now()}_${currentSupervisorEmail.replace(/[^a-zA-Z0-9]/g, '_')}.${ext}`;
-
-      alert('Subiendo foto de supervisor...');
-      try {
-        const { error: uploadError } = await sb.storage.from('avatars').upload(filePath, file, { upsert: true });
-
-        if (uploadError) {
-          alert('Error al subir: ' + uploadError.message);
-          return;
-        }
-
-        const { data: urlData } = sb.storage.from('avatars').getPublicUrl(filePath);
-        const publicUrl = urlData.publicUrl;
-
-        await sb.from('apex_users').update({
-          avatar_url: publicUrl,
-          photo_url: publicUrl
-        }).eq('email', currentSupervisorEmail);
-
-        const displayEl = document.getElementById('displayAvatarSup');
-        if (displayEl.tagName === 'IMG') {
-          displayEl.src = publicUrl;
-        } else {
-          displayEl.outerHTML = `<img id="displayAvatarSup" src="${publicUrl}" class="avatar-circle" alt="Foto">`;
-        }
-
-        alert('¡Foto de perfil actualizada!');
-      } catch (err) {
-        alert('Error: ' + err.message);
-      }
-    }
-
-    /* CARGAR LISTA DE COACHES */
     async function cargarCoaches() {
       const select = document.getElementById('supCoachSelect');
       if (!sb) return;
@@ -645,7 +600,6 @@
       }
     }
 
-    /* CHECKLIST Y CÁLCULO DE PUNTOS (-10 A +10) */
     function actualizarCalculo() {
       let marcados = 0;
       for (let i = 1; i <= 10; i++) {
@@ -676,7 +630,6 @@
       }
     }
 
-    /* ENVÍO DE EVALUACIÓN A COORDINACIÓN */
     async function enviarSupervision(e) {
       e.preventDefault();
       const btn = document.getElementById('btnEnviar');
@@ -721,6 +674,7 @@
           document.getElementById('supSupervisorEmail').value = currentSupervisorEmail;
           actualizarCalculo();
           await cargarRegistrosSupervisiones();
+          await actualizarNivelGlobalSupervisor();
         }
       } catch (err) {
         alert('Error de conexión: ' + err.message);
@@ -730,7 +684,6 @@
       btn.innerText = 'Enviar Evaluación a Coordinación';
     }
 
-    /* CARGA CENTRALIZADA DE SUPERVISIONES DEL SUPERVISOR */
     async function cargarRegistrosSupervisiones() {
       if (!sb || !currentSupervisorEmail) return;
 
@@ -744,30 +697,48 @@
         if (error || !data) return;
         cachedSupervisiones = data;
 
-        // 1. Actualizar Métricas de Balance
         calcularMetricasBalance(data);
-
-        // 2. Renderizar Historial Reciente (Últimos 7 días)
         renderizarHistorialRecienteSemanal(data);
-
-        // 3. Renderizar Historial Completo con Filtros
         FiltroSupervisiones.recalcular();
-
       } catch (e) {
         console.warn("Fallo cargando supervisiones:", e);
       }
     }
 
-    /* CÁLCULO DE BALANCE, PUNTOS Y NIVEL DEL SUPERVISOR */
+    /* ACTUALIZACIÓN CON RPC GLOBAL APEX */
+    async function actualizarNivelGlobalSupervisor() {
+      if (!sb || !currentSupervisorEmail) return;
+
+      try {
+        const { data: res, error } = await sb.rpc('obtener_puntos_globales_apex', { p_email: currentSupervisorEmail });
+        if (error || !res) return;
+
+        const ptsTotales = parseFloat(res.pts_totales) || 0;
+        const porcentaje = parseInt(res.porcentaje) || 0;
+        const nivel = res.nivel || 'INICIADO';
+        const color = res.color || '#ffffff';
+
+        document.getElementById('supPtsTxt').innerText = `${ptsTotales.toFixed(1)} / 240 PTS`;
+        document.getElementById('supTierPercent').innerText = `${porcentaje}%`;
+        document.getElementById('supTierLabel').innerText = nivel;
+        document.documentElement.style.setProperty('--tier-color', color);
+
+        const fill = document.getElementById('supTierBarFill');
+        fill.style.width = `${Math.min(100, porcentaje)}%`;
+        fill.style.background = color;
+        fill.style.boxShadow = `0 0 10px ${color}66`;
+      } catch (err) {
+        console.warn("Error en RPC de puntos globales:", err);
+      }
+    }
+
     function calcularMetricasBalance(records) {
-      const totalSupervisiones = records.length;
-      document.getElementById('statSupTotal').innerText = totalSupervisiones;
+      document.getElementById('statSupTotal').innerText = records.length;
 
       const fLimite60 = new Date();
       fLimite60.setDate(fLimite60.getDate() - 60);
 
       let bimestrales = 0;
-      let puntosAcumulados = 0;
       let aprobadas = 0;
       let sanciones = 0;
 
@@ -777,39 +748,16 @@
 
         if (r.coordinator_status === 'aprobado') {
           aprobadas++;
-          puntosAcumulados += (r.supervisor_points || 2);
         } else if (r.coordinator_status === 'sancionado') {
           sanciones++;
-          puntosAcumulados += (r.supervisor_points || -10);
         }
       });
 
       document.getElementById('statSupBimestre').innerText = bimestrales;
       document.getElementById('statSupAprobadas').innerText = aprobadas;
       document.getElementById('statSupSanciones').innerText = sanciones;
-      document.getElementById('supPtsTxt').innerText = `${puntosAcumulados} Pts Auditoría`;
-
-      // Escala Oficial Apex para Supervisión (Base 100 Pts)
-      let pct = Math.max(0, Math.min(100, Math.round((puntosAcumulados / 100) * 100)));
-      document.getElementById('supTierPercent').innerText = `${pct}%`;
-
-      let tierName = "INICIADO";
-      let tierColor = "#ffffff";
-      if (pct >= 100) { tierName = "APEX+"; tierColor = "#ffd700"; }
-      else if (pct >= 76) { tierName = "APEX"; tierColor = "#d4af37"; }
-      else if (pct >= 36) { tierName = "AVANZADO"; tierColor = "#c0c0c0"; }
-      else if (pct >= 11) { tierName = "INTERMEDIO"; tierColor = "#cd7f32"; }
-
-      document.documentElement.style.setProperty('--tier-color', tierColor);
-      document.getElementById('supTierLabel').innerText = tierName;
-
-      const fill = document.getElementById('supTierBarFill');
-      fill.style.width = `${pct}%`;
-      fill.style.background = tierColor;
-      fill.style.boxShadow = `0 0 10px ${tierColor}66`;
     }
 
-    /* HISTORIAL RECIENTE (ÚLTIMOS 7 DÍAS) */
     function renderizarHistorialRecienteSemanal(records) {
       const cont = document.getElementById('historialRecienteList');
       const fLimite7 = new Date();
@@ -829,7 +777,6 @@
       });
     }
 
-    /* FILTROS Y HISTORIAL COMPLETO DE SUPERVISIONES */
     const FiltroSupervisiones = {
       tipo: 60,
       desde: null,
@@ -915,7 +862,6 @@
       return div;
     }
 
-    /* FILTROS Y TRAZABILIDAD DE STRIKERS */
     async function cargarRegistrosStrikers() {
       if (!sb) return;
 
@@ -970,7 +916,6 @@
 
         let filtrados = cachedStrikersCheckins;
 
-        // 1. Filtro temporal
         if (this.tipo === 'custom' && this.desde) {
           const fD = new Date(this.desde + 'T00:00:00');
           const fH = this.hasta ? new Date(this.hasta + 'T23:59:59') : new Date();
@@ -984,7 +929,6 @@
           filtrados = filtrados.filter(r => new Date(r.created_at) >= fLim);
         }
 
-        // 2. Filtro por usuario
         if (textoBusqueda) {
           filtrados = filtrados.filter(r => (r.user_email || '').toLowerCase().includes(textoBusqueda));
         }
@@ -1024,7 +968,6 @@
       }
     };
 
-    /* BANDEJA DE SANCIONES / NOTIFICACIONES DE COORDINACIÓN */
     async function cargarNotificacionesSupervisor() {
       if (!sb || !currentSupervisorEmail) return;
       const area = document.getElementById('notifSupervisorArea');
@@ -1079,6 +1022,13 @@
         await sb.from('apex_notifications').delete().eq('id', id);
       }
     }
+
+    /* RECEPTOR DE ACTUALIZACIÓN DE FOTO EN VIVO */
+    window.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'APEX_AVATAR_UPDATED' && event.data.avatarUrl) {
+        renderAvatarVisual(event.data.avatarUrl);
+      }
+    });
 
     window.onload = init;
   </script>
