@@ -72,7 +72,7 @@
     .btn-edit { background: #1e293b; border: 1px solid #334155; color: #94a3b8; padding: 5px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; cursor: pointer; margin-right: 4px; }
     .btn-pw { background: #1e1b4b; border: 1px solid #4338ca; color: #a5b4fc; padding: 5px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; cursor: pointer; margin-left: 4px; }
 
-    .list-item { background: #1c1c1c; border: 1px solid #2a2a2a; padding: 10px; border-radius: 6px; margin-top: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; gap: 8px; }
+    .list-item { background: #1c1c1c; border: 1px solid #2a2a2a; padding: 12px; border-radius: 6px; margin-top: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; gap: 8px; }
     .badge { font-size: 0.65rem; font-weight: 900; text-transform: uppercase; padding: 3px 6px; border-radius: 4px; background: #222; border: 1px solid #444; }
 
     /* FILTROS USUARIOS */
@@ -170,7 +170,7 @@
 
       <div class="section-card">
         <div class="section-title">
-          <span>2. Directorio de Usuarios</span>
+          <span>2. Directorio General de Usuarios</span>
           <button class="btn-secondary" onclick="cargarUsuarios()" style="margin:0; padding: 4px 8px;">Actualizar</button>
         </div>
 
@@ -182,7 +182,7 @@
           <input type="text" id="userSearchInput" class="form-control" style="flex: 1.2;" placeholder="Buscar nombre o correo..." oninput="filtrarUsuarios()">
         </div>
 
-        <div id="usersListContainer" style="max-height: 380px; overflow-y: auto;">Cargando directorio...</div>
+        <div id="usersListContainer" style="max-height: 420px; overflow-y: auto;">Cargando directorio...</div>
       </div>
     </div>
 
@@ -391,7 +391,7 @@
       });
     }
 
-    /* ================= USUARIOS CON GÉNERO, PROGRAMA Y CAMBIO DE CLAVE ================= */
+    /* ================= DIRECTORIO DE USUARIOS (ESTADO Y VIGENCIA) ================= */
     async function cargarUsuarios() {
       const container = document.getElementById('usersListContainer');
       container.innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;">Consultando directorio...</span>';
@@ -423,8 +423,7 @@
 
         const name = (u.name || '').toLowerCase();
         const email = (u.email || '').toLowerCase();
-        const programa = (u.programa || '').toLowerCase();
-        const coincideTexto = !search || name.includes(search) || email.includes(search) || programa.includes(search);
+        const coincideTexto = !search || name.includes(search) || email.includes(search);
 
         return coincideRol && coincideTexto;
       });
@@ -435,24 +434,43 @@
       }
 
       container.innerHTML = '';
+      const hoy = new Date(); hoy.setHours(0,0,0,0);
+
       filtrados.forEach(u => {
-        const userRolActual = (u.profile_id || u.role || 'estudiante').toLowerCase();
+        const rolUsuario = (u.profile_id || u.role || 'estudiante').toLowerCase();
+        const esStaff = ['admin', 'administrador', 'coach', 'supervisor', 'coordinador'].includes(rolUsuario);
+
+        let estadoVigenciaHTML = '';
+        if (esStaff) {
+          estadoVigenciaHTML = `<span style="color: var(--status-ok); font-weight: 800;">Permanente / Staff</span>`;
+        } else {
+          const fechaExpStr = u.subscription_expires_at || u.membership_end;
+          if (fechaExpStr) {
+            const expDate = new Date(fechaExpStr.includes('T') ? fechaExpStr : fechaExpStr + 'T00:00:00');
+            const diffMs = expDate - hoy;
+            const diasRestantes = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+            if (diasRestantes >= 0 && u.subscription_status !== 'vencido' && u.is_active !== false) {
+              estadoVigenciaHTML = `<span style="color: var(--status-ok); font-weight: 800;">${diasRestantes} días restantes</span>`;
+            } else {
+              estadoVigenciaHTML = `<span style="color: var(--accent); font-weight: 800;">Vencido / Inactivo</span>`;
+            }
+          } else {
+            estadoVigenciaHTML = `<span style="color: var(--text-muted); font-weight: 800;">Sin fecha asignada</span>`;
+          }
+        }
 
         let opcionesRolesHTML = '';
         dbProfiles.forEach(p => {
           const pid = p.id.toLowerCase();
-          opcionesRolesHTML += `<option value="${p.id}" ${userRolActual === pid ? 'selected' : ''}>${p.name.toUpperCase()}</option>`;
+          opcionesRolesHTML += `<option value="${p.id}" ${rolUsuario === pid ? 'selected' : ''}>${p.name.toUpperCase()}</option>`;
         });
-
-        const generoTxt = u.genero ? ` · <span style="color:#aaa;">${u.genero}</span>` : '';
-        const programaTxt = u.programa ? `<br><small style="color:var(--accent); font-weight:700;">Carrera/Prog: ${u.programa}</small>` : '';
 
         container.innerHTML += `
           <div class="list-item">
             <div>
-              <strong>${u.name || 'Sin nombre'}</strong>${generoTxt}<br>
-              <span style="color: var(--text-muted); font-size: 0.72rem;">${u.email || 'Sin correo'}</span>
-              ${programaTxt}
+              <strong>${u.name || 'Sin nombre'}</strong><br>
+              <span style="color: var(--text-muted); font-size: 0.72rem;">${u.email || 'Sin correo'}</span><br>
+              <div style="margin-top: 4px; font-size: 0.68rem;">Estado: ${estadoVigenciaHTML}</div>
             </div>
             <div style="display:flex; align-items:center; gap: 4px;">
               <select class="form-control" style="padding: 4px 6px; font-size: 0.72rem;" onchange="actualizarRolUsuario('${u.id}', this.value)">
@@ -479,6 +497,7 @@
           userObj.profile_id = newRole;
           userObj.role = newRole;
         }
+        filtrarUsuarios();
       }
     }
 
@@ -548,7 +567,7 @@
       }
     }
 
-    /* ================= BLOQUES: CREAR, EDITAR Y ELIMINAR ================= */
+    /* ================= BLOQUES ================= */
     async function registerBlock() {
       const title = document.getElementById('newBlockTitle').value.trim();
       const url = document.getElementById('newBlockUrl').value.trim();
@@ -609,7 +628,7 @@
       }
     }
 
-    /* ================= ROLES: CREAR, EDITAR Y ELIMINAR ================= */
+    /* ================= ROLES ================= */
     function cargarDatosPerfil(profileId) {
       const btnEliminar = document.getElementById('btnEliminarPerfil');
       if (!profileId) {
