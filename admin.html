@@ -438,10 +438,12 @@
 
       filtrados.forEach(u => {
         const rolUsuario = (u.profile_id || u.role || 'estudiante').toLowerCase();
-        const esStaff = ['admin', 'administrador', 'coach', 'supervisor', 'coordinador'].includes(rolUsuario);
+        
+        // Únicamente los estudiantes se rigen por vigencia; cualquier otro rol es staff/permanente
+        const esEstudiante = rolUsuario === 'estudiante' || rolUsuario === 'estudiantes';
 
         let estadoVigenciaHTML = '';
-        if (esStaff) {
+        if (!esEstudiante) {
           estadoVigenciaHTML = `<span style="color: var(--status-ok); font-weight: 800;">Permanente / Staff</span>`;
         } else {
           const fechaExpStr = u.subscription_expires_at || u.membership_end;
