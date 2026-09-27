@@ -385,7 +385,7 @@
 
       <div class="card">
         <div class="card-title">Asignar Puntos / Penalización</div>
-        <div class="card-desc">Suma or resta puntos a un Striker por Actitud, Técnica, Cultura, etc.</div>
+        <div class="card-desc">Suma o resta puntos a un Striker por Actitud, Técnica, Cultura, etc.</div>
 
         <div class="form-group">
           <label class="form-label">Buscar Striker</label>
@@ -1020,12 +1020,13 @@
     };
 
     /* ==========================================================================
-       6. MÓDULO DE EQUIPO Y ANALÍTICA (VENTANA DE 2 MESES DE VIGENCIA)
+       6. MÓDULO DE EQUIPO Y ANALÍTICA (VENTANA DE 2 MESES + 4 PILARES UNIFICADOS)
        ========================================================================== */
     let globalTeamUsers = [];
     let globalTeamCheckins = [];
     let globalTeamRatings = [];
     let globalTeamSupervisions = [];
+    let globalTeamAdjustments = [];
     let currentTeamFilter = 'activos';
 
     const ApexEquipo = {
@@ -1037,6 +1038,7 @@
           const { data: users } = await supabaseClient.from('apex_users').select('*');
           const { data: ratings } = await supabaseClient.from('apex_coach_ratings').select('*');
           const { data: supervisions } = await supabaseClient.from('apex_supervisor_ratings').select('*');
+          const { data: adjustments } = await supabaseClient.from('apex_coordinator_adjustments').select('*');
 
           if (!users) return;
 
@@ -1044,6 +1046,7 @@
           globalTeamCheckins = checkins || [];
           globalTeamRatings = ratings || [];
           globalTeamSupervisions = supervisions || [];
+          globalTeamAdjustments = adjustments || [];
 
           // Filtrar datos de los últimos 2 meses (Ventana Bimestral Rodante)
           const haceDosMeses = new Date();
@@ -1120,29 +1123,34 @@
         filteredUsers.forEach(user => {
           const item = document.createElement('div');
           item.className = 'carousel-card-item';
-          item.onclick = (e) => ApexEquipo.seleccionarStriker(user, globalTeamCheckins, globalTeamRatings, globalTeamSupervisions, e.currentTarget);
+          item.onclick = (e) => ApexEquipo.seleccionarStriker(user, globalTeamCheckins, globalTeamRatings, globalTeamSupervisions, globalTeamAdjustments, e.currentTarget);
 
           const avatarUrl = user.photo_url || user.avatar_url;
           const avatarHtml = avatarUrl 
             ? `<img src="${avatarUrl}" class="carousel-card-avatar" alt="Avatar">`
             : `<div class="carousel-card-avatar avatar-circle" style="width:40px;height:40px;">${(user.name || 'ST').substring(0,2).toUpperCase()}</div>`;
 
-          // 1. Puntos de check-ins del bimestre
+          // 1. Check-ins
           const userCheckins = globalTeamCheckins.filter(c => c.user_email?.toLowerCase() === user.email?.toLowerCase() && new Date(c.created_at) >= haceDosMeses);
           let ptsCheckins = 0;
           userCheckins.forEach(c => ptsCheckins += parseFloat(c.final_score || c.rendimiento || 0));
 
-          // 2. Calificaciones manuales del coach del bimestre
+          // 2. Calificaciones Coach
           const userRatings = globalTeamRatings.filter(r => r.user_email?.toLowerCase() === user.email?.toLowerCase() && new Date(r.created_at) >= haceDosMeses);
           let ptsRatings = 0;
           userRatings.forEach(r => ptsRatings += parseFloat(r.note || 0));
 
-          // 3. Supervisiones del bimestre
+          // 3. Supervisiones
           const userSupervisions = globalTeamSupervisions.filter(s => s.user_email?.toLowerCase() === user.email?.toLowerCase() && new Date(s.created_at) >= haceDosMeses);
           let ptsSupervisions = 0;
           userSupervisions.forEach(s => ptsSupervisions += parseFloat(s.score || 0));
 
-          let ptsBimestrales = ptsCheckins + ptsRatings + ptsSupervisions;
+          // 4. Ajustes Administrativos / Coordinación
+          const userAdjustments = globalTeamAdjustments.filter(a => a.user_email?.toLowerCase() === user.email?.toLowerCase() && new Date(a.created_at) >= haceDosMeses);
+          let ptsAdjustments = 0;
+          userAdjustments.forEach(a => ptsAdjustments += parseFloat(a.note || 0));
+
+          let ptsBimestrales = ptsCheckins + ptsRatings + ptsSupervisions + ptsAdjustments;
           let progPercent = Math.min(110, Math.round((ptsBimestrales / 240) * 100));
 
           item.innerHTML = `
@@ -1169,7 +1177,7 @@
         });
       },
 
-      seleccionarStriker: function(user, checkins, ratings, supervisions, elementNode) {
+      seleccionarStriker: function(user, checkins, ratings, supervisions, adjustments, elementNode) {
         document.querySelectorAll('.carousel-card-item').forEach(el => el.classList.remove('active'));
         elementNode.classList.add('active');
 
@@ -1198,6 +1206,7 @@
         const userCheckins = checkins.filter(c => c.user_email?.toLowerCase() === user.email?.toLowerCase() && new Date(c.created_at) >= haceDosMeses);
         const userRatings = ratings.filter(r => r.user_email?.toLowerCase() === user.email?.toLowerCase() && new Date(r.created_at) >= haceDosMeses);
         const userSupervisions = supervisions.filter(s => s.user_email?.toLowerCase() === user.email?.toLowerCase() && new Date(s.created_at) >= haceDosMeses);
+        const userAdjustments = adjustments.filter(a => a.user_email?.toLowerCase() === user.email?.toLowerCase() && new Date(a.created_at) >= haceDosMeses);
 
         let ptsCheckins = 0;
         userCheckins.forEach(c => ptsCheckins += parseFloat(c.final_score || c.rendimiento || 0));
@@ -1208,7 +1217,10 @@
         let ptsSupervisions = 0;
         userSupervisions.forEach(s => ptsSupervisions += parseFloat(s.score || 0));
 
-        const totalBimester = ptsCheckins + ptsRatings + ptsSupervisions;
+        let ptsAdjustments = 0;
+        userAdjustments.forEach(a => ptsAdjustments += parseFloat(a.note || 0));
+
+        const totalBimester = ptsCheckins + ptsRatings + ptsSupervisions + ptsAdjustments;
 
         document.getElementById('indCheckinsCount').innerText = userCheckins.length;
         document.getElementById('indBimesterPts').innerText = totalBimester.toFixed(1);
