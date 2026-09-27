@@ -306,7 +306,32 @@
         .single();
 
       if (!profileData) {
-        profileData = { id: userId, email: '', name: 'Usuario Apex', profile_id: 'estudiante', role: 'estudiante', photo_url: null, avatar_url: null };
+        profileData = { id: userId, email: '', name: 'Usuario Apex', profile_id: 'estudiante', role: 'estudiante', photo_url: null, avatar_url: null, subscription_status: 'activo' };
+      }
+
+      // VALIDACIÓN DE MEMBRESÍA (EXIMIENDO AL STAFF Y ADMINISTRADORES)
+      const rolActual = (profileData.role || '').toLowerCase();
+      const perfilActual = (profileData.profile_id || '').toLowerCase();
+      const esStaff = ['admin', 'administrador', 'coach', 'supervisor', 'coordinador'].includes(rolActual) || 
+                      ['admin', 'administrador', 'coach', 'supervisor', 'coordinador'].includes(perfilActual);
+
+      if (!esStaff) {
+        const hoy = new Date(); hoy.setHours(0,0,0,0);
+        const fechaExpStr = profileData.subscription_expires_at || profileData.membership_end;
+        let vencido = false;
+
+        if (fechaExpStr) {
+          const expDate = new Date(fechaExpStr.includes('T') ? fechaExpStr : fechaExpStr + 'T00:00:00');
+          if (expDate < hoy) vencido = true;
+        }
+
+        if (profileData.subscription_status === 'vencido' || profileData.is_active === false || vencido) {
+          alert('⚠️ Membresía inactiva o vencida. Por favor, habla con tu coach o administrador para tu activación profesional.');
+          await sb.auth.signOut();
+          document.getElementById('appContainer').classList.remove('active');
+          document.getElementById('loginOverlay').style.display = 'flex';
+          return;
+        }
       }
 
       currentSessionUser = profileData;
@@ -421,18 +446,14 @@
         const ext = file.name.split('.').pop() || 'jpg';
         const cleanEmail = (currentSessionUser.email || currentSessionUser.id).replace(/[^a-zA-Z0-9]/g, '_');
         
-        // Formato exacto que empareja con el trigger de purga SQL: avatars/<timestamp>_<email>.<ext>
         const filePath = `avatars/${Date.now()}_${cleanEmail}.${ext}`;
 
-        // 1. Subir al bucket avatars
         const { error: uploadErr } = await sb.storage.from('avatars').upload(filePath, file, { upsert: true });
         if (uploadErr) throw uploadErr;
 
-        // 2. Obtener URL pública
         const { data: urlData } = sb.storage.from('avatars').getPublicUrl(filePath);
         const publicUrl = urlData.publicUrl;
 
-        // 3. Persistir en BD (ambas columnas para compatibilidad universal)
         const { error: updateErr } = await sb.from('apex_users').update({ 
           photo_url: publicUrl, 
           avatar_url: publicUrl, 
@@ -441,13 +462,11 @@
 
         if (updateErr) throw updateErr;
 
-        // 4. Actualizar variables locales y caché de navegador
         currentSessionUser.photo_url = publicUrl;
         currentSessionUser.avatar_url = publicUrl;
         localStorage.setItem('apex_user_avatar', publicUrl);
         actualizarPreviewFoto(publicUrl);
 
-        // 5. Notificar a los iframes activos (como usuario.html) para que actualicen el avatar en vivo
         document.querySelectorAll('iframe.block-frame').forEach(frame => {
           try {
             frame.contentWindow.postMessage({ type: 'APEX_AVATAR_UPDATED', avatarUrl: publicUrl }, '*');
