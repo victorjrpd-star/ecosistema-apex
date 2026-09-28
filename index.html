@@ -44,6 +44,38 @@
     .form-switch-text { text-align: center; font-size: 0.75rem; color: var(--text-muted); margin-top: 14px; font-weight: 700; cursor: pointer; }
     .form-switch-text span { color: var(--accent); text-decoration: underline; }
 
+    /* BOTÓN DE INSTALACIÓN CRISTALINO EXÓTICO */
+    .install-pwa-container {
+      display: none; justify-content: center; margin-top: 14px;
+    }
+    .btn-glass-install {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 30px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      transition: all 0.3s ease;
+    }
+    .btn-glass-install:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(229, 9, 20, 0.5);
+      box-shadow: 0 8px 32px 0 rgba(229, 9, 20, 0.2);
+    }
+    .btn-glass-install:active {
+      transform: scale(0.96);
+    }
+
     /* APLICACIÓN PRINCIPAL */
     .app-container { display: none; width: 100%; height: 100%; flex-direction: column; }
     .app-container.active { display: flex; }
@@ -130,6 +162,13 @@
 
         <button class="btn" onclick="realizarLogin()">Entrar</button>
         <div class="form-switch-text" onclick="toggleFormMode('register')">¿No tienes cuenta? <span>Regístrate aquí</span></div>
+
+        <!-- BOTÓN DE INSTALACIÓN CRISTALINO -->
+        <div class="install-pwa-container" id="installPwaWrapper">
+          <button class="btn-glass-install" id="btnInstallApp" onclick="dispararInstalacionPWA()">
+            ✨ Instalar Aplicación
+          </button>
+        </div>
       </div>
 
       <!-- REGISTRO PÚBLICO -->
@@ -220,9 +259,52 @@
     const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
     let currentSessionUser = null;
+    let deferredPrompt = null;
+
+    /* REGISTRO DE SERVICE WORKER Y GESTIÓN PWA */
+    window.addEventListener('load', () => {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js')
+          .then(() => console.log('Service Worker registrado con éxito.'))
+          .catch(err => console.log('Error al registrar Service Worker:', err));
+      }
+    });
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      // Mostrar botón cristalino si la app NO está instalada y el evento se dispara
+      if (!window.matchMedia('(display-mode: standalone)').matches) {
+        document.getElementById('installPwaWrapper').style.display = 'flex';
+      }
+    });
+
+    window.addEventListener('appinstalled', () => {
+      document.getElementById('installPwaWrapper').style.display = 'none';
+      deferredPrompt = null;
+      console.log('Aplicación instalada exitosamente.');
+    });
+
+    async function dispararInstalacionPWA() {
+      if (!deferredPrompt) {
+        alert('Para instalar la aplicación, usa las opciones de tu navegador (Ej: "Agregar a la pantalla principal" o "Instalar aplicación").');
+        return;
+      }
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        document.getElementById('installPwaWrapper').style.display = 'none';
+      }
+      deferredPrompt = null;
+    }
 
     async function initPortal() {
       if (!sb) return;
+
+      // Ocultar botón de instalación si ya corre como app instalada (standalone)
+      if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+        document.getElementById('installPwaWrapper').style.display = 'none';
+      }
 
       try {
         const { data: { session } } = await sb.auth.getSession();
@@ -351,8 +433,9 @@
 
       currentSessionUser = profileData;
 
-      // Guardar email y avatar en localStorage para que los iframes lo lean
+      // Guardar email, avatar y rol/perfil en localStorage para control offline y de submódulos
       localStorage.setItem('apex_user_email', profileData.email || '');
+      localStorage.setItem('apex_user_profile', profileData.profile_id || 'estudiante');
       if (profileData.photo_url || profileData.avatar_url) {
         localStorage.setItem('apex_user_avatar', profileData.photo_url || profileData.avatar_url);
       }
@@ -372,6 +455,15 @@
 
       if (userModules.length === 0) {
         userModules = [{ id: 'b_usuario', title: 'Ficha Estudiante', url: 'usuario.html' }];
+      }
+
+      // Enviar dinámicamente al Service Worker los submódulos específicos de este rol para caché offline selectiva
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        const urlsToCache = userModules.map(m => m.url);
+        navigator.serviceWorker.controller.postMessage({
+          type: 'CACHE_USER_MODULES',
+          urls: urlsToCache
+        });
       }
 
       document.getElementById('loginOverlay').style.display = 'none';
@@ -417,6 +509,7 @@
         currentSessionUser = null;
         localStorage.removeItem('apex_user_email');
         localStorage.removeItem('apex_user_avatar');
+        localStorage.removeItem('apex_user_profile');
         document.getElementById('loginEmail').value = '';
         document.getElementById('loginPassword').value = '';
         document.getElementById('appContainer').classList.remove('active');
