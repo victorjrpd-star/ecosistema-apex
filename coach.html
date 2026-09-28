@@ -96,7 +96,7 @@
     .form-label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; display: block; }
     .input-apex {
       width: 100%; padding: 11px 12px; background: #121214; border: 1px solid var(--border);
-      color: #fff; border-radius: 5px; font-size: 0.8rem; outline: none; transition: 0.2s;
+      color: #fff; border-radius: 5px; font-size: 0.8rem; outline: none; transition: 0.2s; color-scheme: dark;
     }
     .input-apex:focus { border-color: var(--border-focus); }
 
@@ -288,7 +288,7 @@
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px;">
           <div class="form-group">
             <label class="form-label">Fecha de Pago (Opcional)</label>
-            <input type="date" id="paymentDateInput" class="input-apex" style="color-scheme: dark;">
+            <input type="date" id="paymentDateInput" class="input-apex">
           </div>
           <div class="form-group">
             <label class="form-label">Plan / Vigencia</label>
@@ -429,6 +429,12 @@
             <label class="form-label">Nota (Positiva o Negativa)</label>
             <input type="number" id="ratingNoteVal" step="0.5" placeholder="Ej: 5 o -3" class="input-apex">
           </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Fecha de Calificación (Opcional)</label>
+          <input type="date" id="ratingDateInput" class="input-apex" placeholder="Predeterminado hoy">
+          <div style="font-size: 0.58rem; color: var(--text-muted); margin-top: 3px;">Máximo hasta 2 meses atrás (60 días). Vacío = Hoy.</div>
         </div>
 
         <div class="form-group">
@@ -1407,7 +1413,7 @@
     };
 
     /* ==========================================================================
-       7. MÓDULO DE CALIFICACIONES MANUALES DEL COACH
+       7. MÓDULO DE CALIFICACIONES MANUALES DEL COACH (CON FECHA VALIDADA)
        ========================================================================== */
     let selectedRatingStriker = null;
 
@@ -1418,6 +1424,7 @@
         document.getElementById('ratingSelectedName').textContent = 'Ningún striker seleccionado';
         document.getElementById('ratingSelectedEmail').textContent = 'Usa el buscador superior';
         document.getElementById('ratingNoteVal').value = '';
+        document.getElementById('ratingDateInput').value = '';
         document.getElementById('ratingObservation').value = '';
         document.getElementById('btnSubmitRating').disabled = true;
       },
@@ -1481,11 +1488,34 @@
         if (!selectedRatingStriker) return;
         const categoria = document.getElementById('ratingCategory').value;
         const noteVal = parseFloat(document.getElementById('ratingNoteVal').value);
+        const dateInputVal = document.getElementById('ratingDateInput').value;
         const observation = document.getElementById('ratingObservation').value.trim();
 
         if (isNaN(noteVal)) {
           alert('Por favor ingresa una nota numérica válida.');
           return;
+        }
+
+        // Validación estricta de fecha (máximo 60 días al pasado, no futura)
+        let fechaFinalISO = new Date().toISOString();
+        if (dateInputVal) {
+          const fechaSeleccionada = new Date(dateInputVal + 'T00:00:00');
+          const hoy = new Date();
+          hoy.setHours(23, 59, 59, 999);
+
+          const hace60Dias = new Date();
+          hace60Dias.setDate(hace60Dias.getDate() - 60);
+          hace60Dias.setHours(0, 0, 0, 0);
+
+          if (fechaSeleccionada > hoy) {
+            alert('No puedes asignar calificaciones con fechas futuras.');
+            return;
+          }
+          if (fechaSeleccionada < hace60Dias) {
+            alert('La fecha no puede exceder los 2 meses atrás (60 días).');
+            return;
+          }
+          fechaFinalISO = fechaSeleccionada.toISOString();
         }
 
         const btn = document.getElementById('btnSubmitRating');
@@ -1494,13 +1524,16 @@
 
         try {
           if (supabaseClient) {
-            const { error } = await supabaseClient.from('apex_coach_ratings').insert({
+            const payload = {
               user_email: selectedRatingStriker.email,
               category: categoria,
               note: noteVal,
               observation: observation || null,
-              coach_email: currentCoachEmail
-            });
+              coach_email: currentCoachEmail,
+              created_at: fechaFinalISO
+            };
+
+            const { error } = await supabaseClient.from('apex_coach_ratings').insert(payload);
 
             if (error) throw error;
 
@@ -1514,6 +1547,7 @@
 
           alert(`Calificación guardada con éxito para ${selectedRatingStriker.name || selectedRatingStriker.email}`);
           this.inicializar();
+          await actualizarNivelGlobalCoach();
         } catch (err) {
           alert('Error al guardar la calificación: ' + err.message);
           btn.disabled = false;
