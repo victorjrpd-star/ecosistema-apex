@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Apex - Panel Coach</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
       --bg: #050505;
@@ -172,6 +173,10 @@
     .btn-main:disabled { background: #222; color: #555; cursor: not-allowed; border: 1px solid #333; }
     .btn-danger { background: transparent; border: 1px solid var(--accent); color: var(--accent); }
     .btn-danger:active { background: var(--accent-dim); }
+
+    .batch-actions-bar {
+      display: flex; gap: 8px; margin-bottom: 12px; background: var(--card-sub); padding: 10px; border: 1px solid var(--border); border-radius: 6px; align-items: center; justify-content: space-between;
+    }
   </style>
 </head>
 <body>
@@ -226,6 +231,12 @@
       </div>
       <div class="card">
         <div class="card-title">Sesiones en Espera</div>
+        <div class="batch-actions-bar" id="batchBar" style="display:none;">
+          <label style="font-size:0.7rem; display:flex; align-items:center; gap:6px; cursor:pointer; color:#fff; text-transform:uppercase; font-weight:800;">
+            <input type="checkbox" id="selectAllCheckins" onclick="ApexCheckins.toggleSeleccionarTodos(this)"> Seleccionar Todos
+          </label>
+          <button class="btn-main" style="width:auto; padding:6px 12px; font-size:0.65rem; background:var(--status-ok); color:#000;" onclick="ApexCheckins.aprobarSeleccionados()">Aprobar Seleccionados</button>
+        </div>
         <div id="checkinsList">
           <div style="font-size: 0.75rem; color: var(--text-muted); text-align: center; padding: 16px;">
             Consultando registros en base de datos...
@@ -357,21 +368,24 @@
         </div>
         <div class="striker-summary-grid">
           <div class="info-box">
-            <div class="info-box-label">Clases (Bimestre)</div>
-            <div class="info-box-val" id="indCheckinsCount">0</div>
+            <div class="info-box-label">Disciplina</div>
+            <div class="info-box-val" id="indDisciplinaVal">0%</div>
           </div>
           <div class="info-box">
-            <div class="info-box-label">Pts Totales (Bimestre)</div>
+            <div class="info-box-label">Historial (Clases Carrera)</div>
+            <div class="info-box-val" id="indTotalVal">0</div>
+          </div>
+          <div class="info-box">
+            <div class="info-box-label">Pts Bimestre (Total Multifuente)</div>
             <div class="info-box-val" id="indBimesterPts">0</div>
           </div>
           <div class="info-box">
             <div class="info-box-label">RPE Promedio</div>
             <div class="info-box-val" id="indAvgRpe">0</div>
           </div>
-          <div class="info-box">
-            <div class="info-box-label">Soltura Promedio</div>
-            <div class="info-box-val" id="indAvgSoltura">0</div>
-          </div>
+        </div>
+        <div style="width: 100%; height: 210px; margin-top: 14px; position: relative;">
+          <canvas id="coachChartRadar"></canvas>
         </div>
       </div>
     </div>
@@ -484,7 +498,7 @@
     }
 
     /* ==========================================================================
-       3. PERFIL Y NIVEL GLOBAL UNIFICADO (RPC)
+       3. PERFIL Y NIVEL GLOBAL UNIFICADO (MULTIFUNTE 60 DÍAS)
        ========================================================================== */
     async function initPerfilCoach() {
       const cachedAvatar = localStorage.getItem('apex_user_avatar');
@@ -548,13 +562,40 @@
       if (!supabaseClient || !currentCoachEmail) return;
 
       try {
-        const { data: res, error } = await supabaseClient.rpc('obtener_puntos_globales_apex', { p_email: currentCoachEmail });
-        if (error || !res) return;
+        const hace60Dias = new Date();
+        hace60Dias.setDate(hace60Dias.getDate() - 60);
+        hace60Dias.setHours(0,0,0,0);
 
-        const ptsTotales = parseFloat(res.pts_totales) || 0;
-        const porcentaje = parseInt(res.porcentaje) || 0;
-        const nivel = res.nivel || 'INICIADO';
-        const color = res.color || '#ffffff';
+        const [checkinsRes, ratingsRes, supervisionsRes, adjustmentsRes] = await Promise.all([
+          supabaseClient.from('apex_checkins').select('rendimiento, created_at, status').eq('user_email', currentCoachEmail).ilike('status', 'aprobado'),
+          supabaseClient.from('apex_coach_ratings').select('note, created_at').eq('user_email', currentCoachEmail),
+          supabaseClient.from('apex_supervisor_ratings').select('score, created_at').eq('user_email', currentCoachEmail),
+          supabaseClient.from('apex_coordinator_adjustments').select('note, created_at').eq('user_email', currentCoachEmail)
+        ]);
+
+        let ptsTotales = 0;
+        if (checkinsRes.data) {
+          checkinsRes.data.forEach(c => { if (new Date(c.created_at) >= hace60Dias) ptsTotales += parseFloat(c.rendimiento || 0); });
+        }
+        if (ratingsRes.data) {
+          ratingsRes.data.forEach(r => { if (new Date(r.created_at) >= hace60Dias) ptsTotales += parseFloat(r.note || 0); });
+        }
+        if (supervisionsRes.data) {
+          supervisionsRes.data.forEach(s => { if (new Date(s.created_at) >= hace60Dias) ptsTotales += parseFloat(s.score || 0); });
+        }
+        if (adjustmentsRes.data) {
+          adjustmentsRes.data.forEach(a => { if (new Date(a.created_at) >= hace60Dias) ptsTotales += parseFloat(a.note || 0); });
+        }
+
+        const meta = 240;
+        const porcentaje = Math.min(100, Math.round((ptsTotales / meta) * 100));
+
+        let nivel = 'INICIADO';
+        let color = '#ffffff';
+        if (porcentaje >= 100) { nivel = 'APEX+'; color = '#ffd700'; }
+        else if (porcentaje >= 76) { nivel = 'APEX'; color = '#d4af37'; }
+        else if (porcentaje >= 36) { nivel = 'AVANZADO'; color = '#c0c0c0'; }
+        else if (porcentaje >= 11) { nivel = 'INTERMEDIO'; color = '#cd7f32'; }
 
         document.getElementById('coachPtsTxt').innerText = `${ptsTotales.toFixed(1)} / 240 PTS`;
         document.getElementById('coachTierPercent').innerText = `${porcentaje}%`;
@@ -562,16 +603,16 @@
         document.documentElement.style.setProperty('--tier-color', color);
 
         const fill = document.getElementById('coachTierBarFill');
-        fill.style.width = `${Math.min(100, porcentaje)}%`;
+        fill.style.width = `${porcentaje}%`;
         fill.style.background = color;
         fill.style.boxShadow = `0 0 10px ${color}66`;
       } catch (err) {
-        console.warn("Error en RPC global coach:", err);
+        console.warn("Error calculando nivel global coach:", err);
       }
     }
 
     /* ==========================================================================
-       4. GESTIÓN DE CHECK-INS
+       4. GESTIÓN DE CHECK-INS CON SELECCIÓN MÚLTIPLE
        ========================================================================== */
     const METRIC_KEYS = [
       { key: 'rendimiento', label: 'Rendimiento' },
@@ -614,8 +655,11 @@
 
           if (!data || data.length === 0) {
             container.innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); text-align:center; padding:16px;">No hay check-ins pendientes por validar.</div>';
+            document.getElementById('batchBar').style.display = 'none';
             return;
           }
+
+          document.getElementById('batchBar').style.display = 'flex';
 
           pendingRecords = data.map(item => {
             const orig = {};
@@ -647,6 +691,71 @@
         }
       },
 
+      toggleSeleccionarTodos: function(masterCheckbox) {
+        const checkboxes = document.querySelectorAll('.checkin-select');
+        checkboxes.forEach(cb => cb.checked = masterCheckbox.checked);
+      },
+
+      aprobarSeleccionados: async function() {
+        const checkboxes = document.querySelectorAll('.checkin-select:checked');
+        if (checkboxes.length === 0) {
+          alert('Por favor selecciona al menos un check-in.');
+          return;
+        }
+
+        if (!confirm(`¿Estás seguro de aprobar ${checkboxes.length} check-ins seleccionados?`)) return;
+
+        let coachUuid = null;
+        try {
+          if (supabaseClient && supabaseClient.auth) {
+            const { data: authData } = await supabaseClient.auth.getUser();
+            if (authData?.user?.id) coachUuid = authData.user.id;
+          }
+        } catch (e) {}
+
+        for (const cb of checkboxes) {
+          const recId = cb.getAttribute('data-id');
+          const rec = pendingRecords.find(r => r.id === recId);
+          if (!rec) continue;
+
+          let sumaMetricas = 0;
+          let penalty = 0;
+          const updates = { status: 'aprobado' };
+          if (coachUuid) updates.coach_id = coachUuid;
+
+          METRIC_KEYS.forEach(m => {
+            const orig = rec.original[m.key];
+            let curr = rec.current[m.key];
+            if (curr < orig) {
+              penalty += 1;
+              curr = Math.max(0, curr - 1);
+            }
+            updates[m.key] = curr;
+            sumaMetricas += curr;
+          });
+
+          updates.coach_point_mod = penalty;
+          updates.coach_tech_score = updates.student_tech_score ?? 7;
+          updates.final_score = Math.max(0, sumaMetricas - penalty);
+
+          await supabaseClient.from('apex_checkins').update(updates).eq('id', rec.id);
+
+          try {
+            await supabaseClient.from('apex_notifications').insert({
+              user_email: rec.user_email,
+              title: 'Check-in Calibrado',
+              message: `Tu sesión de ${rec.focus || 'entrenamiento'} fue aprobada por lote. Score final: ${updates.final_score} pts.`,
+              type: penalty > 0 ? 'calibracion' : 'observacion_tecnica'
+            });
+          } catch(e){}
+        }
+
+        alert('¡Check-ins seleccionados aprobados con éxito!');
+        document.getElementById('selectAllCheckins').checked = false;
+        await this.cargar();
+        await actualizarNivelGlobalCoach();
+      },
+
       formatearFecha: function(fechaStr) {
         if (!fechaStr) return 'Sin fecha';
         try {
@@ -668,7 +777,9 @@
 
       render: function() {
         const container = document.getElementById('checkinsList');
+        const existingBatchBar = document.getElementById('batchBar');
         container.innerHTML = '';
+        container.appendChild(existingBatchBar);
 
         pendingRecords.forEach((rec) => {
           let totalPenalty = 0;
@@ -710,6 +821,7 @@
           card.innerHTML = `
             <div class="checkin-profile-header">
               <div class="checkin-profile-left">
+                <input type="checkbox" class="checkin-select" data-id="${rec.id}" style="width:16px; height:16px; cursor:pointer;">
                 ${avatarHtml}
                 <div>
                   <strong style="font-size:0.9rem; color:#fff; display:block;">${nombreMostrado}</strong>
@@ -793,8 +905,8 @@
 
         if (supabaseClient) {
           const { error } = await supabaseClient.from('apex_checkins').update(updates).eq('id', rec.id);
-          if (error) {
-            alert('Error guardando en base de datos: ' + error.message);
+          if (error) { 
+            alert('Error guardando en base de datos: ' + error.message); 
             return;
           }
 
@@ -810,9 +922,7 @@
               message: notifMsg,
               type: penalty > 0 ? 'calibracion' : 'observacion_tecnica'
             });
-          } catch (notifErr) {
-            console.warn("Notificación omitida:", notifErr);
-          }
+          } catch (notifErr) {}
         }
 
         alert(status === 'aprobado' ? `Check-in aprobado con éxito (Penalización: -${penalty} pts).` : 'Check-in desestimado.');
@@ -822,6 +932,7 @@
 
         if (pendingRecords.length === 0) {
           document.getElementById('checkinsList').innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); text-align:center; padding:16px;">No hay check-ins pendientes por validar.</div>';
+          document.getElementById('batchBar').style.display = 'none';
         }
 
         await actualizarNivelGlobalCoach();
@@ -844,9 +955,7 @@
           if (!error && data) {
             registeredUsersCache = data;
           }
-        } catch (e) {
-          console.warn("Directorio en espera.");
-        }
+        } catch (e) {}
       },
 
       buscar: function(query) {
@@ -1020,7 +1129,7 @@
     };
 
     /* ==========================================================================
-       6. MÓDULO DE EQUIPO Y ANALÍTICA (4 PILARES UNIFICADOS)
+       6. MÓDULO DE EQUIPO Y ANALÍTICA (MULTIFUNTE 60 DÍAS + TELARAÑA)
        ========================================================================== */
     let globalTeamUsers = [];
     let globalTeamCheckins = [];
@@ -1028,33 +1137,36 @@
     let globalTeamSupervisions = [];
     let globalTeamAdjustments = [];
     let currentTeamFilter = 'activos';
+    let coachRadarInstance = null;
 
     const ApexEquipo = {
       cargarAnaliticaGlobal: async function() {
         if (!supabaseClient) return;
 
         try {
-          const { data: checkins } = await supabaseClient.from('apex_checkins').select('*');
-          const { data: users } = await supabaseClient.from('apex_users').select('*');
-          const { data: ratings } = await supabaseClient.from('apex_coach_ratings').select('*');
-          const { data: supervisions } = await supabaseClient.from('apex_supervisor_ratings').select('*');
-          const { data: adjustments } = await supabaseClient.from('apex_coordinator_adjustments').select('*');
+          const [checkinsRes, usersRes, ratingsRes, supervisionsRes, adjustmentsRes] = await Promise.all([
+            supabaseClient.from('apex_checkins').select('*'),
+            supabaseClient.from('apex_users').select('*'),
+            supabaseClient.from('apex_coach_ratings').select('*'),
+            supabaseClient.from('apex_supervisor_ratings').select('*'),
+            supabaseClient.from('apex_coordinator_adjustments').select('*')
+          ]);
 
-          if (!users) return;
+          if (!usersRes.data) return;
 
-          globalTeamUsers = users;
-          globalTeamCheckins = checkins || [];
-          globalTeamRatings = ratings || [];
-          globalTeamSupervisions = supervisions || [];
-          globalTeamAdjustments = adjustments || [];
+          globalTeamUsers = usersRes.data;
+          globalTeamCheckins = checkinsRes.data || [];
+          globalTeamRatings = ratingsRes.data || [];
+          globalTeamSupervisions = supervisionsRes.data || [];
+          globalTeamAdjustments = adjustmentsRes.data || [];
 
           const haceSesentaDias = new Date();
           haceSesentaDias.setDate(haceSesentaDias.getDate() - 60);
           haceSesentaDias.setHours(0, 0, 0, 0);
 
-          const checkinsBimestre = globalTeamCheckins.filter(c => new Date(c.created_at) >= haceSesentaDias);
+          const checkinsBimestre = globalTeamCheckins.filter(c => new Date(c.created_at) >= haceSesentaDias && c.status === 'aprobado');
 
-          document.getElementById('teamTotalStrikers').innerText = users.length;
+          document.getElementById('teamTotalStrikers').innerText = globalTeamUsers.length;
           document.getElementById('teamTotalCheckins').innerText = checkinsBimestre.length;
 
           if (checkinsBimestre.length > 0) {
@@ -1124,35 +1236,37 @@
         filteredUsers.forEach(user => {
           const item = document.createElement('div');
           item.className = 'carousel-card-item';
-          item.onclick = (e) => ApexEquipo.seleccionarStriker(user, globalTeamCheckins, globalTeamRatings, globalTeamSupervisions, globalTeamAdjustments, e.currentTarget);
+          item.onclick = (e) => ApexEquipo.seleccionarStriker(user, e.currentTarget);
 
           const avatarUrl = user.photo_url || user.avatar_url;
           const avatarHtml = avatarUrl 
             ? `<img src="${avatarUrl}" class="carousel-card-avatar" alt="Avatar">`
             : `<div class="carousel-card-avatar avatar-circle" style="width:40px;height:40px;">${(user.name || 'ST').substring(0,2).toUpperCase()}</div>`;
 
-          // 1. Check-ins (últimos 60 días)
-          const userCheckins = globalTeamCheckins.filter(c => c.user_email?.toLowerCase() === user.email?.toLowerCase() && new Date(c.created_at) >= haceSesentaDias);
-          let ptsCheckins = 0;
-          userCheckins.forEach(c => ptsCheckins += parseFloat(c.final_score || c.rendimiento || 0));
+          const emailUser = (user.email || '').toLowerCase();
 
-          // 2. Calificaciones Coach (últimos 60 días)
-          const userRatings = globalTeamRatings.filter(r => r.user_email?.toLowerCase() === user.email?.toLowerCase() && new Date(r.created_at) >= haceSesentaDias);
+          // 1. Check-ins de rendimiento (últimos 60 días, aprobados)
+          const userCheckinsBimestre = globalTeamCheckins.filter(c => (c.user_email || '').toLowerCase() === emailUser && c.status === 'aprobado' && new Date(c.created_at) >= haceSesentaDias);
+          let ptsRendimiento = 0;
+          userCheckinsBimestre.forEach(c => ptsRendimiento += parseFloat(c.rendimiento || 0));
+
+          // 2. Calificaciones Coach
+          const userRatingsBimestre = globalTeamRatings.filter(r => (r.user_email || '').toLowerCase() === emailUser && new Date(r.created_at) >= haceSesentaDias);
           let ptsRatings = 0;
-          userRatings.forEach(r => ptsRatings += parseFloat(r.note || 0));
+          userRatingsBimestre.forEach(r => ptsRatings += parseFloat(r.note || 0));
 
-          // 3. Supervisiones (últimos 60 días)
-          const userSupervisions = globalTeamSupervisions.filter(s => s.user_email?.toLowerCase() === user.email?.toLowerCase() && new Date(s.created_at) >= haceSesentaDias);
+          // 3. Supervisiones
+          const userSupervisionsBimestre = globalTeamSupervisions.filter(s => (s.user_email || '').toLowerCase() === emailUser && new Date(s.created_at) >= haceSesentaDias);
           let ptsSupervisions = 0;
-          userSupervisions.forEach(s => ptsSupervisions += parseFloat(s.score || 0));
+          userSupervisionsBimestre.forEach(s => ptsSupervisions += parseFloat(s.score || 0));
 
-          // 4. Ajustes Administrativos (últimos 60 días)
-          const userAdjustments = globalTeamAdjustments.filter(a => a.user_email?.toLowerCase() === user.email?.toLowerCase() && new Date(a.created_at) >= haceSesentaDias);
+          // 4. Ajustes Coordinación
+          const userAdjustmentsBimestre = globalTeamAdjustments.filter(a => (a.user_email || '').toLowerCase() === emailUser && new Date(a.created_at) >= haceSesentaDias);
           let ptsAdjustments = 0;
-          userAdjustments.forEach(a => ptsAdjustments += parseFloat(a.note || 0));
+          userAdjustmentsBimestre.forEach(a => ptsAdjustments += parseFloat(a.note || 0));
 
-          let ptsBimestrales = ptsCheckins + ptsRatings + ptsSupervisions + ptsAdjustments;
-          let progPercent = Math.min(110, Math.round((ptsBimestrales / 240) * 100));
+          let ptsTotalesBimestre = ptsRendimiento + ptsRatings + ptsSupervisions + ptsAdjustments;
+          let progPercent = Math.min(100, Math.round((ptsTotalesBimestre / 240) * 100));
 
           item.innerHTML = `
             <div class="carousel-card-header">
@@ -1167,10 +1281,10 @@
               <span style="color:#fff; font-weight:800;">${progPercent}%</span>
             </div>
             <div class="carousel-progress-track">
-              <div class="carousel-progress-fill" style="width: ${Math.min(100, progPercent)}%; background: ${progPercent > 100 ? 'var(--accent)' : 'var(--status-ok)'};"></div>
+              <div class="carousel-progress-fill" style="width: ${progPercent}%; background: var(--status-ok);"></div>
             </div>
             <div style="font-size:0.6rem; color:var(--text-muted); margin-top:4px; display:flex; justify-content:space-between;">
-              <span>Pts: <strong style="color:#fff;">${ptsBimestrales.toFixed(1)}</strong></span>
+              <span>Pts: <strong style="color:#fff;">${ptsTotalesBimestre.toFixed(1)}</strong></span>
               <span style="color:var(--accent);">Ver ficha ➔</span>
             </div>
           `;
@@ -1178,7 +1292,7 @@
         });
       },
 
-      seleccionarStriker: function(user, checkins, ratings, supervisions, adjustments, elementNode) {
+      seleccionarStriker: function(user, elementNode) {
         document.querySelectorAll('.carousel-card-item').forEach(el => el.classList.remove('active'));
         elementNode.classList.add('active');
 
@@ -1205,39 +1319,89 @@
         haceSesentaDias.setDate(haceSesentaDias.getDate() - 60);
         haceSesentaDias.setHours(0, 0, 0, 0);
 
-        const userCheckins = checkins.filter(c => c.user_email?.toLowerCase() === user.email?.toLowerCase() && new Date(c.created_at) >= haceSesentaDias);
-        const userRatings = ratings.filter(r => r.user_email?.toLowerCase() === user.email?.toLowerCase() && new Date(r.created_at) >= haceSesentaDias);
-        const userSupervisions = supervisions.filter(s => s.user_email?.toLowerCase() === user.email?.toLowerCase() && new Date(s.created_at) >= haceSesentaDias);
-        const userAdjustments = adjustments.filter(a => a.user_email?.toLowerCase() === user.email?.toLowerCase() && new Date(a.created_at) >= haceSesentaDias);
+        const emailUser = (user.email || '').toLowerCase();
 
-        let ptsCheckins = 0;
-        userCheckins.forEach(c => ptsCheckins += parseFloat(c.final_score || c.rendimiento || 0));
+        const userCheckinsAll = globalTeamCheckins.filter(c => (c.user_email || '').toLowerCase() === emailUser && c.status === 'aprobado');
+        const userCheckinsBimestre = userCheckinsAll.filter(c => new Date(c.created_at) >= haceSesentaDias);
 
+        let ptsRendimiento = 0;
+        userCheckinsBimestre.forEach(c => ptsRendimiento += parseFloat(c.rendimiento || 0));
+
+        const userRatingsBimestre = globalTeamRatings.filter(r => (r.user_email || '').toLowerCase() === emailUser && new Date(r.created_at) >= haceSesentaDias);
         let ptsRatings = 0;
-        userRatings.forEach(r => ptsRatings += parseFloat(r.note || 0));
+        userRatingsBimestre.forEach(r => ptsRatings += parseFloat(r.note || 0));
 
+        const userSupervisionsBimestre = globalTeamSupervisions.filter(s => (s.user_email || '').toLowerCase() === emailUser && new Date(s.created_at) >= haceSesentaDias);
         let ptsSupervisions = 0;
-        userSupervisions.forEach(s => ptsSupervisions += parseFloat(s.score || 0));
+        userSupervisionsBimestre.forEach(s => ptsSupervisions += parseFloat(s.score || 0));
 
+        const userAdjustmentsBimestre = globalTeamAdjustments.filter(a => (a.user_email || '').toLowerCase() === emailUser && new Date(a.created_at) >= haceSesentaDias);
         let ptsAdjustments = 0;
-        userAdjustments.forEach(a => ptsAdjustments += parseFloat(a.note || 0));
+        userAdjustmentsBimestre.forEach(a => ptsAdjustments += parseFloat(a.note || 0));
 
-        const totalBimester = ptsCheckins + ptsRatings + ptsSupervisions + ptsAdjustments;
+        let totalBimester = ptsRendimiento + ptsRatings + ptsSupervisions + ptsAdjustments;
 
-        document.getElementById('indCheckinsCount').innerText = userCheckins.length;
+        // Disciplina y Historial
+        const metaPeriodo = 24; 
+        const disciplinaPct = Math.min(100, Math.round((userCheckinsBimestre.length / metaPeriodo) * 100));
+
+        document.getElementById('indDisciplinaVal').innerText = `${disciplinaPct}%`;
+        document.getElementById('indTotalVal').innerText = userCheckinsAll.length;
         document.getElementById('indBimesterPts').innerText = totalBimester.toFixed(1);
 
-        if (userCheckins.length > 0) {
-          let sumRpe = 0, sumSol = 0;
-          userCheckins.forEach(c => {
+        if (userCheckinsBimestre.length > 0) {
+          let sumRpe = 0;
+          userCheckinsBimestre.forEach(c => {
             sumRpe += parseFloat(c.rpe || 0);
-            sumSol += parseFloat(c.soltura || 0);
           });
-          document.getElementById('indAvgRpe').innerText = (sumRpe / userCheckins.length).toFixed(1);
-          document.getElementById('indAvgSoltura').innerText = (sumSol / userCheckins.length).toFixed(1);
+          document.getElementById('indAvgRpe').innerText = (sumRpe / userCheckinsBimestre.length).toFixed(1);
         } else {
           document.getElementById('indAvgRpe').innerText = '0';
-          document.getElementById('indAvgSoltura').innerText = '0';
+        }
+
+        // Renderizar Radar Chart en Tarjeta Individual del Coach
+        let sum = { rendimiento: 0, rpe: 0, soltura: 0, tecnica: 0, ram: 0, diversion: 0 };
+        userCheckinsBimestre.forEach(r => {
+          sum.rendimiento += parseFloat(r.rendimiento) || 0;
+          sum.rpe += parseFloat(r.rpe) || 0;
+          sum.soltura += parseFloat(r.soltura) || 0;
+          sum.tecnica += parseFloat(r.preguntacoach || r.student_tech_score) || 0;
+          sum.ram += parseFloat(r.ram || r.preguntacoach) || 0;
+          sum.diversion += parseFloat(r.divertiste) || 0;
+        });
+
+        const count = userCheckinsBimestre.length;
+        const averages = count > 0 ? [
+          +(sum.rendimiento / count).toFixed(1),
+          +(sum.rpe / count).toFixed(1),
+          +(sum.soltura / count).toFixed(1),
+          +(sum.tecnica / count).toFixed(1),
+          +(sum.ram / count).toFixed(1),
+          +(sum.diversion / count).toFixed(1)
+        ] : [0,0,0,0,0,0];
+
+        if (coachRadarInstance) coachRadarInstance.destroy();
+        const canvasEl = document.getElementById('coachChartRadar');
+        if (canvasEl) {
+          coachRadarInstance = new Chart(canvasEl.getContext('2d'), {
+            type: 'radar',
+            data: {
+              labels: ['Rendimiento', 'RPE', 'Soltura', 'Técnica', 'RAM', 'Disfrute'],
+              datasets: [{ data: averages, borderColor: '#e50914', backgroundColor: '#e5091428', borderWidth: 2, pointRadius: 3 }]
+            },
+            options: {
+              responsive: true, maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: {
+                r: {
+                  min: 0, max: 10, ticks: { display: false, stepSize: 2 },
+                  angleLines: { color: 'rgba(255, 255, 255, 0.25)' },
+                  grid: { color: 'rgba(255, 255, 255, 0.18)' },
+                  pointLabels: { color: '#f0f0f5', font: { size: 9, weight: '800' } }
+                }
+              }
+            }
+          });
         }
       }
     };
