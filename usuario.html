@@ -915,7 +915,1340 @@
 
         if (sb) {
           await sb.from('apex_users').update({
-            video_url: videoUrl,
+            video_url: videoUrl,                  // Columna unificada oficial
+            loop_mode: selectedTransitionMode,
+            aura_color: selectedPulseColor
+          }).eq('email', email);
+        }
+
+        if (videoUrl) {
+          const vid = document.getElementById('nativeProfileVideo');
+          vid.src = videoUrl;
+          vid.play().catch(() => {});
+        }
+
+        alert('¡Configuración táctica aplicada con éxito!');
+        cerrarModalVideo();
+      } catch (err) {
+        alert('Error: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Aplicar Configuración';
+      }
+    }
+
+    /* INICIALIZACIÓN Y MOTOR DE 5 OPCIONES DE TRANSICIÓN PROFESIONAL */
+    async function init() {
+      const hoy = new Date();
+      document.getElementById('dossierDateTag').innerText = `${hoy.getDate()}/${hoy.getMonth() + 1}/${hoy.getFullYear()}`;
+
+      const cachedAvatar = localStorage.getItem('apex_user_avatar');
+      if (cachedAvatar) renderAvatarVisual(cachedAvatar);
+
+      const vid = document.getElementById('nativeProfileVideo');
+      
+      vid.addEventListener('timeupdate', () => {
+        const currentTime = vid.currentTime;
+        const timeLeft = videoEndTime - currentTime;
+        const progressInSegment = currentTime - videoStartTime;
+
+        if (selectedTransitionMode === 'fade_sutil') {
+          if (progressInSegment <= 2.0) {
+            vid.style.opacity = Math.min(0.85, 0.1 + (progressInSegment / 2.0) * 0.75);
+          } else if (timeLeft <= 2.0) {
+            vid.style.opacity = Math.max(0.1, (timeLeft / 2.0) * 0.75);
+          } else {
+            vid.style.opacity = 0.85;
+          }
+        } else if (selectedTransitionMode === 'escaneo') {
+          if (timeLeft <= 1.5) {
+            let factor = timeLeft / 1.5;
+            vid.style.filter = `contrast(${1 + (1-factor)*0.5}) brightness(${factor * 0.95})`;
+            vid.style.opacity = factor * 0.85;
+          } else {
+            vid.style.filter = 'contrast(1.05) brightness(0.95)';
+            vid.style.opacity = 0.85;
+          }
+        } else if (selectedTransitionMode === 'blur') {
+          if (progressInSegment <= 1.5) {
+            let blurVal = (1.5 - progressInSegment) * 6;
+            vid.style.filter = `blur(${blurVal}px) brightness(0.95)`;
+          } else if (timeLeft <= 1.5) {
+            let blurVal = (1.5 - timeLeft) * 6;
+            vid.style.filter = `blur(${blurVal}px) brightness(0.95)`;
+          } else {
+            vid.style.filter = 'blur(0px) brightness(0.95)';
+          }
+        } else if (selectedTransitionMode === 'glitch_suave') {
+          if (timeLeft <= 1.0) {
+            vid.style.filter = `saturate(${1 + (1-timeLeft)*1.5}) brightness(${timeLeft})`;
+          } else {
+            vid.style.filter = 'saturate(1) brightness(0.95)';
+          }
+        } else if (selectedTransitionMode === 'flash_cinematico') {
+          if (timeLeft <= 0.8) {
+            vid.style.filter = `brightness(${1 + (0.8 - timeLeft) * 2})`;
+          } else {
+            vid.style.filter = 'brightness(0.95)';
+          }
+        } else {
+          vid.style.opacity = 0.85;
+          vid.style.filter = 'none';
+        }
+
+        if (currentTime >= videoEndTime) {
+          vid.currentTime = videoStartTime;
+          vid.play();
+        }
+      });
+
+      if (!sb) return;
+
+      let email = null;
+      try {
+        const { data: { session } } = await sb.auth.getSession();
+        if (session) { currentUser = session.user; email = currentUser.email; }
+      } catch (e) {}
+
+      if (!email) { email = localStorage.getItem('apex_user_email') || 'isabelgg2394@gmail.com'; }
+
+      const emailInput = document.getElementById('ciEmail');
+      emailInput.value = email;
+      if (currentUser) { emailInput.setAttribute('readonly', 'true'); emailInput.style.opacity = '0.7'; }
+
+      await cargarDatosPerfil(email);
+      await cargarRegistrosBD(email);
+      await cargarNotificaciones(email);
+    }
+
+    function renderAvatarVisual(url, nombreFallback = 'ST') {
+      const displayEl = document.getElementById('displayAvatar');
+      if (!displayEl) return;
+      if (url) {
+        if (displayEl.tagName === 'IMG') { displayEl.src = url; } 
+        else { displayEl.outerHTML = `<img id="displayAvatar" src="${url}" class="avatar-circle" alt="Foto">`; }
+      } else {
+        displayEl.outerHTML = `<div id="displayAvatar" class="avatar-circle">${nombreFallback.substring(0, 2).toUpperCase()}</div>`;
+      }
+    }
+
+    async function cargarDatosPerfil(email) {
+      if (!sb || !email) return;
+      try {
+        const { data } = await sb.from('apex_users').select('*').eq('email', email).single();
+        if (data) {
+          userProfile = data;
+          document.getElementById('displayNombre').innerText = data.name || 'Striker';
+          document.getElementById('displayEmail').innerText = data.email;
+
+          const avatarUrl = data.photo_url || data.avatar_url || localStorage.getItem('apex_user_avatar');
+          renderAvatarVisual(avatarUrl, data.name || data.email || 'ST');
+
+          if (data.loop_mode) {
+            selectedTransitionMode = data.loop_mode;
+            document.getElementById('transitionModeSelect').value = selectedTransitionMode;
+          }
+
+          if (data.aura_color) {
+            selectedPulseColor = data.aura_color;
+            const val = data.aura_color === 'none' ? 'transparent' : data.aura_color;
+            document.documentElement.style.setProperty('--pulse-color', val);
+          }
+
+          if (data.video_url) {
+            const vid = document.getElementById('nativeProfileVideo');
+            vid.src = data.video_url;
+            vid.play().catch(() => {});
+          }
+
+          const hoy = new Date(); hoy.setHours(0,0,0,0);
+          const fechaExpStr = data.subscription_expires_at || data.membership_end;
+          const badge = document.getElementById('displayStatus');
+
+          if (fechaExpStr) {
+            const expDate = new Date(fechaExpStr.includes('T') ? fechaExpStr : fechaExpStr + 'T00:00:00');
+            const diffMs = expDate - hoy;
+            const diasRestantes = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+            if (diasRestantes >= 0 && data.subscription_status === 'activo') {
+              badge.innerText = `AL DÍA (${diasRestantes} DÍAS)`;
+              badge.style.color = 'var(--status-ok)';
+            } else {
+              badge.innerText = 'VENCIDO';
+              badge.style.color = 'var(--accent)';
+            }
+          } else {
+            badge.innerText = 'SIN PLAN';
+            badge.style.color = 'var(--text-muted)';
+          }
+        }
+      } catch (e) {}
+    }
+
+    async function cargarRegistrosBD(email) {
+      if (!sb || !email) return;
+      try {
+        const { data, error } = await sb
+          .from('apex_checkins')
+          .select('*')
+          .eq('user_email', email)
+          .neq('status', 'rechazado')
+          .order('created_at', { ascending: true });
+
+        if (error || !data) return;
+        cachedRecords = data;
+        await calcularNivelOficialBimestral(data, email);
+        ApexFiltros.recalcularVistas();
+      } catch (e) {}
+    }
+
+    async function calcularNivelOficialBimestral(records, email) {
+      document.getElementById('totalSesionesTxt').innerText = `${records.length} Clases Totales`;
+      try {
+        const { data: res, error } = await sb.rpc('obtener_puntos_globales_apex', { p_email: email });
+        if (error || !res) return;
+
+        const ptsTotales = parseFloat(res.pts_totales) || 0;
+        const porcentaje = parseInt(res.porcentaje) || 0;
+        const nivel = res.nivel || 'INICIADO';
+        const color = res.color || '#ffffff';
+
+        document.getElementById('ptsBimestreTxt').innerText = `${ptsTotales.toFixed(1)} / 240 PTS`;
+        document.getElementById('tierPercent').innerText = `${porcentaje}%`;
+        document.getElementById('tierLabel').innerText = nivel;
+        document.documentElement.style.setProperty('--tier-color', color);
+
+        const barFill = document.getElementById('tierBarFill');
+        barFill.style.width = `${Math.min(100, porcentaje)}%`;
+        barFill.style.background = color;
+        barFill.style.boxShadow = `0 0 10px ${color}66`;
+      } catch (e) {}
+    }
+
+    function determinarEscalaOficial(porcentaje) {
+      if (porcentaje >= 101) return { nombre: "APEX+", color: "#ffd700", estado: "Equilibrio Apex+" };
+      if (porcentaje >= 76) return { nombre: "APEX", color: "#d4af37", estado: "Equilibrio Apex" };
+      if (porcentaje >= 36) return { nombre: "AVANZADO", color: "#c0c0c0", estado: "Equilibrio Capaz / Sólido" };
+      if (porcentaje >= 11) return { nombre: "INTERMEDIO", color: "#cd7f32", estado: "En Calibración" };
+      return { nombre: "INICIADO", color: "#ffffff", estado: "En Desarrollo" };
+    }
+
+    function actualizarDashboardConDatos(records) {
+      const container = document.getElementById('historyContainer');
+      if (!records || records.length === 0) {
+        document.getElementById('statSesiones').innerText = '0';
+        document.getElementById('statRendProm').innerText = '0.0';
+        container.innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;">Sin registros en este periodo.</span>';
+        ['chartEficiencia', 'chartFluidezReal', 'chartRendimiento', 'chartRpe', 'chartSoltura', 'chartFluidez', 'chartDiversion'].forEach(id => {
+          if (chartInstances[id]) chartInstances[id].destroy();
+        });
+        return;
+      }
+
+      document.getElementById('statSesiones').innerText = records.length;
+      const sumRend = records.reduce((acc, cur) => acc + (parseFloat(cur.rendimiento) || 0), 0);
+      document.getElementById('statRendProm').innerText = (sumRend / records.length).toFixed(1);
+
+      const labels = records.map(r => {
+        const d = new Date(r.created_at);
+        return `${d.getDate()}/${d.getMonth() + 1}`;
+      });
+
+      renderSingleChart('chartEficiencia', labels, records.map(r => +((parseFloat(r.rendimiento) / (parseFloat(r.rpe) || 1)) * 5).toFixed(1)), '#22c55e');
+      renderSingleChart('chartFluidezReal', labels, records.map(r => +((parseFloat(r.preguntacoach || r.student_tech_score) + parseFloat(r.soltura)) / 2).toFixed(1)), '#00f0ff');
+      renderSingleChart('chartRendimiento', labels, records.map(r => r.rendimiento), '#e50914');
+      renderSingleChart('chartRpe', labels, records.map(r => r.rpe), '#f39c12');
+      renderSingleChart('chartSoltura', labels, records.map(r => r.soltura), '#3498db');
+      renderSingleChart('chartFluidez', labels, records.map(r => r.preguntacoach || r.student_tech_score), '#9b59b6');
+      renderSingleChart('chartDiversion', labels, records.map(r => r.divertiste), '#2ecc71');
+
+      container.innerHTML = '';
+      records.slice(-5).reverse().forEach(r => {
+        const f = new Date(r.created_at).toLocaleDateString();
+        container.innerHTML += `
+          <div class="history-card">
+            <div style="display:flex; justify-content:space-between; font-weight:800;">
+              <span>${f} — ${r.focus}</span>
+              <span style="color:var(--accent);">Rend: ${r.rendimiento}/10</span>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function actualizarRadarConDatos(records) {
+      const email = currentUser ? currentUser.email : document.getElementById('ciEmail').value.trim();
+      const totalClasesCarrera = cachedRecords.length;
+      const clasesPeriodo = records.length;
+      const metaPeriodo = ApexFiltros.tipo === 30 ? 12 : 24;
+      const disciplinaPct = Math.min(100, Math.round((clasesPeriodo / metaPeriodo) * 100));
+
+      document.getElementById('dossierName').innerText = userProfile?.name || 'Striker Apex';
+      const tierTxt = document.getElementById('tierLabel').innerText;
+      document.getElementById('dossierMeta').innerText = `${tierTxt} // ${email}`;
+      document.getElementById('dossierDisciplinaVal').innerText = `${disciplinaPct}%`;
+      document.getElementById('dossierClasesRatio').innerText = `${clasesPeriodo} / ${metaPeriodo} Meta`;
+      document.getElementById('dossierTotalVal').innerText = totalClasesCarrera;
+
+      if (records.length === 0) {
+        document.getElementById('radarStatusLabel').innerText = "Sin datos en el periodo";
+        if (chartInstances['chartRadar']) chartInstances['chartRadar'].destroy();
+        return;
+      }
+
+      let sum = { rendimiento: 0, rpe: 0, soltura: 0, tecnica: 0, ram: 0, diversion: 0 };
+      records.forEach(r => {
+        sum.rendimiento += parseFloat(r.rendimiento) || 0;
+        sum.rpe += parseFloat(r.rpe) || 0;
+        sum.soltura += parseFloat(r.soltura) || 0;
+        sum.tecnica += parseFloat(r.preguntacoach || r.student_tech_score) || 0;
+        sum.ram += parseFloat(r.ram || r.preguntacoach) || 0;
+        sum.diversion += parseFloat(r.divertiste) || 0;
+      });
+
+      const count = records.length;
+      const averages = [
+        +(sum.rendimiento / count).toFixed(1),
+        +(sum.rpe / count).toFixed(1),
+        +(sum.soltura / count).toFixed(1),
+        +(sum.tecnica / count).toFixed(1),
+        +(sum.ram / count).toFixed(1),
+        +(sum.diversion / count).toFixed(1)
+      ];
+
+      const globalAvg = averages.reduce((a, b) => a + b, 0) / 6;
+      const globalPct = Math.round((globalAvg / 10) * 100);
+      const escala = determinarEscalaOficial(globalPct);
+
+      const statusLabel = document.getElementById('radarStatusLabel');
+      statusLabel.innerText = `${escala.estado} (${globalPct}%)`;
+
+      renderRadarChart(averages, escala.color, escala.color + '28');
+    }
+
+    function renderRadarChart(dataPoints, color, bgColor) {
+      if (chartInstances['chartRadar']) chartInstances['chartRadar'].destroy();
+      const canvasEl = document.getElementById('chartRadar');
+      if (!canvasEl) return;
+
+      chartInstances['chartRadar'] = new Chart(canvasEl.getContext('2d'), {
+        type: 'radar',
+        data: {
+          labels: ['Rendimiento', 'RPE', 'Soltura', 'Técnica', 'RAM', 'Disfrute'],
+          datasets: [{ data: dataPoints, borderColor: color, backgroundColor: bgColor, borderWidth: 2, pointRadius: 3 }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            r: {
+              min: 0, max: 10, ticks: { display: false, stepSize: 2 },
+              angleLines: { color: 'rgba(255, 255, 255, 0.25)' },
+              grid: { color: 'rgba(255, 255, 255, 0.18)' },
+              pointLabels: { color: '#f0f0f5', font: { size: 9, weight: '800' } }
+            }
+          }
+        }
+      });
+    }
+
+    function renderSingleChart(canvasId, labels, dataPoints, color) {
+      if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
+      const canvasEl = document.getElementById(canvasId);
+      if (!canvasEl) return;
+
+      chartInstances[canvasId] = new Chart(canvasEl.getContext('2d'), {
+        type: 'line',
+        data: { labels: labels, datasets: [{ data: dataPoints, borderColor: color, backgroundColor: color + '22', borderWidth: 2, tension: 0.3, fill: true, pointRadius: 3 }] },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: '#666', font: { size: 9 } }, grid: { display: false } },
+            y: { min: 1, max: 10, ticks: { color: '#666', font: { size: 9 }, stepSize: 2 }, grid: { color: '#1e1e1e' } }
+          }
+        }
+      });
+    }
+
+    async function cargarNotificaciones(email) {
+      if (!sb || !email) return;
+      const area = document.getElementById('notifArea');
+      try {
+        const { data } = await sb.from('apex_notifications').select('*').eq('user_email', email).limit(3);
+        if (!data || data.length === 0) { area.style.display = 'none'; return; }
+        area.style.display = 'flex';
+        area.innerHTML = data.map(n => `<div class="notif-card"><div class="notif-top"><span class="notif-title">${n.title}</span></div><div class="notif-body">${n.message}</div></div>`).join('');
+      } catch (e) {}
+    }
+
+    /* CHECK-IN CON BÚSQUEDA SEGURA DE USER_ID (OPCIÓN 2) */
+    async function enviarCheckin(event) {
+      event.preventDefault();
+      const btn = document.getElementById('btnEnviar');
+      btn.disabled = true; btn.innerText = 'Enviando...';
+
+      const emailInput = document.getElementById('ciEmail').value.trim();
+
+      // Resolución automática del UUID mediante el correo para proteger las relaciones
+      let resolvedUserId = userProfile?.id || null;
+      if (!resolvedUserId && sb) {
+        const { data: userLookup } = await sb.from('apex_users').select('id').eq('email', emailInput).single();
+        if (userLookup) resolvedUserId = userLookup.id;
+      }
+
+      const payload = {
+        user_id: resolvedUserId,
+        user_email: emailInput,
+        focus: document.getElementById('ciEnfoque').value,
+        rendimiento: parseFloat(document.getElementById('ciRendimiento').value),
+        rpe: parseFloat(document.getElementById('ciRpe').value),
+        soltura: parseFloat(document.getElementById('ciSoltura').value),
+        preguntacoach: parseFloat(document.getElementById('ciPreguntaCoach').value),
+        student_tech_score: parseFloat(document.getElementById('ciPreguntaCoach').value),
+        ram: parseFloat(document.getElementById('ciPreguntaCoach').value),
+        divertiste: parseFloat(document.getElementById('ciDivertiste').value),
+        status: 'pendiente_coach'
+      };
+
+      const { error } = await sb.from('apex_checkins').insert([payload]);
+      if (error) { 
+        alert('Error: ' + error.message); 
+      } else { 
+        alert('¡Check-in registrado con éxito!'); 
+        document.getElementById('checkinForm').reset(); 
+        document.getElementById('ciEmail').value = emailInput;
+        await cargarRegistrosBD(emailInput); 
+      }
+      btn.disabled = false; btn.innerText = 'Enviar Registro';
+    }
+
+    window.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'APEX_AVATAR_UPDATED' && event.data.avatarUrl) {
+        renderAvatarVisual(event.data.avatarUrl);
+      }
+    });
+
+    window.onload = init;
+  </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#070708">
+  <title>Apex Striker | Ficha Táctica</title>
+
+  <!-- Librerías: Supabase, Chart.js y html2canvas -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+  <style>
+    :root {
+      --bg-color: #070708;
+      --card-bg: #121214;
+      --border-color: #222226;
+      --text-main: #f5f5f5;
+      --text-muted: #9999a1;
+      --accent: #e50914;
+      --accent-white: #ffffff;
+      --status-ok: #22c55e;
+      --tier-color: #ffffff;
+      --pulse-color: #e50914;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg-color); color: var(--text-main); padding: 12px; max-width: 580px; margin: 0 auto; min-height: 100vh; overflow-x: hidden; }
+
+    /* CABECERA RESUMEN */
+    .profile-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(18, 18, 20, 0.85); backdrop-filter: blur(10px);
+      border: 1px solid var(--border-color); border-radius: 8px;
+      padding: 10px 14px; margin-bottom: 10px;
+    }
+    .profile-info { display: flex; align-items: center; gap: 10px; }
+    .avatar-wrapper { position: relative; flex-shrink: 0; }
+    .avatar-circle {
+      width: 44px; height: 44px; border-radius: 50%; object-fit: cover;
+      background: #1c1c20; border: 2px solid var(--border-color);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem; font-weight: 900; color: #fff;
+    }
+    .profile-text strong { display: block; font-size: 0.85rem; color: #fff; }
+    .profile-text span { font-size: 0.68rem; color: var(--text-muted); }
+    .membership-pill {
+      font-size: 0.62rem; font-weight: 800; padding: 4px 8px; border-radius: 4px;
+      text-transform: uppercase; background: #16161a; border: 1px solid var(--border-color);
+      letter-spacing: 0.5px;
+    }
+
+    /* BARRA DE PROGRESO BIMESTRAL GLOBAL */
+    .progress-card {
+      background: rgba(18, 18, 20, 0.85); border: 1px solid var(--border-color);
+      border-radius: 8px; padding: 12px 14px; margin-bottom: 10px;
+    }
+    .progress-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+    .progress-tier-title { font-size: 0.75rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; color: var(--tier-color); }
+    .progress-percent-val { font-size: 1rem; font-weight: 900; color: var(--tier-color); }
+    .progress-bar-track {
+      width: 100%; height: 8px; background: #18181c; border-radius: 4px;
+      overflow: hidden; border: 1px solid #25252a; margin-bottom: 6px;
+    }
+    .progress-bar-fill {
+      height: 100%; width: 0%; background: var(--tier-color);
+      border-radius: 4px; transition: width 0.6s ease;
+      box-shadow: 0 0 10px var(--tier-color);
+    }
+    .progress-meta-grid { display: flex; justify-content: space-between; font-size: 0.65rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
+
+    /* FILTROS TEMPORALES */
+    .time-filter-wrap {
+      background: #111114; border: 1px solid var(--border-color); border-radius: 6px;
+      padding: 8px; margin-bottom: 12px;
+    }
+    .filter-btn-group { display: flex; gap: 6px; flex-wrap: wrap; }
+    .filter-btn {
+      flex: 1; min-width: 65px; padding: 6px 4px; background: #16161a; border: 1px solid var(--border-color);
+      color: var(--text-muted); border-radius: 4px; font-size: 0.62rem; font-weight: 800;
+      text-transform: uppercase; cursor: pointer; text-align: center; transition: 0.2s;
+    }
+    .filter-btn.active { background: #fff; color: #000; border-color: #fff; }
+    .custom-range-inputs {
+      display: none; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px;
+      border-top: 1px solid #1f1f24; padding-top: 8px;
+    }
+    .custom-range-inputs input {
+      background: #09090b; border: 1px solid var(--border-color); color: #fff;
+      padding: 6px 8px; font-size: 0.7rem; border-radius: 4px; outline: none; color-scheme: dark;
+    }
+
+    /* BANDEJA DE NOTIFICACIONES */
+    .notif-container { display: none; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+    .notif-card {
+      background: #161618; border-left: 3px solid var(--accent); border-top: 1px solid var(--border-color);
+      border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);
+      border-radius: 4px; padding: 8px 10px;
+    }
+    .notif-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+    .notif-title { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; color: #fff; }
+    .notif-meta { display: flex; align-items: center; gap: 6px; }
+    .notif-date { font-size: 0.6rem; color: var(--text-muted); }
+    .notif-btn-close { background: none; border: none; color: var(--text-muted); font-size: 0.8rem; cursor: pointer; }
+    .notif-body { font-size: 0.68rem; color: #ccc; line-height: 1.3; }
+
+    /* NAVEGACIÓN PRINCIPAL */
+    .module-nav { display: flex; gap: 6px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 14px; }
+    .nav-btn {
+      flex: 1; padding: 9px 4px; background: #141418; border: 1px solid var(--border-color); color: var(--text-muted);
+      border-radius: 6px; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; cursor: pointer; text-align: center; transition: 0.2s;
+    }
+    .nav-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    .view-section { display: none; }
+    .view-section.active { display: block; }
+
+    /* ================= DOSSIER FLOTANTE 9:16 ================= */
+    .dossier-viewport {
+      position: relative;
+      width: 100%;
+      min-height: 84vh;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+      background: #000;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 16px 14px 24px 14px;
+      box-shadow: 0 16px 36px rgba(0,0,0,0.9);
+      margin-bottom: 24px;
+    }
+
+    /* Video Nativo Limpio con Filtros de Transición dinámicos */
+    .dossier-video-bg {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      object-fit: cover;
+      z-index: 1;
+      opacity: 0.85;
+      filter: contrast(1.05) brightness(0.95);
+      transition: filter 0.1s ease;
+    }
+
+    .dossier-ambient-overlay {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: radial-gradient(circle at center, transparent 35%, rgba(6,6,8,0.7) 100%),
+                  linear-gradient(180deg, rgba(6,6,8,0.85) 0%, transparent 25%, rgba(6,6,8,0.9) 90%);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* Animación de Pulso Sutil en la Malla Radar (Cada 5s) */
+    @keyframes sutilPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.025); }
+    }
+    .pulse-mesh {
+      animation: sutilPulse 5s ease-in-out infinite;
+    }
+
+    /* Branding Táctico */
+    .dossier-branding {
+      position: relative; z-index: 5;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+      padding-bottom: 8px; margin-bottom: 6px;
+      display: flex; justify-content: space-between; align-items: flex-end;
+    }
+    .brand-title {
+      font-size: 1.25rem; font-weight: 900; letter-spacing: 2px;
+      text-transform: uppercase; color: #fff; text-shadow: 0 2px 10px #000;
+    }
+    .brand-title span { color: #fff; }
+    .brand-sub {
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; color: var(--text-muted);
+    }
+
+    /* Rueda Minimalista Flotante Blanca sin marco */
+    .hud-controls-bar {
+      position: absolute;
+      top: 14px; right: 14px;
+      z-index: 20;
+    }
+    .btn-gear {
+      background: transparent;
+      border: none;
+      color: #ffffff;
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem;
+      cursor: pointer;
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,0.8));
+      transition: transform 0.2s;
+    }
+    .btn-gear:active { transform: scale(0.9); }
+
+    .gear-dropdown {
+      position: absolute;
+      top: 44px; right: 0;
+      background: #141418;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      width: 155px;
+      display: none;
+      flex-direction: column;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.9);
+      overflow: hidden;
+      z-index: 30;
+    }
+    .gear-dropdown.show { display: flex; }
+    .gear-item {
+      padding: 10px 12px;
+      font-size: 0.7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #fff;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid #1f1f24;
+      cursor: pointer;
+      text-align: left;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .gear-item:last-child { border-bottom: none; }
+    .gear-item:active { background: #22222a; }
+
+    .download-submenu {
+      display: none;
+      flex-direction: column;
+      background: #0d0d10;
+    }
+    .download-submenu.show { display: flex; }
+    .sub-gear-item {
+      padding: 8px 12px 8px 24px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      background: transparent;
+      border: none; border-bottom: 1px solid #18181c;
+      cursor: pointer; text-align: left;
+    }
+    .sub-gear-item:hover { color: #fff; background: #16161a; }
+
+    /* Encabezado Táctico */
+    .dossier-top-meta { position: relative; z-index: 5; }
+    .dossier-header-title {
+      font-size: 1.35rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px;
+      color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.9);
+    }
+    .dossier-header-sub {
+      font-size: 0.68rem; color: #d0d0d8; text-transform: uppercase; font-weight: 700;
+      letter-spacing: 0.5px; text-shadow: 0 2px 6px rgba(0,0,0,0.9); margin-top: 2px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+
+    /* Métricas Flotantes Dinámicas */
+    .floating-stats-row {
+      position: relative; z-index: 5;
+      display: flex; justify-content: space-around;
+      margin: 10px 0 6px 0;
+    }
+    .floating-stat-item {
+      text-align: center;
+      text-shadow: 0 2px 12px rgba(0,0,0,0.95);
+    }
+    .floating-stat-num {
+      font-size: 1.8rem; font-weight: 900; color: #ffffff;
+      line-height: 1; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.9));
+    }
+    .floating-stat-label {
+      font-size: 0.62rem; color: #cfcfd6; text-transform: uppercase;
+      font-weight: 800; letter-spacing: 0.5px; margin-top: 3px;
+    }
+    .floating-stat-sub {
+      font-size: 0.55rem; color: #a0a0ab; text-transform: uppercase; font-weight: 600;
+    }
+
+    /* Telaraña Radar Flotante */
+    .radar-floating-wrap {
+      position: relative; z-index: 5;
+      width: 100%; height: 230px;
+      display: flex; justify-content: center; align-items: center;
+      filter: drop-shadow(0 4px 16px rgba(0,0,0,0.95));
+    }
+    .radar-floating-footer {
+      position: relative; z-index: 5;
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 0.68rem; font-weight: 800; text-transform: uppercase;
+      padding: 0 6px; text-shadow: 0 2px 8px #000;
+      margin-top: 4px;
+    }
+
+    /* DASHBOARD Y CHECK-IN */
+    .card { background-color: var(--card-bg); border: 1px solid var(--border-color); padding: 18px; border-radius: 8px; margin-bottom: 16px; }
+    .header { text-align: center; margin-bottom: 18px; }
+    .header h1 { font-size: 1.25rem; letter-spacing: 1px; text-transform: uppercase; color: var(--accent-white); }
+    .header h1 span { color: var(--accent); }
+    .header p { color: var(--text-muted); font-size: 0.72rem; text-transform: uppercase; }
+
+    .form-group { margin-bottom: 14px; }
+    label { display: block; font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; font-weight: 700; }
+    .label-desc { font-size: 0.68rem; color: #777; margin-bottom: 4px; }
+    input[type="email"], input[type="number"], select {
+      width: 100%; padding: 10px; background-color: var(--bg-color); border: 1px solid var(--border-color);
+      color: var(--text-main); font-size: 0.85rem; border-radius: 4px; outline: none; font-weight: 600;
+    }
+    .slider-container { background-color: var(--bg-color); border: 1px solid var(--border-color); padding: 10px; border-radius: 4px; text-align: center; }
+    .slider-flex { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    input[type="range"] { flex: 1; accent-color: var(--accent); cursor: pointer; }
+    #emojiDisplay { font-size: 1.5rem; min-width: 32px; }
+
+    .btn-submit {
+      width: 100%; padding: 12px; background-color: var(--accent); color: #fff; border: none; font-weight: 800;
+      text-transform: uppercase; letter-spacing: 1px; font-size: 0.82rem; cursor: pointer; border-radius: 4px;
+    }
+    .btn-submit:disabled { background: #333; color: #777; cursor: not-allowed; }
+
+    .chart-container { background: #111114; border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; margin-bottom: 12px; }
+    .chart-title { font-size: 0.72rem; text-transform: uppercase; font-weight: 800; color: var(--accent); margin-bottom: 6px; }
+    .canvas-wrap { height: 150px; position: relative; }
+
+    .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+    .summary-box { background: #151518; border: 1px solid var(--border-color); border-radius: 6px; padding: 10px; text-align: center; }
+    .summary-num { font-size: 1.5rem; font-weight: 900; color: #fff; }
+    .summary-txt { font-size: 0.62rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800; }
+    .history-card { background: #141418; border: 1px solid #222226; border-radius: 4px; padding: 8px 10px; margin-top: 6px; font-size: 0.72rem; }
+
+    /* MODAL DE CONFIGURACIÓN */
+    #videoModal {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.88); backdrop-filter: blur(8px);
+      z-index: 10000; display: none; justify-content: center; align-items: center; padding: 16px;
+    }
+    .modal-box {
+      background: var(--card-bg); border: 1px solid var(--border-color);
+      border-radius: 10px; padding: 18px; width: 100%; max-width: 390px;
+    }
+    .color-swatch-bar { display: flex; gap: 8px; justify-content: center; margin: 10px 0; flex-wrap: wrap; }
+    .swatch-btn {
+      width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 2px solid #333; transition: 0.2s;
+    }
+    .swatch-btn.selected { border-color: #fff; transform: scale(1.15); }
+    .range-cutter-box { background: #0b0b0e; border: 1px solid var(--border-color); border-radius: 6px; padding: 10px; margin-top: 8px; display: none; }
+  </style>
+</head>
+<body>
+
+  <!-- INPUT OCULTO EXCLUSIVO PARA VIDEO -->
+  <input type="file" id="inputVideoRaw" accept="video/*" style="display: none;" onchange="procesarVideoSeleccionado(this.files)">
+
+  <!-- MODAL TÁCTICO -->
+  <div id="videoModal">
+    <div class="modal-box">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <span style="font-size:0.8rem; font-weight:900; text-transform:uppercase;">Configuración Táctica</span>
+        <button onclick="cerrarModalVideo()" style="background:none; border:none; color:#fff; font-size:1.1rem; cursor:pointer;">✕</button>
+      </div>
+
+      <p style="font-size:0.68rem; color:var(--text-muted); line-height:1.35; margin-bottom:12px;">
+        Sube o graba tu video (hasta 60s). Elige transición sutil y color de iluminación para las métricas.
+      </p>
+
+      <div style="display:flex; gap:8px; margin-bottom:10px;">
+        <button class="filter-btn" style="padding:9px 6px;" onclick="document.getElementById('inputVideoRaw').removeAttribute('capture'); document.getElementById('inputVideoRaw').click();">
+          📁 Galería
+        </button>
+        <button class="filter-btn" style="padding:9px 6px;" onclick="document.getElementById('inputVideoRaw').setAttribute('capture','environment'); document.getElementById('inputVideoRaw').click();">
+          🎥 Grabar
+        </button>
+      </div>
+
+      <div class="form-group" style="margin-top: 8px;">
+        <label>Efecto de Transición Profesional</label>
+        <select id="transitionModeSelect" class="input-apex" style="width:100%; padding:8px; background:#09090b; border:1px solid var(--border-color); color:#fff; border-radius:4px; font-size:0.75rem;">
+          <option value="fade_sutil">1. Fundido Sutil Extendido (Lento y Profesional)</option>
+          <option value="escaneo">2. Escaneo Láser Vertical (Cinematográfico)</option>
+          <option value="blur">3. Enfoque Dinámico (Borrón a Nitidez)</option>
+          <option value="glitch_suave">4. Transición Pulso / Contraste Suave</option>
+          <option value="flash_cinematico">5. Flash de Exposición Profesional</option>
+        </select>
+      </div>
+
+      <label style="font-size:0.68rem; margin-top:8px;">Color de Pulso / Iluminación Gráfica</label>
+      <div class="color-swatch-bar">
+        <div class="swatch-btn selected" style="background:#e50914;" onclick="seleccionarColorPulso('#e50914', this)" title="Rojo Apex"></div>
+        <div class="swatch-btn" style="background:#00f0ff;" onclick="seleccionarColorPulso('#00f0ff', this)" title="Cian Táctico"></div>
+        <div class="swatch-btn" style="background:#22c55e;" onclick="seleccionarColorPulso('#22c55e', this)" title="Verde OK"></div>
+        <div class="swatch-btn" style="background:#ffd700;" onclick="seleccionarColorPulso('#ffd700', this)" title="Oro"></div>
+        <div class="swatch-btn" style="background:transparent; border:2px dashed #777; display:flex; align-items:center; justify-content:center; font-size:0.6rem; color:#aaa;" onclick="seleccionarColorPulso('none', this)" title="Sin Color">∅</div>
+      </div>
+
+      <div id="trimmerBox" class="range-cutter-box">
+        <div style="display:flex; justify-content:space-between; font-size:0.65rem; color:#aaa; margin-bottom:4px;">
+          <span>VENTANA DE REPRODUCCIÓN:</span>
+          <span id="trimRangeTxt">0s - 30s</span>
+        </div>
+        <input type="range" id="trimSlider" min="0" max="60" step="1" value="0" style="width:100%;" oninput="actualizarVentanaCorte(this.value)">
+      </div>
+
+      <button id="btnGuardarAvatar" class="btn-submit" style="margin-top:10px;" onclick="guardarConfiguracionVideo()">
+        Aplicar Configuración
+      </button>
+    </div>
+  </div>
+
+  <!-- CABECERA RESUMEN -->
+  <div class="profile-bar">
+    <div class="profile-info">
+      <div class="avatar-wrapper">
+        <div id="displayAvatar" class="avatar-circle">ST</div>
+      </div>
+      <div class="profile-text">
+        <strong id="displayNombre">Striker Apex</strong>
+        <span id="displayEmail">Cargando perfil...</span>
+      </div>
+    </div>
+    <div id="displayStatus" class="membership-pill">-</div>
+  </div>
+
+  <!-- PROGRESO BIMESTRAL GLOBAL -->
+  <div class="progress-card">
+    <div class="progress-header">
+      <div>
+        <span style="font-size: 0.58rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800;">Nivel Bimestral Global</span>
+        <div class="progress-tier-title" id="tierLabel">INICIADO</div>
+      </div>
+      <div class="progress-percent-val" id="tierPercent">0%</div>
+    </div>
+    <div class="progress-bar-track">
+      <div class="progress-bar-fill" id="tierBarFill"></div>
+    </div>
+    <div class="progress-meta-grid">
+      <span id="ptsBimestreTxt">0 / 240 PTS</span>
+      <span id="totalSesionesTxt">0 Clases Totales</span>
+    </div>
+  </div>
+
+  <!-- FILTROS TEMPORALES -->
+  <div class="time-filter-wrap">
+    <div class="filter-btn-group">
+      <button class="filter-btn active" id="f_btn_60" onclick="ApexFiltros.setFiltro(60, this)">Bimestre (60d)</button>
+      <button class="filter-btn" id="f_btn_30" onclick="ApexFiltros.setFiltro(30, this)">30 Días</button>
+      <button class="filter-btn" id="f_btn_all" onclick="ApexFiltros.setFiltro('all', this)">Todo</button>
+      <button class="filter-btn" id="f_btn_custom" onclick="ApexFiltros.toggleCustom(this)">Libre</button>
+    </div>
+    <div class="custom-range-inputs" id="customRangeBox">
+      <div>
+        <span style="font-size:0.58rem; color:var(--text-muted); text-transform:uppercase;">Desde:</span>
+        <input type="date" id="customDateFrom" onchange="ApexFiltros.aplicarCustom()">
+      </div>
+      <div>
+        <span style="font-size:0.58rem; color:var(--text-muted); text-transform:uppercase;">Hasta:</span>
+        <input type="date" id="customDateTo" onchange="ApexFiltros.aplicarCustom()">
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTIFICACIONES -->
+  <div id="notifArea" class="notif-container"></div>
+
+  <!-- NAVEGACIÓN -->
+  <nav class="module-nav">
+    <button class="nav-btn active" onclick="switchFichaTab('viewProfile', this)">👤 Perfil Striker</button>
+    <button class="nav-btn" onclick="switchFichaTab('viewDash', this)">📊 Métricas</button>
+    <button class="nav-btn" onclick="switchFichaTab('viewForm', this)">📝 Check-in</button>
+  </nav>
+
+  <!-- ================= SUBMÓDULO 1: PERFIL FLOTANTE ================= -->
+  <div id="viewProfile" class="view-section active">
+    <div class="dossier-viewport" id="dossierViewport">
+      
+      <!-- Video Nativo de Fondo -->
+      <video id="nativeProfileVideo" class="dossier-video-bg" playsinline muted loop autoplay crossorigin="anonymous"></video>
+      <div class="dossier-ambient-overlay"></div>
+
+      <!-- Engranaje Minimalista Blanco Flotante -->
+      <div class="hud-controls-bar">
+        <button class="btn-gear" onclick="toggleGearMenu(event)" title="Configuración">⚙️</button>
+        <div class="gear-dropdown" id="gearDropdown">
+          <button class="gear-item" onclick="abrirModalVideo(); toggleGearMenu();">📁 Cargar Video</button>
+          <button class="gear-item" onclick="toggleDownloadSubmenu(event)">⬇️ Descargar ▾</button>
+          <div class="download-submenu" id="downloadSubmenu">
+            <button class="sub-gear-item" onclick="DossierExporter.descargarImagen(); toggleGearMenu();">📸 Foto PNG</button>
+            <button class="sub-gear-item" onclick="DossierExporter.descargarVideo(); toggleGearMenu();">🎥 Video WebM</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Branding Oficial -->
+      <div class="dossier-branding">
+        <div>
+          <div class="brand-title">APEX <span style="color:#fff;">BOXING</span></div>
+          <div class="brand-sub">Escuela de Striker</div>
+        </div>
+      </div>
+
+      <!-- Encabezado Táctico -->
+      <div class="dossier-top-meta">
+        <div class="dossier-header-title" id="dossierName">Striker Apex</div>
+        <div class="dossier-header-sub">
+          <span id="dossierMeta">Iniciado // 0 Clases</span>
+          <span id="dossierDateTag" style="letter-spacing:1px;">SISTEMA TÁCTICO</span>
+        </div>
+      </div>
+
+      <!-- Métricas Clave -->
+      <div class="floating-stats-row">
+        <div class="floating-stat-item">
+          <div class="floating-stat-num" id="dossierDisciplinaVal">0%</div>
+          <div class="floating-stat-label">Disciplina</div>
+          <div class="floating-stat-sub" id="dossierClasesRatio">0 / 24 Meta</div>
+        </div>
+        <div class="floating-stat-item">
+          <div class="floating-stat-num" id="dossierTotalVal">0</div>
+          <div class="floating-stat-label">Historial</div>
+          <div class="floating-stat-sub">Clases de Carrera</div>
+        </div>
+      </div>
+
+      <!-- Telaraña Radar -->
+      <div class="radar-floating-wrap pulse-mesh">
+        <canvas id="chartRadar"></canvas>
+      </div>
+
+      <!-- Pie Táctico -->
+      <div class="radar-floating-footer">
+        <span style="color:#aaa;">Escala: 1 - 10</span>
+        <span id="radarStatusLabel" style="color:var(--pulse-color);">Calculando equilibrio...</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= SUBMÓDULO 2: DASHBOARD ================= -->
+  <div id="viewDash" class="view-section">
+    <div class="card">
+      <div class="header">
+        <h1>Métricas <span>Striker</span></h1>
+        <p>Seguimiento Individual</p>
+      </div>
+
+      <div class="summary-grid">
+        <div class="summary-box">
+          <div class="summary-num" id="statSesiones">0</div>
+          <div class="summary-txt">Sesiones Registradas</div>
+        </div>
+        <div class="summary-box">
+          <div class="summary-num" id="statRendProm">0.0</div>
+          <div class="summary-txt">Promedio Rendimiento</div>
+        </div>
+      </div>
+
+      <div class="chart-container" style="border-left: 3px solid #22c55e;">
+        <div class="chart-title" style="color: #22c55e;">Índice de Eficiencia (Rendimiento vs. Esfuerzo RPE)</div>
+        <div class="canvas-wrap"><canvas id="chartEficiencia"></canvas></div>
+      </div>
+
+      <div class="chart-container" style="border-left: 3px solid #00f0ff;">
+        <div class="chart-title" style="color: #00f0ff;">Índice de Fluidez Real (Técnica vs. Soltura Física)</div>
+        <div class="canvas-wrap"><canvas id="chartFluidezReal"></canvas></div>
+      </div>
+
+      <div class="chart-container">
+        <div class="chart-title">Rendimiento (1 - 10)</div>
+        <div class="canvas-wrap"><canvas id="chartRendimiento"></canvas></div>
+      </div>
+
+      <div class="chart-container">
+        <div class="chart-title">RPE - Esfuerzo (1 - 10)</div>
+        <div class="canvas-wrap"><canvas id="chartRpe"></canvas></div>
+      </div>
+
+      <div class="chart-container">
+        <div class="chart-title">Soltura y Flexibilidad (1 - 10)</div>
+        <div class="canvas-wrap"><canvas id="chartSoltura"></canvas></div>
+      </div>
+
+      <div class="chart-container">
+        <div class="chart-title">Fluidez Técnica (1 - 10)</div>
+        <div class="canvas-wrap"><canvas id="chartFluidez"></canvas></div>
+      </div>
+
+      <div class="chart-container">
+        <div class="chart-title">Nivel de Diversión (1 - 10)</div>
+        <div class="canvas-wrap"><canvas id="chartDiversion"></canvas></div>
+      </div>
+
+      <div style="margin-top: 14px;">
+        <label>Sesiones del Periodo</label>
+        <div id="historyContainer">Cargando sesiones...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= SUBMÓDULO 3: CHECK-IN ================= -->
+  <div id="viewForm" class="view-section">
+    <div class="card">
+      <div class="header">
+        <h1>Apex <span>Boxing</span></h1>
+        <p>Check-in Diario</p>
+      </div>
+
+      <form id="checkinForm" onsubmit="enviarCheckin(event)">
+        <div class="form-group">
+          <label>Correo Electrónico</label>
+          <input type="email" id="ciEmail" required placeholder="tu.correo@gmail.com">
+        </div>
+
+        <div class="form-group">
+          <label>Enfoque de la Clase</label>
+          <select id="ciEnfoque" required>
+            <option value="" disabled selected>Selecciona una opción</option>
+            <option value="técnica / sombra">Técnica / Sombra</option>
+            <option value="acondicionamiento físico">Acondicionamiento físico</option>
+            <option value="sparring">Sparring</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Rendimiento del Día (1 al 10)</label>
+          <input type="number" id="ciRendimiento" min="1" max="10" required placeholder="Ej. 8">
+        </div>
+
+        <div class="form-group">
+          <label>RPE - Esfuerzo Percibido (1 al 10)</label>
+          <input type="number" id="ciRpe" min="1" max="10" required placeholder="Ej. 7">
+        </div>
+
+        <div class="form-group">
+          <label>Soltura y Flexibilidad (1 al 10)</label>
+          <input type="number" id="ciSoltura" min="1" max="10" required placeholder="Ej. 6">
+        </div>
+
+        <div class="form-group">
+          <label>Pregúntale a tu Coach (Fluidez Técnica)</label>
+          <div class="label-desc">1 = No me salen los ejercicios | 10 = Fluyo con los ejercicios</div>
+          <input type="number" id="ciPreguntaCoach" min="1" max="10" required placeholder="Califica del 1 al 10">
+        </div>
+
+        <div class="form-group">
+          <label>¿Te divertiste?</label>
+          <div class="slider-container">
+            <div class="slider-flex">
+              <input type="range" id="ciDivertiste" min="1" max="10" value="10" oninput="actualizarEmoji(this.value)">
+              <div id="emojiDisplay">🤩</div>
+            </div>
+            <div style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;">Nivel: <span id="valDivertiste">10</span> / 10</div>
+          </div>
+        </div>
+
+        <button type="submit" id="btnEnviar" class="btn-submit">Enviar Registro</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://fprvbvucmtdpxdihuvrw.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_xAMs8LpCwyMyoql3ohoJUQ_BIRhBQoD';
+    const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+    let currentUser = null;
+    let userProfile = null;
+    let cachedRecords = [];
+    let chartInstances = {};
+    let tempVideoFile = null;
+    let videoStartTime = 0;
+    let videoEndTime = 60;
+    let selectedTransitionMode = 'fade_sutil';
+    let selectedPulseColor = '#e50914';
+
+    /* CONTROL DE MENÚ FLOTANTE */
+    function toggleGearMenu(e) {
+      if (e) e.stopPropagation();
+      const menu = document.getElementById('gearDropdown');
+      menu.classList.toggle('show');
+      document.getElementById('downloadSubmenu').classList.remove('show');
+    }
+
+    function toggleDownloadSubmenu(e) {
+      if (e) e.stopPropagation();
+      const sub = document.getElementById('downloadSubmenu');
+      sub.classList.toggle('show');
+    }
+
+    window.addEventListener('click', () => {
+      document.getElementById('gearDropdown')?.classList.remove('show');
+      document.getElementById('downloadSubmenu')?.classList.remove('show');
+    });
+
+    /* MOTOR DE EXPORTACIÓN */
+    const DossierExporter = {
+      descargarImagen: async function() {
+        try {
+          const viewport = document.getElementById('dossierViewport');
+          const canvas = await html2canvas(viewport, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: '#070708',
+            ignoreElements: (el) => el.classList.contains('hud-controls-bar')
+          });
+
+          const link = document.createElement('a');
+          link.download = `Apex_Striker_${(userProfile?.name || 'Ficha').replace(/\s+/g, '_')}.png`;
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+        } catch (err) {
+          alert('Error al generar la imagen: ' + err.message);
+        }
+      },
+
+      descargarVideo: async function() {
+        const video = document.getElementById('nativeProfileVideo');
+        if (!video.src || video.src === window.location.href) {
+          alert('Primero sube un video en configuración.');
+          return;
+        }
+
+        try {
+          const viewport = document.getElementById('dossierViewport');
+          const hudCanvas = await html2canvas(viewport, {
+            scale: 1.5,
+            backgroundColor: null,
+            ignoreElements: (el) => el.classList.contains('hud-controls-bar') || el.id === 'nativeProfileVideo'
+          });
+
+          const compCanvas = document.createElement('canvas');
+          compCanvas.width = 720;
+          compCanvas.height = 1280;
+          const compCtx = compCanvas.getContext('2d');
+
+          const stream = compCanvas.captureStream(30);
+          const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' });
+          const chunks = [];
+
+          recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
+          recorder.onstop = () => {
+            const blob = new Blob(chunks, { type: 'video/webm' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.download = `Apex_Striker_${(userProfile?.name || 'Clip').replace(/\s+/g, '_')}.webm`;
+            a.href = url;
+            a.click();
+          };
+
+          recorder.start();
+          video.currentTime = 0;
+          video.play();
+
+          const renderInterval = setInterval(() => {
+            compCtx.drawImage(video, 0, 0, compCanvas.width, compCanvas.height);
+            compCtx.drawImage(hudCanvas, 0, 0, compCanvas.width, compCanvas.height);
+          }, 1000 / 30);
+
+          setTimeout(() => {
+            clearInterval(renderInterval);
+            recorder.stop();
+          }, 5000);
+        } catch (err) {
+          alert('Error al grabar el clip táctico: ' + err.message);
+        }
+      }
+    };
+
+    /* FILTROS TEMPORALES */
+    const ApexFiltros = {
+      tipo: 60,
+      desde: null,
+      hasta: null,
+
+      setFiltro: function(dias, btn) {
+        this.tipo = dias;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('customRangeBox').style.display = 'none';
+        this.recalcularVistas();
+      },
+
+      toggleCustom: function(btn) {
+        this.tipo = 'custom';
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('customRangeBox').style.display = 'grid';
+        this.aplicarCustom();
+      },
+
+      aplicarCustom: function() {
+        this.desde = document.getElementById('customDateFrom').value;
+        this.hasta = document.getElementById('customDateTo').value;
+        this.recalcularVistas();
+      },
+
+      obtenerRegistrosFiltrados: function() {
+        if (!cachedRecords || cachedRecords.length === 0) return [];
+        if (this.tipo === 'all') return cachedRecords;
+
+        if (this.tipo === 'custom') {
+          if (!this.desde) return cachedRecords;
+          const fDesde = new Date(this.desde + 'T00:00:00');
+          const fHasta = this.hasta ? new Date(this.hasta + 'T23:59:59') : new Date();
+          return cachedRecords.filter(r => {
+            const f = new Date(r.created_at);
+            return f >= fDesde && f <= fHasta;
+          });
+        }
+
+        const fLimite = new Date();
+        fLimite.setDate(fLimite.getDate() - parseInt(this.tipo));
+        return cachedRecords.filter(r => new Date(r.created_at) >= fLimite);
+      },
+
+      recalcularVistas: function() {
+        const filtrados = this.obtenerRegistrosFiltrados();
+        actualizarDashboardConDatos(filtrados);
+        actualizarRadarConDatos(filtrados);
+      }
+    };
+
+    function switchFichaTab(tabId, btn) {
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+
+      if (tabId === 'viewDash' || tabId === 'viewProfile') {
+        ApexFiltros.recalcularVistas();
+      }
+    }
+
+    function actualizarEmoji(valor) {
+      document.getElementById('valDivertiste').innerText = valor;
+      const emojiEl = document.getElementById('emojiDisplay');
+      const v = parseInt(valor);
+      if (v <= 2) emojiEl.innerText = "😞";
+      else if (v <= 4) emojiEl.innerText = "😐";
+      else if (v <= 7) emojiEl.innerText = "🙂";
+      else if (v <= 9) emojiEl.innerText = "😄";
+      else emojiEl.innerText = "🤩";
+    }
+
+    /* GESTIÓN DE VIDEO Y MODAL DE CONFIGURACIÓN */
+    function abrirModalVideo() { document.getElementById('videoModal').style.display = 'flex'; }
+    function cerrarModalVideo() {
+      document.getElementById('videoModal').style.display = 'none';
+      tempVideoFile = null;
+      document.getElementById('trimmerBox').style.display = 'none';
+    }
+
+    function seleccionarColorPulso(color, el) {
+      selectedPulseColor = color;
+      document.querySelectorAll('.swatch-btn').forEach(s => s.classList.remove('selected'));
+      if (el) el.classList.add('selected');
+      
+      const val = color === 'none' ? 'transparent' : color;
+      document.documentElement.style.setProperty('--pulse-color', val);
+    }
+
+    function procesarVideoSeleccionado(files) {
+      if (!files || files.length === 0) return;
+      const file = files[0];
+      const tempVideo = document.createElement('video');
+      tempVideo.preload = 'metadata';
+
+      tempVideo.onloadedmetadata = function() {
+        window.URL.revokeObjectURL(tempVideo.src);
+        const duration = tempVideo.duration;
+        tempVideoFile = file;
+
+        const trimmerBox = document.getElementById('trimmerBox');
+        const slider = document.getElementById('trimSlider');
+
+        if (duration > 60.5) {
+          trimmerBox.style.display = 'block';
+          slider.max = Math.max(0, Math.floor(duration - 60));
+          slider.value = 0;
+          actualizarVentanaCorte(0);
+        } else {
+          trimmerBox.style.display = 'none';
+          videoStartTime = 0;
+          videoEndTime = duration;
+        }
+      };
+      tempVideo.src = URL.createObjectURL(file);
+    }
+
+    function actualizarVentanaCorte(val) {
+      videoStartTime = parseFloat(val);
+      videoEndTime = Math.min(videoStartTime + 60, videoStartTime + 30);
+      document.getElementById('trimRangeTxt').innerText = `${videoStartTime.toFixed(0)}s - ${videoEndTime.toFixed(0)}s`;
+    }
+
+    async function guardarConfiguracionVideo() {
+      const email = document.getElementById('ciEmail').value.trim();
+      const btn = document.getElementById('btnGuardarAvatar');
+      selectedTransitionMode = document.getElementById('transitionModeSelect').value;
+      btn.disabled = true;
+      btn.innerText = 'Guardando...';
+
+      try {
+        let videoUrl = userProfile?.video_url || null;
+
+        if (tempVideoFile && sb) {
+          const ext = tempVideoFile.name.split('.').pop() || 'mp4';
+          const filePath = `videos/${Date.now()}_${email.replace(/[^a-zA-Z0-9]/g, '_')}.${ext}`;
+
+          const { error: uploadError } = await sb.storage.from('avatars').upload(filePath, tempVideoFile, { upsert: true });
+          if (uploadError) throw uploadError;
+
+          const { data: urlData } = sb.storage.from('avatars').getPublicUrl(filePath);
+          videoUrl = urlData.publicUrl;
+        }
+
+        if (sb) {
+          await sb.from('apex_users').update({
+            video_url: videoUrl,                  // Columna unificada oficial
             loop_mode: selectedTransitionMode,
             aura_color: selectedPulseColor
           }).eq('email', email);
