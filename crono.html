@@ -11,7 +11,8 @@
   <title>Crono Apex Tactical</title>
 
   <link rel="manifest" href="manifest.json">
-  <link rel="icon" type="image/png" href="icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
 
   <style>
     :root {
@@ -26,8 +27,14 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
     html, body { background: var(--bg); color: var(--text-main); padding: 12px; max-width: 600px; margin: 0 auto; user-select: none; overscroll-behavior-y: none; }
     
+    /* ENCABEZADO CON LOGO DESTACADO */
     .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 2px solid var(--border); padding-bottom: 8px; }
-    .main-title { font-size: 1.3rem; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase; color: #fff; }
+    .brand-wrap { display: flex; align-items: center; gap: 10px; }
+    .header-logo {
+      width: 44px; height: 44px; object-fit: cover; border-radius: 8px;
+      border: 1px solid #333; background: #000; flex-shrink: 0; display: block;
+    }
+    .main-title { font-size: 1.25rem; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase; color: #fff; line-height: 1.15; }
     .main-title span { color: var(--accent); }
     
     .header-actions { display: flex; gap: 6px; align-items: center; }
@@ -54,6 +61,10 @@
     .setting-row span { color: var(--text-sub); font-size: 0.75rem; }
     
     .coach-input-box { width: 100%; padding: 8px 12px; background: #1c1c1c; border: 1px solid #444; border-radius: 6px; color: #fff; font-weight: 800; text-transform: uppercase; outline: none; margin-top: 4px; }
+    .config-select {
+      width: 100%; padding: 7px 10px; font-size: 0.78rem; font-weight: 800; background: #1c1c1c;
+      color: #fff; border: 1px solid #444; border-radius: 6px; outline: none; margin-top: 4px; text-transform: uppercase;
+    }
 
     .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
     .switch input { opacity: 0; width: 0; height: 0; }
@@ -97,7 +108,6 @@
     .time-big { font-size: 3.5rem; font-weight: 900; font-variant-numeric: tabular-nums; line-height: 1; margin: 2px 0; color: #fff; }
     .exercise-current { font-size: 0.88rem; color: var(--text-sub); font-weight: 600; min-height: 18px; }
 
-    /* Línea de Tiempo Blanca (60 Min) */
     .scrubber-container {
       background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px;
       padding: 8px 12px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 4px;
@@ -176,7 +186,8 @@
     }
     .lane-next-label { font-weight: 800; text-transform: uppercase; color: #555555; font-size: 0.62rem; }
 
-    .controls-wrap { display: flex; gap: 10px; }
+    /* CONTROLES PRINCIPALES (ÚNICO BLOQUE) */
+    .controls-wrap { display: flex; gap: 10px; margin-top: 4px; margin-bottom: 12px; }
     .btn {
       flex: 1; padding: 14px; font-size: 0.95rem; font-weight: 900; text-transform: uppercase;
       border: none; border-radius: 8px; cursor: pointer; letter-spacing: 1px;
@@ -185,7 +196,7 @@
     .btn-main:active { filter: brightness(0.85); }
     .btn-sub { background: #1c1c1c; color: #bbb; max-width: 95px; border: 1px solid #2a2a2a; }
 
-    /* Cámara Táctica Estilizada */
+    /* CÁMARA TÁCTICA */
     .camera-modal {
       display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       background: #0c0c0c; z-index: 1000; flex-direction: column; justify-content: space-between;
@@ -246,19 +257,46 @@
       display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; max-width: 340px;
     }
 
-    /* Obturador Moderno Apex */
+    /* OBTURADOR CIRCULAR CON EL LOGO COMO NÚCLEO */
     .shutter-btn {
-      width: 76px; height: 76px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.4);
-      display: flex; align-items: center; justify-content: center; cursor: pointer; background: rgba(0,0,0,0.6); transition: 0.2s;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.6); flex-shrink: 0; position: relative;
+      width: 78px; height: 78px; border-radius: 50%;
+      border: 3px solid rgba(255, 255, 255, 0.6);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; background: rgba(0, 0, 0, 0.8);
+      transition: all 0.25s ease;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.85);
+      flex-shrink: 0; position: relative; padding: 0; overflow: hidden;
     }
-    .shutter-core { width: 56px; height: 56px; border-radius: 50%; background: #ffffff; transition: all 0.2s; box-shadow: 0 0 12px rgba(255,255,255,0.8); }
-    .shutter-btn.recording { border-color: var(--accent); animation: pulseShutter 1.5s infinite; }
-    .shutter-btn.recording .shutter-core { width: 28px; height: 28px; border-radius: 8px; background: var(--accent); box-shadow: 0 0 12px var(--accent); }
+    .shutter-core {
+      width: 62px; height: 62px; border-radius: 50%;
+      overflow: hidden; display: flex; align-items: center; justify-content: center;
+      background: #111; border: 1px solid #333;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+      transition: all 0.25s ease;
+    }
+    .shutter-icon {
+      width: 100%; height: 100%; object-fit: cover;
+      border-radius: 50%; display: block; pointer-events: none;
+      transition: transform 0.25s ease, filter 0.25s ease;
+    }
+    
+    .shutter-btn.recording {
+      border-color: var(--accent);
+      animation: pulseShutter 1.4s infinite;
+    }
+    .shutter-btn.recording .shutter-core {
+      width: 48px; height: 48px;
+      box-shadow: 0 0 16px var(--accent);
+      border: 2px solid var(--accent);
+    }
+    .shutter-btn.recording .shutter-icon {
+      filter: brightness(0.6) contrast(1.2);
+      transform: scale(0.92);
+    }
 
     @keyframes pulseShutter {
       0% { box-shadow: 0 0 0 0 rgba(229, 9, 20, 0.7); }
-      70% { box-shadow: 0 0 0 10px rgba(229, 9, 20, 0); }
+      70% { box-shadow: 0 0 0 12px rgba(229, 9, 20, 0); }
       100% { box-shadow: 0 0 0 0 rgba(229, 9, 20, 0); }
     }
 
@@ -290,7 +328,10 @@
   </audio>
 
   <div class="header">
-    <div class="main-title">Crono <span>Apex Tactical</span></div>
+    <div class="brand-wrap">
+      <img src="icon.png" alt="Apex Logo" class="header-logo">
+      <div class="main-title">Crono <span>Apex Tactical</span></div>
+    </div>
     <div class="header-actions">
       <button class="action-btn-header" id="settingsToggleBtn" onclick="toggleSettings()" title="Configuración">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l-.06.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -321,6 +362,33 @@
         <span class="slider-toggle"></span>
       </label>
     </div>
+    <div class="setting-row">
+      <div>Tonos de Alerta (Pitidos / Beeps) <br><span>(Suenan siempre, incluso minimizado)</span></div>
+      <label class="switch">
+        <input type="checkbox" id="beepsToggleCheck" checked onchange="toggleBeeps(this.checked)">
+        <span class="slider-toggle"></span>
+      </label>
+    </div>
+
+    <!-- SUBSECCIÓN ACÚSTICA PERSONALIZABLE -->
+    <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 4px; border-top: 1px solid #222; padding-top: 8px;">
+      <div>Tipo de Tono Acústico <br><span>(Selecciona el sonido que mejor corte el ruido)</span></div>
+      <select id="beepTypeSelect" class="config-select" onchange="onBeepTypeChange(this.value)">
+        <option value="tabata">1. Chicharra Táctica / Tabata (Ultra Penetrante)</option>
+        <option value="bell">2. Campana de Boxeo (Metálica)</option>
+        <option value="military">3. Tono Cuadrado Militar (Agudo Directo)</option>
+        <option value="burst">4. Ráfaga 3 Beeps + Gong</option>
+      </select>
+    </div>
+
+    <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 4px;">
+      <div>Momento del Aviso Sonoro <br><span>(Define cuándo se activa la alerta acústica)</span></div>
+      <select id="beepTimingSelect" class="config-select" onchange="onBeepTimingChange(this.value)">
+        <option value="countdown">Cuenta Regresiva (Últimos 3s + Cambio)</option>
+        <option value="exact">Momento Exacto del Cambio (0s)</option>
+      </select>
+    </div>
+
     <div class="setting-row">
       <div>Audio Keep-Alive (Silencio) <br><span>(Evita suspensión en móviles)</span></div>
       <label class="switch">
@@ -363,7 +431,6 @@
     <div class="exercise-current" id="exerciseLabel">Preparación</div>
   </div>
 
-  <!-- Línea de Tiempo Blanca (60 Min) -->
   <div class="scrubber-container" id="scrubberContainer">
     <div class="scrubber-header">
       <span>Línea de Tiempo · Sesión (60 Min)</span>
@@ -380,8 +447,10 @@
     </div>
   </div>
 
+  <!-- CONTENEDOR EXCLUSIVO DE CARRILES MULTINIVEL -->
   <div class="lanes-list" id="lanesContainer"></div>
 
+  <!-- CONTROLES PRINCIPALES (ÚNICO BLOQUE LIMPIO) -->
   <div class="controls-wrap">
     <button class="btn btn-main" id="btnStart" onclick="togglePlay()">Iniciar Clase</button>
     <button class="btn btn-sub" onclick="openResetModal()">Reset</button>
@@ -398,7 +467,7 @@
     </div>
   </div>
 
-  <!-- Cámara Táctica con Instrucción Pre-grabación, Tambor de Segundos y Modo Libre -->
+  <!-- Cámara Táctica con Obturador Icon.png -->
   <div class="camera-modal" id="cameraModal">
     <video id="cameraFeed" autoplay playsinline muted></video>
     <canvas id="renderCanvas"></canvas>
@@ -426,8 +495,10 @@
           </div>
           <button class="manual-toggle-btn" id="manualToggleBtn" onclick="toggleManualMode()">Libre</button>
         </div>
-        <button class="shutter-btn" id="shutterBtn" onclick="toggleRecord()">
-          <div class="shutter-core" id="shutterCore"></div>
+        <button class="shutter-btn" id="shutterBtn" onclick="toggleRecord()" title="Disparador Apex">
+          <div class="shutter-core" id="shutterCore">
+            <img src="icon.png" alt="Rec Apex" class="shutter-icon">
+          </div>
         </button>
       </div>
     </div>
@@ -457,15 +528,37 @@
   </div>
 
   <script>
+    // REGISTRO LIMPIO PWA PARA GITHUB PAGES
     if ('serviceWorker' in navigator) {
-      const swCode = `
-        self.addEventListener('install', e => self.skipWaiting());
-        self.addEventListener('activate', e => clients.claim());
-        self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => new Response('Offline'))));
-      `;
-      const blob = new Blob([swCode], { type: 'application/javascript' });
-      navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js', { scope: './' })
+          .then(reg => console.log('SW activo en:', reg.scope))
+          .catch(err => console.error('Error al registrar SW:', err));
+      });
     }
+
+    // WAKE LOCK API (Pantalla activa en sala)
+    let wakeLock = null;
+    async function requestWakeLock() {
+      try {
+        if ('wakeLock' in navigator) {
+          wakeLock = await navigator.wakeLock.request('screen');
+        }
+      } catch (err) {}
+    }
+
+    function releaseWakeLock() {
+      if (wakeLock) {
+        wakeLock.release().catch(() => {});
+        wakeLock = null;
+      }
+    }
+
+    document.addEventListener('visibilitychange', async () => {
+      if (wakeLock !== null && document.visibilityState === 'visible' && isRunning) {
+        await requestWakeLock();
+      }
+    });
 
     let coachName = localStorage.getItem('apex_coach_name') || 'VICTOR';
     document.getElementById('coachNameConfigInput').value = coachName;
@@ -639,8 +732,14 @@
 
     let settingsOpen = false;
     let voiceEnabled = true;
+    let beepsEnabled = true;
     let keepAliveEnabled = true;
     let scrubberLocked = false;
+    let selectedBeepType = localStorage.getItem('apex_beep_type') || 'tabata';
+    let selectedBeepTiming = localStorage.getItem('apex_beep_timing') || 'countdown';
+
+    document.getElementById("beepTypeSelect").value = selectedBeepType;
+    document.getElementById("beepTimingSelect").value = selectedBeepTiming;
 
     function toggleSettings() {
       settingsOpen = !settingsOpen;
@@ -658,7 +757,23 @@
 
     function toggleVoice(enabled) {
       voiceEnabled = enabled;
-      if (!enabled) window.speechSynthesis.cancel();
+      if (!enabled && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+    }
+
+    function toggleBeeps(enabled) {
+      beepsEnabled = enabled;
+    }
+
+    function onBeepTypeChange(val) {
+      selectedBeepType = val;
+      localStorage.setItem('apex_beep_type', val);
+      enableBackgroundAudio();
+      triggerSoundFX(val, false);
+    }
+
+    function onBeepTimingChange(val) {
+      selectedBeepTiming = val;
+      localStorage.setItem('apex_beep_timing', val);
     }
 
     function toggleKeepAlive(enabled) {
@@ -670,6 +785,108 @@
     const silentAudio = document.getElementById('silentAudio');
     function keepAudioAlive() {
       if (keepAliveEnabled && silentAudio.paused) silentAudio.play().catch(() => {});
+    }
+
+    // MOTOR ACÚSTICO AVANZADO
+    let audioCtx = null;
+    function enableBackgroundAudio() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: "Crono Apex Tactical",
+          artist: "Apex Boxing",
+          album: "Sesión en Curso"
+        });
+        navigator.mediaSession.playbackState = "playing";
+      }
+    }
+
+    function triggerSoundFX(soundType = selectedBeepType, isPreAlert = false) {
+      if (!beepsEnabled) return;
+      try {
+        enableBackgroundAudio();
+        const ctx = audioCtx;
+        const now = ctx.currentTime;
+
+        if (isPreAlert) {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(950, now);
+          gain.gain.setValueAtTime(0.7, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.12);
+          return;
+        }
+
+        if (soundType === 'tabata') {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(440, now);
+          osc.frequency.linearRampToValueAtTime(410, now + 0.38);
+          gain.gain.setValueAtTime(0.95, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.42);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.45);
+        } else if (soundType === 'bell') {
+          const freqs = [800, 1200, 1600, 2400];
+          const dur = 1.3;
+          freqs.forEach((f, idx) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(f, now);
+            const initialGain = idx === 0 ? 0.85 : 0.4 / idx;
+            gain.gain.setValueAtTime(initialGain, now);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now);
+            osc.stop(now + dur);
+          });
+        } else if (soundType === 'military') {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(1050, now);
+          gain.gain.setValueAtTime(0.9, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.32);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.35);
+        } else if (soundType === 'burst') {
+          [0, 0.2, 0.4].forEach(d => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(880, now + d);
+            gain.gain.setValueAtTime(0.65, now + d);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + d + 0.1);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now + d);
+            osc.stop(now + d + 0.1);
+          });
+          const finalOsc = ctx.createOscillator();
+          const finalGain = ctx.createGain();
+          finalOsc.type = 'sawtooth';
+          finalOsc.frequency.setValueAtTime(520, now + 0.65);
+          finalGain.gain.setValueAtTime(0.95, now + 0.65);
+          finalGain.gain.exponentialRampToValueAtTime(0.001, now + 1.15);
+          finalOsc.connect(finalGain);
+          finalGain.connect(ctx.destination);
+          finalOsc.start(now + 0.65);
+          finalOsc.stop(now + 1.2);
+        }
+      } catch (e) {}
     }
 
     function speak(text) {
@@ -750,7 +967,7 @@
 
     function initLanesDOM() {
       const cont = document.getElementById("lanesContainer");
-      cont.innerHTML = "";
+      cont.innerHTML = ""; // Limpieza estricta de carriles previos
 
       for (let k in configNiveles) {
         const n = configNiveles[k];
@@ -953,20 +1170,28 @@
     }
 
     function togglePlay() {
+      enableBackgroundAudio();
       keepAudioAlive();
       if (isRunning) {
         worker.postMessage('stop');
         elapsedBeforePause += (performance.now() - startTime);
         isRunning = false;
+        releaseWakeLock();
+        if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "paused";
         document.getElementById("btnStart").textContent = "Reanudar";
         document.getElementById("btnStart").style.background = "var(--accent)";
       } else {
         startTime = performance.now();
         worker.postMessage('start');
         isRunning = true;
+        requestWakeLock();
+        if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "playing";
         document.getElementById("btnStart").textContent = "Pausar";
         document.getElementById("btnStart").style.background = "#222";
-        if (elapsedBeforePause === 0) speak("Todos, trabajo en tres, dos, uno");
+        if (elapsedBeforePause === 0) {
+          triggerSoundFX(selectedBeepType, false);
+          speak("Todos, trabajo en tres, dos, uno");
+        }
       }
     }
 
@@ -976,6 +1201,8 @@
       closeResetModal();
       worker.postMessage('stop');
       silentAudio.pause();
+      releaseWakeLock();
+      if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "none";
       isRunning = false;
       startTime = 0;
       elapsedBeforePause = 0;
@@ -986,6 +1213,7 @@
       document.getElementById("sessionScrubber").value = 0;
       actualizarVista(0, false);
     }
+
     function onClassChange() {
       for (let k in configNiveles) configNiveles[k].prevIdx = -1;
       actualizarVista(parseInt(document.getElementById("sessionScrubber").value, 10), false);
@@ -1006,6 +1234,8 @@
       if (isRunning) {
         worker.postMessage('stop');
         isRunning = false;
+        releaseWakeLock();
+        if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "paused";
         document.getElementById("btnStart").textContent = "Reanudar";
         document.getElementById("btnStart").style.background = "var(--accent)";
       }
@@ -1051,14 +1281,20 @@
         const remAprox1 = T_APROX1_FIN - totalSec;
         document.getElementById("exerciseLabel").textContent = taskIniciado.aprox1;
         
-        if (!isScrubbing && totalSec === T_APERTURA_FIN) speak("Aproximación uno, movilidad y postura");
+        if (!isScrubbing && totalSec === T_APERTURA_FIN) {
+          triggerSoundFX(selectedBeepType, false);
+          speak("Aproximación uno, movilidad y postura");
+        }
         for (let k in configNiveles) updateLaneData(k, 0, false, "APROX1", 0, remAprox1);
       } else if (totalSec < T_APROX2_FIN) {
         document.getElementById("phaseLabel").textContent = "Aproximación 2 · Activación";
         const remAprox2 = T_APROX2_FIN - totalSec;
         document.getElementById("exerciseLabel").textContent = taskIniciado.aprox2;
         
-        if (!isScrubbing && totalSec === T_APROX1_FIN) speak("Aproximación dos, activación específica");
+        if (!isScrubbing && totalSec === T_APROX1_FIN) {
+          triggerSoundFX(selectedBeepType, false);
+          speak("Aproximación dos, activación específica");
+        }
         for (let k in configNiveles) updateLaneData(k, 0, false, "APROX2", 0, remAprox2);
       } else if (totalSec < T_CUERPO_FIN) {
         const cuerpoSec = totalSec - T_APROX2_FIN;
@@ -1087,6 +1323,7 @@
 
         for (let k in configNiveles) updateLaneData(k, 0, false, "CIERRE", 0, remCierre);
         if (!isScrubbing && totalSec === T_CUERPO_FIN) {
+          triggerSoundFX(selectedBeepType, false);
           speak("Cuerpo de clase completado. Iniciar Biomecánica, debate y check-in en la aplicación");
         }
       } else {
@@ -1096,6 +1333,7 @@
 
         for (let k in configNiveles) updateLaneData(k, 0, false, "CALMA", 0, remCalma);
         if (!isScrubbing && totalSec === T_CIERRE_FIN) {
+          triggerSoundFX(selectedBeepType, false);
           speak("Inicio de vuelta a la calma, recogida de equipos y video Clan Apex");
         }
       }
@@ -1110,39 +1348,65 @@
       actualizarVista(totalSec, false);
     };
 
+    function ejecutarAvisoAcustico(sec, targetSec) {
+      if (!beepsEnabled) return;
+      if (selectedBeepTiming === 'countdown') {
+        if (sec === targetSec - 3 || sec === targetSec - 2 || sec === targetSec - 1) {
+          triggerSoundFX(selectedBeepType, true);
+        } else if (sec === targetSec) {
+          triggerSoundFX(selectedBeepType, false);
+        }
+      } else if (selectedBeepTiming === 'exact') {
+        if (sec === targetSec) {
+          triggerSoundFX(selectedBeepType, false);
+        }
+      }
+    }
+
     function evaluarVoz(sec, isRest, fase) {
-      if (isRest || !voiceEnabled) return;
+      if (isRest) return;
 
-      if (sec === 57 && configNiveles['Iniciado'].active) speak("Iniciados, pausa en tres, dos, uno");
-
-      if (fase === "APERTURA" && sec === 72 && configNiveles['Intermedio'].active) {
-        speak("Intermedio, pausa en tres, dos, uno");
-      } else if (fase === "CUERPO" && sec === 87 && configNiveles['Intermedio'].active) {
-        speak("Intermedio, pausa en tres, dos, uno");
+      if (configNiveles['Iniciado'].active) {
+        ejecutarAvisoAcustico(sec, 60);
+        if (sec === 57) speak("Iniciados, pausa en tres, dos, uno");
       }
 
-      if (sec === 87 && configNiveles['Avanzado'].active) {
-        speak("Avanzado, pausa en tres, dos, uno");
+      if (fase === "APERTURA" && configNiveles['Intermedio'].active) {
+        ejecutarAvisoAcustico(sec, 75);
+        if (sec === 72) speak("Intermedio, pausa en tres, dos, uno");
+      } else if (fase === "CUERPO" && configNiveles['Intermedio'].active) {
+        ejecutarAvisoAcustico(sec, 90);
+        if (sec === 87) speak("Intermedio, pausa en tres, dos, uno");
       }
 
-      if (sec === 102 && configNiveles['Apex'].active) {
-        speak("Apex, pausa en tres, dos, uno");
+      if (configNiveles['Avanzado'].active) {
+        ejecutarAvisoAcustico(sec, 90);
+        if (sec === 87) speak("Avanzado, pausa en tres, dos, uno");
       }
 
-      if (fase === "APERTURA" && sec === 107 && configNiveles['Apex+'].active) {
-        speak("Apex +, pausa en tres, dos, uno");
+      if (configNiveles['Apex'].active) {
+        ejecutarAvisoAcustico(sec, 105);
+        if (sec === 102) speak("Apex, pausa en tres, dos, uno");
       }
 
+      if (fase === "APERTURA" && configNiveles['Apex+'].active) {
+        ejecutarAvisoAcustico(sec, 110);
+        if (sec === 107) speak("Apex +, pausa en tres, dos, uno");
+      }
+
+      ejecutarAvisoAcustico(sec, 120);
       if (sec === 117) speak("Todos, trabajo en tres, dos, uno");
     }
 
     function evaluarDescanso(sec) {
-      if (!voiceEnabled) return;
+      ejecutarAvisoAcustico(sec, 0);
       if (sec === 0) speak("Todos, descanso en tres, dos, uno");
+
+      ejecutarAvisoAcustico(sec, 60);
       if (sec === 57) speak("Siguiente asalto, todos en tres, dos, uno");
     }
 
-    // --- CÁMARA TÁCTICA CON RENDERIZADO POR CANVAS (Zero-Lag + Modo Libre + Instrucción Previa) ---
+    // CÁMARA TÁCTICA CON RENDERIZADO POR CANVAS (Zero-Lag)
     let mediaStream = null;
     let mediaRecorder = null;
     let recordedChunks = [];
