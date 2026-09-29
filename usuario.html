@@ -54,8 +54,8 @@
       border-radius: 8px; padding: 12px 14px; margin-bottom: 10px;
     }
     .progress-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
-    .progress-tier-title { font-size: 0.75rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; color: var(--tier-color); }
-    .progress-percent-val { font-size: 1rem; font-weight: 900; color: var(--tier-color); }
+    .progress-tier-title { font-size: 0.75rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; color: var(--tier-color); text-shadow: 0 2px 6px rgba(0,0,0,0.9); }
+    .progress-percent-val { font-size: 1rem; font-weight: 900; color: var(--tier-color); text-shadow: 0 2px 6px rgba(0,0,0,0.9); }
     .progress-bar-track {
       width: 100%; height: 8px; background: #18181c; border-radius: 4px;
       overflow: hidden; border: 1px solid #25252a; margin-bottom: 6px;
@@ -119,15 +119,10 @@
       display: flex; flex-direction: column; justify-content: space-between;
       padding: 16px 14px 24px 14px; box-shadow: 0 16px 36px rgba(0,0,0,0.9); margin-bottom: 24px;
     }
-    .dossier-video-bg {
+    /* Multimedia a todo color real, sin gradiente oscuro invasivo */
+    .dossier-media-bg {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      object-fit: cover; z-index: 1; opacity: 0.85; filter: grayscale(100%) contrast(1.1) brightness(0.9);
-    }
-    .dossier-ambient-overlay {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      background: radial-gradient(circle at center, transparent 35%, rgba(6,6,8,0.7) 100%),
-                  linear-gradient(180deg, rgba(6,6,8,0.85) 0%, transparent 25%, rgba(6,6,8,0.9) 90%);
-      pointer-events: none; z-index: 2;
+      object-fit: cover; z-index: 1; opacity: 1; filter: contrast(1.05) brightness(1);
     }
 
     @keyframes sutilPulse {
@@ -136,22 +131,24 @@
     }
     .pulse-mesh { animation: sutilPulse 5s ease-in-out infinite; }
 
+    /* Sombras dinámicas silueteadas (drop-shadow y text-shadow) para perfecta legibilidad sin cajas cuadradas */
     .dossier-branding {
-      position: relative; z-index: 5; border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+      position: relative; z-index: 5; border-bottom: 2px solid rgba(255, 255, 255, 0.3);
       padding-bottom: 8px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: flex-end;
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.9));
     }
-    .brand-title { font-size: 1.25rem; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: #fff; text-shadow: 0 2px 10px #000; }
-    .brand-sub { font-size: 0.72rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); }
+    .brand-title { font-size: 1.25rem; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.95), 0 0 15px rgba(0,0,0,0.8); }
+    .brand-sub { font-size: 0.72rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); text-shadow: 0 2px 6px rgba(0,0,0,0.9); }
 
     .hud-controls-bar { position: absolute; top: 14px; right: 14px; z-index: 20; }
     .btn-gear {
       background: transparent; border: none; color: #ffffff; width: 36px; height: 36px;
       border-radius: 50%; display: flex; align-items: center; justify-content: center;
-      font-size: 1.3rem; cursor: pointer; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.8));
+      font-size: 1.3rem; cursor: pointer; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.9));
     }
     .gear-dropdown {
       position: absolute; top: 44px; right: 0; background: #141418;
-      border: 1px solid var(--border-color); border-radius: 8px; width: 155px;
+      border: 1px solid var(--border-color); border-radius: 8px; width: 165px;
       display: none; flex-direction: column; box-shadow: 0 8px 24px rgba(0,0,0,0.9); overflow: hidden; z-index: 30;
     }
     .gear-dropdown.show { display: flex; }
@@ -168,18 +165,18 @@
     }
     .sub-gear-item:hover { color: #fff; background: #16161a; }
 
-    .dossier-top-meta { position: relative; z-index: 5; }
-    .dossier-header-title { font-size: 1.35rem; font-weight: 900; text-transform: uppercase; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.9); }
-    .dossier-header-sub { font-size: 0.68rem; color: #d0d0d8; text-transform: uppercase; font-weight: 700; display: flex; justify-content: space-between; align-items: center; margin-top: 2px; }
+    .dossier-top-meta { position: relative; z-index: 5; filter: drop-shadow(0 2px 10px rgba(0,0,0,0.95)); }
+    .dossier-header-title { font-size: 1.35rem; font-weight: 900; text-transform: uppercase; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.95), 0 0 15px rgba(0,0,0,0.8); }
+    .dossier-header-sub { font-size: 0.68rem; color: #e0e0e8; text-transform: uppercase; font-weight: 700; display: flex; justify-content: space-between; align-items: center; margin-top: 2px; text-shadow: 0 2px 6px rgba(0,0,0,0.9); }
 
-    .floating-stats-row { position: relative; z-index: 5; display: flex; justify-content: space-around; margin: 10px 0 6px 0; }
-    .floating-stat-item { text-align: center; text-shadow: 0 2px 12px rgba(0,0,0,0.95); }
-    .floating-stat-num { font-size: 1.8rem; font-weight: 900; color: #ffffff; line-height: 1; }
-    .floating-stat-label { font-size: 0.62rem; color: #cfcfd6; text-transform: uppercase; font-weight: 800; margin-top: 3px; }
-    .floating-stat-sub { font-size: 0.55rem; color: #a0a0ab; text-transform: uppercase; font-weight: 600; }
+    .floating-stats-row { position: relative; z-index: 5; display: flex; justify-content: space-around; margin: 10px 0 6px 0; filter: drop-shadow(0 2px 10px rgba(0,0,0,0.95)); }
+    .floating-stat-item { text-align: center; }
+    .floating-stat-num { font-size: 1.8rem; font-weight: 900; color: #ffffff; line-height: 1; text-shadow: 0 2px 10px rgba(0,0,0,0.95), 0 0 15px rgba(0,0,0,0.8); }
+    .floating-stat-label { font-size: 0.62rem; color: #e2e2eb; text-transform: uppercase; font-weight: 800; margin-top: 3px; text-shadow: 0 2px 6px rgba(0,0,0,0.9); }
+    .floating-stat-sub { font-size: 0.55rem; color: #cfcfd8; text-transform: uppercase; font-weight: 600; text-shadow: 0 2px 6px rgba(0,0,0,0.9); }
 
-    .radar-floating-wrap { position: relative; z-index: 5; width: 100%; height: 230px; display: flex; justify-content: center; align-items: center; }
-    .radar-floating-footer { position: relative; z-index: 5; display: flex; justify-content: space-between; align-items: center; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; padding: 0 6px; margin-top: 4px; }
+    .radar-floating-wrap { position: relative; z-index: 5; width: 100%; height: 230px; display: flex; justify-content: center; align-items: center; filter: drop-shadow(0 4px 14px rgba(0,0,0,0.95)); }
+    .radar-floating-footer { position: relative; z-index: 5; display: flex; justify-content: space-between; align-items: center; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; padding: 0 6px; margin-top: 4px; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.95)); }
 
     .card { background-color: var(--card-bg); border: 1px solid var(--border-color); padding: 18px; border-radius: 8px; margin-bottom: 16px; }
     .header { text-align: center; margin-bottom: 18px; }
@@ -189,7 +186,6 @@
 
     .form-group { margin-bottom: 14px; }
     label { display: block; font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; font-weight: 700; }
-    .label-desc { font-size: 0.68rem; color: #777; margin-bottom: 4px; }
     input[type="email"], input[type="number"], select {
       width: 100%; padding: 10px; background-color: var(--bg-color); border: 1px solid var(--border-color);
       color: var(--text-main); font-size: 0.85rem; border-radius: 4px; outline: none; font-weight: 600;
@@ -237,7 +233,7 @@
     .plan-section-title { font-size: 0.75rem; font-weight: 900; color: #fff; text-transform: uppercase; margin-bottom: 4px; border-bottom: 1px solid #222; padding-bottom: 4px; }
     .plan-section-content { font-size: 0.7rem; color: #ccc; line-height: 1.4; margin-bottom: 10px; }
 
-    #videoModal {
+    #mediaModal {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       background: rgba(0,0,0,0.88); backdrop-filter: blur(8px);
       z-index: 10000; display: none; justify-content: center; align-items: center; padding: 16px;
@@ -254,22 +250,22 @@
 </head>
 <body>
 
-  <input type="file" id="inputVideoRaw" accept="video/*" style="display: none;" onchange="procesarVideoSeleccionado(this.files)">
+  <input type="file" id="inputMediaRaw" accept="video/*,image/*" style="display: none;" onchange="procesarMediaSeleccionada(this.files)">
 
-  <div id="videoModal">
+  <div id="mediaModal">
     <div class="modal-box">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <span style="font-size:0.8rem; font-weight:900; text-transform:uppercase;">Configuración Táctica</span>
-        <button onclick="cerrarModalVideo()" style="background:none; border:none; color:#fff; font-size:1.1rem; cursor:pointer;">✕</button>
+        <span style="font-size:0.8rem; font-weight:900; text-transform:uppercase;">Personalizar Fondo Táctico</span>
+        <button onclick="cerrarModalMedia()" style="background:none; border:none; color:#fff; font-size:1.1rem; cursor:pointer;">✕</button>
       </div>
 
-      <div style="display:flex; gap:8px; margin-bottom:10px;">
-        <button class="filter-btn" style="padding:9px 6px;" onclick="document.getElementById('inputVideoRaw').removeAttribute('capture'); document.getElementById('inputVideoRaw').click();">📁 Galería</button>
-        <button class="filter-btn" style="padding:9px 6px;" onclick="document.getElementById('inputVideoRaw').setAttribute('capture','environment'); document.getElementById('inputVideoRaw').click();">🎥 Grabar</button>
+      <div style="margin-bottom: 12px;">
+        <button class="btn-submit" style="background:#222; border:1px solid var(--border-color); margin-bottom:6px;" onclick="document.getElementById('inputMediaRaw').click();">📁 Seleccionar Video, Imagen o GIF</button>
+        <span id="selectedFileLabel" style="font-size:0.65rem; color:var(--text-muted); display:block; text-align:center;">Ningún archivo seleccionado</span>
       </div>
 
       <div class="form-group" style="margin-top: 8px;">
-        <label>Efecto de Transición</label>
+        <label>Efecto de Transición (para video)</label>
         <select id="transitionModeSelect" style="width:100%; padding:8px; background:#09090b; border:1px solid var(--border-color); color:#fff; border-radius:4px; font-size:0.75rem;">
           <option value="fade_sutil">1. Fundido Sutil Extendido</option>
           <option value="escaneo">2. Escaneo Láser Vertical</option>
@@ -289,13 +285,13 @@
 
       <div id="trimmerBox" class="range-cutter-box">
         <div style="display:flex; justify-content:space-between; font-size:0.65rem; color:#aaa; margin-bottom:4px;">
-          <span>VENTANA:</span>
+          <span>VENTANA DE VIDEO:</span>
           <span id="trimRangeTxt">0s - 30s</span>
         </div>
         <input type="range" id="trimSlider" min="0" max="60" step="1" value="0" style="width:100%;" oninput="actualizarVentanaCorte(this.value)">
       </div>
 
-      <button id="btnGuardarAvatar" class="btn-submit" style="margin-top:10px;" onclick="guardarConfiguracionVideo()">Aplicar</button>
+      <button id="btnGuardarMedia" class="btn-submit" style="margin-top:10px;" onclick="guardarConfiguracionMedia()">Aplicar Configuración</button>
     </div>
   </div>
 
@@ -355,13 +351,15 @@
   <!-- PERFIL -->
   <div id="viewProfile" class="view-section active">
     <div class="dossier-viewport" id="dossierViewport">
-      <video id="nativeProfileVideo" class="dossier-video-bg" playsinline muted loop autoplay crossorigin="anonymous"></video>
-      <div class="dossier-ambient-overlay"></div>
+      <div id="dossierMediaContainer" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:1;">
+        <video id="nativeProfileVideo" class="dossier-media-bg" playsinline muted loop autoplay crossorigin="anonymous" style="display:none;"></video>
+        <img id="nativeProfileImage" class="dossier-media-bg" src="" alt="" style="display:none; object-fit:cover;">
+      </div>
 
       <div class="hud-controls-bar">
         <button class="btn-gear" onclick="toggleGearMenu(event)">⚙️</button>
         <div class="gear-dropdown" id="gearDropdown">
-          <button class="gear-item" onclick="abrirModalVideo(); toggleGearMenu();">📁 Cargar Video</button>
+          <button class="gear-item" onclick="abrirModalMedia(); toggleGearMenu();">📁 Personalizar Fondo</button>
           <button class="gear-item" onclick="toggleDownloadSubmenu(event)">⬇️ Descargar ▾</button>
           <div class="download-submenu" id="downloadSubmenu">
             <button class="sub-gear-item" onclick="DossierExporter.descargarImagen(); toggleGearMenu();">📸 Foto PNG</button>
@@ -403,8 +401,8 @@
       </div>
 
       <div class="radar-floating-footer">
-        <span style="color:#aaa;">Escala: 1 - 10</span>
-        <span id="radarStatusLabel" style="color:var(--pulse-color);">Calculando...</span>
+        <span style="color:#fff; text-shadow:0 2px 6px rgba(0,0,0,0.9);">Escala: 1 - 10</span>
+        <span id="radarStatusLabel" style="color:var(--pulse-color); text-shadow:0 2px 6px rgba(0,0,0,0.9);">Calculando...</span>
       </div>
     </div>
   </div>
@@ -443,7 +441,7 @@
     </div>
   </div>
 
-  <!-- CHECK-IN CON HISTORIAL DESPLEGABLE OCULTO POR DEFECTO -->
+  <!-- CHECK-IN -->
   <div id="viewForm" class="view-section">
     <div class="card">
       <div class="header">
@@ -542,7 +540,7 @@
     let userProfile = null;
     let cachedRecords = [];
     let chartInstances = {};
-    let tempVideoFile = null;
+    let tempMediaFile = null;
     let videoStartTime = 0;
     let videoEndTime = 60;
     let selectedTransitionMode = 'fade_sutil';
@@ -575,7 +573,8 @@
       descargarImagen: async function() {
         try {
           const viewport = document.getElementById('dossierViewport');
-          const canvas = await html2canvas(viewport, { scale: 2, useCORS: true, backgroundColor: '#070708', ignoreElements: (el) => el.classList.contains('hud-controls-bar') });
+          // Exportación PNG limpia ignorando controles y medios para conservar transparencia exacta
+          const canvas = await html2canvas(viewport, { scale: 2, useCORS: true, backgroundColor: null, ignoreElements: (el) => el.classList.contains('hud-controls-bar') || el.id === 'dossierMediaContainer' });
           const link = document.createElement('a');
           link.download = `Apex_Striker_${(userProfile?.name || 'Ficha').replace(/\s+/g, '_')}.png`;
           link.href = canvas.toDataURL('image/png');
@@ -584,10 +583,17 @@
       },
       descargarVideo: async function() {
         const video = document.getElementById('nativeProfileVideo');
+        const img = document.getElementById('nativeProfileImage');
+        
+        if (img.style.display !== 'none') {
+          this.descargarImagen();
+          return;
+        }
+
         if (!video.src || video.src === window.location.href) { alert('Sube un video primero.'); return; }
         try {
           const viewport = document.getElementById('dossierViewport');
-          const hudCanvas = await html2canvas(viewport, { scale: 1.5, backgroundColor: null, ignoreElements: (el) => el.classList.contains('hud-controls-bar') || el.id === 'nativeProfileVideo' });
+          const hudCanvas = await html2canvas(viewport, { scale: 1.5, backgroundColor: null, ignoreElements: (el) => el.classList.contains('hud-controls-bar') || el.id === 'dossierMediaContainer' });
           const compCanvas = document.createElement('canvas');
           compCanvas.width = 720; compCanvas.height = 1280;
           const compCtx = compCanvas.getContext('2d');
@@ -669,86 +675,118 @@
       if (v <= 2) emojiEl.innerText = "😞"; else if (v <= 4) emojiEl.innerText = "😐"; else if (v <= 7) emojiEl.innerText = "🙂"; else if (v <= 9) emojiEl.innerText = "😄"; else emojiEl.innerText = "🤩";
     }
 
-    function abrirModalVideo() { document.getElementById('videoModal').style.display = 'flex'; }
-    function cerrarModalVideo() { document.getElementById('videoModal').style.display = 'none'; tempVideoFile = null; document.getElementById('trimmerBox').style.display = 'none'; }
+    function abrirModalMedia() { document.getElementById('mediaModal').style.display = 'flex'; }
+    function cerrarModalMedia() { document.getElementById('mediaModal').style.display = 'none'; tempMediaFile = null; document.getElementById('trimmerBox').style.display = 'none'; document.getElementById('selectedFileLabel').innerText = 'Ningún archivo seleccionado'; }
+    
     function seleccionarColorPulso(color, el) {
       selectedPulseColor = color;
       document.querySelectorAll('.swatch-btn').forEach(s => s.classList.remove('selected'));
       if (el) el.classList.add('selected');
       document.documentElement.style.setProperty('--pulse-color', color);
     }
-    function procesarVideoSeleccionado(files) {
+
+    function procesarMediaSeleccionada(files) {
       if (!files || files.length === 0) return;
       const file = files[0];
-      const tempVideo = document.createElement('video');
-      tempVideo.preload = 'metadata';
-      tempVideo.onloadedmetadata = function() {
-        window.URL.revokeObjectURL(tempVideo.src);
-        const duration = tempVideo.duration;
-        tempVideoFile = file;
-        if (duration > 60.5) {
-          document.getElementById('trimmerBox').style.display = 'block';
-          document.getElementById('trimSlider').max = Math.max(0, Math.floor(duration - 60));
-          actualizarVentanaCorte(0);
-        } else {
-          document.getElementById('trimmerBox').style.display = 'none';
-          videoStartTime = 0; videoEndTime = duration;
-        }
-      };
-      tempVideo.src = URL.createObjectURL(file);
+      tempMediaFile = file;
+      document.getElementById('selectedFileLabel').innerText = file.name;
+
+      if (file.type.startsWith('video/')) {
+        const tempVideo = document.createElement('video');
+        tempVideo.preload = 'metadata';
+        tempVideo.onloadedmetadata = function() {
+          window.URL.revokeObjectURL(tempVideo.src);
+          const duration = tempVideo.duration;
+          if (duration > 60.5) {
+            document.getElementById('trimmerBox').style.display = 'block';
+            document.getElementById('trimSlider').max = Math.max(0, Math.floor(duration - 60));
+            actualizarVentanaCorte(0);
+          } else {
+            document.getElementById('trimmerBox').style.display = 'none';
+            videoStartTime = 0; videoEndTime = duration;
+          }
+        };
+        tempVideo.src = URL.createObjectURL(file);
+      } else {
+        document.getElementById('trimmerBox').style.display = 'none';
+      }
     }
+
     function actualizarVentanaCorte(val) {
       videoStartTime = parseFloat(val);
       videoEndTime = Math.min(videoStartTime + 60, videoStartTime + 30);
       document.getElementById('trimRangeTxt').innerText = `${videoStartTime.toFixed(0)}s - ${videoEndTime.toFixed(0)}s`;
     }
 
-    /* FUNCIÓN DE SUBIDA CON LIMPIEZA AUTOMÁTICA DEL VIDEO ANTERIOR EN LA NUBE */
-    async function guardarConfiguracionVideo() {
+    async function guardarConfiguracionMedia() {
       const email = document.getElementById('ciEmail').value.trim();
-      const btn = document.getElementById('btnGuardarAvatar');
+      const btn = document.getElementById('btnGuardarMedia');
       selectedTransitionMode = document.getElementById('transitionModeSelect').value;
       btn.disabled = true; btn.innerText = 'Guardando...';
       try {
-        let videoUrl = userProfile?.video_url || null;
+        let mediaUrl = userProfile?.video_url || null;
 
-        if (tempVideoFile && sb) {
-          // 1. Limpiar video anterior si existía para no dejar basura en Supabase Storage
+        if (tempMediaFile && sb) {
           if (userProfile && userProfile.video_url) {
             try {
               const oldUrl = userProfile.video_url;
               const pathParts = oldUrl.split('/avatars/');
               if (pathParts.length > 1) {
-                const oldPath = pathParts[1];
-                await sb.storage.from('avatars').remove([oldPath]);
+                await sb.storage.from('avatars').remove([pathParts[1]]);
               }
             } catch (errClean) {
-              console.warn('No se pudo borrar el video antiguo:', errClean);
+              console.warn('No se pudo borrar el archivo antiguo:', errClean);
             }
           }
 
-          // 2. Subir nuevo video
-          const ext = tempVideoFile.name.split('.').pop() || 'mp4';
-          const filePath = `videos/${Date.now()}_${email.replace(/[^a-zA-Z0-9]/g, '_')}.${ext}`;
-          const { error: uploadError } = await sb.storage.from('avatars').upload(filePath, tempVideoFile, { upsert: true });
+          const ext = tempMediaFile.name.split('.').pop() || 'mp4';
+          const filePath = `media/${Date.now()}_${email.replace(/[^a-zA-Z0-9]/g, '_')}.${ext}`;
+          const { error: uploadError } = await sb.storage.from('avatars').upload(filePath, tempMediaFile, { upsert: true });
           if (uploadError) throw uploadError;
 
           const { data: urlData } = sb.storage.from('avatars').getPublicUrl(filePath);
-          videoUrl = urlData.publicUrl;
+          mediaUrl = urlData.publicUrl;
         }
 
-        if (sb) {
-          await sb.from('apex_users').update({ video_url: videoUrl, loop_mode: selectedTransitionMode, aura_color: selectedPulseColor }).eq('email', email);
-          userProfile.video_url = videoUrl;
+        if (sb && userProfile?.id) {
+          const { error: updateError } = await sb.from('apex_users').update({ 
+            video_url: mediaUrl, 
+            aura_color: selectedPulseColor 
+          }).eq('id', userProfile.id);
+
+          if (updateError) throw updateError;
+          userProfile.video_url = mediaUrl;
+        } else {
+          throw new Error("No se encontró el ID de usuario activo para actualizar.");
         }
 
-        if (videoUrl) {
-          const vid = document.getElementById('nativeProfileVideo');
-          vid.src = videoUrl; vid.play().catch(() => {});
-        }
-
-        alert('¡Configuración aplicada y video actualizado con éxito!'); cerrarModalVideo();
+        aplicarVisualizacionMedia(mediaUrl);
+        alert('¡Configuración aplicada con éxito!'); cerrarModalMedia();
       } catch (err) { alert('Error: ' + err.message); } finally { btn.disabled = false; btn.innerText = 'Aplicar Configuración'; }
+    }
+
+    function aplicarVisualizacionMedia(url) {
+      const vid = document.getElementById('nativeProfileVideo');
+      const img = document.getElementById('nativeProfileImage');
+
+      if (!url) {
+        vid.style.display = 'none';
+        img.style.display = 'none';
+        return;
+      }
+
+      const esVideo = url.match(/\.(mp4|webm|ogg|mov)$/i);
+
+      if (esVideo) {
+        vid.src = url;
+        vid.style.display = 'block';
+        img.style.display = 'none';
+        vid.play().catch(() => {});
+      } else {
+        img.src = url;
+        img.style.display = 'block';
+        vid.style.display = 'none';
+      }
     }
 
     async function init() {
@@ -763,9 +801,9 @@
         const timeLeft = videoEndTime - currentTime;
         const progressInSegment = currentTime - videoStartTime;
         if (selectedTransitionMode === 'fade_sutil') {
-          if (progressInSegment <= 2.0) vid.style.opacity = Math.min(0.85, 0.1 + (progressInSegment / 2.0) * 0.75);
-          else if (timeLeft <= 2.0) vid.style.opacity = Math.max(0.1, (timeLeft / 2.0) * 0.75);
-          else vid.style.opacity = 0.85;
+          if (progressInSegment <= 2.0) vid.style.opacity = Math.min(1.0, 0.2 + (progressInSegment / 2.0) * 0.8);
+          else if (timeLeft <= 2.0) vid.style.opacity = Math.max(0.2, (timeLeft / 2.0) * 0.8);
+          else vid.style.opacity = 1.0;
         }
         if (currentTime >= videoEndTime) { vid.currentTime = videoStartTime; vid.play(); }
       });
@@ -808,9 +846,10 @@
           document.getElementById('displayEmail').innerText = data.email;
           const avatarUrl = data.photo_url || data.avatar_url || localStorage.getItem('apex_user_avatar');
           renderAvatarVisual(avatarUrl, data.name || data.email || 'ST');
-          if (data.loop_mode) { selectedTransitionMode = data.loop_mode; document.getElementById('transitionModeSelect').value = selectedTransitionMode; }
           if (data.aura_color) { selectedPulseColor = data.aura_color; document.documentElement.style.setProperty('--pulse-color', data.aura_color); }
-          if (data.video_url) { const vid = document.getElementById('nativeProfileVideo'); vid.src = data.video_url; vid.play().catch(() => {}); }
+          
+          aplicarVisualizacionMedia(data.video_url);
+
           const hoy = new Date(); hoy.setHours(0,0,0,0);
           const fechaExpStr = data.subscription_expires_at || data.membership_end;
           const badge = document.getElementById('displayStatus');
@@ -866,12 +905,11 @@
       return { nombre: "INICIADO", color: "#ffffff", estado: "En Desarrollo" };
     }
 
-    /* ESCALA DE GRISES ABSOLUTA CON SUTIL GRADIENTE CONDICIONAL (ROJO/VERDE) */
     function getColorDinamico(val) {
       const v = parseFloat(val) || 0;
-      if (v <= 2.5) return '#ff4d4d'; // Ligeramente rojizo para valores muy bajos
-      if (v >= 8.0) return '#22c55e'; // Tonalidad verdosa para valores muy altos
-      return '#ffffff'; // Neutras blancas del 3 al 7
+      if (v <= 2.5) return '#ff4d4d';
+      if (v >= 8.0) return '#22c55e';
+      return '#ffffff';
     }
 
     function actualizarDashboardConDatos(records) {
@@ -1006,7 +1044,7 @@
           datasets: [{
             data: dataPoints,
             borderColor: '#ffffff',
-            backgroundColor: 'rgba(255, 255, 255, 0.12)',
+            backgroundColor: 'rgba(255, 255, 255, 0.15)',
             borderWidth: 2,
             pointRadius: 4,
             pointBackgroundColor: pointColors
@@ -1014,14 +1052,14 @@
         },
         options: {
           responsive: true, maintainAspectRatio: false,
-          animation: { duration: 600, easing: 'easeInOutQuad' }, // Transición suave nativa
+          animation: { duration: 600, easing: 'easeInOutQuad' },
           plugins: { legend: { display: false } },
           scales: {
             r: {
               min: 0, max: 10, ticks: { display: false, stepSize: 2 },
-              angleLines: { color: 'rgba(255, 255, 255, 0.25)' },
-              grid: { color: 'rgba(255, 255, 255, 0.18)' },
-              pointLabels: { color: '#f0f0f5', font: { size: 9, weight: '800' } }
+              angleLines: { color: 'rgba(255, 255, 255, 0.3)' },
+              grid: { color: 'rgba(255, 255, 255, 0.2)' },
+              pointLabels: { color: '#ffffff', font: { size: 9, weight: '800' } }
             }
           }
         }
@@ -1042,7 +1080,7 @@
           datasets: [{
             data: dataPoints,
             borderColor: '#ffffff',
-            backgroundColor: 'rgba(255, 255, 255, 0.08)',
+            backgroundColor: 'rgba(255, 255, 255, 0.1)',
             borderWidth: 2,
             tension: 0.3,
             fill: true,
@@ -1052,7 +1090,7 @@
         },
         options: {
           responsive: true, maintainAspectRatio: false,
-          animation: { duration: 600, easing: 'easeInOutQuad' }, // Transición suave al cambiar filtros de tiempo
+          animation: { duration: 600, easing: 'easeInOutQuad' },
           plugins: { legend: { display: false } },
           scales: {
             x: { ticks: { color: '#666', font: { size: 9 } }, grid: { display: false } },
@@ -1062,7 +1100,6 @@
       });
     }
 
-    /* GESTIÓN DE NOTIFICACIONES INTELIGENTES */
     async function gestionarNotificacionesInteligentes(email) {
       if (!sb || !email) return;
       const area = document.getElementById('notifArea');
@@ -1071,19 +1108,28 @@
         if (error || !data || data.length === 0) { area.style.display = 'none'; return; }
 
         const ahora = new Date();
-        const validas = data.filter(n => {
+        const validas = [];
+        
+        for (let n of data) {
           const fechaCreacion = new Date(n.created_at);
-          return (ahora - fechaCreacion) / (1000 * 60 * 60) <= 24; // Expiran a las 24 horas
-        }).slice(0, 3); // Máximo 3 visibles
+          const horasTranscurridas = (ahora - fechaCreacion) / (1000 * 60 * 60);
+          
+          if (horasTranscurridas > 24) {
+            await sb.from('apex_notifications').delete().eq('id', n.id);
+          } else {
+            validas.push(n);
+          }
+        }
 
-        if (validas.length === 0) { area.style.display = 'none'; return; }
+        const visibles = validas.slice(0, 3);
+        if (visibles.length === 0) { area.style.display = 'none'; return; }
 
         area.style.display = 'flex';
-        area.innerHTML = validas.map(n => {
+        area.innerHTML = visibles.map(n => {
           const d = new Date(n.created_at);
           const timeStr = `${d.getDate()}/${d.getMonth()+1} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
           return `
-            <div class="notif-card" id="notif-${n.id}" ontouchstart="touchStart(event, '${n.id}')" ontouchend="touchEnd(event, '${n.id}')">
+            <div class="notif-card" id="notif-${n.id}">
               <div class="notif-top">
                 <span class="notif-title">${n.title || 'Aviso Táctico'}</span>
                 <div class="notif-meta">
@@ -1100,15 +1146,16 @@
 
     async function eliminarNotificacion(id) {
       const card = document.getElementById(`notif-${id}`);
-      if (card) { card.style.transform = 'translateX(100px)'; card.style.opacity = '0'; setTimeout(() => card.remove(), 200); }
-      if (sb) { await sb.from('apex_notifications').delete().eq('id', id); }
+      if (card) { 
+        card.style.transform = 'translateX(100px)'; 
+        card.style.opacity = '0'; 
+        setTimeout(() => card.remove(), 200); 
+      }
+      if (sb) { 
+        await sb.from('apex_notifications').delete().eq('id', id); 
+      }
     }
 
-    let touchStartX = 0;
-    function touchStart(e, id) { touchStartX = e.changedTouches[0].screenX; }
-    function touchEnd(e, id) { if (Math.abs(e.changedTouches[0].screenX - touchStartX) > 70) eliminarNotificacion(id); }
-
-    /* CARGAR PLAN DE ENTRENAMIENTO BLINDADO */
     async function cargarPlanEntrenamiento() {
       const pilar = document.getElementById('planPilarSelect').value;
       const semana = document.getElementById('planSemanaSelect').value;
