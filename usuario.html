@@ -87,7 +87,6 @@
       padding: 6px 8px; font-size: 0.7rem; border-radius: 4px; outline: none; color-scheme: dark;
     }
 
-    /* BANDEJA DE NOTIFICACIONES INTELIGENTES (ELIMINABLES Y SWIPE) */
     .notif-container { display: none; flex-direction: column; gap: 6px; margin-bottom: 12px; }
     .notif-card {
       background: rgba(22, 22, 24, 0.95); backdrop-filter: blur(6px);
@@ -122,7 +121,7 @@
     }
     .dossier-video-bg {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      object-fit: cover; z-index: 1; opacity: 0.85; filter: contrast(1.05) brightness(0.95);
+      object-fit: cover; z-index: 1; opacity: 0.85; filter: grayscale(100%) contrast(1.1) brightness(0.9);
     }
     .dossier-ambient-overlay {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -216,7 +215,6 @@
     .summary-txt { font-size: 0.62rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800; }
     .history-card { background: #141418; border: 1px solid #222226; border-radius: 4px; padding: 8px 10px; margin-top: 6px; font-size: 0.72rem; }
 
-    /* ESTILOS PARA HISTORIAL DESPLEGABLE EN CHECK-IN */
     .history-dropdown-header {
       display: flex; justify-content: space-between; align-items: center;
       background: #16161a; border: 1px solid var(--border-color); border-radius: 6px;
@@ -344,7 +342,7 @@
     </div>
   </div>
 
-  <!-- BANDEJA DE NOTIFICACIONES (MÁX 3, FECHA/HORA, X Y SWIPE) -->
+  <!-- BANDEJA DE NOTIFICACIONES INTELIGENTES -->
   <div id="notifArea" class="notif-container"></div>
 
   <nav class="module-nav">
@@ -445,7 +443,7 @@
     </div>
   </div>
 
-  <!-- CHECK-IN CON HISTORIAL DESPLEGABLE Y FILTROS -->
+  <!-- CHECK-IN CON HISTORIAL DESPLEGABLE OCULTO POR DEFECTO -->
   <div id="viewForm" class="view-section">
     <div class="card">
       <div class="header">
@@ -479,7 +477,6 @@
         <button type="submit" id="btnEnviar" class="btn-submit">Enviar Registro</button>
       </form>
 
-      <!-- HISTORIAL DESPLEGABLE POR DEFECTO OCULTO (MINIMIZADO) -->
       <div>
         <div class="history-dropdown-header" onclick="toggleHistorialDesplegable()">
           <span>Historial de Check-ins (Bitácora)</span>
@@ -569,12 +566,9 @@
       document.getElementById('downloadSubmenu')?.classList.remove('show');
     });
 
-    /* TOGGLE HISTORIAL DESPLEGABLE CHECK-IN */
     function toggleHistorialDesplegable() {
-      const body = document.getElementById('historyCollapsibleBody');
-      const chevron = document.getElementById('historyChevron');
-      body.classList.toggle('show');
-      chevron.classList.toggle('open');
+      document.getElementById('historyCollapsibleBody').classList.toggle('show');
+      document.getElementById('historyChevron').classList.toggle('open');
     }
 
     const DossierExporter = {
@@ -709,6 +703,7 @@
       document.getElementById('trimRangeTxt').innerText = `${videoStartTime.toFixed(0)}s - ${videoEndTime.toFixed(0)}s`;
     }
 
+    /* FUNCIÓN DE SUBIDA CON LIMPIEZA AUTOMÁTICA DEL VIDEO ANTERIOR EN LA NUBE */
     async function guardarConfiguracionVideo() {
       const email = document.getElementById('ciEmail').value.trim();
       const btn = document.getElementById('btnGuardarAvatar');
@@ -716,22 +711,43 @@
       btn.disabled = true; btn.innerText = 'Guardando...';
       try {
         let videoUrl = userProfile?.video_url || null;
+
         if (tempVideoFile && sb) {
+          // 1. Limpiar video anterior si existía para no dejar basura en Supabase Storage
+          if (userProfile && userProfile.video_url) {
+            try {
+              const oldUrl = userProfile.video_url;
+              const pathParts = oldUrl.split('/avatars/');
+              if (pathParts.length > 1) {
+                const oldPath = pathParts[1];
+                await sb.storage.from('avatars').remove([oldPath]);
+              }
+            } catch (errClean) {
+              console.warn('No se pudo borrar el video antiguo:', errClean);
+            }
+          }
+
+          // 2. Subir nuevo video
           const ext = tempVideoFile.name.split('.').pop() || 'mp4';
           const filePath = `videos/${Date.now()}_${email.replace(/[^a-zA-Z0-9]/g, '_')}.${ext}`;
           const { error: uploadError } = await sb.storage.from('avatars').upload(filePath, tempVideoFile, { upsert: true });
           if (uploadError) throw uploadError;
+
           const { data: urlData } = sb.storage.from('avatars').getPublicUrl(filePath);
           videoUrl = urlData.publicUrl;
         }
+
         if (sb) {
           await sb.from('apex_users').update({ video_url: videoUrl, loop_mode: selectedTransitionMode, aura_color: selectedPulseColor }).eq('email', email);
+          userProfile.video_url = videoUrl;
         }
+
         if (videoUrl) {
           const vid = document.getElementById('nativeProfileVideo');
           vid.src = videoUrl; vid.play().catch(() => {});
         }
-        alert('¡Configuración aplicada!'); cerrarModalVideo();
+
+        alert('¡Configuración aplicada y video actualizado con éxito!'); cerrarModalVideo();
       } catch (err) { alert('Error: ' + err.message); } finally { btn.disabled = false; btn.innerText = 'Aplicar Configuración'; }
     }
 
@@ -850,12 +866,12 @@
       return { nombre: "INICIADO", color: "#ffffff", estado: "En Desarrollo" };
     }
 
-    /* FUNCIÓN DINÁMICA DE GRADIENTE SEGÚN EL VALOR NUMÉRICO (ROJO BAJO, BLANCO MEDIO, VERDE ALTO) */
+    /* ESCALA DE GRISES ABSOLUTA CON SUTIL GRADIENTE CONDICIONAL (ROJO/VERDE) */
     function getColorDinamico(val) {
       const v = parseFloat(val) || 0;
-      if (v <= 2.5) return '#ff4d4d'; // Ligeramente rojizo para notas muy bajas
-      if (v >= 8.0) return '#22c55e'; // Tonalidad verdosa para notas muy altas
-      return '#ffffff'; // Blancas / neutras del 3 al 7
+      if (v <= 2.5) return '#ff4d4d'; // Ligeramente rojizo para valores muy bajos
+      if (v >= 8.0) return '#22c55e'; // Tonalidad verdosa para valores muy altos
+      return '#ffffff'; // Neutras blancas del 3 al 7
     }
 
     function actualizarDashboardConDatos(records) {
@@ -890,7 +906,6 @@
       renderizarHistorialCheckins(cachedRecords);
     }
 
-    /* FILTRAR Y RENDERIZAR HISTORIAL EN CHECK-IN */
     function filtrarHistorialCheckin(tipo, btn) {
       filtroHistorialActual = tipo;
       document.querySelectorAll('.h-filter-btn').forEach(b => b.classList.remove('active'));
@@ -974,15 +989,14 @@
       const escala = determinarEscalaOficial(globalPct);
 
       document.getElementById('radarStatusLabel').innerText = `${escala.estado} (${globalPct}%)`;
-      renderRadarChart(averages, escala.color, escala.color + '28');
+      renderRadarChart(averages);
     }
 
-    function renderRadarChart(dataPoints, color, bgColor) {
+    function renderRadarChart(dataPoints) {
       if (chartInstances['chartRadar']) chartInstances['chartRadar'].destroy();
       const canvasEl = document.getElementById('chartRadar');
       if (!canvasEl) return;
 
-      // Asignar colores dinámicos a cada punto del radar según su puntaje
       const pointColors = dataPoints.map(val => getColorDinamico(val));
 
       chartInstances['chartRadar'] = new Chart(canvasEl.getContext('2d'), {
@@ -992,7 +1006,7 @@
           datasets: [{
             data: dataPoints,
             borderColor: '#ffffff',
-            backgroundColor: bgColor,
+            backgroundColor: 'rgba(255, 255, 255, 0.12)',
             borderWidth: 2,
             pointRadius: 4,
             pointBackgroundColor: pointColors
@@ -1000,6 +1014,7 @@
         },
         options: {
           responsive: true, maintainAspectRatio: false,
+          animation: { duration: 600, easing: 'easeInOutQuad' }, // Transición suave nativa
           plugins: { legend: { display: false } },
           scales: {
             r: {
@@ -1037,6 +1052,7 @@
         },
         options: {
           responsive: true, maintainAspectRatio: false,
+          animation: { duration: 600, easing: 'easeInOutQuad' }, // Transición suave al cambiar filtros de tiempo
           plugins: { legend: { display: false } },
           scales: {
             x: { ticks: { color: '#666', font: { size: 9 } }, grid: { display: false } },
@@ -1046,7 +1062,7 @@
       });
     }
 
-    /* GESTIÓN DE NOTIFICACIONES INTELIGENTES (MÁX 3, EXIRAN 24H, CON CERRAR Y SWIPE) */
+    /* GESTIÓN DE NOTIFICACIONES INTELIGENTES */
     async function gestionarNotificacionesInteligentes(email) {
       if (!sb || !email) return;
       const area = document.getElementById('notifArea');
@@ -1057,8 +1073,8 @@
         const ahora = new Date();
         const validas = data.filter(n => {
           const fechaCreacion = new Date(n.created_at);
-          return (ahora - fechaCreacion) / (1000 * 60 * 60) <= 24;
-        }).slice(0, 3); // Máximo 3 notificaciones visibles
+          return (ahora - fechaCreacion) / (1000 * 60 * 60) <= 24; // Expiran a las 24 horas
+        }).slice(0, 3); // Máximo 3 visibles
 
         if (validas.length === 0) { area.style.display = 'none'; return; }
 
@@ -1090,9 +1106,9 @@
 
     let touchStartX = 0;
     function touchStart(e, id) { touchStartX = e.changedTouches[0].screenX; }
-    function touchEnd(e, id) { if (e.changedTouches[0].screenX - touchStartX > 70 || touchStartX - e.changedTouches[0].screenX > 70) eliminarNotificacion(id); }
+    function touchEnd(e, id) { if (Math.abs(e.changedTouches[0].screenX - touchStartX) > 70) eliminarNotificacion(id); }
 
-    /* CARGAR PLAN DE ENTRENAMIENTO */
+    /* CARGAR PLAN DE ENTRENAMIENTO BLINDADO */
     async function cargarPlanEntrenamiento() {
       const pilar = document.getElementById('planPilarSelect').value;
       const semana = document.getElementById('planSemanaSelect').value;
@@ -1111,7 +1127,7 @@
           .maybeSingle();
 
         if (error || !data) {
-          container.innerHTML = '<span style="color:var(--text-muted);font-size:0.7rem;">No hay charlas registradas para esta combinación exacta en la base (asegúrate de probar en servidor web para evitar CORS).</span>';
+          container.innerHTML = `<span style="color:var(--text-muted);font-size:0.7rem;">No hay charlas registradas para ${userNivelOficial} - ${pilar} - ${semana} en la base de datos.</span>`;
           return;
         }
 
