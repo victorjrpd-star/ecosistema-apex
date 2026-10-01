@@ -6,6 +6,14 @@
   <meta name="theme-color" content="#0c0c0c">
   <title>Ecosistema Apex</title>
   
+  <!-- CONFIGURACIÓN PWA & ICONOS OFICIALES -->
+  <link rel="manifest" href="./manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Ecosistema Apex">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+  <link rel="icon" type="image/png" href="./icon-192.png">
+
   <!-- CDN Oficial de Supabase JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -273,7 +281,6 @@
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
-      // Mostrar botón cristalino si la app NO está instalada y el evento se dispara
       if (!window.matchMedia('(display-mode: standalone)').matches) {
         document.getElementById('installPwaWrapper').style.display = 'flex';
       }
@@ -301,7 +308,6 @@
     async function initPortal() {
       if (!sb) return;
 
-      // Ocultar botón de instalación si ya corre como app instalada (standalone)
       if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
         document.getElementById('installPwaWrapper').style.display = 'none';
       }
@@ -406,7 +412,6 @@
         profileData = { id: userId, email: '', name: 'Usuario Apex', profile_id: 'estudiante', role: 'estudiante', photo_url: null, avatar_url: null, subscription_status: 'activo' };
       }
 
-      // VALIDACIÓN DE MEMBRESÍA (EXIMIENDO AL STAFF Y ADMINISTRADORES)
       const rolActual = (profileData.role || '').toLowerCase();
       const perfilActual = (profileData.profile_id || '').toLowerCase();
       const esStaff = ['admin', 'administrador', 'coach', 'supervisor', 'coordinador'].includes(rolActual) || 
@@ -433,7 +438,6 @@
 
       currentSessionUser = profileData;
 
-      // Guardar email, avatar y rol/perfil en localStorage para control offline y de submódulos
       localStorage.setItem('apex_user_email', profileData.email || '');
       localStorage.setItem('apex_user_profile', profileData.profile_id || 'estudiante');
       if (profileData.photo_url || profileData.avatar_url) {
@@ -457,7 +461,6 @@
         userModules = [{ id: 'b_usuario', title: 'Ficha Estudiante', url: 'usuario.html' }];
       }
 
-      // Enviar dinámicamente al Service Worker los submódulos específicos de este rol para caché offline selectiva
       if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
         const urlsToCache = userModules.map(m => m.url);
         navigator.serviceWorker.controller.postMessage({
@@ -540,7 +543,6 @@
       }
     }
 
-    /* SUBIDA DE FOTO EXCLUSIVA DESDE APEX CORE */
     async function subirFotoDesdeDispositivo(files) {
       if (!files || files.length === 0 || !sb || !currentSessionUser) return;
       
