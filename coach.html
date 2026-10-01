@@ -1196,31 +1196,31 @@
               const { data: urlData } = supabaseClient.storage.from('comprobantes').getPublicUrl(filePath);
               receiptUrl = urlData.publicUrl;
             }
-
-            // 1. Dar los 3 días de gracia al striker
-            await supabaseClient.from('apex_users').update({ 
-              subscription_status: 'activo',
-              is_active: true,
-              subscription_expires_at: expDateISO
-            }).eq('email', selectedStriker.email);
-
-            // 2. Registrar en apex_payments con accounting_status = 'pendiente_contabilidad'
-            await supabaseClient.from('apex_payments').insert({
-              user_email: selectedStriker.email,
-              coach_email: currentCoachEmail,
-              plan_type: `${planDays} Días (Reportado por Coach)`,
-              amount: planDays === 30 ? 120000 : (planDays === 90 ? 320000 : 50000),
-              receipt_urls: receiptUrl ? [receiptUrl] : [],
-              accounting_status: 'pendiente_contabilidad'
-            });
-
-            await supabaseClient.from('apex_notifications').insert({
-              user_email: selectedStriker.email,
-              title: 'Membresía Temporal (3 Días de Gracia)',
-              message: `Tu acceso fue habilitado temporalmente hasta el ${expDateLegible} mientras el contador consolida tu pago.`,
-              type: 'membresia'
-            });
           }
+
+          // 1. Dar los 3 días de gracia al striker
+          await supabaseClient.from('apex_users').update({ 
+            subscription_status: 'activo',
+            is_active: true,
+            subscription_expires_at: expDateISO
+          }).eq('email', selectedStriker.email);
+
+          // 2. Registrar en apex_payments con monto limpio en 0 (lo define el contador luego) y los datos reportados
+          await supabaseClient.from('apex_payments').insert({
+            user_email: selectedStriker.email,
+            coach_email: currentCoachEmail,
+            plan_type: `${planDays} Días (Reportado por Coach)`,
+            amount: 0,
+            receipt_urls: receiptUrl ? [receiptUrl] : [],
+            accounting_status: 'pendiente_contabilidad'
+          });
+
+          await supabaseClient.from('apex_notifications').insert({
+            user_email: selectedStriker.email,
+            title: 'Membresía Temporal (3 Días de Gracia)',
+            message: `Tu acceso fue habilitado temporalmente hasta el ${expDateLegible} mientras el contador consolida tu pago.`,
+            type: 'membresia'
+          });
 
           alert(`¡Acceso temporal de 3 días habilitado!\nStriker: ${selectedStriker.email}\nGracia hasta: ${expDateLegible}`);
           document.getElementById('studentEmailSearch').value = '';
