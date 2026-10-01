@@ -3,123 +3,101 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#0a0a0a">
-  <title>Apex | Contabilidad & Tesorería</title>
+  <meta name="theme-color" content="#000000">
+  <title>Apex | Contabilidad & Caja Táctica</title>
 
-  <!-- Supabase JS, Chart.js & Html2Canvas -->
+  <!-- Supabase JS & Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
   <style>
     :root {
-      --bg: #0a0a0a;
-      --card-bg: #121212;
-      --border: #222222;
+      --bg: #000000;
+      --card-bg: #0a0a0c;
+      --card-sub: #111115;
+      --border: #1a1a20;
       --accent: #e50914;
-      --text-main: #ffffff;
-      --text-muted: #888888;
+      --accent-dim: rgba(229, 9, 20, 0.1);
+      --text-main: #f0f0f2;
+      --text-muted: #777780;
       --status-ok: #22c55e;
       --status-warn: #eab308;
       --status-info: #3b82f6;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background: var(--bg); color: var(--text-main); padding: 14px; max-width: 720px; margin: 0 auto; padding-bottom: 70px; }
+    body { background: var(--bg); color: var(--text-main); padding: 10px; max-width: 680px; margin: 0 auto; padding-bottom: 90px; }
 
-    .header { border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
-    .title { font-size: 1.1rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
+    .header { border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+    .title { font-size: 0.95rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
     .title span { color: var(--accent); }
-    .badge-role { font-size: 0.65rem; font-weight: 800; background: #1a0808; color: var(--accent); border: 1px solid var(--accent); padding: 4px 8px; border-radius: 4px; text-transform: uppercase; }
+    .badge-role { font-size: 0.58rem; font-weight: 800; background: var(--card-sub); color: var(--text-muted); border: 1px solid var(--border); padding: 3px 6px; border-radius: 4px; text-transform: uppercase; }
 
-    /* NAVEGACIÓN */
-    .sub-nav { display: flex; gap: 4px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
+    /* NAVEGACIÓN INFERIOR / TÁCTICA */
+    .sub-nav { display: flex; gap: 3px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+    .sub-nav::-webkit-scrollbar { display: none; }
     .nav-btn {
-      flex: 1; min-width: 85px; padding: 9px 4px; background: #161616; border: 1px solid var(--border);
-      color: var(--text-muted); font-size: 0.66rem; font-weight: 800; text-transform: uppercase;
-      border-radius: 6px; cursor: pointer; text-align: center; transition: 0.2s; white-space: nowrap; position: relative;
+      flex: 1; min-width: 68px; padding: 7px 3px; background: var(--card-bg); border: 1px solid var(--border);
+      color: var(--text-muted); font-size: 0.58rem; font-weight: 800; text-transform: uppercase;
+      border-radius: 4px; cursor: pointer; text-align: center; transition: 0.2s; white-space: nowrap; position: relative;
     }
-    .nav-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-    .nav-badge { position: absolute; top: -4px; right: -2px; background: var(--accent); color: #fff; border-radius: 10px; font-size: 0.55rem; padding: 1px 5px; font-weight: 900; }
+    .nav-btn.active { background: #fff; color: #000; border-color: #fff; }
+    .nav-badge { position: absolute; top: -4px; right: -2px; background: var(--accent); color: #fff; border-radius: 10px; font-size: 0.52rem; padding: 1px 4px; font-weight: 900; }
 
     .tab-section { display: none; }
     .tab-section.active { display: block; }
 
-    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin-bottom: 12px; }
-    .card-title { font-size: 0.74rem; font-weight: 900; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-bottom: 10px; }
+    .card-title { font-size: 0.7rem; font-weight: 900; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
 
-    .form-group { margin-bottom: 10px; }
-    label { display: block; font-size: 0.66rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
-    .form-control { width: 100%; padding: 10px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 6px; font-weight: 600; outline: none; font-size: 0.82rem; color-scheme: dark; }
+    .form-group { margin-bottom: 8px; }
+    label { display: block; font-size: 0.62rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted); margin-bottom: 3px; }
+    .form-control { width: 100%; padding: 8px; background: var(--card-sub); border: 1px solid var(--border); color: #fff; border-radius: 4px; font-weight: 600; outline: none; font-size: 0.78rem; color-scheme: dark; }
     .form-control:focus { border-color: var(--accent); }
 
-    .btn { background: var(--accent); color: #fff; border: none; padding: 11px; width: 100%; font-weight: 900; text-transform: uppercase; border-radius: 6px; cursor: pointer; font-size: 0.82rem; letter-spacing: 0.5px; transition: 0.2s; }
-    .btn:disabled { background: #333; color: #777; cursor: not-allowed; }
-    .btn-secondary { background: #1f1f1f; border: 1px solid #333; color: #fff; padding: 8px 12px; font-size: 0.7rem; font-weight: 800; border-radius: 4px; cursor: pointer; text-transform: uppercase; }
-    .btn-success { background: var(--status-ok); color: #000; font-weight: 900; border: none; padding: 8px 12px; border-radius: 4px; font-size: 0.7rem; cursor: pointer; text-transform: uppercase; }
+    .btn { background: var(--accent); color: #fff; border: none; padding: 10px; width: 100%; font-weight: 900; text-transform: uppercase; border-radius: 4px; cursor: pointer; font-size: 0.75rem; letter-spacing: 0.5px; transition: 0.2s; }
+    .btn:disabled { background: #151518; color: #444; cursor: not-allowed; }
+    .btn-secondary { background: var(--card-sub); border: 1px solid var(--border); color: #ccc; padding: 6px 10px; font-size: 0.65rem; font-weight: 800; border-radius: 4px; cursor: pointer; text-transform: uppercase; }
+    .btn-success { background: #113318; color: var(--status-ok); border: 1px solid rgba(34,197,94,0.3); font-weight: 900; padding: 6px 10px; border-radius: 4px; font-size: 0.65rem; cursor: pointer; text-transform: uppercase; }
 
-    /* KPIS & SALDOS */
-    .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
-    .kpi-box { background: #161616; border: 1px solid var(--border); border-radius: 6px; padding: 10px; text-align: center; }
-    .kpi-num { font-size: 1.1rem; font-weight: 900; color: #fff; }
-    .kpi-label { font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800; margin-top: 2px; }
+    /* KPIS */
+    .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 10px; }
+    .kpi-box { background: var(--card-sub); border: 1px solid var(--border); border-radius: 4px; padding: 8px; text-align: center; }
+    .kpi-num { font-size: 0.95rem; font-weight: 900; color: #fff; }
+    .kpi-label { font-size: 0.52rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800; margin-top: 2px; }
 
-    /* LISTA REDENCIÓN MEMBRESÍAS */
+    /* TIENDA / FICHAS ESTILO TARJETA */
+    .store-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 10px; }
+    .product-card {
+      background-size: cover; background-position: center; border-radius: 6px; border: 1px solid var(--border);
+      height: 110px; display: flex; flex-direction: column; justify-content: flex-end; padding: 8px; position: relative; overflow: hidden; cursor: pointer;
+      background-color: #0d0d10;
+    }
+    .product-card::before {
+      content: ''; position: absolute; top:0; left:0; right:0; bottom:0;
+      background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.4) 100%);
+    }
+    .product-card > * { position: relative; z-index: 1; }
+    .product-title { font-size: 0.72rem; font-weight: 900; color: #fff; text-transform: uppercase; }
+    .product-price { font-size: 0.75rem; font-weight: 900; color: var(--status-ok); margin-top: 2px; }
+
+    .cart-box { background: var(--card-sub); border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin-bottom: 10px; }
+
     .inflow-item {
-      background: #161618; border-left: 3px solid var(--status-ok); border-top: 1px solid var(--border);
+      background: var(--card-sub); border-left: 2px solid var(--status-ok); border-top: 1px solid var(--border);
       border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
-      border-radius: 6px; padding: 10px 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 8px;
+      border-radius: 4px; padding: 8px 10px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; gap: 6px;
     }
-    .inflow-meta { font-size: 0.68rem; color: var(--text-muted); margin-top: 2px; }
-
-    /* FILTROS DE TIEMPO */
-    .period-filter-wrap { background: #101012; border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin-bottom: 12px; }
-    .filter-btn-group { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
-    .filter-btn {
-      flex: 1; min-width: 65px; padding: 7px 4px; background: #18181a; border: 1px solid var(--border);
-      color: var(--text-muted); border-radius: 4px; font-size: 0.65rem; font-weight: 800;
-      text-transform: uppercase; cursor: pointer; text-align: center; transition: 0.2s;
-    }
-    .filter-btn.active { background: #fff; color: #000; border-color: #fff; }
-    .period-navigator { display: flex; justify-content: space-between; align-items: center; background: #161616; padding: 6px 10px; border-radius: 4px; font-size: 0.72rem; font-weight: 800; }
-    .nav-arrow { background: none; border: none; color: #fff; font-size: 1rem; cursor: pointer; padding: 0 8px; }
-
-    /* GRÁFICA DE DONA */
-    .chart-box { height: 240px; position: relative; margin: 10px 0; }
-    .cat-stat-item { display: flex; justify-content: space-between; align-items: center; padding: 7px 10px; background: #141416; border: 1px solid #202022; border-radius: 4px; margin-top: 5px; font-size: 0.74rem; }
-    .cat-pill { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
-
-    /* DOCUMENTOS (ESTÉTICA NOIR TOTAL) */
-    .document-preview-box {
-      background: #000000; border: 1px solid #333333; border-radius: 8px;
-      padding: 24px; color: #ffffff; margin-top: 12px; position: relative;
-    }
-    .doc-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #222; padding-bottom: 12px; margin-bottom: 14px; }
-    .doc-brand { font-size: 1.3rem; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: #fff; }
-    .doc-brand span { color: var(--accent); }
-    .doc-title { font-size: 0.85rem; font-weight: 900; text-transform: uppercase; text-align: right; color: #ccc; }
-    .doc-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 0.75rem; }
-    .doc-table th { border-bottom: 1px solid #333; padding: 6px 4px; text-align: left; color: var(--text-muted); text-transform: uppercase; font-size: 0.65rem; }
-    .doc-table td { border-bottom: 1px solid #1a1a1a; padding: 8px 4px; }
-    .doc-total-box { margin-top: 16px; border-top: 2px solid #333; padding-top: 10px; display: flex; justify-content: space-between; align-items: baseline; font-size: 1.15rem; font-weight: 900; }
-
-    /* TARJETAS DE INVERSIONISTAS */
-    .investor-card {
-      background: #161618; border: 1px solid var(--border); border-radius: 6px;
-      padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 8px;
-    }
+    .inflow-meta { font-size: 0.6rem; color: var(--text-muted); margin-top: 2px; }
 
     .modal-overlay {
       display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.85); backdrop-filter: blur(4px); z-index: 100;
-      align-items: center; justify-content: center; padding: 14px;
+      background: rgba(0,0,0,0.9); backdrop-filter: blur(2px); z-index: 100;
+      align-items: center; justify-content: center; padding: 12px;
     }
 
-    @media print {
-      body * { visibility: hidden; }
-      .document-preview-box, .document-preview-box * { visibility: visible; }
-      .document-preview-box { position: absolute; left: 0; top: 0; width: 100%; border: none; padding: 0; }
-      .no-print { display: none !important; }
+    #ticketFactura {
+      background: #fff; color: #111; padding: 20px; border-radius: 6px; width: 100%; max-width: 360px; font-family: monospace; position: relative;
     }
   </style>
 </head>
@@ -127,385 +105,259 @@
 
   <div class="header">
     <div class="title">Apex <span>Contabilidad</span></div>
-    <div class="badge-role">Tesorería & Dividendos</div>
+    <div class="badge-role" id="lblEstadoCaja">Caja Cerrada</div>
   </div>
 
   <!-- NAVEGACIÓN -->
   <div class="sub-nav">
-    <button class="nav-btn active" onclick="switchTab('tabDashboard', this)">📊 Dashboard</button>
-    <button class="nav-btn" onclick="switchTab('tabInversionistas', this)">💼 Socios</button>
+    <button class="nav-btn active" onclick="switchTab('tabGlobal', this)">📊 General</button>
+    <button class="nav-btn" onclick="switchTab('tabCaja', this)">💵 Caja</button>
+    <button class="nav-btn" onclick="switchTab('tabTienda', this)">🛍️ Tienda</button>
     <button class="nav-btn" onclick="switchTab('tabBandejaCoach', this)">
-      📥 Membresías <span id="badgeCoachCount" class="nav-badge" style="display:none;">0</span>
+      📥 Sala <span id="badgeCoachCount" class="nav-badge" style="display:none;">0</span>
     </button>
-    <button class="nav-btn" onclick="switchTab('tabCobroGym', this)">🏢 Cobro Gym</button>
-    <button class="nav-btn" onclick="switchTab('tabFacturacion', this)">🧾 Factura</button>
     <button class="nav-btn" onclick="switchTab('tabCuentas', this)">🏦 Cuentas</button>
+    <button class="nav-btn" onclick="switchTab('tabNomina', this)">👥 Nómina</button>
+    <button class="nav-btn" onclick="switchTab('tabDeudores', this)">📒 Deudores</button>
+    <button class="nav-btn" onclick="switchTab('tabMovimientos', this)">📋 Historial</button>
   </div>
 
-  <!-- ================= SUBMÓDULO 1: DASHBOARD CON DONA ================= -->
-  <div id="tabDashboard" class="tab-section active">
-    <div class="period-filter-wrap">
-      <div class="filter-btn-group">
-        <button class="filter-btn" onclick="FiltroContable.setModo('semanal', this)">Semanal</button>
-        <button class="filter-btn active" onclick="FiltroContable.setModo('quincenal', this)">Quincenal</button>
-        <button class="filter-btn" onclick="FiltroContable.setModo('mensual', this)">Mensual</button>
-        <button class="filter-btn" onclick="FiltroContable.setModo('libre', this)">Libre</button>
-      </div>
-
-      <div class="period-navigator" id="periodNavBox">
-        <button class="nav-arrow" onclick="FiltroContable.navegar(-1)">◀</button>
-        <span id="periodDisplayTxt">Cargando período...</span>
-        <button class="nav-arrow" onclick="FiltroContable.navegar(1)">▶</button>
-      </div>
-
-      <div id="customDateRangeBox" style="display:none; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
-        <input type="date" id="dateRangeStart" class="form-control" onchange="FiltroContable.aplicarLibre()">
-        <input type="date" id="dateRangeEnd" class="form-control" onchange="FiltroContable.aplicarLibre()">
-      </div>
-    </div>
-
-    <!-- KPIS DEL PERÍODO -->
+  <!-- ================= 0. MÉTRICAS GENERALES & GRÁFICA APEX ================= -->
+  <div id="tabGlobal" class="tab-section active">
     <div class="kpi-grid">
-      <div class="kpi-box">
-        <div class="kpi-num" id="kpiIngresos" style="color: var(--status-ok);">$0</div>
-        <div class="kpi-label">Ingresos</div>
+      <div class="kpi-box" style="grid-column: span 3; background: var(--card-sub); border: 1px solid var(--border);">
+        <div class="kpi-num" id="kpiTotalEmpresa" style="font-size: 1.25rem; color: var(--status-ok);">$0</div>
+        <div class="kpi-label">Patrimonio Total en Cuentas</div>
       </div>
       <div class="kpi-box">
-        <div class="kpi-num" id="kpiGastos" style="color: var(--accent);">$0</div>
-        <div class="kpi-label">Gastos</div>
+        <div class="kpi-num" id="kpiTotalDeudores" style="color:var(--status-warn);">$0</div>
+        <div class="kpi-label">Por Cobrar</div>
       </div>
       <div class="kpi-box">
-        <div class="kpi-num" id="kpiUtilidad">$0</div>
-        <div class="kpi-label">Flujo Neto</div>
+        <div class="kpi-num" id="kpiTotalAcreedores" style="color:var(--accent);">$0</div>
+        <div class="kpi-label">Por Pagar</div>
+      </div>
+      <div class="kpi-box">
+        <div class="kpi-num" id="kpiTotalNominaPendiente" style="color:var(--status-info);">$0</div>
+        <div class="kpi-label">Nómina Pend.</div>
       </div>
     </div>
 
-    <!-- DONA INTERACTIVA -->
+    <!-- SECCIÓN GRÁFICA DE RENDIMIENTO APEX -->
     <div class="card">
-      <div class="card-title">
-        <span id="tituloDona">Distribución de Gastos</span>
-        <div style="display: flex; gap: 4px;">
-          <button class="btn-secondary" id="btnToggleGasto" onclick="alternarTipoDona('gasto')">Gastos</button>
-          <button class="btn-secondary" id="btnToggleIngreso" onclick="alternarTipoDona('ingreso')">Ingresos</button>
+      <div class="card-title">📈 Rendimiento Temporal</div>
+      
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px;">
+        <div class="form-group" style="margin-bottom:0;">
+          <label>Periodo</label>
+          <select id="grafPeriodo" class="form-control" onchange="GraficaRendimiento.cambioPeriodo()">
+            <option value="semana">Última Semana</option>
+            <option value="mes" selected>Último Mes</option>
+            <option value="trimestre">Trimestre</option>
+            <option value="semestre">Semestre</option>
+            <option value="manual">Manual</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label>Cuenta</label>
+          <select id="grafCuenta" class="form-control" onchange="GraficaRendimiento.renderizar()">
+            <option value="">-- Todas --</option>
+          </select>
         </div>
       </div>
 
-      <div class="chart-box">
-        <canvas id="chartDona"></canvas>
+      <div id="grafFechasManuales" style="display:none; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px;">
+        <div class="form-group" style="margin-bottom:0;">
+          <label>Desde</label>
+          <input type="date" id="grafFechaInicio" class="form-control" onchange="GraficaRendimiento.renderizar()">
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label>Hasta</label>
+          <input type="date" id="grafFechaFin" class="form-control" onchange="GraficaRendimiento.renderizar()">
+        </div>
       </div>
 
-      <div id="listaDesgloseCategorias">
-        <span style="color: var(--text-muted); font-size: 0.72rem;">Sin movimientos en este período.</span>
+      <div class="form-group" style="margin-bottom:8px;">
+        <label>Productos / Servicios</label>
+        <div id="grafProductosCheckList" style="max-height:90px; overflow-y:auto; background:var(--card-sub); border:1px solid var(--border); border-radius:4px; padding:6px; font-size:0.68rem;">
+          Cargando opciones...
+        </div>
       </div>
+
+      <div style="position: relative; height:200px; width:100%; background:#000; border-radius:4px; border:1px solid var(--border); padding:4px;">
+        <canvas id="apexRendimientoChart"></canvas>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Desglose de Cuentas</div>
+      <div id="globalListaCuentas">Cargando desglose...</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Categorías Financieras</div>
+      <form onsubmit="CategoriasAdmin.crear(event)" style="margin-bottom:8px;">
+        <div style="display:flex; gap:6px;">
+          <input type="text" id="catNombre" class="form-control" placeholder="Nueva categoría..." required style="flex:2;">
+          <select id="catTipo" class="form-control" style="flex:1;">
+            <option value="ingreso">Ingreso</option>
+            <option value="egreso">Egreso</option>
+            <option value="nomina">Nómina</option>
+          </select>
+          <button type="submit" class="btn-success" style="padding:0 10px;">+</button>
+        </div>
+      </form>
+      <div id="listaCategoriasFinancieras">Cargando categorías...</div>
     </div>
   </div>
 
-  <!-- ================= SUBMÓDULO 2: INVERSIONISTAS & DISTRIBUCIÓN DE UTILIDADES ================= -->
-  <div id="tabInversionistas" class="tab-section">
-    <!-- PANEL DE RENDICIÓN DE CUENTAS DEL PERÍODO -->
-    <div class="card">
-      <div class="card-title">Rendición de Cuentas y Repartición de Utilidades</div>
-      <div style="font-size:0.7rem; color:var(--text-muted); margin-bottom:10px;">
-        Regla de distribución Apex: <strong style="color:#fff;">30% Reinversión Academia</strong> | <strong style="color:var(--status-ok);">70% Base Distribuible a Socios</strong>.
+  <!-- ================= 1. CAJA DIARIA ================= -->
+  <div id="tabCaja" class="tab-section">
+    <div id="panelCajaCerrada" class="card" style="text-align: center; padding: 20px;">
+      <div style="font-size: 0.8rem; font-weight: 900; margin-bottom: 6px;">CAJA CERRADA</div>
+      <p style="font-size: 0.65rem; color: var(--text-muted); margin-bottom: 12px;">Selecciona la cuenta que proporcionará la base inicial del turno.</p>
+      <div class="form-group" style="text-align: left;">
+        <label>Cuenta de Origen (Base)</label>
+        <select id="cajaCuentaBase" class="form-control"></select>
       </div>
-
-      <div class="kpi-grid" style="grid-template-columns: repeat(3, 1fr);">
-        <div class="kpi-box">
-          <div class="kpi-num" id="invKpiUtilidadNet">$0</div>
-          <div class="kpi-label">Utilidad Neta</div>
-        </div>
-        <div class="kpi-box">
-          <div class="kpi-num" id="invKpiReservaApex" style="color:var(--status-info);">$0</div>
-          <div class="kpi-label">30% Reserva Apex</div>
-        </div>
-        <div class="kpi-box">
-          <div class="kpi-num" id="invKpiBaseSocios" style="color:var(--status-ok);">$0</div>
-          <div class="kpi-label">70% Distribuible</div>
-        </div>
+      <div class="form-group" style="text-align: left;">
+        <label>Monto Base ($ COP)</label>
+        <input type="number" id="cajaBaseMonto" class="form-control" value="50000" min="0">
       </div>
-
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
-        <span style="font-size:0.68rem; color:var(--text-muted);" id="invPeriodoEtiqueta">Período actual</span>
-        <button class="btn-secondary" onclick="abrirReporteGlobalInversionistas()">📄 Reporte Global Inversionistas</button>
-      </div>
+      <button class="btn" onclick="CajaOperacion.abrirCaja()">Abrir Caja</button>
     </div>
 
-    <!-- REGISTRO DE NUEVO INVERSIONISTA -->
+    <div id="panelCajaAbierta" style="display: none;">
+      <div class="kpi-grid">
+        <div class="kpi-box">
+          <div class="kpi-num" id="cajaKpiBase">$0</div>
+          <div class="kpi-label">Base</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-num" id="cajaKpiVentas" style="color:var(--status-ok);">$0</div>
+          <div class="kpi-label">Ventas / Netas</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-num" id="cajaKpiEfectivo">$0</div>
+          <div class="kpi-label">Efectivo</div>
+        </div>
+      </div>
+
+      <div class="cart-box">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <strong style="font-size:0.75rem; color:#fff;" id="cartBoxTitle">🛒 Carrito Rápido (Venta)</strong>
+          <span id="cartTotalTxt" style="font-size:0.8rem; font-weight:900; color:var(--status-ok);">$0</span>
+        </div>
+        <div id="cartItemsList" style="font-size:0.68rem; color:var(--text-muted); margin-bottom:6px;">Selecciona productos abajo.</div>
+        
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:6px;">
+          <div class="form-group" style="margin-bottom:0;">
+            <label>Operación</label>
+            <select id="cartTipoOperacion" class="form-control" onchange="CajaOperacion.cambioOperacion()">
+              <option value="venta">Venta</option>
+              <option value="compra">Compra / Egreso</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:0;" id="wrapCartPago">
+            <label>Pago</label>
+            <select id="cartTipoPago" class="form-control">
+              <option value="contado">Contado</option>
+              <option value="credito">Crédito</option>
+              <option value="nomina">Nómina Staff</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:6px;">
+          <label id="lblCartCliente">Cliente</label>
+          <input type="text" id="cartCliente" class="form-control" placeholder="Nombre / Proveedor / Concepto">
+        </div>
+
+        <button class="btn" id="btnCartCobrar" onclick="CajaOperacion.cobrar()">Registrar Venta</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Catálogo Rápido</div>
+        <div class="store-grid" id="cajaCatalogoGrid">Cargando...</div>
+      </div>
+
+      <button class="btn btn-secondary" style="background:#151518; border-color:var(--border); color:#fff; margin-top:4px;" onclick="CajaOperacion.abrirModalCierre()">Cerrar Caja y Consolidar</button>
+    </div>
+  </div>
+
+  <!-- ================= 2. TIENDA / CATÁLOGO ================= -->
+  <div id="tabTienda" class="tab-section">
     <div class="card">
-      <div class="card-title">Registrar Nuevo Inversionista</div>
-      <form id="formCrearInversionista" onsubmit="crearInversionista(event)">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-          <div class="form-group">
-            <label>Nombre del Socio</label>
-            <input type="text" id="invNombre" class="form-control" placeholder="Ej: Carlos Restrepo" required>
-          </div>
-          <div class="form-group">
-            <label>Cédula / NIT / Contacto</label>
-            <input type="text" id="invDoc" class="form-control" placeholder="C.C. 1.144.xxx / Celular">
-          </div>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-          <div class="form-group">
-            <label>Capital Invertido ($ COP)</label>
-            <input type="number" id="invCapital" class="form-control" placeholder="Ej: 5000000" min="0" step="any" required>
-          </div>
-          <div class="form-group">
-            <label>% Participación sobre 70%</label>
-            <input type="number" id="invPorcentaje" class="form-control" placeholder="Ej: 25 (%)" min="0" max="100" step="any" required>
-          </div>
-        </div>
-
+      <div class="card-title">Gestión de Producto / Servicio</div>
+      <form onsubmit="TiendaAdmin.guardar(event)">
+        <input type="hidden" id="prodId">
         <div class="form-group">
-          <label>Datos Bancarios / Cuenta de Pago</label>
-          <input type="text" id="invCuentaPago" class="form-control" placeholder="Bancolombia Ahorros #xxxx / Nequi xxxx">
+          <label>Nombre</label>
+          <input type="text" id="prodNombre" class="form-control" required>
         </div>
-
-        <button type="submit" class="btn">Guardar Inversionista</button>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+          <div class="form-group">
+            <label>Tipo</label>
+            <select id="prodCategoria" class="form-control">
+              <option value="Membresía">Membresía (Stock Infinito)</option>
+              <option value="Servicio">Servicio (Stock Infinito)</option>
+              <option value="Equipo">Equipo / Físico</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Precio ($)</label>
+            <input type="number" id="prodPrecio" class="form-control" min="0" required>
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+          <div class="form-group">
+            <label>Stock</label>
+            <input type="number" id="prodStock" class="form-control" value="99" min="0">
+          </div>
+          <div class="form-group">
+            <label>Orden</label>
+            <input type="number" id="prodOrden" class="form-control" value="0">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Imagen (URL)</label>
+          <input type="text" id="prodImagenUrl" class="form-control" placeholder="https://..." style="margin-bottom:3px;">
+          <input type="file" id="prodFile" class="form-control" accept="image/*" style="font-size:0.65rem;">
+        </div>
+        <button type="submit" id="btnGuardarProd" class="btn">Guardar Producto</button>
       </form>
     </div>
 
-    <!-- LISTADO DE INVERSIONISTAS & LIQUIDACIÓN INDIVIDUAL -->
     <div class="card">
-      <div class="card-title">
-        <span>Censo de Inversionistas</span>
-        <span id="invCountTxt" style="color:var(--status-ok); font-size:0.65rem;">0 Socios</span>
-      </div>
-      <div id="listaInversionistas">Cargando inversionistas...</div>
-    </div>
-
-    <!-- VISTA PREVIA REPORTE EJECUTIVO INVERSIONISTA (ESTÉTICA NOIR) -->
-    <div id="vistaReporteInversionistaWrap" style="display: none;">
-      <div class="document-preview-box" id="docInversionistaArea">
-        <div class="doc-header">
-          <div>
-            <div class="doc-brand">APEX <span>BOXING</span></div>
-            <div style="font-size:0.62rem; color:var(--text-muted); margin-top:2px;">ESTADO DE RENDICIÓN DE CUENTAS</div>
-          </div>
-          <div style="text-align:right;">
-            <div class="doc-title">REPORTE DE UTILIDADES</div>
-            <div style="font-size:0.68rem; color:#aaa;" id="lblRepInvNumero">REP-INV-001</div>
-            <div style="font-size:0.62rem; color:var(--text-muted);" id="lblRepInvFecha">-</div>
-          </div>
-        </div>
-
-        <div style="font-size:0.75rem; margin-bottom:12px; line-height:1.4;">
-          INVERSIONISTA: <strong id="lblRepInvNombre">-</strong><br>
-          CAPITAL APORTADO: <span id="lblRepInvCapital">$0</span> | CUOTA: <strong id="lblRepInvPorcentaje">0%</strong><br>
-          PERÍODO LIQUIDADO: <strong id="lblRepInvPeriodo">-</strong>
-        </div>
-
-        <table class="doc-table">
-          <thead>
-            <tr>
-              <th>Concepto Financiero</th>
-              <th style="text-align:right;">Monto Base ($ COP)</th>
-            </tr>
-          </thead>
-          <tbody id="repInvTableBody"></tbody>
-        </table>
-
-        <div class="doc-total-box">
-          <span>DIVIDENDO NETO A RECIBIR:</span>
-          <span id="lblRepInvGranTotal" style="color:var(--status-ok);">$0</span>
-        </div>
-
-        <div style="font-size:0.6rem; color:var(--text-muted); margin-top:10px;" id="lblRepInvNotaExplicativa">
-          * Nota: Si la utilidad neta es menor o igual a cero, no se genera distribución económica en este período.
-        </div>
-      </div>
-
-      <div style="display: flex; gap: 8px; margin-top: 12px;" class="no-print">
-        <button class="btn-success" style="flex:1;" onclick="exportarReporteInversionistaJPG()">📸 Descargar Imagen JPG (WhatsApp)</button>
-        <button class="btn-secondary" style="flex:1;" onclick="window.print()">📄 Guardar PDF / Imprimir</button>
-        <button class="btn" style="flex:1; background:var(--status-info);" onclick="abrirModalPagarDividendo()">💳 Asentar Pago en Caja</button>
-      </div>
+      <div class="card-title">Inventario</div>
+      <div class="store-grid" id="listaInventarioTienda">Cargando...</div>
     </div>
   </div>
 
-  <!-- ================= SUBMÓDULO 3: BANDEJA DE MEMBRESÍAS DEL COACH ================= -->
+  <!-- ================= 3. BANDEJA REPORTES DE SALA (COACH) ================= -->
   <div id="tabBandejaCoach" class="tab-section">
     <div class="card">
       <div class="card-title">
-        <span>Flujo de Membresías Reportadas en Sala</span>
-        <span id="lblCoachPendientesTxt" style="color: var(--status-ok); font-size: 0.65rem;">0 Pendientes</span>
+        <span>Pagos en Sala</span>
+        <span id="lblCoachPendientesTxt" style="color: var(--status-ok); font-size: 0.6rem;">0 Pendientes</span>
       </div>
-      <p style="font-size:0.7rem; color:var(--text-muted); margin-bottom:10px;">
-        Aquí llegan las membresías registradas por el coach. El contador solo selecciona la cuenta receptora para redimir el ingreso en caja o descartar.
-      </p>
-      <div id="listaMembresiasPendientes">Cargando pagos en sala...</div>
+      <div id="listaMembresiasPendientes">Cargando...</div>
     </div>
   </div>
 
-  <!-- ================= SUBMÓDULO 4: CUENTA DE COBRO AL GIMNASIO ================= -->
-  <div id="tabCobroGym" class="tab-section">
-    <div class="card">
-      <div class="card-title">Generador de Cuenta de Cobro a Aliado</div>
-      
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-        <div class="form-group">
-          <label>Gimnasio / Entidad Aliada</label>
-          <input type="text" id="cobroEntidad" class="form-control" value="GIMNASIO ALIADO APEX" required>
-        </div>
-        <div class="form-group">
-          <label>NIT / Identificación</label>
-          <input type="text" id="cobroNit" class="form-control" placeholder="Ej: 900.123.456-7">
-        </div>
-      </div>
-
-      <div class="filter-btn-group" style="margin-top: 6px;">
-        <button class="filter-btn active" onclick="GeneradorCobro.setPeriodo('1q', this)">1ra Quincena</button>
-        <button class="filter-btn" onclick="GeneradorCobro.setPeriodo('2q', this)">2da Quincena</button>
-        <button class="filter-btn" onclick="GeneradorCobro.setPeriodo('mes', this)">Mes Completo</button>
-      </div>
-
-      <div style="display: flex; gap: 8px; margin-top: 10px;">
-        <button class="btn" style="flex:1;" onclick="GeneradorCobro.generarVista()">Generar Detalle</button>
-      </div>
-    </div>
-
-    <!-- VISTA PREVIA CUENTA DE COBRO -->
-    <div id="vistaCuentaCobroWrap" style="display: none;">
-      <div class="document-preview-box" id="docCuentaCobroArea">
-        <div class="doc-header">
-          <div>
-            <div class="doc-brand">APEX <span>BOXING</span></div>
-            <div style="font-size:0.62rem; color:var(--text-muted); margin-top:2px;">ECOSISTEMA TÁCTICO DEPORTIVO</div>
-          </div>
-          <div style="text-align:right;">
-            <div class="doc-title">CUENTA DE COBRO</div>
-            <div style="font-size:0.68rem; color:#aaa;" id="lblCobroNumero">CC-2026-001</div>
-            <div style="font-size:0.62rem; color:var(--text-muted);" id="lblCobroFecha">Fecha: 25/09/2026</div>
-          </div>
-        </div>
-
-        <div style="font-size:0.75rem; margin-bottom:12px; line-height:1.4;">
-          <strong>A FAVOR DE:</strong> APEX BOXING<br>
-          <strong>DEBE A:</strong> <span id="lblCobroDeudor">GIMNASIO ALIADO APEX</span><br>
-          <strong>CONCEPTO:</strong> Recaudación de Membresías Articuladas correspondiente al período <strong id="lblCobroPeriodo">-</strong>
-        </div>
-
-        <table class="doc-table">
-          <thead>
-            <tr>
-              <th>Fecha</th>
-              <th>Striker / Alumno</th>
-              <th>Membresía</th>
-              <th style="text-align:right;">Valor</th>
-            </tr>
-          </thead>
-          <tbody id="cobroTableBody"></tbody>
-        </table>
-
-        <div class="doc-total-box">
-          <span>VALOR TOTAL A COBRAR:</span>
-          <span id="lblCobroGranTotal" style="color:var(--status-ok);">$0</span>
-        </div>
-      </div>
-
-      <div style="display: flex; gap: 8px; margin-top: 12px;" class="no-print">
-        <button class="btn-success" style="flex:1;" onclick="exportarCuentaCobroJPG()">📸 Descargar Imagen JPG (WhatsApp)</button>
-        <button class="btn-secondary" style="flex:1;" onclick="window.print()">📄 Guardar PDF / Imprimir</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ================= SUBMÓDULO 5: FACTURACIÓN ================= -->
-  <div id="tabFacturacion" class="tab-section">
-    <div class="card">
-      <div class="card-title">Emisor de Factura Directa Apex</div>
-      <form id="formNuevaFactura" onsubmit="emitirFactura(event)">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-          <div class="form-group">
-            <label>Cliente / Striker</label>
-            <input type="text" id="facCliente" class="form-control" placeholder="Nombre completo" required>
-          </div>
-          <div class="form-group">
-            <label>Documento / ID (Opcional)</label>
-            <input type="text" id="facDocCliente" class="form-control" placeholder="Cédula / Pasaporte">
-          </div>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-          <div class="form-group">
-            <label>Concepto / Ítem</label>
-            <input type="text" id="facItem" class="form-control" placeholder="Ej: Plan Bimestral Striker" required>
-          </div>
-          <div class="form-group">
-            <label>Valor ($ COP)</label>
-            <input type="number" id="facMonto" class="form-control" placeholder="Monto" min="1" step="any" required>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label>Cuenta Donde Ingresa el Dinero</label>
-          <select id="facCuentaDestino" class="form-control" required></select>
-        </div>
-
-        <button type="submit" class="btn">Emitir Factura y Cargar Ingreso</button>
-      </form>
-    </div>
-
-    <!-- VISTA PREVIA FACTURA -->
-    <div id="vistaFacturaWrap" style="display: none;">
-      <div class="document-preview-box" id="docFacturaArea">
-        <div class="doc-header">
-          <div>
-            <div class="doc-brand">APEX <span>BOXING</span></div>
-            <div style="font-size:0.6rem; color:var(--text-muted);">SANTIAGO DE CALI, COLOMBIA</div>
-          </div>
-          <div style="text-align:right;">
-            <div class="doc-title" style="color:var(--accent);">FACTURA DE VENTA</div>
-            <div style="font-size:0.7rem; font-weight:800;" id="lblFacNumero">FAC-0001</div>
-            <div style="font-size:0.62rem; color:var(--text-muted);" id="lblFacFecha">Fecha: 25/09/2026</div>
-          </div>
-        </div>
-
-        <div style="font-size:0.72rem; margin-bottom:12px;">
-          CLIENTE: <strong id="lblFacCliente">-</strong> | ID: <span id="lblFacDocCliente">-</span>
-        </div>
-
-        <table class="doc-table">
-          <thead>
-            <tr>
-              <th>Descripción</th>
-              <th style="text-align:right;">Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td id="lblFacItemDesc">-</td>
-              <td id="lblFacItemTotal" style="text-align:right;">$0</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <div class="doc-total-box">
-          <span>TOTAL PAGADO:</span>
-          <span id="lblFacGranTotal" style="color:var(--status-ok);">$0</span>
-        </div>
-      </div>
-
-      <div style="display: flex; gap: 8px; margin-top: 12px;" class="no-print">
-        <button class="btn-success" style="flex:1;" onclick="exportarFacturaJPG()">📸 Exportar Factura JPG</button>
-        <button class="btn-secondary" style="flex:1;" onclick="window.print()">📄 Guardar PDF / Imprimir</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ================= SUBMÓDULO 6: CUENTAS FINANCIERAS ================= -->
+  <!-- ================= 4. CUENTAS FINANCIERAS ================= -->
   <div id="tabCuentas" class="tab-section">
     <div class="card">
-      <div class="card-title">Crear Cuenta Financiera</div>
-      <form id="formCrearCuenta" onsubmit="crearCuenta(event)">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+      <div class="card-title">Crear Cuenta</div>
+      <form onsubmit="CuentasAdmin.crear(event)">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
           <div class="form-group">
-            <label>Nombre de Cuenta</label>
-            <input type="text" id="ctaNombre" class="form-control" placeholder="Caja Menor / Bancolombia" required>
+            <label>Nombre</label>
+            <input type="text" id="ctaNombre" class="form-control" placeholder="Efectivo / Banco" required>
           </div>
           <div class="form-group">
-            <label>Tipo de Cuenta</label>
-            <select id="ctaTipo" class="form-control" required>
+            <label>Tipo</label>
+            <select id="ctaTipo" class="form-control">
               <option value="efectivo">Efectivo</option>
               <option value="banco">Banco</option>
               <option value="ahorro">Ahorro</option>
@@ -513,52 +365,272 @@
           </div>
         </div>
         <div class="form-group">
-          <label>Saldo Inicial ($ COP)</label>
-          <input type="number" id="ctaSaldoInicial" class="form-control" value="0" min="0" step="any">
+          <label>Saldo Inicial ($)</label>
+          <input type="number" id="ctaSaldo" class="form-control" value="0" min="0">
         </div>
         <button type="submit" class="btn">Crear Cuenta</button>
       </form>
     </div>
 
     <div class="card">
-      <div class="card-title">Cuentas Registradas</div>
-      <div id="listaCuentas">Cargando cuentas...</div>
+      <div class="card-title">Cuentas Activas</div>
+      <div id="listaCuentasContables">Cargando...</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Cuentas Archivadas</div>
+      <div id="listaCuentasArchivadas">Cargando...</div>
     </div>
   </div>
 
-  <!-- MODAL RÁPIDO PARA REDIMIR MEMBRESÍA -->
-  <div id="modalRedimir" class="modal-overlay">
-    <div style="background:#141416; border:1px solid #333; border-radius:8px; padding:18px; width:100%; max-width:380px;">
-      <div style="font-weight:900; font-size:0.85rem; color:#fff; text-transform:uppercase; margin-bottom:6px;">Redimir Membresía a Caja</div>
-      <p style="font-size:0.7rem; color:var(--text-muted); margin-bottom:12px;" id="modalRedimirDetalle">Selecciona a qué cuenta ingresará el dinero.</p>
+  <!-- ================= 5. NÓMINA Y PRÉSTAMOS STAFF ================= -->
+  <div id="tabNomina" class="tab-section">
+    <div class="card">
+      <div class="card-title">Nómina & Staff</div>
+      <div id="listaStaffNomina">Cargando staff...</div>
+    </div>
+  </div>
+
+  <!-- ================= 6. DEUDORES Y ACREEDORES ================= -->
+  <div id="tabDeudores" class="tab-section">
+    <div class="card">
+      <div class="card-title">Registrar Contacto</div>
+      <form onsubmit="DeudoresAdmin.crear(event)">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+          <div class="form-group">
+            <label>Nombre</label>
+            <input type="text" id="deuNombre" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>Tipo</label>
+            <select id="deuTipo" class="form-control">
+              <option value="acreedor">Acreedor (Nos deben)</option>
+              <option value="deudor">Deudor (Debemos)</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+          <div class="form-group">
+            <label>Saldo ($)</label>
+            <input type="number" id="deuSaldo" class="form-control" value="0" min="0">
+          </div>
+          <div class="form-group">
+            <label>Teléfono</label>
+            <input type="text" id="deuTel" class="form-control">
+          </div>
+        </div>
+        <button type="submit" class="btn">Guardar</button>
+      </form>
+    </div>
+    <div class="card">
+      <div class="card-title">Directorio Financiero</div>
+      <div id="listaDeudores">Cargando directorio...</div>
+    </div>
+  </div>
+
+  <!-- ================= 7. HISTORIAL Y REVERSOS ================= -->
+  <div id="tabMovimientos" class="tab-section">
+    <div class="card">
+      <div class="card-title">Historial & Filtros</div>
       
-      <div class="form-group">
-        <label>Cuenta de Destino</label>
-        <select id="selectCuentaRedimir" class="form-control"></select>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px;">
+        <select id="filtroHistorialCuenta" class="form-control" onchange="HistorialAdmin.renderizar()" style="font-size:0.62rem;">
+          <option value="">-- Cuentas --</option>
+        </select>
+        <select id="filtroHistorialCat" class="form-control" onchange="HistorialAdmin.renderizar()" style="font-size:0.62rem;">
+          <option value="">-- Categorías --</option>
+        </select>
       </div>
 
-      <div style="display:flex; gap:8px; margin-top:14px;">
-        <button class="btn" onclick="confirmarRedencion()">Confirmar Ingreso</button>
-        <button class="btn-secondary" onclick="cerrarModalRedimir()">Cancelar</button>
+      <div id="listaMovimientosRecientes">Cargando historial...</div>
+    </div>
+  </div>
+
+  <!-- MODAL CIERRE DE CAJA -->
+  <div id="modalCierreCaja" class="modal-overlay">
+    <div style="background:var(--card-bg); border:1px solid var(--border); border-radius:6px; padding:16px; width:100%; max-width:360px;">
+      <div style="font-weight:900; font-size:0.8rem; color:#fff; text-transform:uppercase; margin-bottom:6px;">Cierre de Caja</div>
+      <p style="font-size:0.65rem; color:var(--text-muted); margin-bottom:10px;">Efectivo real contado en gaveta:</p>
+      
+      <div class="form-group">
+        <input type="number" id="cierreEfectivoReal" class="form-control" min="0" value="0">
+      </div>
+
+      <div style="display:flex; gap:6px; margin-top:12px;">
+        <button class="btn" onclick="CajaOperacion.confirmarCierreCaja()">Consolidar</button>
+        <button class="btn-secondary" onclick="document.getElementById('modalCierreCaja').style.display='none'">Cancelar</button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL PARA ASENTAR PAGO DE DIVIDENDOS -->
-  <div id="modalPagarDividendo" class="modal-overlay">
-    <div style="background:#141416; border:1px solid #333; border-radius:8px; padding:18px; width:100%; max-width:380px;">
-      <div style="font-weight:900; font-size:0.85rem; color:#fff; text-transform:uppercase; margin-bottom:6px;">Asentar Pago de Dividendos</div>
-      <p style="font-size:0.7rem; color:var(--text-muted); margin-bottom:12px;" id="modalDividendoDetalle">-</p>
+  <!-- MODAL COBRO / ABONO DEUDOR -->
+  <div id="modalCobroDeudor" class="modal-overlay">
+    <div style="background:var(--card-bg); border:1px solid var(--border); border-radius:6px; padding:16px; width:100%; max-width:340px;">
+      <div style="font-weight:900; font-size:0.8rem; color:#fff; text-transform:uppercase; margin-bottom:6px;" id="modalDeudorTitle">Cartera</div>
+      <p style="font-size:0.65rem; color:var(--text-muted); margin-bottom:10px;" id="modalDeudorSub">-</p>
+      
+      <input type="hidden" id="deuCobroId">
       
       <div class="form-group">
-        <label>Cuenta Desde Donde se Transfiere</label>
-        <select id="selectCuentaDividendo" class="form-control"></select>
+        <label>Cuenta</label>
+        <select id="deuSelectCuenta" class="form-control"></select>
       </div>
 
-      <div style="display:flex; gap:8px; margin-top:14px;">
-        <button class="btn" style="background:var(--status-info);" onclick="confirmarPagoDividendo()">Registrar Egreso</button>
-        <button class="btn-secondary" onclick="cerrarModalPagarDividendo()">Cancelar</button>
+      <div class="form-group">
+        <label>Monto ($)</label>
+        <input type="number" id="deuMontoAbono" class="form-control" min="0" value="0">
       </div>
+
+      <div style="display:flex; gap:6px; margin-top:12px;">
+        <button class="btn" onclick="DeudoresAdmin.ejecutarTransaccion()">Procesar</button>
+        <button class="btn-secondary" onclick="document.getElementById('modalCobroDeudor').style.display='none'">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL REVISIÓN REPORTE COACH -->
+  <div id="modalRevisionCoach" class="modal-overlay">
+    <div style="background:var(--card-bg); border:1px solid var(--border); border-radius:6px; padding:16px; width:100%; max-width:380px; max-height:90vh; overflow-y:auto;">
+      <div style="font-weight:900; font-size:0.8rem; color:#fff; text-transform:uppercase; margin-bottom:6px;">Revisar Sala</div>
+      <p style="font-size:0.65rem; color:var(--text-muted); margin-bottom:10px;" id="modalCoachDetalle">-</p>
+      
+      <div class="form-group" id="modalComprobanteWrap" style="display:none; text-align:center; margin-bottom:10px;">
+        <img id="modalComprobanteImg" src="" style="width:100%; max-height:150px; object-fit:contain; border-radius:4px; border:1px solid var(--border); cursor:pointer; background:#000;" onclick="abrirZoomImagen(this.src)">
+      </div>
+
+      <div class="form-group">
+        <label>Producto / Servicio</label>
+        <select id="modalSelectProductoTienda" class="form-control" onchange="BandejaCoach.seleccionarProductoTienda()"></select>
+      </div>
+
+      <div class="form-group">
+        <label>Monto ($)</label>
+        <input type="number" id="modalCoachMontoReal" class="form-control" min="0">
+      </div>
+
+      <div class="form-group">
+        <label>Vigencia (Días)</label>
+        <input type="number" id="modalCoachDiasVigencia" class="form-control" value="30" min="1">
+      </div>
+
+      <div class="form-group">
+        <label>Cuenta Destino</label>
+        <select id="modalCoachCuenta" class="form-control"></select>
+      </div>
+
+      <div style="display:flex; gap:6px; margin-top:12px;">
+        <button class="btn" onclick="BandejaCoach.confirmarFacturacion()">Facturar</button>
+        <button class="btn-secondary" onclick="document.getElementById('modalRevisionCoach').style.display='none'">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL NÓMINA AVANZADO -->
+  <div id="modalNominaAccion" class="modal-overlay">
+    <div style="background:var(--card-bg); border:1px solid var(--border); border-radius:6px; padding:16px; width:100%; max-width:380px;">
+      <div style="font-weight:900; font-size:0.8rem; color:#fff; text-transform:uppercase; margin-bottom:6px;" id="modalNominaTitle">Nómina Staff</div>
+      <p style="font-size:0.65rem; color:var(--text-muted); margin-bottom:10px;" id="modalNominaSub">-</p>
+
+      <div class="form-group">
+        <label>Acción</label>
+        <select id="nomTipoAccion" class="form-control" onchange="NominaAdmin.cambioTipoAccion()">
+          <option value="cargo_nomina">Registrar Cargo</option>
+          <option value="pago_nomina">Liquidar / Pagar</option>
+          <option value="cruzado">Cruzar Saldos</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Categoría</label>
+        <select id="nomSelectCategoria" class="form-control"></select>
+      </div>
+
+      <div class="form-group" id="wrapNominaCuenta">
+        <label>Cuenta</label>
+        <select id="nomSelectCuenta" class="form-control"></select>
+      </div>
+
+      <div class="form-group">
+        <label>Concepto</label>
+        <input type="text" id="nomConcepto" class="form-control" placeholder="Detalle">
+      </div>
+
+      <div class="form-group">
+        <label>Monto ($)</label>
+        <input type="number" id="nomMonto" class="form-control" min="0" value="0">
+      </div>
+
+      <div style="display:flex; gap:6px; margin-top:12px;">
+        <button class="btn" onclick="NominaAdmin.ejecutarAccion()">Ejecutar</button>
+        <button class="btn-secondary" onclick="document.getElementById('modalNominaAccion').style.display='none'">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL EDICIÓN CUENTA -->
+  <div id="modalEditarCuenta" class="modal-overlay">
+    <div style="background:var(--card-bg); border:1px solid var(--border); border-radius:6px; padding:16px; width:100%; max-width:340px;">
+      <div style="font-weight:900; font-size:0.8rem; color:#fff; text-transform:uppercase; margin-bottom:8px;">Editar Cuenta</div>
+      <input type="hidden" id="editCtaId">
+      <div class="form-group">
+        <label>Nombre</label>
+        <input type="text" id="editCtaNombre" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label>Tipo</label>
+        <select id="editCtaTipo" class="form-control">
+          <option value="efectivo">Efectivo</option>
+          <option value="banco">Banco</option>
+          <option value="ahorro">Ahorro</option>
+        </select>
+      </div>
+      <div style="display:flex; gap:6px; margin-top:12px;">
+        <button class="btn" onclick="CuentasAdmin.guardarEdicion()">Guardar</button>
+        <button class="btn-secondary" onclick="document.getElementById('modalEditarCuenta').style.display='none'">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL FACTURA / TICKET -->
+  <div id="modalFacturaTicket" class="modal-overlay" onclick="cerrarFacturaModal()">
+    <div onclick="event.stopPropagation()">
+      <div id="ticketFactura">
+        <div style="text-align: center; border-bottom: 2px dashed #111; padding-bottom: 8px; margin-bottom: 8px;">
+          <h2 style="font-size: 1rem; font-weight: 900; text-transform: uppercase;">APEX BOXING</h2>
+          <p style="font-size: 0.6rem; color: #555;">Cali, Colombia</p>
+          <p style="font-size: 0.7rem; font-weight: bold; margin-top: 3px;">COMPROBANTE CONTABLE</p>
+        </div>
+        <div style="font-size: 0.65rem; margin-bottom: 8px; line-height: 1.3;">
+          <div><strong>Fecha:</strong> <span id="facFecha">-</span></div>
+          <div><strong>ID:</strong> <span id="facId">-</span></div>
+          <div><strong>Categoría:</strong> <span id="facCategoria">-</span></div>
+          <div><strong>Responsable:</strong> <span id="facResponsable">-</span></div>
+          <div><strong>Cuenta:</strong> <span id="facCuenta">-</span></div>
+        </div>
+        <div style="border-top: 1px dashed #111; border-bottom: 1px dashed #111; padding: 6px 0; margin-bottom: 8px; font-size: 0.7rem;">
+          <div style="font-weight: bold; margin-bottom: 2px;">DESCRIPCIÓN:</div>
+          <div id="facDescripcion" style="color: #333;">-</div>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 900; margin-bottom: 12px;">
+          <span>TOTAL:</span>
+          <span id="facMonto">$0</span>
+        </div>
+        <div style="text-align: center; font-size: 0.55rem; color: #777; border-top: 1px solid #ddd; padding-top: 4px;">
+          <p>Comprobante de control interno Apex</p>
+        </div>
+      </div>
+      <div style="display:flex; gap:6px; margin-top:8px; max-width:360px;">
+        <button class="btn" onclick="window.print()">Imprimir / PDF</button>
+        <button class="btn-secondary" style="background:#fff; color:#000;" onclick="cerrarFacturaModal()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL ZOOM IMAGEN -->
+  <div id="modalImagenZoom" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.95); z-index:1000; justify-content:center; align-items:center; padding:12px;" onclick="cerrarZoomImagen()">
+    <div style="position:relative; max-width:90%; max-height:90%;">
+      <span style="position:absolute; top:-25px; right:0; color:#fff; font-size:1.2rem; cursor:pointer; font-weight:bold;">✕</span>
+      <img id="imgZoomPreview" src="" style="width:100%; height:auto; max-height:85vh; object-fit:contain; border-radius:4px; border:1px solid #222;">
     </div>
   </div>
 
@@ -567,16 +639,19 @@
     const SUPABASE_ANON_KEY = 'sb_publishable_xAMs8LpCwyMyoql3ohoJUQ_BIRhBQoD';
     const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
-    let cachedAccounts = [];
-    let cachedTransactions = [];
-    let cachedPayments = [];
-    let cachedInvestors = [];
-    let chartDonaInstance = null;
-    let tipoDonaActual = 'gasto';
-    let currentContadorEmail = 'contador@apexboxing.com';
-    let pagoParaRedimir = null;
-    let inversionistaSeleccionadoReporte = null;
-    let dividendoCalculadoActual = 0;
+    let cuentasCache = [];
+    let productosCache = [];
+    let pagosPendientesCache = [];
+    let staffCache = [];
+    let deudoresCache = [];
+    let transaccionesCache = [];
+    let categoriasCache = [];
+    let nominaCache = [];
+    let carrito = [];
+    let pagoCoachSeleccionado = null;
+    let cajaActiva = null;
+    let staffSeleccionadoNomina = null;
+    let apexChartInstance = null;
 
     function formatCOP(num) {
       return '$' + Math.round(num || 0).toLocaleString('es-CO');
@@ -587,761 +662,1207 @@
       document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
       btn.classList.add('active');
       document.getElementById(tabId).classList.add('active');
-
-      if (tabId === 'tabDashboard') FiltroContable.recalcular();
-      if (tabId === 'tabInversionistas') actualizarPanelInversionistas();
+      if (tabId === 'tabGlobal') {
+        setTimeout(() => GraficaRendimiento.renderizar(), 150);
+      }
     }
 
     async function init() {
-      if (sb) {
-        try {
-          const { data: { session } } = await sb.auth.getSession();
-          if (session && session.user) currentContadorEmail = session.user.email;
-        } catch (e) {}
-      }
-
-      await cargarDatos();
-      FiltroContable.init();
+      await cargarDatosGlobales();
     }
 
-    async function cargarDatos() {
+    async function cargarDatosGlobales() {
       if (!sb) return;
       try {
-        const [resAcc, resTrans, resPay, resInv] = await Promise.all([
-          sb.from('apex_accounts').select('*').order('name'),
-          sb.from('apex_ledger_transactions').select('*').order('transaction_date', { ascending: false }),
+        const [resCta, resProd, resPag, resUsr, resDeu, resTrans, resCat, resNom] = await Promise.all([
+          sb.from('apex_cuentas').select('*').order('nombre'),
+          sb.from('apex_productos').select('*').order('nombre'),
           sb.from('apex_payments').select('*').order('created_at', { ascending: false }),
-          sb.from('apex_investors').select('*').order('name')
+          sb.from('apex_users').select('*'),
+          sb.from('apex_acreedores_deudores').select('*').order('nombre'),
+          sb.from('apex_transacciones_libro_mayor').select('*').order('created_at', { ascending: false }).limit(150),
+          sb.from('apex_categorias_financieras').select('*').order('nombre'),
+          sb.from('apex_nomina').select('*').order('created_at', { ascending: false })
         ]);
 
-        cachedAccounts = resAcc.data || [];
-        cachedTransactions = resTrans.data || [];
-        cachedPayments = resPay.data || [];
-        cachedInvestors = resInv.data || [];
+        cuentasCache = resCta.data || [];
+        productosCache = resProd.data || [];
+        pagosPendientesCache = resPag.data || [];
+        
+        const usuariosTotales = resUsr.data || [];
+        staffCache = usuariosTotales.filter(u => {
+          const rol = (u.role || '').toLowerCase();
+          return !rol.includes('estudiante') && !rol.includes('striker');
+        });
 
-        renderizarCuentas();
+        deudoresCache = resDeu.data || [];
+        transaccionesCache = resTrans.data || [];
+        categoriasCache = resCat.data || [];
+        nominaCache = resNom.data || [];
+
         poblarSelectsCuentas();
-        renderizarMembresiasCoach();
-        renderizarInversionistas();
+        poblarSelectsProductosModal();
+        poblarSelectsCategorias();
+        poblarFiltrosHistorial();
+        GraficaRendimiento.inicializarControles();
+        
+        GlobalMetrics.renderizar();
+        CuentasAdmin.renderizar();
+        TiendaAdmin.renderizarInventario();
+        CajaOperacion.renderizarCatalogo();
+        BandejaCoach.renderizar();
+        NominaAdmin.renderizar();
+        DeudoresAdmin.renderizar();
+        HistorialAdmin.renderizar();
+        CategoriasAdmin.renderizar();
+        GraficaRendimiento.renderizar();
       } catch (e) {
-        console.warn("Fallo cargando datos:", e);
+        console.warn("Error cargando datos:", e);
       }
     }
 
     function poblarSelectsCuentas() {
       const selects = [
-        document.getElementById('facCuentaDestino'), 
-        document.getElementById('selectCuentaRedimir'),
-        document.getElementById('selectCuentaDividendo')
+        document.getElementById('cajaCuentaBase'),
+        document.getElementById('modalCoachCuenta'),
+        document.getElementById('nomSelectCuenta'),
+        document.getElementById('deuSelectCuenta'),
+        document.getElementById('grafCuenta')
       ];
+      const activas = cuentasCache.filter(c => c.activa !== false);
       selects.forEach(sel => {
         if (!sel) return;
-        sel.innerHTML = '';
-        cachedAccounts.forEach(c => {
-          sel.innerHTML += `<option value="${c.id}">${c.name} (${formatCOP(c.current_balance)})</option>`;
+        const valActual = sel.value;
+        sel.innerHTML = sel.id === 'grafCuenta' ? '<option value="">-- Todas --</option>' : '';
+        activas.forEach(c => {
+          sel.innerHTML += `<option value="${c.id}">${c.nombre} (${formatCOP(c.saldo_actual)})</option>`;
         });
+        sel.value = valActual;
       });
     }
 
-    /* ================= SUBMÓDULO 2: INVERSIONISTAS & DIVIDENDOS ================= */
-    async function crearInversionista(e) {
-      e.preventDefault();
-      const nombre = document.getElementById('invNombre').value.trim();
-      const doc = document.getElementById('invDoc').value.trim();
-      const capital = parseFloat(document.getElementById('invCapital').value) || 0;
-      const pct = parseFloat(document.getElementById('invPorcentaje').value) || 0;
-      const ctaPago = document.getElementById('invCuentaPago').value.trim();
+    function poblarSelectsProductosModal() {
+      const sel = document.getElementById('modalSelectProductoTienda');
+      if (!sel) return;
+      sel.innerHTML = '<option value="">-- Seleccionar producto --</option>';
+      productosCache.forEach(p => {
+        sel.innerHTML += `<option value="${p.id}" data-precio="${p.precio}" data-nombre="${p.nombre}">${p.nombre} (${formatCOP(p.precio)})</option>`;
+      });
+    }
 
-      const { error } = await sb.from('apex_investors').insert([{
-        name: nombre,
-        id_document: doc,
-        capital_invested: capital,
-        profit_percentage: pct,
-        payout_account_details: ctaPago
-      }]);
+    function poblarSelectsCategorias() {
+      const selNom = document.getElementById('nomSelectCategoria');
+      if (!selNom) return;
+      selNom.innerHTML = '';
+      categoriasCache.forEach(c => {
+        selNom.innerHTML += `<option value="${c.id}">${c.nombre} (${c.tipo})</option>`;
+      });
+    }
 
-      if (error) {
-        alert("Error al registrar inversionista: " + error.message);
-      } else {
-        alert("¡Inversionista registrado con éxito!");
-        document.getElementById('formCrearInversionista').reset();
-        await cargarDatos();
-        actualizarPanelInversionistas();
+    function poblarFiltrosHistorial() {
+      const selCta = document.getElementById('filtroHistorialCuenta');
+      const selCat = document.getElementById('filtroHistorialCat');
+      if (selCta) {
+        selCta.innerHTML = '<option value="">-- Cuentas --</option>';
+        cuentasCache.forEach(c => selCta.innerHTML += `<option value="${c.id}">${c.nombre}</option>`);
+      }
+      if (selCat) {
+        selCat.innerHTML = '<option value="">-- Categorías --</option>';
+        categoriasCache.forEach(ct => selCat.innerHTML += `<option value="${ct.id}">${ct.nombre}</option>`);
       }
     }
 
-    function renderizarInversionistas() {
-      const cont = document.getElementById('listaInversionistas');
-      document.getElementById('invCountTxt').innerText = `${cachedInvestors.length} Socios`;
+    /* ================= 0. MÉTRICAS GENERALES & GRÁFICA APEX ================= */
+    const GlobalMetrics = {
+      renderizar: function() {
+        const totalCuentas = cuentasCache.filter(c => c.activa !== false).reduce((a, b) => a + parseFloat(b.saldo_actual || 0), 0);
+        const acreedores = deudoresCache.filter(d => d.tipo === 'acreedor').reduce((a, b) => a + parseFloat(b.saldo || 0), 0);
+        const deudores = deudoresCache.filter(d => d.tipo === 'deudor').reduce((a, b) => a + parseFloat(b.saldo || 0), 0);
+        
+        const nominaPendiente = nominaCache
+          .filter(n => n.estado === 'pendiente_pagar')
+          .reduce((a, b) => a + parseFloat(b.monto || 0), 0);
 
-      if (cachedInvestors.length === 0) {
-        cont.innerHTML = '<span style="color:var(--text-muted); font-size:0.75rem;">No hay inversionistas registrados aún.</span>';
-        return;
-      }
+        document.getElementById('kpiTotalEmpresa').innerText = formatCOP(totalCuentas);
+        document.getElementById('kpiTotalDeudores').innerText = formatCOP(acreedores);
+        document.getElementById('kpiTotalAcreedores').innerText = formatCOP(deudores);
+        document.getElementById('kpiTotalNominaPendiente').innerText = formatCOP(nominaPendiente);
 
-      cont.innerHTML = '';
-      cachedInvestors.forEach(inv => {
-        const div = document.createElement('div');
-        div.className = 'investor-card';
-        div.innerHTML = `
-          <div>
-            <strong style="color:#fff; font-size:0.82rem;">${inv.name}</strong>
-            <div style="font-size:0.68rem; color:var(--text-muted); margin-top:2px;">
-              Participación: <strong style="color:var(--status-ok);">${inv.profit_percentage}%</strong> · Capital: ${formatCOP(inv.capital_invested)}
+        const list = document.getElementById('globalListaCuentas');
+        if (!list) return;
+        list.innerHTML = '';
+        cuentasCache.forEach(c => {
+          list.innerHTML += `
+            <div style="background:var(--card-sub); border:1px solid var(--border); border-radius:4px; padding:8px 10px; margin-top:5px; display:flex; justify-content:space-between; align-items:center;">
+              <div><strong>${c.nombre}</strong> <span style="font-size:0.58rem; color:var(--text-muted);">(${c.tipo})</span></div>
+              <div style="font-weight:900; color:var(--status-ok);">${formatCOP(c.saldo_actual)}</div>
             </div>
-            <div style="font-size:0.62rem; color:#aaa;">${inv.payout_account_details || 'Sin datos de cuenta'}</div>
-          </div>
-          <div>
-            <button class="btn-secondary" onclick="generarReporteInversionistaIndividual('${inv.id}')">📊 Reporte</button>
-          </div>
-        `;
-        cont.appendChild(div);
-      });
-    }
-
-    function actualizarPanelInversionistas() {
-      // Tomar transacciones del período seleccionado en FiltroContable
-      const trans = cachedTransactions.filter(t => {
-        const f = new Date(t.transaction_date + 'T12:00:00');
-        return f >= FiltroContable.desde && f <= FiltroContable.hasta;
-      });
-
-      let ing = 0, gas = 0;
-      trans.forEach(t => {
-        if (t.type === 'ingreso') ing += parseFloat(t.amount);
-        else if (t.type === 'gasto') gas += parseFloat(t.amount);
-      });
-
-      const utilNet = ing - gas;
-      document.getElementById('invPeriodoEtiqueta').innerText = `Período: ${document.getElementById('periodDisplayTxt').innerText}`;
-
-      const elUtil = document.getElementById('invKpiUtilidadNet');
-      elUtil.innerText = formatCOP(utilNet);
-      elUtil.style.color = utilNet >= 0 ? 'var(--status-ok)' : 'var(--accent)';
-
-      let baseSocios = 0;
-      let reservaApex = 0;
-
-      if (utilNet > 0) {
-        reservaApex = utilNet * 0.30;
-        baseSocios = utilNet * 0.70;
+          `;
+        });
       }
+    };
 
-      document.getElementById('invKpiReservaApex').innerText = formatCOP(reservaApex);
-      document.getElementById('invKpiBaseSocios').innerText = formatCOP(baseSocios);
-    }
-
-    function generarReporteInversionistaIndividual(investorId) {
-      const inv = cachedInvestors.find(i => i.id === investorId);
-      if (!inv) return;
-      inversionistaSeleccionadoReporte = inv;
-
-      const trans = cachedTransactions.filter(t => {
-        const f = new Date(t.transaction_date + 'T12:00:00');
-        return f >= FiltroContable.desde && f <= FiltroContable.hasta;
-      });
-
-      let ing = 0, gas = 0;
-      trans.forEach(t => {
-        if (t.type === 'ingreso') ing += parseFloat(t.amount);
-        else if (t.type === 'gasto') gas += parseFloat(t.amount);
-      });
-
-      const utilNet = ing - gas;
-      const baseDistribuible = utilNet > 0 ? (utilNet * 0.70) : 0;
-      const dividendo = baseDistribuible > 0 ? (baseDistribuible * (inv.profit_percentage / 100)) : 0;
-      dividendoCalculadoActual = dividendo;
-
-      document.getElementById('lblRepInvNumero').innerText = `REP-INV-${Date.now().toString().slice(-4)}`;
-      document.getElementById('lblRepInvFecha').innerText = `Fecha: ${new Date().toLocaleDateString('es-CO')}`;
-      document.getElementById('lblRepInvNombre').innerText = inv.name;
-      document.getElementById('lblRepInvCapital').innerText = formatCOP(inv.capital_invested);
-      document.getElementById('lblRepInvPorcentaje').innerText = `${inv.profit_percentage}% (sobre 70% distribuible)`;
-      document.getElementById('lblRepInvPeriodo').innerText = document.getElementById('periodDisplayTxt').innerText;
-
-      const tbody = document.getElementById('repInvTableBody');
-      tbody.innerHTML = `
-        <tr><td>Ingresos Totales del Período</td><td style="text-align:right; color:var(--status-ok);">${formatCOP(ing)}</td></tr>
-        <tr><td>Gastos Operativos del Período</td><td style="text-align:right; color:var(--accent);">${formatCOP(gas)}</td></tr>
-        <tr><td><strong>Utilidad Neta Generada</strong></td><td style="text-align:right;"><strong>${formatCOP(utilNet)}</strong></td></tr>
-        <tr><td>Reserva Apex (30% Reinversión)</td><td style="text-align:right;">${formatCOP(utilNet > 0 ? utilNet * 0.30 : 0)}</td></tr>
-        <tr><td>Base Distribuible a Socios (70%)</td><td style="text-align:right;">${formatCOP(baseDistribuible)}</td></tr>
-        <tr><td>Cuota de Participación (${inv.profit_percentage}%)</td><td style="text-align:right; color:var(--status-ok);"><strong>${formatCOP(dividendo)}</strong></td></tr>
-      `;
-
-      const granTotalEl = document.getElementById('lblRepInvGranTotal');
-      granTotalEl.innerText = formatCOP(dividendo);
-      granTotalEl.style.color = dividendo > 0 ? 'var(--status-ok)' : (utilNet <= 0 ? 'var(--accent)' : '#fff');
-
-      document.getElementById('lblRepInvNotaExplicativa').innerText = utilNet <= 0 
-        ? "* El balance del período fue deficitario o neutro. No se causan dividendos económicos." 
-        : `* El dividendo de ${formatCOP(dividendo)} corresponde a la cuota del ${inv.profit_percentage}% pactada sobre el fondo distribuible.`;
-
-      document.getElementById('vistaReporteInversionistaWrap').style.display = 'block';
-      document.getElementById('vistaReporteInversionistaWrap').scrollIntoView({ behavior: 'smooth' });
-    }
-
-    function abrirReporteGlobalInversionistas() {
-      inversionistaSeleccionadoReporte = { name: "TODOS LOS SOCIOS (CONSOLIDADO)", profit_percentage: 100, capital_invested: 0 };
-      const trans = cachedTransactions.filter(t => {
-        const f = new Date(t.transaction_date + 'T12:00:00');
-        return f >= FiltroContable.desde && f <= FiltroContable.hasta;
-      });
-
-      let ing = 0, gas = 0;
-      trans.forEach(t => {
-        if (t.type === 'ingreso') ing += parseFloat(t.amount);
-        else if (t.type === 'gasto') gas += parseFloat(t.amount);
-      });
-
-      const utilNet = ing - gas;
-      const baseDistribuible = utilNet > 0 ? (utilNet * 0.70) : 0;
-      dividendoCalculadoActual = baseDistribuible;
-
-      document.getElementById('lblRepInvNumero').innerText = `CONSOLIDADO-${Date.now().toString().slice(-4)}`;
-      document.getElementById('lblRepInvFecha').innerText = `Fecha: ${new Date().toLocaleDateString('es-CO')}`;
-      document.getElementById('lblRepInvNombre').innerText = "JUNTA DE INVERSIONISTAS APEX";
-      document.getElementById('lblRepInvCapital').innerText = formatCOP(cachedInvestors.reduce((a, b) => a + parseFloat(b.capital_invested || 0), 0));
-      document.getElementById('lblRepInvPorcentaje').innerText = "100% de la Base Distribuible";
-      document.getElementById('lblRepInvPeriodo').innerText = document.getElementById('periodDisplayTxt').innerText;
-
-      let filasSocios = '';
-      cachedInvestors.forEach(s => {
-        const porcion = baseDistribuible * (s.profit_percentage / 100);
-        filasSocios += `<tr><td>↳ ${s.name} (${s.profit_percentage}%)</td><td style="text-align:right;">${formatCOP(porcion)}</td></tr>`;
-      });
-
-      const tbody = document.getElementById('repInvTableBody');
-      tbody.innerHTML = `
-        <tr><td>Ingresos Totales del Período</td><td style="text-align:right; color:var(--status-ok);">${formatCOP(ing)}</td></tr>
-        <tr><td>Gastos Operativos del Período</td><td style="text-align:right; color:var(--accent);">${formatCOP(gas)}</td></tr>
-        <tr><td><strong>Utilidad Neta Generada</strong></td><td style="text-align:right;"><strong>${formatCOP(utilNet)}</strong></td></tr>
-        <tr><td>Reserva Apex (30% Reinversión)</td><td style="text-align:right;">${formatCOP(utilNet > 0 ? utilNet * 0.30 : 0)}</td></tr>
-        <tr><td><strong>Fondo Distribuible Socios (70%)</strong></td><td style="text-align:right;"><strong>${formatCOP(baseDistribuible)}</strong></td></tr>
-        ${filasSocios}
-      `;
-
-      document.getElementById('lblRepInvGranTotal').innerText = formatCOP(baseDistribuible);
-      document.getElementById('lblRepInvNotaExplicativa').innerText = "* Consolidado general de rendición de cuentas para el cuerpo de inversionistas.";
-      document.getElementById('vistaReporteInversionistaWrap').style.display = 'block';
-      document.getElementById('vistaReporteInversionistaWrap').scrollIntoView({ behavior: 'smooth' });
-    }
-
-    function exportarReporteInversionistaJPG() {
-      const area = document.getElementById('docInversionistaArea');
-      html2canvas(area, { backgroundColor: '#000000', scale: 2 }).then(canvas => {
-        const link = document.createElement('a');
-        link.download = `Reporte_Inversionista_Apex_${Date.now()}.jpg`;
-        link.href = canvas.toDataURL('image/jpeg', 0.95);
-        link.click();
-      });
-    }
-
-    function abrirModalPagarDividendo() {
-      if (dividendoCalculadoActual <= 0) {
-        alert("No hay dividendos positivos para asentar en este período.");
-        return;
-      }
-      document.getElementById('modalDividendoDetalle').innerText = `Beneficiario: ${inversionistaSeleccionadoReporte?.name || 'Socio'} | Monto a Pagar: ${formatCOP(dividendoCalculadoActual)}`;
-      document.getElementById('modalPagarDividendo').style.display = 'flex';
-    }
-
-    function cerrarModalPagarDividendo() {
-      document.getElementById('modalPagarDividendo').style.display = 'none';
-    }
-
-    async function confirmarPagoDividendo() {
-      if (!sb || dividendoCalculadoActual <= 0) return;
-      const ctaId = document.getElementById('selectCuentaDividendo').value;
-      const cta = cachedAccounts.find(c => c.id === ctaId);
-
-      if (cta.current_balance < dividendoCalculadoActual) {
-        alert("Saldo insuficiente en la cuenta seleccionada.");
-        return;
-      }
-
-      try {
-        // 1. Reducir saldo cuenta
-        await sb.from('apex_accounts').update({ current_balance: cta.current_balance - dividendoCalculadoActual }).eq('id', ctaId);
-
-        // 2. Registrar Egreso en Libro Mayor
-        await sb.from('apex_ledger_transactions').insert([{
-          type: 'gasto',
-          category: 'Distribución de Utilidades',
-          amount: dividendoCalculadoActual,
-          account_id: ctaId,
-          description: `Pago de dividendos a ${inversionistaSeleccionadoReporte?.name || 'Inversionista'} (${document.getElementById('periodDisplayTxt').innerText})`,
-          registered_by: currentContadorEmail
-        }]);
-
-        alert("¡Egreso asentado correctamente en " + cta.name + "!");
-        cerrarModalPagarDividendo();
-        await cargarDatos();
-        FiltroContable.recalcular();
-        actualizarPanelInversionistas();
-      } catch (err) {
-        alert("Error al asentar egreso: " + err.message);
-      }
-    }
-
-    /* ================= SUBMÓDULO 3: MEMBRESÍAS DEL COACH ================= */
-    function renderizarMembresiasCoach() {
-      const cont = document.getElementById('listaMembresiasPendientes');
-      const pendientes = cachedPayments.filter(p => !p.accounting_status || p.accounting_status === 'pendiente_contabilidad');
-
-      const badge = document.getElementById('badgeCoachCount');
-      if (pendientes.length > 0) {
-        badge.style.display = 'inline-block';
-        badge.innerText = pendientes.length;
-        document.getElementById('lblCoachPendientesTxt').innerText = `${pendientes.length} Pendientes`;
-      } else {
-        badge.style.display = 'none';
-        document.getElementById('lblCoachPendientesTxt').innerText = `0 Pendientes`;
-      }
-
-      if (pendientes.length === 0) {
-        cont.innerHTML = '<span style="color:var(--text-muted); font-size:0.75rem;">No hay membresías pendientes de redimir.</span>';
-        return;
-      }
-
-      cont.innerHTML = '';
-      pendientes.forEach(p => {
-        const f = new Date(p.created_at || Date.now());
-        const fStr = `${f.getDate()}/${f.getMonth() + 1} ${f.getHours()}:${String(f.getMinutes()).padStart(2, '0')}`;
-        const monto = parseFloat(p.amount) || 120000;
-
-        const div = document.createElement('div');
-        div.className = 'inflow-item';
-        div.innerHTML = `
-          <div>
-            <strong style="color:#fff; font-size:0.8rem;">${p.user_email || 'Striker'}</strong>
-            <div class="inflow-meta">${fStr} · Plan: <strong>${p.plan_type || 'Mensualidad'}</strong> · ${formatCOP(monto)}</div>
-          </div>
-          <div style="display:flex; gap:6px;">
-            <button class="btn-success" onclick="abrirModalRedimir('${p.id}')">Redimir ➔</button>
-            <button class="btn-secondary" onclick="descartarPagoCoach('${p.id}')">✕</button>
-          </div>
-        `;
-        cont.appendChild(div);
-      });
-    }
-
-    function abrirModalRedimir(pagoId) {
-      pagoParaRedimir = cachedPayments.find(p => p.id === pagoId);
-      if (!pagoParaRedimir) return;
-
-      const monto = parseFloat(pagoParaRedimir.amount) || 120000;
-      document.getElementById('modalRedimirDetalle').innerText = `Striker: ${pagoParaRedimir.user_email} | Monto: ${formatCOP(monto)}`;
-      document.getElementById('modalRedimir').style.display = 'flex';
-    }
-
-    function cerrarModalRedimir() {
-      pagoParaRedimir = null;
-      document.getElementById('modalRedimir').style.display = 'none';
-    }
-
-    async function confirmarRedencion() {
-      if (!pagoParaRedimir || !sb) return;
-      const ctaId = document.getElementById('selectCuentaRedimir').value;
-      const cta = cachedAccounts.find(c => c.id === ctaId);
-      const monto = parseFloat(pagoParaRedimir.amount) || 120000;
-
-      try {
-        await sb.from('apex_accounts').update({ current_balance: cta.current_balance + monto }).eq('id', ctaId);
-
-        await sb.from('apex_ledger_transactions').insert([{
-          type: 'ingreso',
-          category: 'Membresías Striker',
-          amount: monto,
-          account_id: ctaId,
-          description: `Membresía validada en sala: ${pagoParaRedimir.user_email} (${pagoParaRedimir.plan_type || 'Plan'})`,
-          registered_by: currentContadorEmail
-        }]);
-
-        await sb.from('apex_payments').update({ accounting_status: 'redimido' }).eq('id', pagoParaRedimir.id);
-
-        alert("¡Membresía redimida e ingresada a " + cta.name + "!");
-        cerrarModalRedimir();
-        await cargarDatos();
-        FiltroContable.recalcular();
-        actualizarPanelInversionistas();
-      } catch (err) {
-        alert("Error al redimir: " + err.message);
-      }
-    }
-
-    async function descartarPagoCoach(pagoId) {
-      if (!confirm("¿Deseas descartar este registro de cobro? No afectará la caja.")) return;
-      await sb.from('apex_payments').update({ accounting_status: 'descartado' }).eq('id', pagoId);
-      await cargarDatos();
-    }
-
-    /* ================= SUBMÓDULO 4: CUENTA DE COBRO AL GIMNASIO ================= */
-    const GeneradorCobro = {
-      periodo: '1q',
-
-      setPeriodo: function(p, btn) {
-        this.periodo = p;
-        document.querySelectorAll('#tabCobroGym .filter-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
+    const GraficaRendimiento = {
+      inicializarControles: function() {
+        const container = document.getElementById('grafProductosCheckList');
+        if (!container) return;
+        const seleccionAnterior = Array.from(container.querySelectorAll('input[type="checkbox"]:checked')).map(el => el.value);
+        
+        container.innerHTML = '';
+        productosCache.forEach((p) => {
+          const isChecked = seleccionAnterior.length === 0 || seleccionAnterior.includes(p.nombre);
+          container.innerHTML += `
+            <label style="display:flex; align-items:center; gap:6px; margin-bottom:3px; cursor:pointer; color:#ccc;">
+              <input type="checkbox" value="${p.nombre}" ${isChecked ? 'checked' : ''} onchange="GraficaRendimiento.renderizar()"> ${p.nombre}
+            </label>
+          `;
+        });
       },
 
-      generarVista: function() {
-        const entidad = document.getElementById('cobroEntidad').value.trim();
-        const d = new Date();
-        const y = d.getFullYear();
-        const m = d.getMonth();
+      cambioPeriodo: function() {
+        const val = document.getElementById('grafPeriodo').value;
+        const manualWrap = document.getElementById('grafFechasManuales');
+        if (manualWrap) manualWrap.style.display = (val === 'manual') ? 'grid' : 'none';
+        this.renderizar();
+      },
 
-        let fDesde, fHasta, etiquetaPeriodo;
-        if (this.periodo === '1q') {
-          fDesde = new Date(y, m, 1, 0,0,0);
-          fHasta = new Date(y, m, 15, 23,59,59);
-          etiquetaPeriodo = `1ra Quincena · ${m + 1}/${y}`;
-        } else if (this.periodo === '2q') {
-          const ult = new Date(y, m + 1, 0).getDate();
-          fDesde = new Date(y, m, 16, 0,0,0);
-          fHasta = new Date(y, m, ult, 23,59,59);
-          etiquetaPeriodo = `2da Quincena · ${m + 1}/${y}`;
-        } else {
-          const ult = new Date(y, m + 1, 0).getDate();
-          fDesde = new Date(y, m, 1, 0,0,0);
-          fHasta = new Date(y, m, ult, 23,59,59);
-          etiquetaPeriodo = `Mes Completo · ${m + 1}/${y}`;
+      renderizar: function() {
+        const canvas = document.getElementById('apexRendimientoChart');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+
+        const periodo = document.getElementById('grafPeriodo').value;
+        const cuentaFiltro = document.getElementById('grafCuenta').value;
+        
+        const checkboxes = document.querySelectorAll('#grafProductosCheckList input[type="checkbox"]');
+        const productosSeleccionados = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
+
+        let fechaFin = new Date();
+        let fechaInicio = new Date();
+        if (periodo === 'semana') {
+          fechaInicio.setDate(fechaFin.getDate() - 7);
+        } else if (periodo === 'mes') {
+          fechaInicio.setMonth(fechaFin.getMonth() - 1);
+        } else if (periodo === 'trimestre') {
+          fechaInicio.setMonth(fechaFin.getMonth() - 3);
+        } else if (periodo === 'semestre') {
+          fechaInicio.setMonth(fechaFin.getMonth() - 6);
+        } else if (periodo === 'manual') {
+          const fIniVal = document.getElementById('grafFechaInicio').value;
+          const fFinVal = document.getElementById('grafFechaFin').value;
+          if (fIniVal) fechaInicio = new Date(fIniVal);
+          if (fFinVal) {
+            fechaFin = new Date(fFinVal);
+            fechaFin.setHours(23, 59, 59);
+          }
         }
 
-        const pagosRango = cachedPayments.filter(p => {
-          const fp = new Date(p.created_at);
-          return fp >= fDesde && fp <= fHasta;
-        });
+        let diasMap = {};
+        let curr = new Date(fechaInicio);
+        while (curr <= fechaFin) {
+          const key = curr.toISOString().split('T')[0];
+          diasMap[key] = {};
+          productosSeleccionados.forEach(prod => diasMap[key][prod] = 0);
+          curr.setDate(curr.getDate() + 1);
+        }
 
-        document.getElementById('lblCobroDeudor').innerText = entidad;
-        document.getElementById('lblCobroPeriodo').innerText = etiquetaPeriodo;
-        document.getElementById('lblCobroFecha').innerText = `Fecha: ${d.toLocaleDateString('es-CO')}`;
-        document.getElementById('lblCobroNumero').innerText = `CC-${y}-${Date.now().toString().slice(-4)}`;
+        transaccionesCache.forEach(t => {
+          if (t.type !== 'ingreso') return;
+          if (cuentaFiltro && t.account_id !== cuentaFiltro) return;
+          const tDate = new Date(t.created_at);
+          if (tDate < fechaInicio || tDate > fechaFin) return;
 
-        const tbody = document.getElementById('cobroTableBody');
-        tbody.innerHTML = '';
+          const diaKey = tDate.toISOString().split('T')[0];
+          if (!diasMap[diaKey]) return;
 
-        let granTotal = 0;
-        if (pagosRango.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#777;">Sin membresías reportadas en este período.</td></tr>';
-        } else {
-          pagosRango.forEach(p => {
-            const fp = new Date(p.created_at);
-            const monto = parseFloat(p.amount) || 120000;
-            granTotal += monto;
-            tbody.innerHTML += `
-              <tr>
-                <td>${fp.getDate()}/${fp.getMonth() + 1}</td>
-                <td><strong>${p.user_email}</strong></td>
-                <td>${p.plan_type || 'Mensualidad'}</td>
-                <td style="text-align:right;">${formatCOP(monto)}</td>
-              </tr>
-            `;
+          productosSeleccionados.forEach(prod => {
+            if ((t.description || '').toLowerCase().includes(prod.toLowerCase()) || (t.category || '').toLowerCase().includes(prod.toLowerCase())) {
+              diasMap[diaKey][prod] = (diasMap[diaKey][prod] || 0) + parseFloat(t.amount || 0);
+            }
           });
-        }
+        });
 
-        document.getElementById('lblCobroGranTotal').innerText = formatCOP(granTotal);
-        document.getElementById('vistaCuentaCobroWrap').style.display = 'block';
+        const labels = Object.keys(diasMap).sort();
+        const datasets = productosSeleccionados.map((prod, idx) => {
+          const colores = ['#e50914', '#22c55e', '#3b82f6', '#eab308', '#a855f7', '#06b6d4', '#f97316', '#ec4899'];
+          const color = colores[idx % colores.length];
+          const data = labels.map(dia => diasMap[dia][prod] || 0);
+          return {
+            label: prod,
+            data: data,
+            borderColor: color,
+            backgroundColor: color,
+            borderWidth: 1.8,
+            pointRadius: 2.5,
+            tension: 0.1
+          };
+        });
+
+        if (apexChartInstance) apexChartInstance.destroy();
+
+        apexChartInstance = new Chart(ctx, {
+          type: 'line',
+          data: { labels: labels, datasets: datasets },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { labels: { color: '#888', font: { size: 9, weight: 'bold' } } }
+            },
+            scales: {
+              x: { ticks: { color: '#555', font: { size: 8 } }, grid: { color: '#15151a' } },
+              y: { ticks: { color: '#555', font: { size: 8 }, callback: (val) => '$' + val.toLocaleString() }, grid: { color: '#15151a' } }
+            }
+          }
+        });
       }
     };
 
-    function exportarCuentaCobroJPG() {
-      const area = document.getElementById('docCuentaCobroArea');
-      html2canvas(area, { backgroundColor: '#000000', scale: 2 }).then(canvas => {
-        const link = document.createElement('a');
-        link.download = `Cuenta_Cobro_Apex_${Date.now()}.jpg`;
-        link.href = canvas.toDataURL('image/jpeg', 0.95);
-        link.click();
-      });
-    }
+    /* ================= 1. CATEGORÍAS FINANCIERAS ================= */
+    const CategoriasAdmin = {
+      crear: async function(e) {
+        e.preventDefault();
+        const nombre = document.getElementById('catNombre').value.trim();
+        const tipo = document.getElementById('catTipo').value;
 
-    /* ================= SUBMÓDULO 5: FACTURACIÓN ================= */
-    async function emitirFactura(e) {
-      e.preventDefault();
-      const cliente = document.getElementById('facCliente').value.trim();
-      const doc = document.getElementById('facDocCliente').value.trim() || 'N/A';
-      const item = document.getElementById('facItem').value.trim();
-      const monto = parseFloat(document.getElementById('facMonto').value);
-      const ctaId = document.getElementById('facCuentaDestino').value;
+        const { error } = await sb.from('apex_categorias_financieras').insert([{ nombre, tipo }]);
+        if (error) alert("Error: " + error.message);
+        else {
+          e.target.reset();
+          await cargarDatosGlobales();
+        }
+      },
 
-      const cta = cachedAccounts.find(c => c.id === ctaId);
-      const facNum = `FAC-${Date.now().toString().slice(-4)}`;
-
-      try {
-        await sb.from('apex_accounts').update({ current_balance: cta.current_balance + monto }).eq('id', ctaId);
-
-        await sb.from('apex_ledger_transactions').insert([{
-          type: 'ingreso',
-          category: 'Ventas Directas / Factura',
-          amount: monto,
-          account_id: ctaId,
-          description: `Factura ${facNum} - ${cliente} (${item})`,
-          registered_by: currentContadorEmail
-        }]);
-
-        document.getElementById('lblFacNumero').innerText = facNum;
-        document.getElementById('lblFacFecha').innerText = `Fecha: ${new Date().toLocaleDateString('es-CO')}`;
-        document.getElementById('lblFacCliente').innerText = cliente;
-        document.getElementById('lblFacDocCliente').innerText = doc;
-        document.getElementById('lblFacItemDesc').innerText = item;
-        document.getElementById('lblFacItemTotal').innerText = formatCOP(monto);
-        document.getElementById('lblFacGranTotal').innerText = formatCOP(monto);
-
-        document.getElementById('vistaFacturaWrap').style.display = 'block';
-        alert(`¡Factura ${facNum} emitida e ingresada a ${cta.name}!`);
-        await cargarDatos();
-        FiltroContable.recalcular();
-        actualizarPanelInversionistas();
-      } catch (err) {
-        alert("Error al emitir factura: " + err.message);
-      }
-    }
-
-    function exportarFacturaJPG() {
-      const area = document.getElementById('docFacturaArea');
-      html2canvas(area, { backgroundColor: '#000000', scale: 2 }).then(canvas => {
-        const link = document.createElement('a');
-        link.download = `Factura_Apex_${Date.now()}.jpg`;
-        link.href = canvas.toDataURL('image/jpeg', 0.95);
-        link.click();
-      });
-    }
-
-    /* ================= SUBMÓDULO 6: CUENTAS FINANCIERAS ================= */
-    async function crearCuenta(e) {
-      e.preventDefault();
-      const nombre = document.getElementById('ctaNombre').value.trim();
-      const tipo = document.getElementById('ctaTipo').value;
-      const saldo = parseFloat(document.getElementById('ctaSaldoInicial').value) || 0;
-
-      const { error } = await sb.from('apex_accounts').insert([{ name: nombre, type: tipo, current_balance: saldo }]);
-      if (error) {
-        alert("Error: " + error.message);
-      } else {
-        alert("¡Cuenta financiera creada!");
-        document.getElementById('formCrearCuenta').reset();
-        await cargarDatos();
-      }
-    }
-
-    function renderizarCuentas() {
-      const cont = document.getElementById('listaCuentas');
-      if (cachedAccounts.length === 0) {
-        cont.innerHTML = '<span style="color:var(--text-muted); font-size:0.75rem;">No hay cuentas registradas.</span>';
-        return;
-      }
-
-      cont.innerHTML = '';
-      cachedAccounts.forEach(c => {
-        cont.innerHTML += `
-          <div style="background:#161618; border:1px solid var(--border); border-radius:6px; padding:10px 12px; margin-top:8px; display:flex; justify-content:space-between; align-items:center;">
-            <div>
-              <strong style="color:#fff; font-size:0.85rem;">${c.name}</strong>
-              <div style="font-size:0.68rem; color:var(--text-muted); text-transform:uppercase;">${c.type}</div>
+      renderizar: function() {
+        const cont = document.getElementById('listaCategoriasFinancieras');
+        if (!cont) return;
+        if (categoriasCache.length === 0) {
+          cont.innerHTML = '<span style="color:var(--text-muted); font-size:0.65rem;">Sin categorías.</span>';
+          return;
+        }
+        cont.innerHTML = '';
+        categoriasCache.forEach(ct => {
+          cont.innerHTML += `
+            <div style="background:var(--card-sub); border:1px solid var(--border); border-radius:4px; padding:6px 8px; margin-top:5px; display:flex; justify-content:space-between; align-items:center;">
+              <div><strong>${ct.nombre}</strong> <span style="font-size:0.58rem; color:var(--text-muted);">(${ct.tipo})</span></div>
+              <button class="btn-secondary" style="color:var(--accent); padding:2px 5px; font-size:0.55rem;" onclick="CategoriasAdmin.eliminar('${ct.id}')">✕</button>
             </div>
-            <div style="font-weight:900; font-size:0.95rem; color:#fff;">${formatCOP(c.current_balance)}</div>
-          </div>
-        `;
-      });
-    }
+          `;
+        });
+      },
 
-    /* ================= DASHBOARD & DONA ================= */
-    const FiltroContable = {
-      modo: 'quincenal',
-      fechaBase: new Date(),
-      desde: null,
-      hasta: null,
+      eliminar: async function(id) {
+        if (!confirm("¿Eliminar categoría?")) return;
+        await sb.from('apex_categorias_financieras').delete().eq('id', id);
+        await cargarDatosGlobales();
+      }
+    };
 
-      init: function() { this.recalcular(); },
+    /* ================= 2. CAJA DIARIA (VENTAS Y COMPRAS/EGRESOS) ================= */
+    const CajaOperacion = {
+      abrirCaja: async function() {
+        const cuentaId = document.getElementById('cajaCuentaBase').value;
+        const baseMonto = parseFloat(document.getElementById('cajaBaseMonto').value) || 0;
+        const cta = cuentasCache.find(c => c.id === cuentaId);
 
-      setModo: function(modo, btn) {
-        this.modo = modo;
-        document.querySelectorAll('.period-filter-wrap .filter-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
+        if (!cta || cta.saldo_actual < baseMonto) {
+          alert("Saldo insuficiente en cuenta base.");
+          return;
+        }
 
-        const navBox = document.getElementById('periodNavBox');
-        const customBox = document.getElementById('customDateRangeBox');
+        try {
+          await sb.from('apex_cuentas').update({ saldo_actual: cta.saldo_actual - baseMonto }).eq('id', cuentaId);
+          
+          const catObj = categoriasCache.find(c => c.nombre.toLowerCase().includes('operativo') || c.nombre.toLowerCase().includes('egreso')) || categoriasCache[0];
+          await sb.from('apex_transacciones_libro_mayor').insert([{
+            type: 'egreso',
+            category: 'Apertura Base de Caja',
+            category_id: catObj ? catObj.id : null,
+            amount: baseMonto,
+            account_id: cuentaId,
+            description: `Retiro de base (${formatCOP(baseMonto)}) para turno desde ${cta.nombre}`,
+            registered_by: 'Caja'
+          }]);
 
-        if (modo === 'libre') {
-          navBox.style.display = 'none';
-          customBox.style.display = 'grid';
-          const hoy = new Date().toISOString().split('T')[0];
-          document.getElementById('dateRangeStart').value = hoy;
-          document.getElementById('dateRangeEnd').value = hoy;
-          this.aplicarLibre();
+          cajaActiva = { cuentaId, baseMonto, ventasTurno: 0, comprasTurno: 0, efectivoRecaudado: baseMonto };
+          
+          document.getElementById('panelCajaCerrada').style.display = 'none';
+          document.getElementById('panelCajaAbierta').style.display = 'block';
+          const lblCaja = document.getElementById('lblEstadoCaja');
+          lblCaja.innerText = 'ABIERTA';
+          lblCaja.style.background = 'rgba(34,197,94,0.15)';
+          lblCaja.style.color = 'var(--status-ok)';
+          lblCaja.style.borderColor = 'rgba(34,197,94,0.3)';
+
+          document.getElementById('cajaKpiBase').innerText = formatCOP(baseMonto);
+          document.getElementById('cajaKpiVentas').innerText = formatCOP(0);
+          document.getElementById('cajaKpiEfectivo').innerText = formatCOP(baseMonto);
+
+          await cargarDatosGlobales();
+        } catch (err) {
+          alert("Error: " + err.message);
+        }
+      },
+
+      renderizarCatalogo: function() {
+        const grid = document.getElementById('cajaCatalogoGrid');
+        if (!grid) return;
+        if (productosCache.length === 0) {
+          grid.innerHTML = '<span style="color:var(--text-muted); font-size:0.65rem;">Sin productos.</span>';
+          return;
+        }
+        grid.innerHTML = '';
+        productosCache.forEach(prod => {
+          const bgImg = prod.imagen_url || 'https://images.unsplash.com/photo-1517649763962-0c6232660102?w=300';
+          grid.innerHTML += `
+            <div class="product-card" style="background-image: url('${bgImg}');" onclick="CajaOperacion.agregarAlCarrito('${prod.id}')">
+              <div class="product-title">${prod.nombre}</div>
+              <div class="product-price">${formatCOP(prod.precio)}</div>
+            </div>
+          `;
+        });
+      },
+
+      cambioOperacion: function() {
+        const tipoOp = document.getElementById('cartTipoOperacion').value;
+        const wrapPago = document.getElementById('wrapCartPago');
+        const lblCliente = document.getElementById('lblCartCliente');
+        const boxTitle = document.getElementById('cartBoxTitle');
+        const btnCobrar = document.getElementById('btnCartCobrar');
+
+        if (tipoOp === 'compra') {
+          wrapPago.style.display = 'none';
+          lblCliente.innerText = 'Proveedor / Concepto';
+          boxTitle.innerText = '🛒 Carrito Rápido (Compra / Egreso)';
+          btnCobrar.innerText = 'Registrar Compra / Egreso';
+          btnCobrar.style.background = 'var(--accent)';
         } else {
-          navBox.style.display = 'flex';
-          customBox.style.display = 'none';
-          this.recalcular();
+          wrapPago.style.display = 'block';
+          lblCliente.innerText = 'Cliente';
+          boxTitle.innerText = '🛒 Carrito Rápido (Venta)';
+          btnCobrar.innerText = 'Registrar Venta';
+          btnCobrar.style.background = 'var(--accent)';
         }
       },
 
-      navegar: function(delta) {
-        if (this.modo === 'semanal') {
-          this.fechaBase.setDate(this.fechaBase.getDate() + (delta * 7));
-        } else if (this.modo === 'quincenal') {
-          const dia = this.fechaBase.getDate();
-          if (delta > 0) {
-            if (dia <= 15) this.fechaBase.setDate(16);
-            else { this.fechaBase.setMonth(this.fechaBase.getMonth() + 1); this.fechaBase.setDate(1); }
-          } else {
-            if (dia > 15) this.fechaBase.setDate(1);
-            else { this.fechaBase.setMonth(this.fechaBase.getMonth() - 1); this.fechaBase.setDate(16); }
-          }
-        } else if (this.modo === 'mensual') {
-          this.fechaBase.setMonth(this.fechaBase.getMonth() + delta);
+      agregarAlCarrito: function(idProd) {
+        const prod = productosCache.find(p => p.id === idProd);
+        if (!prod) return;
+        carrito.push(prod);
+        this.renderCarrito();
+      },
+
+      renderCarrito: function() {
+        const list = document.getElementById('cartItemsList');
+        const totalTxt = document.getElementById('cartTotalTxt');
+        if (!list || !totalTxt) return;
+        if (carrito.length === 0) {
+          list.innerHTML = 'Selecciona productos abajo.';
+          totalTxt.innerText = '$0';
+          return;
         }
-        this.recalcular();
-      },
-
-      aplicarLibre: function() {
-        const s = document.getElementById('dateRangeStart').value;
-        const e = document.getElementById('dateRangeEnd').value;
-        if (!s) return;
-        this.desde = new Date(s + 'T00:00:00');
-        this.hasta = e ? new Date(e + 'T23:59:59') : new Date();
-        this.renderVista();
-      },
-
-      recalcular: function() {
-        const d = new Date(this.fechaBase);
-        const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-
-        if (this.modo === 'semanal') {
-          const diaSemana = d.getDay() === 0 ? 6 : d.getDay() - 1;
-          const lunes = new Date(d);
-          lunes.setDate(d.getDate() - diaSemana);
-          lunes.setHours(0,0,0,0);
-          const domingo = new Date(lunes);
-          domingo.setDate(lunes.getDate() + 6);
-          domingo.setHours(23,59,59,999);
-
-          this.desde = lunes;
-          this.hasta = domingo;
-          document.getElementById('periodDisplayTxt').innerText = `Sem: ${lunes.getDate()} ${meses[lunes.getMonth()]} - ${domingo.getDate()} ${meses[domingo.getMonth()]} ${domingo.getFullYear()}`;
-
-        } else if (this.modo === 'quincenal') {
-          const y = d.getFullYear();
-          const m = d.getMonth();
-          const dia = d.getDate();
-
-          if (dia <= 15) {
-            this.desde = new Date(y, m, 1, 0,0,0);
-            this.hasta = new Date(y, m, 15, 23,59,59);
-            document.getElementById('periodDisplayTxt').innerText = `1ra Quincena · ${meses[m]} ${y}`;
-          } else {
-            const ult = new Date(y, m + 1, 0).getDate();
-            this.desde = new Date(y, m, 16, 0,0,0);
-            this.hasta = new Date(y, m, ult, 23,59,59);
-            document.getElementById('periodDisplayTxt').innerText = `2da Quincena · ${meses[m]} ${y}`;
-          }
-
-        } else if (this.modo === 'mensual') {
-          const y = d.getFullYear();
-          const m = d.getMonth();
-          const ult = new Date(y, m + 1, 0).getDate();
-
-          this.desde = new Date(y, m, 1, 0,0,0);
-          this.hasta = new Date(y, m, ult, 23,59,59);
-          document.getElementById('periodDisplayTxt').innerText = `${meses[m]} ${y}`;
-        }
-
-        this.renderVista();
-      },
-
-      renderVista: function() {
-        const transFiltradas = cachedTransactions.filter(t => {
-          const f = new Date(t.transaction_date + 'T12:00:00');
-          return f >= this.desde && f <= this.hasta;
+        let total = 0;
+        list.innerHTML = '';
+        carrito.forEach((item, idx) => {
+          total += parseFloat(item.precio);
+          list.innerHTML += `<div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>${item.nombre}</span> <strong>${formatCOP(item.precio)}</strong> <span style="cursor:pointer; color:var(--accent);" onclick="CajaOperacion.quitarDelCarrito(${idx})">✕</span></div>`;
         });
+        totalTxt.innerText = formatCOP(total);
+      },
 
-        let ing = 0, gas = 0;
-        transFiltradas.forEach(t => {
-          if (t.type === 'ingreso') ing += parseFloat(t.amount);
-          else if (t.type === 'gasto') gas += parseFloat(t.amount);
-        });
+      quitarDelCarrito: function(idx) {
+        carrito.splice(idx, 1);
+        this.renderCarrito();
+      },
 
-        document.getElementById('kpiIngresos').innerText = formatCOP(ing);
-        document.getElementById('kpiGastos').innerText = formatCOP(gas);
-        const neto = ing - gas;
-        const netoEl = document.getElementById('kpiUtilidad');
-        netoEl.innerText = formatCOP(neto);
-        netoEl.style.color = neto >= 0 ? 'var(--status-ok)' : 'var(--accent)';
+      cobrar: async function() {
+        if (!cajaActiva) { alert("Caja cerrada."); return; }
+        if (carrito.length === 0) { alert("Carrito vacío."); return; }
 
-        actualizarGraficaDona(transFiltradas);
-        actualizarPanelInversionistas();
+        const tipoOperacion = document.getElementById('cartTipoOperacion').value;
+        const totalMonto = carrito.reduce((a, b) => a + parseFloat(b.precio), 0);
+        const detalleItems = carrito.map(i => i.nombre).join(', ');
+
+        try {
+          if (tipoOperacion === 'compra') {
+            const proveedor = document.getElementById('cartCliente').value.trim() || 'Proveedor General';
+            const catObj = categoriasCache.find(c => c.nombre.toLowerCase().includes('operativo') || c.nombre.toLowerCase().includes('egreso') || c.tipo === 'egreso') || categoriasCache[0];
+            
+            const cta = cuentasCache.find(c => c.id === cajaActiva.cuentaId);
+            if (!cta || cta.saldo_actual < totalMonto) {
+              alert("Saldo insuficiente en caja/cuenta para realizar esta compra.");
+              return;
+            }
+
+            // Descontar saldo temporalmente de la cuenta financiera durante el turno
+            await sb.from('apex_cuentas').update({ saldo_actual: cta.saldo_actual - totalMonto }).eq('id', cajaActiva.cuentaId);
+
+            await sb.from('apex_transacciones_libro_mayor').insert([{
+              type: 'egreso',
+              category: 'Compra / Egreso Caja',
+              category_id: catObj ? catObj.id : null,
+              amount: totalMonto,
+              account_id: cajaActiva.cuentaId,
+              description: `Compra a ${proveedor}: ${detalleItems}`,
+              registered_by: 'Caja'
+            }]);
+
+            cajaActiva.comprasTurno = (cajaActiva.comprasTurno || 0) + totalMonto;
+            cajaActiva.efectivoRecaudado -= totalMonto;
+
+          } else {
+            const tipoPago = document.getElementById('cartTipoPago').value;
+            const cliente = document.getElementById('cartCliente').value.trim() || 'Cliente General';
+            const catObj = categoriasCache.find(c => c.nombre.toLowerCase().includes('tienda') || c.nombre.toLowerCase().includes('membresía')) || categoriasCache[0];
+
+            if (tipoPago === 'contado') {
+              cajaActiva.ventasTurno += totalMonto;
+              cajaActiva.efectivoRecaudado += totalMonto;
+            } else if (tipoPago === 'credito') {
+              await sb.from('apex_acreedores_deudores').insert([{ nombre: cliente, tipo: 'acreedor', saldo: totalMonto, notas: `Venta crédito: ${detalleItems}` }]);
+            } else if (tipoPago === 'nomina') {
+              await sb.from('apex_nomina').insert([{ staff_email: cliente, concepto: `Crédito Tienda: ${detalleItems}`, monto: totalMonto, estado: 'pendiente_pagar' }]);
+            }
+
+            await sb.from('apex_transacciones_libro_mayor').insert([{
+              type: 'ingreso',
+              category: `Venta Caja (${tipoPago})`,
+              category_id: catObj ? catObj.id : null,
+              amount: totalMonto,
+              account_id: cajaActiva.cuentaId,
+              description: `Venta a ${cliente}: ${detalleItems}`,
+              registered_by: 'Caja'
+            }]);
+          }
+
+          carrito = [];
+          document.getElementById('cartCliente').value = '';
+          this.renderCarrito();
+
+          const ventasNetas = cajaActiva.ventasTurno - (cajaActiva.comprasTurno || 0);
+          document.getElementById('cajaKpiVentas').innerText = formatCOP(ventasNetas);
+          document.getElementById('cajaKpiEfectivo').innerText = formatCOP(cajaActiva.efectivoRecaudado);
+
+          await cargarDatosGlobales();
+        } catch (err) {
+          alert("Error: " + err.message);
+        }
+      },
+
+      abrirModalCierre: function() {
+        if (!cajaActiva) return;
+        document.getElementById('cierreEfectivoReal').value = Math.max(0, cajaActiva.efectivoRecaudado);
+        document.getElementById('modalCierreCaja').style.display = 'flex';
+      },
+
+      confirmarCierreCaja: async function() {
+        if (!cajaActiva) return;
+        const efectivoReal = parseFloat(document.getElementById('cierreEfectivoReal').value) || 0;
+        const esperado = cajaActiva.efectivoRecaudado;
+        const diferencia = efectivoReal - esperado;
+        
+        const cuentaId = cajaActiva.cuentaId;
+        const montoRetornoTotal = cajaActiva.baseMonto + cajaActiva.ventasTurno - (cajaActiva.comprasTurno || 0);
+        const cta = cuentasCache.find(c => c.id === cuentaId);
+        const catObj = categoriasCache.find(c => c.nombre.toLowerCase().includes('ingreso') || c.nombre.toLowerCase().includes('tienda')) || categoriasCache[0];
+
+        try {
+          if (montoRetornoTotal > 0) {
+            await sb.from('apex_cuentas').update({ saldo_actual: parseFloat(cta.saldo_actual) + montoRetornoTotal }).eq('id', cuentaId);
+          }
+
+          await sb.from('apex_transacciones_libro_mayor').insert([{
+            type: 'ingreso',
+            category: 'Cierre de Caja y Consolidación',
+            category_id: catObj ? catObj.id : null,
+            amount: Math.abs(montoRetornoTotal),
+            account_id: cuentaId,
+            description: `Cierre de turno. Base (${formatCOP(cajaActiva.baseMonto)}) + Ventas (${formatCOP(cajaActiva.ventasTurno)}) - Compras (${formatCOP(cajaActiva.comprasTurno || 0)})`,
+            registered_by: 'Caja'
+          }]);
+
+          if (diferencia !== 0) {
+            const tipoDesc = diferencia > 0 ? 'ingreso' : 'egreso';
+            await sb.from('apex_transacciones_libro_mayor').insert([{
+              type: tipoDesc,
+              category: 'Descuadre de Caja',
+              category_id: catObj ? catObj.id : null,
+              amount: Math.abs(diferencia),
+              account_id: cuentaId,
+              description: `Ajuste caja. Esperado: ${formatCOP(esperado)}, Real: ${formatCOP(efectivoReal)}`,
+              registered_by: 'Caja'
+            }]);
+          }
+
+          document.getElementById('modalCierreCaja').style.display = 'none';
+          cajaActiva = null;
+          document.getElementById('panelCajaCerrada').style.display = 'block';
+          document.getElementById('panelCajaAbierta').style.display = 'none';
+          
+          const lblCaja = document.getElementById('lblEstadoCaja');
+          lblCaja.innerText = 'Caja Cerrada';
+          lblCaja.style.background = 'var(--card-sub)';
+          lblCaja.style.color = 'var(--text-muted)';
+          lblCaja.style.borderColor = 'var(--border)';
+
+          await cargarDatosGlobales();
+        } catch (err) {
+          alert("Error: " + err.message);
+        }
       }
     };
 
-    function alternarTipoDona(tipo) {
-      tipoDonaActual = tipo;
-      document.getElementById('tituloDona').innerText = tipo === 'gasto' ? 'Distribución de Gastos' : 'Distribución de Ingresos';
-      FiltroContable.renderVista();
+    /* ================= 3. TIENDA Y CATÁLOGO ================= */
+    const TiendaAdmin = {
+      guardar: async function(e) {
+        e.preventDefault();
+        const id = document.getElementById('prodId').value;
+        const nombre = document.getElementById('prodNombre').value.trim();
+        const categoria = document.getElementById('prodCategoria').value;
+        const precio = parseFloat(document.getElementById('prodPrecio').value) || 0;
+        let stock = parseInt(document.getElementById('prodStock').value) || 99;
+        const orden = parseInt(document.getElementById('prodOrden').value) || 0;
+        let imagen_url = document.getElementById('prodImagenUrl').value.trim();
+        const fileInput = document.getElementById('prodFile');
+
+        if (categoria === 'Servicio' || categoria === 'Membresía') stock = 999999;
+
+        const btn = document.getElementById('btnGuardarProd');
+        btn.disabled = true;
+
+        try {
+          if (fileInput.files && fileInput.files[0]) {
+            const file = fileInput.files[0];
+            const fileExt = file.name.split('.').pop();
+            const filePath = `prod_${Date.now()}.${fileExt}`;
+            const { error: uploadErr } = await sb.storage.from('productos').upload(filePath, file);
+            if (uploadErr) throw uploadErr;
+            const { data: pubData } = sb.storage.from('productos').getPublicUrl(filePath);
+            imagen_url = pubData.publicUrl;
+          }
+
+          const payload = { nombre, categoria, precio, stock, orden, imagen_url };
+          let error;
+          if (id) {
+            const res = await sb.from('apex_productos').update(payload).eq('id', id);
+            error = res.error;
+          } else {
+            const res = await sb.from('apex_productos').insert([payload]);
+            error = res.error;
+          }
+
+          if (error) throw error;
+          e.target.reset();
+          document.getElementById('prodId').value = '';
+          await cargarDatosGlobales();
+        } catch (err) {
+          alert("Error: " + err.message);
+        } finally {
+          btn.disabled = false;
+        }
+      },
+
+      renderizarInventario: function() {
+        const cont = document.getElementById('listaInventarioTienda');
+        if (!cont) return;
+        if (productosCache.length === 0) {
+          cont.innerHTML = '<span style="color:var(--text-muted); font-size:0.65rem;">Sin productos.</span>';
+          return;
+        }
+        cont.innerHTML = '';
+        productosCache.forEach(p => {
+          const bgImg = p.imagen_url || 'https://images.unsplash.com/photo-1517649763962-0c6232660102?w=300';
+          const stockTxt = (p.categoria === 'Servicio' || p.categoria === 'Membresía') ? 'Infinito' : `Stock: ${p.stock ?? 'N/A'}`;
+          cont.innerHTML += `
+            <div class="product-card" style="background-image: url('${bgImg}');">
+              <div class="product-title">${p.nombre}</div>
+              <div style="font-size:0.55rem; color:var(--text-muted);">${p.categoria} · ${stockTxt}</div>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-top:3px;">
+                <span class="product-price">${formatCOP(p.precio)}</span>
+                <div style="display:flex; gap:3px;">
+                  <button class="btn-secondary" style="padding:2px 5px; font-size:0.5rem;" onclick="TiendaAdmin.editar('${p.id}')">Edit</button>
+                  <button class="btn-secondary" style="padding:2px 5px; font-size:0.5rem; color:var(--accent);" onclick="TiendaAdmin.eliminar('${p.id}')">✕</button>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+      },
+
+      editar: function(id) {
+        const p = productosCache.find(x => x.id === id);
+        if (!p) return;
+        document.getElementById('prodId').value = p.id;
+        document.getElementById('prodNombre').value = p.nombre;
+        document.getElementById('prodCategoria').value = p.categoria;
+        document.getElementById('prodPrecio').value = p.precio;
+        document.getElementById('prodStock').value = p.stock ?? 99;
+        document.getElementById('prodOrden').value = p.orden ?? 0;
+        document.getElementById('prodImagenUrl').value = p.imagen_url || '';
+        switchTab('tabTienda', document.querySelectorAll('.nav-btn')[2]);
+      },
+
+      eliminar: async function(id) {
+        if (!confirm("¿Eliminar?")) return;
+        await sb.from('apex_productos').delete().eq('id', id);
+        await cargarDatosGlobales();
+      }
+    };
+
+    /* ================= 4. BANDEJA COACH (SALA) ================= */
+    const BandejaCoach = {
+      renderizar: function() {
+        const cont = document.getElementById('listaMembresiasPendientes');
+        if (!cont) return;
+        const pendientes = pagosPendientesCache.filter(p => !p.accounting_status || p.accounting_status === 'pendiente_contabilidad');
+        const badge = document.getElementById('badgeCoachCount');
+
+        if (pendientes.length > 0) {
+          badge.style.display = 'inline-block';
+          badge.innerText = pendientes.length;
+          document.getElementById('lblCoachPendientesTxt').innerText = `${pendientes.length} Pendientes`;
+        } else {
+          badge.style.display = 'none';
+          document.getElementById('lblCoachPendientesTxt').innerText = `0 Pendientes`;
+        }
+
+        if (pendientes.length === 0) {
+          cont.innerHTML = '<span style="color:var(--text-muted); font-size:0.65rem;">Sin pagos pendientes.</span>';
+          return;
+        }
+
+        cont.innerHTML = '';
+        pendientes.forEach(p => {
+          const monto = parseFloat(p.amount) || 0;
+          const imgThumb = (p.receipt_urls && p.receipt_urls.length > 0) 
+            ? `<img src="${p.receipt_urls[0]}" style="width:40px; height:40px; object-fit:cover; border-radius:4px; border:1px solid var(--border); cursor:pointer;" onclick="abrirZoomImagen('${p.receipt_urls[0]}')">` 
+            : '<span style="font-size:0.58rem; color:var(--text-muted);">Sin foto</span>';
+
+          cont.innerHTML += `
+            <div class="inflow-item">
+              <div style="display:flex; align-items:center; gap:6px;">
+                ${imgThumb}
+                <div>
+                  <strong style="color:#fff; font-size:0.72rem;">${p.user_email}</strong>
+                  <div class="inflow-meta">${p.plan_type || 'Mensualidad'} · ${formatCOP(monto)}</div>
+                </div>
+              </div>
+              <button class="btn-success" onclick="BandejaCoach.abrirModal('${p.id}')">Revisar</button>
+            </div>
+          `;
+        });
+      },
+
+      abrirModal: function(pagoId) {
+        pagoCoachSeleccionado = pagosPendientesCache.find(p => p.id === pagoId);
+        if (!pagoCoachSeleccionado) return;
+
+        poblarSelectsProductosModal();
+        poblarSelectsCuentas();
+
+        const monto = parseFloat(pagoCoachSeleccionado.amount) || 0;
+        document.getElementById('modalCoachDetalle').innerText = `Striker: ${pagoCoachSeleccionado.user_email}`;
+        document.getElementById('modalCoachMontoReal').value = monto;
+        document.getElementById('modalCoachDiasVigencia').value = 30;
+        document.getElementById('modalSelectProductoTienda').value = '';
+
+        const imgWrap = document.getElementById('modalComprobanteWrap');
+        const imgEl = document.getElementById('modalComprobanteImg');
+        if (pagoCoachSeleccionado.receipt_urls && pagoCoachSeleccionado.receipt_urls.length > 0) {
+          imgEl.src = pagoCoachSeleccionado.receipt_urls[0];
+          imgWrap.style.display = 'block';
+        } else {
+          imgWrap.style.display = 'none';
+        }
+
+        document.getElementById('modalRevisionCoach').style.display = 'flex';
+      },
+
+      seleccionarProductoTienda: function() {
+        const sel = document.getElementById('modalSelectProductoTienda');
+        const opt = sel.options[sel.selectedIndex];
+        if (!opt || !opt.value) return;
+
+        const precio = parseFloat(opt.getAttribute('data-precio')) || 0;
+        const nombreProd = (opt.getAttribute('data-nombre') || '').toLowerCase();
+        
+        document.getElementById('modalCoachMontoReal').value = precio;
+        let dias = 30;
+        if (nombreProd.includes('trimestre') || nombreProd.includes('90')) dias = 90;
+        else if (nombreProd.includes('quincena') || nombreProd.includes('15')) dias = 15;
+        else if (nombreProd.includes('pase') || nombreProd.includes('1 día')) dias = 1;
+        document.getElementById('modalCoachDiasVigencia').value = dias;
+      },
+
+      confirmarFacturacion: async function() {
+        if (!pagoCoachSeleccionado) return;
+        const ctaId = document.getElementById('modalCoachCuenta').value;
+        const montoReal = parseFloat(document.getElementById('modalCoachMontoReal').value) || 0;
+        const diasVigencia = parseInt(document.getElementById('modalCoachDiasVigencia').value, 10) || 30;
+        
+        if (!ctaId) {
+          alert("Por favor selecciona una cuenta destino.");
+          return;
+        }
+
+        const cta = cuentasCache.find(c => c.id === ctaId);
+        if (!cta) {
+          alert("La cuenta seleccionada no es válida.");
+          return;
+        }
+
+        const catObj = categoriasCache.find(c => c.nombre.toLowerCase().includes('membresía')) || categoriasCache[0];
+
+        try {
+          await sb.from('apex_cuentas').update({ saldo_actual: parseFloat(cta.saldo_actual) + montoReal }).eq('id', ctaId);
+          await sb.from('apex_transacciones_libro_mayor').insert([{
+            type: 'ingreso',
+            category: 'Membresías Sala',
+            category_id: catObj ? catObj.id : null,
+            amount: montoReal,
+            account_id: ctaId,
+            description: `Membresía sala: ${pagoCoachSeleccionado.user_email}`,
+            registered_by: 'Contabilidad'
+          }]);
+
+          await sb.from('apex_payments').update({ accounting_status: 'redimido' }).eq('id', pagoCoachSeleccionado.id);
+
+          // CÁLCULO EXACTO: UN MES MENOS UN DÍA (O VIGENCIA EXACTA SELECCIONADA)
+          const hoy = new Date();
+          hoy.setHours(0, 0, 0, 0);
+          const expDate = new Date(hoy);
+          if (diasVigencia >= 28 && diasVigencia <= 31) {
+            expDate.setMonth(expDate.getMonth() + 1);
+            expDate.setDate(expDate.getDate() - 1);
+          } else {
+            expDate.setDate(expDate.getDate() + diasVigencia);
+          }
+
+          const expDateLegible = `${expDate.getUTCDate()}/${expDate.getUTCMonth() + 1}/${expDate.getUTCFullYear()}`;
+
+          await sb.from('apex_users').update({
+            subscription_status: 'activo',
+            is_active: true,
+            subscription_expires_at: expDate.toISOString()
+          }).eq('email', pagoCoachSeleccionado.user_email);
+
+          // GENERAR NOTIFICACIÓN AUTOMÁTICA AL USUARIO
+          await sb.from('apex_notifications').insert({
+            user_email: pagoCoachSeleccionado.user_email,
+            title: '¡Membresía Facturada!',
+            message: `Tu pago ha sido validado y facturado por contabilidad. Tu membresía está activa hasta el ${expDateLegible}.`,
+            type: 'membresia'
+          });
+
+          document.getElementById('modalRevisionCoach').style.display = 'none';
+          await cargarDatosGlobales();
+        } catch (err) {
+          alert("Error: " + err.message);
+        }
+      }
+    };
+
+    /* ================= 5. CUENTAS FINANCIERAS ================= */
+    const CuentasAdmin = {
+      crear: async function(e) {
+        e.preventDefault();
+        const nombre = document.getElementById('ctaNombre').value.trim();
+        const tipo = document.getElementById('ctaTipo').value;
+        const saldo = parseFloat(document.getElementById('ctaSaldo').value) || 0;
+
+        const { error } = await sb.from('apex_cuentas').insert([{ nombre, tipo, saldo_actual: saldo, activa: true }]);
+        if (error) alert("Error: " + error.message);
+        else {
+          e.target.reset();
+          await cargarDatosGlobales();
+        }
+      },
+
+      renderizar: function() {
+        const contActivas = document.getElementById('listaCuentasContables');
+        const contArchivadas = document.getElementById('listaCuentasArchivadas');
+        if (!contActivas || !contArchivadas) return;
+
+        const activas = cuentasCache.filter(c => c.activa !== false);
+        const archivadas = cuentasCache.filter(c => c.activa === false);
+
+        contActivas.innerHTML = activas.length ? '' : '<span style="color:var(--text-muted); font-size:0.65rem;">Sin cuentas activas.</span>';
+        activas.forEach(c => {
+          contActivas.innerHTML += `
+            <div style="background:var(--card-sub); border:1px solid var(--border); border-radius:4px; padding:8px 10px; margin-top:5px; display:flex; justify-content:space-between; align-items:center;">
+              <div><strong>${c.nombre}</strong> <span style="font-size:0.58rem; color:var(--text-muted);">(${c.tipo})</span><div style="font-size:0.75rem; font-weight:900; color:#fff;">${formatCOP(c.saldo_actual)}</div></div>
+              <div style="display:flex; gap:4px;">
+                <button class="btn-secondary" style="padding:3px 6px; font-size:0.55rem;" onclick="CuentasAdmin.abrirEdicion('${c.id}')">Edit</button>
+                <button class="btn-secondary" style="padding:3px 6px; font-size:0.55rem; color:var(--accent);" onclick="CuentasAdmin.archivar('${c.id}')">Archivar</button>
+              </div>
+            </div>
+          `;
+        });
+
+        contArchivadas.innerHTML = archivadas.length ? '' : '<span style="color:var(--text-muted); font-size:0.65rem;">Sin cuentas archivadas.</span>';
+        archivadas.forEach(c => {
+          contArchivadas.innerHTML += `
+            <div style="background:var(--card-sub); border:1px solid var(--border); border-radius:4px; padding:8px 10px; margin-top:5px; display:flex; justify-content:space-between; align-items:center; opacity:0.6;">
+              <div><strong>${c.nombre}</strong> <span style="font-size:0.58rem; color:var(--text-muted);">(${c.tipo})</span></div>
+              <button class="btn-success" style="padding:3px 6px; font-size:0.55rem;" onclick="CuentasAdmin.desarchivar('${c.id}')">Restaurar</button>
+            </div>
+          `;
+        });
+      },
+
+      abrirEdicion: function(id) {
+        const c = cuentasCache.find(x => x.id === id);
+        if (!c) return;
+        document.getElementById('editCtaId').value = c.id;
+        document.getElementById('editCtaNombre').value = c.nombre;
+        document.getElementById('editCtaTipo').value = c.tipo;
+        document.getElementById('modalEditarCuenta').style.display = 'flex';
+      },
+
+      guardarEdicion: async function() {
+        const id = document.getElementById('editCtaId').value;
+        const nombre = document.getElementById('editCtaNombre').value.trim();
+        const tipo = document.getElementById('editCtaTipo').value;
+
+        await sb.from('apex_cuentas').update({ nombre, tipo }).eq('id', id);
+        document.getElementById('modalEditarCuenta').style.display = 'none';
+        await cargarDatosGlobales();
+      },
+
+      archivar: async function(id) {
+        await sb.from('apex_cuentas').update({ activa: false }).eq('id', id);
+        await cargarDatosGlobales();
+      },
+
+      desarchivar: async function(id) {
+        await sb.from('apex_cuentas').update({ activa: true }).eq('id', id);
+        await cargarDatosGlobales();
+      }
+    };
+
+    /* ================= 6. NÓMINA Y STAFF ================= */
+    const NominaAdmin = {
+      renderizar: function() {
+        const cont = document.getElementById('listaStaffNomina');
+        if (!cont) return;
+        if (staffCache.length === 0) {
+          cont.innerHTML = '<span style="color:var(--text-muted); font-size:0.65rem;">Sin personal de staff registrado.</span>';
+          return;
+        }
+        cont.innerHTML = '';
+        staffCache.forEach(st => {
+          const email = st.email;
+          const nombreStaff = st.name || email;
+          const rolStaff = st.role || 'Staff';
+          
+          const pendientesStaff = nominaCache.filter(n => n.staff_email === email && n.estado === 'pendiente_pagar');
+          const totalDeudaStaff = pendientesStaff.reduce((a, b) => a + parseFloat(b.monto || 0), 0);
+
+          const colorSaldo = totalDeudaStaff > 0 ? 'var(--status-warn)' : (totalDeudaStaff < 0 ? 'var(--status-ok)' : 'var(--text-muted)');
+          const textoSaldo = totalDeudaStaff < 0 ? `Anticipo a favor: ${formatCOP(Math.abs(totalDeudaStaff))}` : `Pendiente: ${formatCOP(totalDeudaStaff)}`;
+
+          cont.innerHTML += `
+            <div style="background:var(--card-sub); border:1px solid var(--border); border-radius:4px; padding:8px 10px; margin-top:5px; display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <strong>${nombreStaff}</strong> <span style="font-size:0.58rem; color:var(--text-muted);">(${rolStaff})</span>
+                <div style="font-size:0.65rem; color:${colorSaldo};">${textoSaldo}</div>
+              </div>
+              <button class="btn-success" onclick="NominaAdmin.abrirModal('${email}', '${nombreStaff}')">Gestionar</button>
+            </div>
+          `;
+        });
+      },
+
+      abrirModal: function(email, nombre) {
+        staffSeleccionadoNomina = email;
+        document.getElementById('modalNominaTitle').innerText = `Nómina: ${nombre}`;
+        document.getElementById('modalNominaSub').innerText = email;
+        document.getElementById('nomConcepto').value = '';
+        document.getElementById('nomMonto').value = 0;
+        
+        poblarSelectsCategorias();
+        poblarSelectsCuentas();
+        document.getElementById('modalNominaAccion').style.display = 'flex';
+        this.cambioTipoAccion();
+      },
+
+      cambioTipoAccion: function() {
+        const tipo = document.getElementById('nomTipoAccion').value;
+        const wrapCuenta = document.getElementById('wrapNominaCuenta');
+        if (wrapCuenta) wrapCuenta.style.display = (tipo === 'cargo_nomina' || tipo === 'cruzado') ? 'none' : 'block';
+      },
+
+      ejecutarAccion: async function() {
+        if (!staffSeleccionadoNomina) return;
+        const tipoAccion = document.getElementById('nomTipoAccion').value;
+        const categoriaId = document.getElementById('nomSelectCategoria').value;
+        const cuentaId = document.getElementById('nomSelectCuenta').value;
+        const concepto = document.getElementById('nomConcepto').value.trim() || 'Nómina';
+        const monto = parseFloat(document.getElementById('nomMonto').value) || 0;
+        const catObj = categoriasCache.find(c => c.id === categoriaId);
+
+        if (monto <= 0) { alert("Ingresa un monto válido."); return; }
+
+        try {
+          let estadoInicial = 'pendiente_pagar';
+          if (tipoAccion === 'pago_nomina') estadoInicial = 'liquidado';
+          if (tipoAccion === 'cruzado') estadoInicial = 'cruzado';
+
+          await sb.from('apex_nomina').insert([{
+            staff_email: staffSeleccionadoNomina,
+            concepto,
+            monto,
+            tipo: tipoAccion,
+            estado: estadoInicial,
+            account_id: (tipoAccion === 'pago_nomina' ? cuentaId : null),
+            category_id: categoriaId || null
+          }]);
+
+          if (tipoAccion === 'pago_nomina') {
+            if (!cuentaId) { alert("Selecciona cuenta."); return; }
+            const cta = cuentasCache.find(c => c.id === cuentaId);
+            if (!cta || cta.saldo_actual < monto) { alert("Saldo insuficiente."); return; }
+
+            // 1. Descontar saldo de la cuenta financiera
+            await sb.from('apex_cuentas').update({ saldo_actual: cta.saldo_actual - monto }).eq('id', cuentaId);
+            
+            // 2. REGISTRO ESPEJO OBLIGATORIO EN EL HISTORIAL (LIBRO MAYOR)
+            await sb.from('apex_transacciones_libro_mayor').insert([{
+              type: 'egreso',
+              category: catObj ? catObj.nombre : 'Sueldos y Salarios',
+              category_id: categoriaId || null,
+              amount: monto,
+              account_id: cuentaId,
+              description: `Pago de nómina a ${staffSeleccionadoNomina}: ${concepto}`,
+              registered_by: 'Contabilidad'
+            }]);
+
+            const pendientesStaff = nominaCache.filter(n => n.staff_email === staffSeleccionadoNomina && n.estado === 'pendiente_pagar');
+            const totalDeuda = pendientesStaff.reduce((a, b) => a + parseFloat(b.monto || 0), 0);
+
+            await sb.from('apex_nomina')
+              .update({ estado: 'liquidado' })
+              .eq('staff_email', staffSeleccionadoNomina)
+              .eq('estado', 'pendiente_pagar');
+
+            if (monto > totalDeuda) {
+              const exceso = monto - totalDeuda;
+              await sb.from('apex_nomina').insert([{
+                staff_email: staffSeleccionadoNomina,
+                concepto: `Anticipo por pago en exceso`,
+                monto: -exceso,
+                tipo: 'cargo_nomina',
+                estado: 'pendiente_pagar',
+                category_id: categoriaId || null
+              }]);
+            }
+          }
+
+          document.getElementById('modalNominaAccion').style.display = 'none';
+          await cargarDatosGlobales();
+        } catch (err) {
+          alert("Error: " + err.message);
+        }
+      }
+    };
+
+    /* ================= 7. DEUDORES Y ACREEDORES ================= */
+    const DeudoresAdmin = {
+      crear: async function(e) {
+        e.preventDefault();
+        const nombre = document.getElementById('deuNombre').value.trim();
+        const tipo = document.getElementById('deuTipo').value;
+        const saldo = parseFloat(document.getElementById('deuSaldo').value) || 0;
+        const telefono = document.getElementById('deuTel').value.trim();
+
+        const { error } = await sb.from('apex_acreedores_deudores').insert([{ nombre, tipo, saldo, telefono }]);
+        if (error) alert("Error: " + error.message);
+        else {
+          e.target.reset();
+          await cargarDatosGlobales();
+        }
+      },
+
+      renderizar: function() {
+        const cont = document.getElementById('listaDeudores');
+        if (!cont) return;
+        if (deudoresCache.length === 0) {
+          cont.innerHTML = '<span style="color:var(--text-muted); font-size:0.65rem;">Sin registros.</span>';
+          return;
+        }
+        cont.innerHTML = '';
+        deudoresCache.forEach(d => {
+          const colorTipo = d.tipo === 'acreedor' ? 'var(--status-ok)' : 'var(--accent)';
+          cont.innerHTML += `
+            <div style="background:var(--card-sub); border:1px solid var(--border); border-radius:4px; padding:8px 10px; margin-top:5px; display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <strong>${d.nombre}</strong> <span style="font-size:0.58rem; color:${colorTipo};">(${d.tipo})</span>
+                <div style="font-size:0.75rem; font-weight:900; color:#fff; margin-top:1px;">Saldo: ${formatCOP(d.saldo)}</div>
+              </div>
+              <div style="display:flex; gap:4px;">
+                <button class="btn-success" style="padding:3px 6px; font-size:0.55rem;" onclick="DeudoresAdmin.abrirModalCobro('${d.id}')">Cobrar</button>
+                <button class="btn-secondary" style="color:var(--accent); padding:3px 6px; font-size:0.55rem;" onclick="DeudoresAdmin.eliminar('${d.id}')">✕</button>
+              </div>
+            </div>
+          `;
+        });
+      },
+
+      abrirModalCobro: function(id) {
+        const d = deudoresCache.find(x => x.id === id);
+        if (!d) return;
+
+        document.getElementById('deuCobroId').value = d.id;
+        document.getElementById('modalDeudorTitle').innerText = `Cartera: ${d.nombre}`;
+        document.getElementById('modalDeudorSub').innerText = `Saldo actual: ${formatCOP(d.saldo)} (${d.tipo})`;
+        document.getElementById('deuMontoAbono').value = d.saldo;
+
+        poblarSelectsCuentas();
+        const selCta = document.getElementById('deuSelectCuenta');
+        selCta.innerHTML = '';
+        cuentasCache.filter(c => c.activa !== false).forEach(c => {
+          selCta.innerHTML += `<option value="${c.id}">${c.nombre} (${formatCOP(c.saldo_actual)})</option>`;
+        });
+
+        document.getElementById('modalCobroDeudor').style.display = 'flex';
+      },
+
+      ejecutarTransaccion: async function() {
+        const id = document.getElementById('deuCobroId').value;
+        const cuentaId = document.getElementById('deuSelectCuenta').value;
+        const monto = parseFloat(document.getElementById('deuMontoAbono').value) || 0;
+        
+        const deudor = deudoresCache.find(x => x.id === id);
+        if (!deudor) return;
+
+        if (monto <= 0) { alert("Ingresa un monto válido."); return; }
+        if (!cuentaId) { alert("Selecciona cuenta."); return; }
+
+        try {
+          const nuevoSaldo = Math.max(0, parseFloat(deudor.saldo) - monto);
+          await sb.from('apex_acreedores_deudores').update({ saldo: nuevoSaldo }).eq('id', id);
+
+          const cta = cuentasCache.find(c => c.id === cuentaId);
+          const esIngreso = deudor.tipo === 'acreedor';
+          const saldoCuentaFinal = esIngreso ? (parseFloat(cta.saldo_actual) + monto) : (parseFloat(cta.saldo_actual) - monto);
+
+          if (!esIngreso && cta.saldo_actual < monto) {
+            alert("Saldo insuficiente.");
+            return;
+          }
+
+          await sb.from('apex_cuentas').update({ saldo_actual: saldoCuentaFinal }).eq('id', cuentaId);
+
+          const catObj = categoriasCache.find(c => c.nombre.toLowerCase().includes('crédito') || c.nombre.toLowerCase().includes('ingreso')) || categoriasCache[0];
+          await sb.from('apex_transacciones_libro_mayor').insert([{
+            type: esIngreso ? 'ingreso' : 'egreso',
+            category: esIngreso ? 'Cobro Cartera' : 'Pago Acreedor',
+            category_id: catObj ? catObj.id : null,
+            amount: monto,
+            account_id: cuentaId,
+            description: `Transacción cartera con ${deudor.nombre}`,
+            registered_by: 'Contabilidad'
+          }]);
+
+          document.getElementById('modalCobroDeudor').style.display = 'none';
+          await cargarDatosGlobales();
+        } catch (err) {
+          alert("Error: " + err.message);
+        }
+      },
+
+      eliminar: async function(id) {
+        if (!confirm("¿Eliminar?")) return;
+        await sb.from('apex_acreedores_deudores').delete().eq('id', id);
+        await cargarDatosGlobales();
+      }
+    };
+
+    /* ================= 8. HISTORIAL Y FACTURA TICKET ================= */
+    const HistorialAdmin = {
+      renderizar: function() {
+        const cont = document.getElementById('listaMovimientosRecientes');
+        if (!cont) return;
+        const filtroCta = document.getElementById('filtroHistorialCuenta').value;
+        const filtroCat = document.getElementById('filtroHistorialCat').value;
+
+        let filtradas = transaccionesCache;
+        if (filtroCta) filtradas = filtradas.filter(t => t.account_id === filtroCta);
+        if (filtroCat) filtradas = filtradas.filter(t => t.category_id === filtroCat);
+
+        if (filtradas.length === 0) {
+          cont.innerHTML = '<span style="color:var(--text-muted); font-size:0.65rem;">Sin movimientos.</span>';
+          return;
+        }
+
+        cont.innerHTML = '';
+        filtradas.forEach(t => {
+          const color = t.type === 'ingreso' ? 'var(--status-ok)' : 'var(--accent)';
+          cont.innerHTML += `
+            <div style="background:var(--card-sub); border:1px solid var(--border); border-radius:4px; padding:8px 10px; margin-top:5px; display:flex; justify-content:space-between; align-items:center;">
+              <div style="cursor:pointer; flex:1;" onclick="HistorialAdmin.abrirFactura('${t.id}')">
+                <strong style="color:#fff; font-size:0.75rem;">${t.category || 'General'}</strong>
+                <div style="font-size:0.6rem; color:var(--text-muted);">${t.description || 'Sin nota'}</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-weight:900; color:${color}; font-size:0.78rem;">${formatCOP(t.amount)}</div>
+                <button class="btn-secondary" style="font-size:0.5rem; padding:2px 5px; margin-top:2px; color:var(--accent);" onclick="HistorialAdmin.reversar('${t.id}')">Anular</button>
+              </div>
+            </div>
+          `;
+        });
+      },
+
+      abrirFactura: function(transId) {
+        const t = transaccionesCache.find(x => x.id === transId);
+        if (!t) return;
+
+        const cta = cuentasCache.find(c => c.id === t.account_id);
+        const fechaStr = new Date(t.created_at || Date.now()).toLocaleString('es-CO');
+
+        document.getElementById('facFecha').innerText = fechaStr;
+        document.getElementById('facId').innerText = t.id.substring(0, 8).toUpperCase();
+        document.getElementById('facCategoria').innerText = t.category || 'N/A';
+        document.getElementById('facResponsable').innerText = t.registered_by || 'Contabilidad';
+        document.getElementById('facCuenta').innerText = cta ? cta.nombre : 'General';
+        document.getElementById('facDescripcion').innerText = t.description || 'Sin descripción';
+        document.getElementById('facMonto').innerText = formatCOP(t.amount);
+
+        document.getElementById('modalFacturaTicket').style.display = 'flex';
+      },
+
+      reversar: async function(transId) {
+        if (!confirm("¿Anular transacción?")) return;
+        const t = transaccionesCache.find(x => x.id === transId);
+        if (!t) return;
+
+        try {
+          if (t.account_id) {
+            const cta = cuentasCache.find(c => c.id === t.account_id);
+            if (cta) {
+              const nuevoSaldo = t.type === 'ingreso' ? cta.saldo_actual - t.amount : cta.saldo_actual + t.amount;
+              await sb.from('apex_cuentas').update({ saldo_actual: nuevoSaldo }).eq('id', t.account_id);
+            }
+          }
+          await sb.from('apex_transacciones_libro_mayor').delete().eq('id', transId);
+          await cargarDatosGlobales();
+        } catch (err) {
+          alert("Error: " + err.message);
+        }
+      }
+    };
+
+    function cerrarFacturaModal() {
+      document.getElementById('modalFacturaTicket').style.display = 'none';
     }
 
-    function actualizarGraficaDona(transaccionesPeriodo) {
-      const transTipo = transaccionesPeriodo.filter(t => t.type === tipoDonaActual);
-      const desgloseEl = document.getElementById('listaDesgloseCategorias');
+    function abrirZoomImagen(url) {
+      document.getElementById('imgZoomPreview').src = url;
+      document.getElementById('modalImagenZoom').style.display = 'flex';
+    }
 
-      if (transTipo.length === 0) {
-        if (chartDonaInstance) chartDonaInstance.destroy();
-        desgloseEl.innerHTML = `<span style="color:var(--text-muted); font-size:0.72rem;">Sin registros de ${tipoDonaActual}s en este período.</span>`;
-        return;
-      }
-
-      const mapCat = {};
-      let granTotal = 0;
-
-      transTipo.forEach(t => {
-        const cat = t.category || 'Otros';
-        const monto = parseFloat(t.amount) || 0;
-        granTotal += monto;
-        if (!mapCat[cat]) mapCat[cat] = { monto: 0, count: 0 };
-        mapCat[cat].monto += monto;
-        mapCat[cat].count += 1;
-      });
-
-      const labels = Object.keys(mapCat);
-      const dataValores = labels.map(k => mapCat[k].monto);
-      const paleta = ['#e50914', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899'];
-      const colores = labels.map((_, idx) => paleta[idx % paleta.length]);
-
-      if (chartDonaInstance) chartDonaInstance.destroy();
-      const ctx = document.getElementById('chartDona').getContext('2d');
-      chartDonaInstance = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-          labels: labels,
-          datasets: [{ data: dataValores, backgroundColor: colores, borderWidth: 2, borderColor: '#121212' }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { position: 'bottom', labels: { color: '#ccc', font: { size: 9, weight: '700' } } } }
-        }
-      });
-
-      desgloseEl.innerHTML = '';
-      labels.forEach((catName, i) => {
-        const obj = mapCat[catName];
-        const pct = granTotal > 0 ? ((obj.monto / granTotal) * 100).toFixed(1) : 0;
-        const color = colores[i];
-
-        desgloseEl.innerHTML += `
-          <div class="cat-stat-item">
-            <div>
-              <span class="cat-pill" style="background:${color};"></span>
-              <strong>${catName}</strong>
-              <span style="color:var(--text-muted); font-size:0.68rem;">(${obj.count} ops)</span>
-            </div>
-            <div style="text-align:right;">
-              <strong>${formatCOP(obj.monto)}</strong>
-              <span style="color:${color}; font-size:0.68rem; margin-left:4px; font-weight:800;">${pct}%</span>
-            </div>
-          </div>
-        `;
-      });
+    function cerrarZoomImagen() {
+      document.getElementById('modalImagenZoom').style.display = 'none';
     }
 
     window.onload = init;
