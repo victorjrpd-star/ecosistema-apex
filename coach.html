@@ -18,6 +18,7 @@
       --text-main: #f5f5f7;
       --text-muted: #73737a;
       --status-ok: #22c55e;
+      --status-warn: #eab308;
       --tier-color: #ffffff;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -45,6 +46,16 @@
     .title { font-size: 1rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px; }
     .title span { color: var(--accent); }
     .badge-coach { font-size: 0.65rem; font-weight: 700; background: #141416; color: var(--text-muted); border: 1px solid var(--border); padding: 4px 8px; border-radius: 3px; }
+
+    /* SUB-NAVEGADOR DE MEMBRESÍAS */
+    .sub-nav-membresias { display: flex; gap: 6px; margin-bottom: 14px; background: var(--card-bg); padding: 6px; border: 1px solid var(--border); border-radius: 8px; }
+    .sub-nav-btn {
+      flex: 1; padding: 8px 4px; background: #121214; border: 1px solid var(--border); color: var(--text-muted);
+      border-radius: 6px; font-size: 0.62rem; font-weight: 800; text-transform: uppercase; cursor: pointer; text-align: center; transition: 0.2s;
+    }
+    .sub-nav-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .sub-section-view { display: none; }
+    .sub-section-view.active { display: block; }
 
     /* CABECERA DE PERFIL COACH */
     .profile-bar {
@@ -134,11 +145,11 @@
     .metric-val { font-size: 0.8rem; font-weight: 800; color: #fff; }
     .metric-penalty-tag { font-size: 0.6rem; color: var(--accent); font-weight: 800; display: none; margin-left: 2px; }
 
-    /* FILTROS DE EQUIPO */
-    .team-filter-bar { display: flex; gap: 8px; margin-bottom: 12px; }
+    /* FILTROS DE EQUIPO Y HISTORIAL */
+    .team-filter-bar { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
     .filter-chip {
       background: #121214; border: 1px solid var(--border); color: var(--text-muted);
-      padding: 6px 12px; border-radius: 20px; font-size: 0.68rem; font-weight: 800; text-transform: uppercase;
+      padding: 5px 10px; border-radius: 16px; font-size: 0.62rem; font-weight: 800; text-transform: uppercase;
       cursor: pointer; transition: 0.2s; user-select: none;
     }
     .filter-chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
@@ -177,6 +188,15 @@
     .batch-actions-bar {
       display: flex; gap: 8px; margin-bottom: 12px; background: var(--card-sub); padding: 10px; border: 1px solid var(--border); border-radius: 6px; align-items: center; justify-content: space-between;
     }
+
+    /* ESTILOS BANDEJA DE EVIDENCIAS Y HISTORIAL */
+    .evidencia-item {
+      background: var(--card-sub); border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-bottom: 10px;
+    }
+    .evidencia-item.vencido { border-color: var(--accent); background: rgba(229, 9, 20, 0.05); }
+    .timer-badge { font-size: 0.65rem; font-weight: 900; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
+    .timer-badge.normal { background: rgba(234, 179, 8, 0.15); color: var(--status-warn); border: 1px solid var(--status-warn); }
+    .timer-badge.expired { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent); }
   </style>
 </head>
 <body>
@@ -245,70 +265,123 @@
       </div>
     </div>
 
-    <!-- SUBMÓDULO 2: GESTIÓN DE MEMBRESÍAS -->
+    <!-- SUBMÓDULO 2: GESTIÓN DE MEMBRESÍAS & EVIDENCIAS (CON SUBSECCIONES LIMPIAS) -->
     <div class="panel-view" id="modulo_membresias">
       <div class="header">
         <div class="title">Apex <span>Membresías</span></div>
         <div class="badge-coach">Auditoría</div>
       </div>
 
-      <div class="card">
-        <div class="card-title">Habilitación y Control</div>
-        <div class="card-desc">Buscador predictivo de Strikers. Evidencia visual obligatoria.</div>
+      <!-- SUB-NAVEGADOR DE MEMBRESÍAS -->
+      <div class="sub-nav-membresias">
+        <button class="sub-nav-btn active" id="btn_sub_habilitacion" onclick="ApexMembresias.irSubSeccion('sub_habilitacion', this)">Habilitación y Control</button>
+        <button class="sub-nav-btn" id="btn_sub_historial" onclick="ApexMembresias.irSubSeccion('sub_historial', this)">Historial de Membresías</button>
+      </div>
 
-        <div class="form-group">
-          <label class="form-label">Striker (Correo o Nombre)</label>
-          <input type="text" id="studentEmailSearch" placeholder="Escribe para buscar..." class="input-apex" autocomplete="off" oninput="ApexMembresias.buscar(this.value)">
-          <div class="suggestions-box" id="suggestionsBox"></div>
-        </div>
+      <!-- SUBSECCIÓN A: HABILITACIÓN Y CONTROL + PENDIENTES -->
+      <div class="sub-section-view active" id="sub_habilitacion">
+        <div class="card">
+          <div class="card-title">Habilitación y Control</div>
+          <div class="card-desc">Buscador predictivo de Strikers. Otorga 3 días de gracia y envía evidencia al contador.</div>
 
-        <div class="striker-summary-card" id="strikerCard">
-          <div style="display: flex; align-items: center; justify-content: space-between;">
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <div id="strikerCardAvatar" class="avatar-circle avatar-sm">AP</div>
-              <div>
-                <strong id="strikerName" style="color: #fff; font-size: 0.85rem; display: block;">-</strong>
-                <span id="strikerEmailTxt" style="font-size: 0.65rem; color: var(--text-muted);">-</span>
+          <div class="form-group">
+            <label class="form-label">Striker (Correo o Nombre)</label>
+            <input type="text" id="studentEmailSearch" placeholder="Escribe para buscar..." class="input-apex" autocomplete="off" oninput="ApexMembresias.buscar(this.value)">
+            <div class="suggestions-box" id="suggestionsBox"></div>
+          </div>
+
+          <div class="striker-summary-card" id="strikerCard">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <div id="strikerCardAvatar" class="avatar-circle avatar-sm">AP</div>
+                <div>
+                  <strong id="strikerName" style="color: #fff; font-size: 0.85rem; display: block;">-</strong>
+                  <span id="strikerEmailTxt" style="font-size: 0.65rem; color: var(--text-muted);">-</span>
+                </div>
+              </div>
+              <span id="strikerStatusBadge" style="font-size: 0.65rem; font-weight: 800; padding: 2px 6px; border-radius: 3px;">-</span>
+            </div>
+            <div class="striker-summary-grid">
+              <div class="info-box">
+                <div class="info-box-label">Días Restantes</div>
+                <div class="info-box-val" id="strikerDaysVal">-</div>
+              </div>
+              <div class="info-box">
+                <div class="info-box-label">Vencimiento Actual</div>
+                <div class="info-box-val" id="strikerEndVal">-</div>
               </div>
             </div>
-            <span id="strikerStatusBadge" style="font-size: 0.65rem; font-weight: 800; padding: 2px 6px; border-radius: 3px;">-</span>
           </div>
-          <div class="striker-summary-grid">
-            <div class="info-box">
-              <div class="info-box-label">Días Restantes</div>
-              <div class="info-box-val" id="strikerDaysVal">-</div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px;">
+            <div class="form-group">
+              <label class="form-label">Fecha de Pago (Opcional)</label>
+              <input type="date" id="paymentDateInput" class="input-apex">
             </div>
-            <div class="info-box">
-              <div class="info-box-label">Vencimiento Actual</div>
-              <div class="info-box-val" id="strikerEndVal">-</div>
+            <div class="form-group">
+              <label class="form-label">Plan / Vigencia</label>
+              <select id="membershipPlan" class="input-apex" style="height: 42px;">
+                <option value="30">30 Días (Mes)</option>
+                <option value="15">15 Días (Quincena)</option>
+                <option value="90">90 Días (Trimestre)</option>
+                <option value="1">1 Día (Pase)</option>
+              </select>
             </div>
           </div>
-        </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px;">
           <div class="form-group">
-            <label class="form-label">Fecha de Pago (Opcional)</label>
-            <input type="date" id="paymentDateInput" class="input-apex">
+            <label class="form-label">Evidencia Obligatoria (Cámara o Galería)</label>
+            <input type="file" id="evidenceFileInput" accept="image/*" class="input-apex" onchange="ApexMembresias.validarEvidencia()" style="font-size: 0.72rem;">
           </div>
-          <div class="form-group">
-            <label class="form-label">Plan / Vigencia</label>
-            <select id="membershipPlan" class="input-apex" style="height: 42px;">
-              <option value="30">30 Días (Mes)</option>
-              <option value="15">15 Días (Quincena)</option>
-              <option value="90">90 Días (Trimestre)</option>
-              <option value="1">1 Día (Pase)</option>
-            </select>
-          </div>
+
+          <button class="btn-main" id="btnSubmitMembership" disabled onclick="ApexMembresias.procesar()">
+            Adjunta Evidencia Para Habilitar
+          </button>
         </div>
 
-        <div class="form-group">
-          <label class="form-label">Evidencia Obligatoria (Cámara o Galería)</label>
-          <input type="file" id="evidenceFileInput" accept="image/*" class="input-apex" onchange="ApexMembresias.validarEvidencia()" style="font-size: 0.72rem;">
+        <!-- BANDEJA DE EVIDENCIAS / PENDIENTES EN VIVO -->
+        <div class="card">
+          <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
+            <span>📥 Evidencias Pendientes de Facturación</span>
+            <span id="cntPendientesBadge" style="font-size:0.65rem; background:var(--accent-dim); color:var(--accent); padding:2px 6px; border-radius:4px;">0 pendientes</span>
+          </div>
+          <div class="card-desc">Cuenta regresiva de 72h (3 días de gracia). Si llega a 0, requiere gestión urgente.</div>
+          <div id="listaEvidenciasPendientes">
+            <div style="font-size: 0.75rem; color: var(--text-muted); text-align: center; padding: 12px;">Cargando pendientes...</div>
+          </div>
         </div>
+      </div>
 
-        <button class="btn-main" id="btnSubmitMembership" disabled onclick="ApexMembresias.procesar()">
-          Adjunta Evidencia Para Habilitar
-        </button>
+      <!-- SUBSECCIÓN B: HISTORIAL DE MEMBRESÍAS GESTIONADAS -->
+      <div class="sub-section-view" id="sub_historial">
+        <div class="card">
+          <div class="card-title">📋 Historial de Membresías Gestionadas</div>
+          <div class="card-desc">Filtra por tiempo y busca por nombre o correo del striker.</div>
+
+          <div style="display:grid; grid-template-columns: 1fr; gap:8px; margin-bottom:10px;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Buscador Predictivo</label>
+              <input type="text" id="historialBusquedaInput" placeholder="Escribe nombre o correo..." class="input-apex" oninput="ApexHistorialMembresias.filtrar()">
+            </div>
+          </div>
+
+          <div class="team-filter-bar">
+            <div class="filter-chip active" id="h_chip_semana" onclick="ApexHistorialMembresias.setFiltroTiempo('semana', this)">Semana</div>
+            <div class="filter-chip" id="h_chip_quincena" onclick="ApexHistorialMembresias.setFiltroTiempo('quincena', this)">Quincena</div>
+            <div class="filter-chip" id="h_chip_mes" onclick="ApexHistorialMembresias.setFiltroTiempo('mes', this)">Mes</div>
+            <div class="filter-chip" id="h_chip_todo" onclick="ApexHistorialMembresias.setFiltroTiempo('todo', this)">Todo</div>
+            <div class="filter-chip" id="h_chip_manual" onclick="ApexHistorialMembresias.toggleManual(this)">Manual</div>
+          </div>
+
+          <div id="historialManualBox" style="display:none; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px; background:#101014; padding:8px; border-radius:6px; border:1px solid var(--border);">
+            <div><label class="form-label">Desde</label><input type="date" id="historialDesde" class="input-apex" onchange="ApexHistorialMembresias.filtrar()"></div>
+            <div><label class="form-label">Hasta</label><input type="date" id="historialHasta" class="input-apex" onchange="ApexHistorialMembresias.filtrar()"></div>
+          </div>
+
+          <div id="listaHistorialMembresias">
+            <div style="font-size: 0.75rem; color: var(--text-muted); text-align: center; padding: 12px;">Cargando historial...</div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -450,6 +523,14 @@
 
   </div>
 
+  <!-- MODAL ZOOM IMAGEN EVIDENCIA -->
+  <div id="modalImagenZoom" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.9); z-index:1000; justify-content:center; align-items:center; padding:16px;" onclick="cerrarZoomImagen()">
+    <div style="position:relative; max-width:90%; max-height:90%;">
+      <span style="position:absolute; top:-30px; right:0; color:#fff; font-size:1.5rem; cursor:pointer; font-weight:bold;">✕</span>
+      <img id="imgZoomPreview" src="" style="width:100%; height:auto; max-height:85vh; object-fit:contain; border-radius:6px; border:1px solid #333;">
+    </div>
+  </div>
+
   <script>
     /* ==========================================================================
        1. NAVEGADOR AUTÓNOMO
@@ -466,6 +547,7 @@
           document.getElementById('btn_nav_checkins')?.classList.add('active');
         } else if (panelId === 'modulo_membresias') {
           document.getElementById('btn_nav_membresias')?.classList.add('active');
+          ApexMembresias.cargarPendientesYGestionadas();
         } else if (panelId === 'modulo_equipo') {
           document.getElementById('btn_nav_equipo')?.classList.add('active');
           ApexEquipo.cargarAnaliticaGlobal();
@@ -946,11 +1028,20 @@
     };
 
     /* ==========================================================================
-       5. GESTIÓN DE MEMBRESÍAS
+       5. GESTIÓN DE MEMBRESÍAS & EVIDENCIAS (CON SUBSECCIONES LIMPIAS)
        ========================================================================== */
     let selectedStriker = null;
+    let cachePagosCoach = [];
+    let timerCuentaRegresiva = null;
 
     const ApexMembresias = {
+      irSubSeccion: function(subId, btnEl) {
+        document.querySelectorAll('.sub-section-view').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.sub-nav-membresias .sub-nav-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(subId).classList.add('active');
+        btnEl.classList.add('active');
+      },
+
       cargarDirectorio: async function() {
         if (!supabaseClient) return;
         try {
@@ -1085,7 +1176,7 @@
 
         const baseDate = dateVal ? new Date(dateVal + 'T00:00:00') : new Date();
         const expDate = new Date(baseDate);
-        expDate.setDate(expDate.getDate() + planDays);
+        expDate.setDate(expDate.getDate() + 3); // 3 días de gracia inmediatos
 
         const expDateISO = expDate.toISOString();
         const expDateLegible = `${expDate.getUTCDate()}/${expDate.getUTCMonth() + 1}/${expDate.getUTCFullYear()}`;
@@ -1106,36 +1197,232 @@
               receiptUrl = urlData.publicUrl;
             }
 
-            await supabaseClient.from('apex_users').update({
+            // 1. Dar los 3 días de gracia al striker
+            await supabaseClient.from('apex_users').update({ 
               subscription_status: 'activo',
               is_active: true,
               subscription_expires_at: expDateISO
             }).eq('email', selectedStriker.email);
 
+            // 2. Registrar en apex_payments con accounting_status = 'pendiente_contabilidad'
+            await supabaseClient.from('apex_payments').insert({
+              user_email: selectedStriker.email,
+              coach_email: currentCoachEmail,
+              plan_type: `${planDays} Días (Reportado por Coach)`,
+              amount: planDays === 30 ? 120000 : (planDays === 90 ? 320000 : 50000),
+              receipt_urls: receiptUrl ? [receiptUrl] : [],
+              accounting_status: 'pendiente_contabilidad'
+            });
+
             await supabaseClient.from('apex_notifications').insert({
               user_email: selectedStriker.email,
-              title: 'Membresía Activada',
-              message: `Tu acceso fue habilitado hasta el ${expDateLegible}. ¡A entrenar!`,
+              title: 'Membresía Temporal (3 Días de Gracia)',
+              message: `Tu acceso fue habilitado temporalmente hasta el ${expDateLegible} mientras el contador consolida tu pago.`,
               type: 'membresia'
             });
           }
 
-          alert(`Membresía activada:\n${selectedStriker.email}\nVence: ${expDateLegible}`);
+          alert(`¡Acceso temporal de 3 días habilitado!\nStriker: ${selectedStriker.email}\nGracia hasta: ${expDateLegible}`);
           document.getElementById('studentEmailSearch').value = '';
           document.getElementById('strikerCard').style.display = 'none';
           fileInput.value = '';
           selectedStriker = null;
           this.validarEvidencia();
           await this.cargarDirectorio();
+          await this.cargarPendientesYGestionadas();
         } catch (err) {
           alert("Error: " + err.message);
           this.validarEvidencia();
         }
+      },
+
+      cargarPendientesYGestionadas: async function() {
+        if (!supabaseClient) return;
+        try {
+          const { data, error } = await supabaseClient
+            .from('apex_payments')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+          if (!error && data) {
+            cachePagosCoach = data;
+            this.renderPendientes();
+            ApexHistorialMembresias.filtrar();
+          }
+        } catch (e) {}
+
+        if (timerCuentaRegresiva) clearInterval(timerCuentaRegresiva);
+        timerCuentaRegresiva = setInterval(() => {
+          this.renderPendientes();
+        }, 30000);
+      },
+
+      renderPendientes: function() {
+        const container = document.getElementById('listaEvidenciasPendientes');
+        const badge = document.getElementById('cntPendientesBadge');
+        const pendientes = cachePagosCoach.filter(p => !p.accounting_status || p.accounting_status === 'pendiente_contabilidad');
+
+        badge.innerText = `${pendientes.length} pendientes`;
+
+        if (pendientes.length === 0) {
+          container.innerHTML = '<div style="font-size:0.72rem; color:var(--text-muted); text-align:center; padding:12px;">No hay evidencias pendientes de facturación.</div>';
+          return;
+        }
+
+        const ahora = new Date();
+        container.innerHTML = '';
+
+        pendientes.forEach(p => {
+          const fechaCreacion = new Date(p.created_at);
+          const vencimientoGracia = new Date(fechaCreacion.getTime() + (72 * 60 * 60 * 1000));
+          const diffMs = vencimientoGracia - ahora;
+          const horasRestantes = Math.floor(diffMs / (1000 * 60 * 60));
+          const minutosRestantes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+          const esVencido = diffMs <= 0;
+          const itemClass = esVencido ? 'evidencia-item vencido' : 'evidencia-item';
+          const timerClass = esVencido ? 'timer-badge expired' : 'timer-badge normal';
+          const timerText = esVencido ? '⚠️ VENCIDO EN GRACIA' : `⏳ Quedan ${horasRestantes}h ${minutosRestantes}m`;
+
+          const user = registeredUsersCache.find(u => u.email.toLowerCase() === (p.user_email || '').toLowerCase());
+          const nombreStriker = user?.name || p.user_email;
+          const avatarUrl = user?.photo_url;
+          const avatarHtml = avatarUrl 
+            ? `<img src="${avatarUrl}" class="avatar-circle avatar-sm" alt="Foto">` 
+            : `<div class="avatar-circle avatar-sm">${nombreStriker.substring(0,2).toUpperCase()}</div>`;
+
+          const imgPreview = (p.receipt_urls && p.receipt_urls.length > 0) 
+            ? `<div style="margin-top:6px;"><img src="${p.receipt_urls[0]}" style="width:55px; height:55px; object-fit:cover; border-radius:4px; border:1px solid var(--border); cursor:pointer;" onclick="abrirZoomImagen('${p.receipt_urls[0]}')" title="Haz clic para ampliar"></div>` 
+            : '<span style="font-size:0.65rem; color:var(--text-muted);">Sin comprobante</span>';
+
+          const item = document.createElement('div');
+          item.className = itemClass;
+          item.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                ${avatarHtml}
+                <div>
+                  <strong style="font-size:0.8rem; color:#fff; display:block;">${nombreStriker}</strong>
+                  <span style="font-size:0.62rem; color:var(--text-muted);">${p.user_email}</span>
+                </div>
+              </div>
+              <span class="${timerClass}">${timerText}</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.68rem; margin-top:6px; border-top:1px solid #1f1f24; padding-top:6px;">
+              <span style="color:var(--text-muted);">Plan: <strong style="color:#fff;">${p.plan_type || 'Membresía'}</strong></span>
+              ${imgPreview}
+            </div>
+          `;
+          container.appendChild(item);
+        });
       }
     };
 
     /* ==========================================================================
-       6. MÓDULO DE EQUIPO Y ANALÍTICA (MULTIFUNTE 60 DÍAS + TELARAÑA)
+       6. HISTORIAL INTELIGENTE DE MEMBRESÍAS GESTIONADAS
+       ========================================================================== */
+    let filtroTiempoHistorial = 'semana';
+
+    const ApexHistorialMembresias = {
+      setFiltroTiempo: function(tipo, chipEl) {
+        filtroTiempoHistorial = tipo;
+        document.querySelectorAll('.team-filter-bar .filter-chip').forEach(c => c.classList.remove('active'));
+        if (chipEl) chipEl.classList.add('active');
+        document.getElementById('historialManualBox').style.display = 'none';
+        this.filtrar();
+      },
+
+      toggleManual: function(chipEl) {
+        filtroTiempoHistorial = 'manual';
+        document.querySelectorAll('.team-filter-bar .filter-chip').forEach(c => c.classList.remove('active'));
+        if (chipEl) chipEl.classList.add('active');
+        document.getElementById('historialManualBox').style.display = 'grid';
+        this.filtrar();
+      },
+
+      filtrar: function() {
+        const container = document.getElementById('listaHistorialMembresias');
+        const query = (document.getElementById('historialBusquedaInput').value || '').trim().toLowerCase();
+
+        const ahora = new Date();
+        let fechaInicio = null;
+        let fechaFin = new Date();
+
+        if (filtroTiempoHistorial === 'semana') {
+          fechaInicio = new Date();
+          fechaInicio.setDate(ahora.getDate() - 7);
+        } else if (filtroTiempoHistorial === 'quincena') {
+          fechaInicio = new Date();
+          fechaInicio.setDate(ahora.getDate() - 15);
+        } else if (filtroTiempoHistorial === 'mes') {
+          fechaInicio = new Date();
+          fechaInicio.setMonth(ahora.getMonth() - 1);
+        } else if (filtroTiempoHistorial === 'manual') {
+          const dDesde = document.getElementById('historialDesde').value;
+          const dHasta = document.getElementById('historialHasta').value;
+          if (dDesde) fechaInicio = new Date(dDesde + 'T00:00:00');
+          if (dHasta) {
+            fechaFin = new Date(dHasta + 'T23:59:59');
+          }
+        }
+
+        const gestionadas = cachePagosCoach.filter(p => {
+          const fechaReg = new Date(p.created_at);
+          if (fechaInicio && fechaReg < fechaInicio) return false;
+          if (fechaFin && fechaReg > fechaFin) return false;
+
+          if (query) {
+            const email = (p.user_email || '').toLowerCase();
+            const user = registeredUsersCache.find(u => u.email.toLowerCase() === email);
+            const nombre = (user?.name || '').toLowerCase();
+            if (!email.includes(query) && !nombre.includes(query)) return false;
+          }
+          return true;
+        });
+
+        if (gestionadas.length === 0) {
+          container.innerHTML = '<div style="font-size:0.72rem; color:var(--text-muted); text-align:center; padding:12px;">Sin registros en este periodo / filtro.</div>';
+          return;
+        }
+
+        container.innerHTML = '';
+        gestionadas.forEach(p => {
+          const fechaReg = new Date(p.created_at);
+          const fechaStr = `${fechaReg.getDate()}/${fechaReg.getMonth()+1}/${fechaReg.getFullYear()} ${fechaReg.getHours().toString().padStart(2,'0')}:${fechaReg.getMinutes().toString().padStart(2,'0')}`;
+          
+          const esRedimido = p.accounting_status === 'redimido';
+          const estadoTxt = esRedimido ? '✅ Facturado / Redimido' : '⏳ Pendiente Contador';
+          const estadoColor = esRedimido ? 'var(--status-ok)' : 'var(--status-warn)';
+
+          const user = registeredUsersCache.find(u => u.email.toLowerCase() === (p.user_email || '').toLowerCase());
+          const nombreStriker = user?.name || p.user_email;
+
+          const imgThumb = (p.receipt_urls && p.receipt_urls.length > 0) 
+            ? `<div style="margin-top:4px;"><img src="${p.receipt_urls[0]}" style="width:40px; height:40px; object-fit:cover; border-radius:4px; border:1px solid var(--border); cursor:pointer;" onclick="abrirZoomImagen('${p.receipt_urls[0]}')" title="Ver comprobante"></div>` 
+            : '';
+
+          const item = document.createElement('div');
+          item.className = 'evidencia-item';
+          item.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <strong style="font-size:0.78rem; color:#fff;">${nombreStriker}</strong>
+              <span style="font-size:0.62rem; color:${estadoColor}; font-weight:800;">${estadoTxt}</span>
+            </div>
+            <div style="font-size:0.65rem; color:var(--text-muted); display:flex; justify-content:space-between; align-items:flex-end;">
+              <div>
+                <span>Plan: ${p.plan_type || 'Membresía'}</span>
+                <div style="font-size:0.58rem; color:#777; margin-top:2px;">${fechaStr}</div>
+              </div>
+              ${imgThumb}
+            </div>
+          `;
+          container.appendChild(item);
+        });
+      }
+    };
+
+    /* ==========================================================================
+       7. MÓDULO DE EQUIPO Y ANALÍTICA (MULTIFUNTE 60 DÍAS + TELARAÑA)
        ========================================================================== */
     let globalTeamUsers = [];
     let globalTeamCheckins = [];
@@ -1251,22 +1538,18 @@
 
           const emailUser = (user.email || '').toLowerCase();
 
-          // 1. Check-ins de rendimiento (últimos 60 días, aprobados)
           const userCheckinsBimestre = globalTeamCheckins.filter(c => (c.user_email || '').toLowerCase() === emailUser && c.status === 'aprobado' && new Date(c.created_at) >= haceSesentaDias);
           let ptsRendimiento = 0;
           userCheckinsBimestre.forEach(c => ptsRendimiento += parseFloat(c.rendimiento || 0));
 
-          // 2. Calificaciones Coach
           const userRatingsBimestre = globalTeamRatings.filter(r => (r.user_email || '').toLowerCase() === emailUser && new Date(r.created_at) >= haceSesentaDias);
           let ptsRatings = 0;
           userRatingsBimestre.forEach(r => ptsRatings += parseFloat(r.note || 0));
 
-          // 3. Supervisiones
           const userSupervisionsBimestre = globalTeamSupervisions.filter(s => (s.user_email || '').toLowerCase() === emailUser && new Date(s.created_at) >= haceSesentaDias);
           let ptsSupervisions = 0;
           userSupervisionsBimestre.forEach(s => ptsSupervisions += parseFloat(s.score || 0));
 
-          // 4. Ajustes Coordinación
           const userAdjustmentsBimestre = globalTeamAdjustments.filter(a => (a.user_email || '').toLowerCase() === emailUser && new Date(a.created_at) >= haceSesentaDias);
           let ptsAdjustments = 0;
           userAdjustmentsBimestre.forEach(a => ptsAdjustments += parseFloat(a.note || 0));
@@ -1347,7 +1630,6 @@
 
         let totalBimester = ptsRendimiento + ptsRatings + ptsSupervisions + ptsAdjustments;
 
-        // Disciplina y Historial
         const metaPeriodo = 24; 
         const disciplinaPct = Math.min(100, Math.round((userCheckinsBimestre.length / metaPeriodo) * 100));
 
@@ -1365,7 +1647,6 @@
           document.getElementById('indAvgRpe').innerText = '0';
         }
 
-        // Renderizar Radar Chart en Tarjeta Individual del Coach
         let sum = { rendimiento: 0, rpe: 0, soltura: 0, tecnica: 0, ram: 0, diversion: 0 };
         userCheckinsBimestre.forEach(r => {
           sum.rendimiento += parseFloat(r.rendimiento) || 0;
@@ -1413,7 +1694,7 @@
     };
 
     /* ==========================================================================
-       7. MÓDULO DE CALIFICACIONES MANUALES DEL COACH (CON FECHA VALIDADA)
+       8. MÓDULO DE CALIFICACIONES MANUALES DEL COACH
        ========================================================================== */
     let selectedRatingStriker = null;
 
@@ -1496,7 +1777,6 @@
           return;
         }
 
-        // Validación estricta de fecha (máximo 60 días al pasado, no futura)
         let fechaFinalISO = new Date().toISOString();
         if (dateInputVal) {
           const fechaSeleccionada = new Date(dateInputVal + 'T00:00:00');
@@ -1557,13 +1837,26 @@
     };
 
     /* ==========================================================================
-       8. ARRANQUE
+       9. FUNCIONES DE ZOOM MODAL
+       ========================================================================== */
+    function abrirZoomImagen(url) {
+      document.getElementById('imgZoomPreview').src = url;
+      document.getElementById('modalImagenZoom').style.display = 'flex';
+    }
+
+    function cerrarZoomImagen() {
+      document.getElementById('modalImagenZoom').style.display = 'none';
+    }
+
+    /* ==========================================================================
+       10. ARRANQUE
        ========================================================================== */
     window.addEventListener('DOMContentLoaded', async () => {
       initSupabase();
       await initPerfilCoach();
       ApexCheckins.cargar();
       ApexMembresias.cargarDirectorio();
+      ApexMembresias.cargarPendientesYGestionadas();
     });
   </script>
 </body>
