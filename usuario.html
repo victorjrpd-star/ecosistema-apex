@@ -119,7 +119,6 @@
       display: flex; flex-direction: column; justify-content: space-between;
       padding: 16px 14px 24px 14px; box-shadow: 0 16px 36px rgba(0,0,0,0.9); margin-bottom: 24px;
     }
-    /* Multimedia a todo color real, sin gradiente oscuro invasivo */
     .dossier-media-bg {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
       object-fit: cover; z-index: 1; opacity: 1; filter: contrast(1.05) brightness(1);
@@ -131,7 +130,6 @@
     }
     .pulse-mesh { animation: sutilPulse 5s ease-in-out infinite; }
 
-    /* Sombras dinámicas silueteadas (drop-shadow y text-shadow) para perfecta legibilidad sin cajas cuadradas */
     .dossier-branding {
       position: relative; z-index: 5; border-bottom: 2px solid rgba(255, 255, 255, 0.3);
       padding-bottom: 8px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: flex-end;
@@ -573,7 +571,6 @@
       descargarImagen: async function() {
         try {
           const viewport = document.getElementById('dossierViewport');
-          // Exportación PNG limpia ignorando controles y medios para conservar transparencia exacta
           const canvas = await html2canvas(viewport, { scale: 2, useCORS: true, backgroundColor: null, ignoreElements: (el) => el.classList.contains('hud-controls-bar') || el.id === 'dossierMediaContainer' });
           const link = document.createElement('a');
           link.download = `Apex_Striker_${(userProfile?.name || 'Ficha').replace(/\s+/g, '_')}.png`;
@@ -823,6 +820,22 @@
       await cargarDatosPerfil(email);
       await cargarRegistrosBD(email);
       await gestionarNotificacionesInteligentes(email);
+
+      // SUSCRIPCIÓN SUPABASE REALTIME (ACTUALIZACIÓN AUTOMÁTICA EN VIVO)
+      sb.channel('usuario-ficha-realtime')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_checkins', filter: `user_email=eq.${email}` }, payload => {
+          console.log('[Realtime] Check-in actualizado en vivo:', payload);
+          cargarRegistrosBD(email);
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_notifications', filter: `user_email=eq.${email}` }, payload => {
+          console.log('[Realtime] Notificación en vivo detectada:', payload);
+          gestionarNotificacionesInteligentes(email);
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_users', filter: `email=eq.${email}` }, payload => {
+          console.log('[Realtime] Perfil de usuario actualizado en vivo:', payload);
+          cargarDatosPerfil(email);
+        })
+        .subscribe();
     }
 
     function renderAvatarVisual(url, nombreFallback = 'ST') {
