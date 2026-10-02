@@ -382,10 +382,19 @@
 
         for (const m of mutations) {
           try {
-            if (m.type === 'upsert' || m.type === 'insert') {
+            if (m.type === 'insert' || m.method === 'POST') {
+              await sb.from(m.table).insert([m.payload]);
+            } else if (m.type === 'upsert') {
               await sb.from(m.table).upsert([m.payload]);
-            } else if (m.type === 'update') {
-              await sb.from(m.table).update(m.payload).eq(m.match_column, m.match_value);
+            } else if (m.type === 'update' || m.method === 'PATCH' || m.method === 'PUT') {
+              if (m.match_column && m.match_value) {
+                await sb.from(m.table).update(m.payload).eq(m.match_column, m.match_value);
+              } else {
+                await sb.from(m.table).insert([m.payload]);
+              }
+            } else {
+              // Fallback por defecto a insert si no especifica tipo
+              await sb.from(m.table).insert([m.payload]);
             }
             await ApexDB.remove(m.id);
           } catch (itemErr) {
@@ -405,7 +414,12 @@
       actualizarEstadoRed(navigator.onLine);
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js')
-          .then(() => console.log('Service Worker registrado con éxito.'))
+          .then(() => {
+            console.log('Service Worker registrado con éxito.');
+            if (navigator.onLine) {
+              sincronizarColaPendiente();
+            }
+          })
           .catch(err => console.log('Error al registrar Service Worker:', err));
       }
     });
