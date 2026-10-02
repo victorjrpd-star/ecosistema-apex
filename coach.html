@@ -559,7 +559,7 @@
     };
 
     /* ==========================================================================
-       2. CONEXIÓN SUPABASE DIRECTA
+       2. CONEXIÓN SUPABASE DIRECTA & REALTIME (WEBSOCKETS)
        ========================================================================== */
     const CONFIG_SUPABASE_URL = 'https://fprvbvucmtdpxdihuvrw.supabase.co';
     const CONFIG_SUPABASE_KEY = 'sb_publishable_xAMs8LpCwyMyoql3ohoJUQ_BIRhBQoD';
@@ -579,10 +579,31 @@
       if (window.supabase && url && key) {
         try {
           supabaseClient = window.supabase.createClient(url, key);
+          initRealtimeSubscriptions();
         } catch (err) {
           console.error("Error al instanciar Supabase:", err);
         }
       }
+    }
+
+    function initRealtimeSubscriptions() {
+      if (!supabaseClient) return;
+
+      supabaseClient
+        .channel('apex-coach-realtime')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_checkins' }, payload => {
+          console.log('[Realtime] Cambio detectado en apex_checkins:', payload);
+          ApexCheckins.cargar();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_payments' }, payload => {
+          console.log('[Realtime] Cambio detectado en apex_payments:', payload);
+          ApexMembresias.cargarPendientesYGestionadas();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_users' }, payload => {
+          console.log('[Realtime] Cambio detectado en apex_users:', payload);
+          ApexMembresias.cargarDirectorio();
+        })
+        .subscribe();
     }
 
     /* ==========================================================================
@@ -616,14 +637,14 @@
     function renderAvatarVisualCoach(url, fallback = 'CO') {
       const displayEl = document.getElementById('displayAvatarCoach');
       if (!displayEl) return;
-      if (url) {
+      if (url && typeof url === 'string' && url.startsWith('http')) {
         if (displayEl.tagName === 'IMG') {
           displayEl.src = url;
         } else {
           displayEl.outerHTML = `<img id="displayAvatarCoach" src="${url}" class="avatar-circle" alt="Foto">`;
         }
       } else {
-        displayEl.outerHTML = `<div id="displayAvatarCoach" class="avatar-circle">${fallback.substring(0, 2).toUpperCase()}</div>`;
+        displayEl.outerHTML = `<div id="displayAvatarCoach" class="avatar-circle">${(fallback || 'CO').substring(0, 2).toUpperCase()}</div>`;
       }
     }
 
@@ -855,7 +876,7 @@
       },
 
       renderAvatar: function(name, email, avatarUrl) {
-        if (avatarUrl) {
+        if (avatarUrl && typeof avatarUrl === 'string' && avatarUrl.startsWith('http')) {
           return `<img src="${avatarUrl}" class="avatar-circle" alt="Striker" onerror="this.outerHTML='<div class=\\'avatar-circle\\'>AP</div>'">`;
         }
         const ref = name || email || 'ST';
@@ -1082,7 +1103,7 @@
           item.className = 'suggestion-item';
           const displayName = user.name || 'Sin nombre registrado';
           const avatarUrl = user.photo_url;
-          const avatarImg = avatarUrl 
+          const avatarImg = (avatarUrl && typeof avatarUrl === 'string' && avatarUrl.startsWith('http')) 
             ? `<img src="${avatarUrl}" class="avatar-circle avatar-sm" alt="Foto">` 
             : `<div class="avatar-circle avatar-sm">${displayName.substring(0,2).toUpperCase()}</div>`;
 
@@ -1126,7 +1147,7 @@
 
         const avatarContainer = document.getElementById('strikerCardAvatar');
         const avatarUrl = user.photo_url;
-        if (avatarUrl) {
+        if (avatarUrl && typeof avatarUrl === 'string' && avatarUrl.startsWith('http')) {
           avatarContainer.outerHTML = `<img id="strikerCardAvatar" src="${avatarUrl}" class="avatar-circle avatar-sm" alt="Striker">`;
         } else {
           avatarContainer.outerHTML = `<div id="strikerCardAvatar" class="avatar-circle avatar-sm">${(user.name || 'ST').substring(0,2).toUpperCase()}</div>`;
@@ -1198,14 +1219,12 @@
             }
           }
 
-          // 1. Dar los 3 días de gracia al striker
           await supabaseClient.from('apex_users').update({ 
             subscription_status: 'activo',
             is_active: true,
             subscription_expires_at: expDateISO
           }).eq('email', selectedStriker.email);
 
-          // 2. Registrar en apex_payments con monto limpio en 0 (lo define el contador luego) y los datos reportados
           await supabaseClient.from('apex_payments').insert({
             user_email: selectedStriker.email,
             coach_email: currentCoachEmail,
@@ -1287,11 +1306,11 @@
           const user = registeredUsersCache.find(u => u.email.toLowerCase() === (p.user_email || '').toLowerCase());
           const nombreStriker = user?.name || p.user_email;
           const avatarUrl = user?.photo_url;
-          const avatarHtml = avatarUrl 
+          const avatarHtml = (avatarUrl && typeof avatarUrl === 'string' && avatarUrl.startsWith('http')) 
             ? `<img src="${avatarUrl}" class="avatar-circle avatar-sm" alt="Foto">` 
             : `<div class="avatar-circle avatar-sm">${nombreStriker.substring(0,2).toUpperCase()}</div>`;
 
-          const imgPreview = (p.receipt_urls && p.receipt_urls.length > 0) 
+          const imgPreview = (p.receipt_urls && p.receipt_urls.length > 0 && typeof p.receipt_urls[0] === 'string' && p.receipt_urls[0].startsWith('http')) 
             ? `<div style="margin-top:6px;"><img src="${p.receipt_urls[0]}" style="width:55px; height:55px; object-fit:cover; border-radius:4px; border:1px solid var(--border); cursor:pointer;" onclick="abrirZoomImagen('${p.receipt_urls[0]}')" title="Haz clic para ampliar"></div>` 
             : '<span style="font-size:0.65rem; color:var(--text-muted);">Sin comprobante</span>';
 
@@ -1397,7 +1416,7 @@
           const user = registeredUsersCache.find(u => u.email.toLowerCase() === (p.user_email || '').toLowerCase());
           const nombreStriker = user?.name || p.user_email;
 
-          const imgThumb = (p.receipt_urls && p.receipt_urls.length > 0) 
+          const imgThumb = (p.receipt_urls && p.receipt_urls.length > 0 && typeof p.receipt_urls[0] === 'string' && p.receipt_urls[0].startsWith('http')) 
             ? `<div style="margin-top:4px;"><img src="${p.receipt_urls[0]}" style="width:40px; height:40px; object-fit:cover; border-radius:4px; border:1px solid var(--border); cursor:pointer;" onclick="abrirZoomImagen('${p.receipt_urls[0]}')" title="Ver comprobante"></div>` 
             : '';
 
@@ -1532,7 +1551,7 @@
           item.onclick = (e) => ApexEquipo.seleccionarStriker(user, e.currentTarget);
 
           const avatarUrl = user.photo_url || user.avatar_url;
-          const avatarHtml = avatarUrl 
+          const avatarHtml = (avatarUrl && typeof avatarUrl === 'string' && avatarUrl.startsWith('http')) 
             ? `<img src="${avatarUrl}" class="carousel-card-avatar" alt="Avatar">`
             : `<div class="carousel-card-avatar avatar-circle" style="width:40px;height:40px;">${(user.name || 'ST').substring(0,2).toUpperCase()}</div>`;
 
@@ -1598,7 +1617,7 @@
 
         const avatarContainer = document.getElementById('indAvatar');
         const avatarUrl = user.photo_url || user.avatar_url;
-        if (avatarUrl) {
+        if (avatarUrl && typeof avatarUrl === 'string' && avatarUrl.startsWith('http')) {
           avatarContainer.outerHTML = `<img id="indAvatar" src="${avatarUrl}" class="avatar-circle avatar-sm" alt="Foto">`;
         } else {
           avatarContainer.outerHTML = `<div id="indAvatar" class="avatar-circle avatar-sm">${(user.name || 'ST').substring(0,2).toUpperCase()}</div>`;
@@ -1737,7 +1756,7 @@
           item.className = 'suggestion-item';
           const displayName = user.name || 'Sin nombre registrado';
           const avatarUrl = user.photo_url;
-          const avatarImg = avatarUrl 
+          const avatarImg = (avatarUrl && typeof avatarUrl === 'string' && avatarUrl.startsWith('http')) 
             ? `<img src="${avatarUrl}" class="avatar-circle avatar-sm" alt="Foto">` 
             : `<div class="avatar-circle avatar-sm">${displayName.substring(0,2).toUpperCase()}</div>`;
 
