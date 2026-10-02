@@ -308,6 +308,28 @@
       renderUI();
       actualizarSelectorRoles();
       await cargarUsuarios();
+
+      // SUSCRIPCIÓN SUPABASE REALTIME PARA EL PANEL DE ADMINISTRACIÓN MASTER
+      if (sb) {
+        sb.channel('admin-master-realtime')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_users' }, payload => {
+            console.log('[Realtime Admin] Usuarios modificados:', payload);
+            cargarUsuarios();
+          })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_blocks' }, payload => {
+            console.log('[Realtime Admin] Bloques modificados:', payload);
+            loadAdminData();
+          })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_profiles' }, payload => {
+            console.log('[Realtime Admin] Perfiles modificados:', payload);
+            loadAdminData();
+          })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_profile_blocks' }, payload => {
+            console.log('[Realtime Admin] Relación perfiles-bloques modificada:', payload);
+            loadAdminData();
+          })
+          .subscribe();
+      }
     }
 
     function actualizarSelectorRoles() {
