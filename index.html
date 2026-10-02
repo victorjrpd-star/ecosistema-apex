@@ -312,6 +312,22 @@
         document.getElementById('installPwaWrapper').style.display = 'none';
       }
 
+      // SUSCRIPCIÓN SUPABASE REALTIME (EVITA RECARGAR LA PÁGINA)
+      sb.channel('apex-core-realtime')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_users' }, payload => {
+          if (currentSessionUser && payload.new && payload.new.id === currentSessionUser.id) {
+            console.log('[Realtime] Actualización de usuario detectada en vivo.');
+            cargarDatosUsuario(currentSessionUser.id);
+          }
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_profile_blocks' }, payload => {
+          if (currentSessionUser) {
+            console.log('[Realtime] Cambios en módulos asignados detectados.');
+            cargarDatosUsuario(currentSessionUser.id);
+          }
+        })
+        .subscribe();
+
       try {
         const { data: { session } } = await sb.auth.getSession();
         if (session) {
