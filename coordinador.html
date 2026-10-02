@@ -458,6 +458,32 @@
       if (!sb) return;
       await cargarColaPendientes();
       await cargarCensoCompleto();
+
+      // SUSCRIPCIÓN SUPABASE REALTIME PARA EL PANEL DE COORDINACIÓN
+      if (sb) {
+        sb.channel('coordinacion-panel-realtime')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_coach_supervisions' }, payload => {
+            console.log('[Realtime Coordinación] Auditoría modificada:', payload);
+            cargarColaPendientes();
+            cargarCensoCompleto();
+          })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_staff_points' }, payload => {
+            console.log('[Realtime Coordinación] Puntos de staff modificados:', payload);
+            cargarCensoCompleto();
+            if (document.getElementById('tabHistorial').classList.contains('active')) {
+              cargarHistorialResuelto();
+            }
+          })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_checkins' }, payload => {
+            console.log('[Realtime Coordinación] Check-ins modificados:', payload);
+            cargarCensoCompleto();
+          })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_users' }, payload => {
+            console.log('[Realtime Coordinación] Censo de usuarios modificado:', payload);
+            cargarCensoCompleto();
+          })
+          .subscribe();
+      }
     }
 
     /* CARGAR DATOS CENTRALES PARA ANÁLISIS */
