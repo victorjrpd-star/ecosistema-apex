@@ -91,40 +91,38 @@
 
     /* MARCO GENERAL: BARRA SUPERIOR */
     .apex-global-header {
-      height: 56px; background: var(--card-bg); border-bottom: 1px solid var(--border);
-      display: flex; justify-content: space-between; align-items: center; padding: 0 16px; flex-shrink: 0; z-index: 100;
+      height: 60px; background: var(--card-bg); border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center; padding: 0 14px; flex-shrink: 0; z-index: 100;
     }
     
     .brand-wrapper { display: flex; flex-direction: column; justify-content: center; gap: 2px; }
-    .apex-brand { font-size: 0.95rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; color: #fff; line-height: 1; }
+    .apex-brand { font-size: 0.9rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; color: #fff; line-height: 1; }
     .apex-brand span { color: var(--accent); }
 
     /* ESTADO DE CONEXIÓN (UBICADO DEBAJO DE APEX CORE) */
     .connection-status-pill {
       background: transparent; padding: 0;
-      border-radius: 0; font-size: 0.55rem; font-weight: 800; text-transform: uppercase;
+      border-radius: 0; font-size: 0.52rem; font-weight: 800; text-transform: uppercase;
       display: flex; align-items: center; gap: 4px; color: var(--text-muted);
       letter-spacing: 0.5px; line-height: 1;
     }
     .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--status-ok); }
     .status-dot.offline { background: var(--accent); }
-    .status-dot.syncing { background: var(--status-warn); animation: pulseDot 1.2s infinite; }
-    @keyframes pulseDot { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
 
-    .apex-nav-container { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; align-items: center; flex: 1; margin: 0 12px; }
+    .apex-nav-container { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; align-items: center; flex: 1; margin: 0 10px; }
     .apex-nav-container::-webkit-scrollbar { display: none; }
 
     .nav-tab-btn {
       background: #1a1a1a; border: 1px solid var(--border); color: var(--text-muted);
-      padding: 6px 12px; border-radius: 6px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase;
+      padding: 6px 10px; border-radius: 6px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase;
       cursor: pointer; white-space: nowrap; transition: 0.2s;
     }
     .nav-tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
-    .global-actions { display: flex; align-items: center; gap: 8px; }
+    .global-actions { display: flex; align-items: center; gap: 6px; }
     .icon-btn {
-      background: #1c1c1c; border: 1px solid #333; color: #fff; width: 34px; height: 34px;
-      border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.9rem;
+      background: #1c1c1c; border: 1px solid #333; color: #fff; width: 32px; height: 32px;
+      border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.85rem;
     }
     .icon-btn:active { background: var(--accent); }
 
@@ -226,16 +224,20 @@
     <header class="apex-global-header">
       <div class="brand-wrapper">
         <div class="apex-brand">Apex <span>Core</span></div>
-        <!-- INDICADOR DE ESTADO DE RED REUBICADO BAJO EL LOGOTIPO -->
+        <!-- INDICADOR DE ESTADO DE RED -->
         <div class="connection-status-pill" id="netStatusPill">
           <div class="status-dot" id="netStatusDot"></div>
           <span id="netStatusText">En Línea</span>
         </div>
       </div>
+      
+      <!-- NAVEGACIÓN DE MÓDULOS -->
       <nav class="apex-nav-container" id="apexNavBar"></nav>
+      
+      <!-- ACCIONES GLOBALES SUPERIORES (CONFIGURACIÓN Y ACTUALIZAR) -->
       <div class="global-actions">
         <button class="icon-btn" onclick="openConfigModal()" title="Configuración de Cuenta">⚙</button>
-        <button class="icon-btn" onclick="cerrarSesion()" title="Cerrar Sesión" style="color: var(--accent);">⏏</button>
+        <button class="icon-btn" onclick="forzarActualizacionTotal()" title="Actualizar Aplicación" style="background:#1e1e24; color:var(--status-ok);">🔄</button>
       </div>
     </header>
 
@@ -279,7 +281,10 @@
       </div>
       <button class="btn btn-secondary" onclick="actualizarContrasenaCuenta()">Actualizar Contraseña</button>
 
-      <button class="btn btn-secondary" style="margin-top: 14px;" onclick="closeConfigModal()">Cerrar</button>
+      <!-- BOTÓN DE CERRAR SESIÓN INTEGRADO DENTRO DE CONFIGURACIÓN -->
+      <button class="btn btn-secondary" style="margin-top: 14px; background: rgba(229,9,20,0.1); border-color: rgba(229,9,20,0.3); color: var(--accent);" onclick="cerrarSesion()">Cerrar Sesión</button>
+
+      <button class="btn btn-secondary" style="margin-top: 8px;" onclick="closeConfigModal()">Cerrar</button>
     </div>
   </div>
 
@@ -292,80 +297,23 @@
     let deferredPrompt = null;
 
     /* ==========================================================================
-       SISTEMA DE INDEXEDDB PARA COLA DE TRANSACCIONES OFFLINE (FIFO)
-       ========================================================================== */
-    const ApexDB = {
-      dbName: 'ApexOfflineDB',
-      storeName: 'pending_mutations',
-      open: function() {
-        return new Promise((resolve, reject) => {
-          const request = indexedDB.open(this.dbName, 1);
-          request.onerror = () => reject(request.error);
-          request.onsuccess = () => resolve(request.result);
-          request.onupgradeneeded = (e) => {
-            const db = e.target.result;
-            if (!db.objectStoreNames.contains(this.storeName)) {
-              db.createObjectStore(this.storeName, { keyPath: 'id', autoIncrement: true });
-            }
-          };
-        });
-      },
-      enqueue: async function(mutation) {
-        const db = await this.open();
-        return new Promise((resolve, reject) => {
-          const transaction = db.transaction(this.storeName, 'readwrite');
-          const store = transaction.objectStore(this.storeName);
-          mutation.client_timestamp = new Date().toISOString();
-          mutation.uuid = mutation.uuid || crypto.randomUUID();
-          const request = store.add(mutation);
-          request.onsuccess = () => resolve(request.result);
-          request.onerror = () => reject(request.error);
-        });
-      },
-      getAll: async function() {
-        const db = await this.open();
-        return new Promise((resolve, reject) => {
-          const transaction = db.transaction(this.storeName, 'readonly');
-          const store = transaction.objectStore(this.storeName);
-          const request = store.getAll();
-          request.onsuccess = () => resolve(request.result);
-          request.onerror = () => reject(request.error);
-        });
-      },
-      remove: async function(id) {
-        const db = await this.open();
-        return new Promise((resolve, reject) => {
-          const transaction = db.transaction(this.storeName, 'readwrite');
-          const store = transaction.objectStore(this.storeName);
-          const request = store.delete(id);
-          request.onsuccess = () => resolve(request.result);
-          request.onerror = () => reject(request.error);
-        });
-      }
-    };
-
-    /* ==========================================================================
-       GESTOR DE RED Y SINCRONIZACIÓN AUTOMÁTICA
+       GESTOR DE RED Y NOTIFICACIÓN PROFESIONAL OFFLINE
        ========================================================================== */
     window.addEventListener('online', () => {
       actualizarEstadoRed(true);
-      sincronizarColaPendiente();
     });
 
     window.addEventListener('offline', () => {
       actualizarEstadoRed(false);
     });
 
-    function actualizarEstadoRed(isOnline, isSyncing = false) {
+    function actualizarEstadoRed(isOnline) {
       const dot = document.getElementById('netStatusDot');
       const text = document.getElementById('netStatusText');
       if (!dot || !text) return;
 
       dot.className = 'status-dot';
-      if (isSyncing) {
-        dot.classList.add('syncing');
-        text.innerText = 'Sincronizando...';
-      } else if (isOnline) {
+      if (isOnline) {
         text.innerText = 'En Línea';
       } else {
         dot.classList.add('offline');
@@ -373,40 +321,30 @@
       }
     }
 
-    async function sincronizarColaPendiente() {
-      if (!navigator.onLine || !sb) return;
-      try {
-        const mutations = await ApexDB.getAll();
-        if (!mutations || mutations.length === 0) return;
+    // Interceptor global de red para avisar con elegancia si intenta interactuar sin conexión
+    window.addEventListener('fetch', (event) => {
+      if (!navigator.onLine) {
+        alert("⚠️ Estás sin conexión. Conéctate a internet para ejecutar esta acción en el Ecosistema Apex.");
+      }
+    });
 
-        actualizarEstadoRed(true, true);
-        console.log(`[Sync] Sincronizando ${mutations.length} operaciones pendientes...`);
-
-        for (const m of mutations) {
-          try {
-            if (m.type === 'insert' || m.method === 'POST') {
-              await sb.from(m.table).insert([m.payload]);
-            } else if (m.type === 'upsert') {
-              await sb.from(m.table).upsert([m.payload]);
-            } else if (m.type === 'update' || m.method === 'PATCH' || m.method === 'PUT') {
-              if (m.match_column && m.match_value) {
-                await sb.from(m.table).update(m.payload).eq(m.match_column, m.match_value);
-              } else {
-                await sb.from(m.table).insert([m.payload]);
-              }
-            } else {
-              await sb.from(m.table).insert([m.payload]);
+    /* FUNCIÓN MAESTRA DE ACTUALIZACIÓN TOTAL DE LA PWA */
+    function forzarActualizacionTotal() {
+      if (!navigator.onLine) {
+        alert("⚠️ Estás offline. Conéctate a internet para actualizar la aplicación.");
+        return;
+      }
+      if (confirm("¿Deseas actualizar y recargar todas las herramientas de la aplicación?")) {
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(registrations => {
+            for(let registration of registrations) {
+              registration.unregister();
             }
-            await ApexDB.remove(m.id);
-          } catch (itemErr) {
-            console.warn(`[Sync] Error sincronizando registro ${m.id}:`, itemErr);
-          }
+            window.location.reload(true);
+          });
+        } else {
+          window.location.reload(true);
         }
-        actualizarEstadoRed(true, false);
-        console.log('[Sync] Sincronización completada con éxito.');
-      } catch (e) {
-        actualizarEstadoRed(true, false);
-        console.warn('[Sync] Error general en cola de sincronización:', e);
       }
     }
 
@@ -415,12 +353,7 @@
       actualizarEstadoRed(navigator.onLine);
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js')
-          .then(() => {
-            console.log('Service Worker registrado con éxito.');
-            if (navigator.onLine) {
-              sincronizarColaPendiente();
-            }
-          })
+          .then(() => console.log('Service Worker registrado con éxito.'))
           .catch(err => console.log('Error al registrar Service Worker:', err));
       }
     });
@@ -436,12 +369,11 @@
     window.addEventListener('appinstalled', () => {
       document.getElementById('installPwaWrapper').style.display = 'none';
       deferredPrompt = null;
-      console.log('Aplicación instalada exitosamente.');
     });
 
     async function dispararInstalacionPWA() {
       if (!deferredPrompt) {
-        alert('Para instalar la aplicación, usa las opciones de tu navegador (Ej: "Agregar a la pantalla principal" o "Instalar aplicación").');
+        alert('Para instalar la aplicación, usa las opciones de tu navegador.');
         return;
       }
       deferredPrompt.prompt();
@@ -455,24 +387,6 @@
     async function initPortal() {
       if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
         document.getElementById('installPwaWrapper').style.display = 'none';
-      }
-
-      // SUSCRIPCIÓN SUPABASE REALTIME (EVITA RECARGAR LA PÁGINA)
-      if (sb) {
-        sb.channel('apex-core-realtime')
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_users' }, payload => {
-            if (currentSessionUser && payload.new && payload.new.id === currentSessionUser.id) {
-              console.log('[Realtime] Actualización de usuario detectada en vivo.');
-              cargarDatosUsuario(currentSessionUser.id);
-            }
-          })
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_profile_blocks' }, payload => {
-            if (currentSessionUser) {
-              console.log('[Realtime] Cambios en módulos asignados detectados.');
-              cargarDatosUsuario(currentSessionUser.id);
-            }
-          })
-          .subscribe();
       }
 
       // INTENTO DE AUTENTICACIÓN / SESIÓN OFFLINE-FIRST
@@ -493,16 +407,14 @@
       if (cachedUserJson) {
         try {
           const cachedUser = JSON.parse(cachedUserJson);
-          console.log("[Offline Auth] Restaurando sesión local para:", cachedUser.email);
           await validarYCargarSesionOffline(cachedUser);
         } catch (err) {
-          console.warn("[Offline Auth] Error al parsear sesión en caché");
+          console.warn("Error al parsear sesión en caché");
         }
       }
     }
 
     async function validarYCargarSesionOffline(profileData) {
-      // Validación estricta de vigencia de membresía sin internet
       const rolActual = (profileData.role || '').toLowerCase();
       const perfilActual = (profileData.profile_id || '').toLowerCase();
       const esStaff = ['admin', 'administrador', 'coach', 'supervisor', 'coordinador'].includes(rolActual) || 
@@ -526,7 +438,6 @@
 
       currentSessionUser = profileData;
       
-      // Obtener módulos cacheados o usar fallback predeterminado
       let userModules = JSON.parse(localStorage.getItem('apex_user_modules') || '[]');
       if (userModules.length === 0) {
         userModules = [{ id: 'b_usuario', title: 'Ficha Estudiante', url: 'usuario.html' }];
@@ -535,11 +446,6 @@
       document.getElementById('loginOverlay').style.display = 'none';
       document.getElementById('appContainer').classList.add('active');
       renderAppModules(userModules);
-
-      // Si vuelve a haber red, sincronizar pendientes y refrescar perfil real
-      if (navigator.onLine) {
-        sincronizarColaPendiente();
-      }
     }
 
     function toggleFormMode(mode) {
@@ -548,6 +454,11 @@
     }
 
     async function realizarRegistro() {
+      if (!navigator.onLine) {
+        alert('⚠️ Estás offline. Conéctate a internet para registrar una nueva cuenta.');
+        return;
+      }
+
       const name = document.getElementById('regName').value.trim();
       const role = 'estudiante';
       const profile_id = 'estudiante';
@@ -564,21 +475,10 @@
         return;
       }
 
-      if (!navigator.onLine) {
-        alert('No hay conexión a internet para registrar una nueva cuenta.');
-        return;
-      }
-
       const { data, error } = await sb.auth.signUp({ 
         email, 
         password,
-        options: {
-          data: {
-            name: name,
-            role: role,
-            profile_id: profile_id
-          }
-        }
+        options: { data: { name: name, role: role, profile_id: profile_id } }
       });
 
       if (error) {
@@ -589,16 +489,9 @@
       if (data.user) {
         await sb.from('apex_users').upsert([
           { 
-            id: data.user.id, 
-            email, 
-            name, 
-            role: role, 
-            profile_id: profile_id, 
-            photo_url: null, 
-            avatar_url: null, 
-            is_active: true, 
-            subscription_status: 'activo', 
-            last_active_at: new Date().toISOString()
+            id: data.user.id, email, name, role: role, profile_id: profile_id, 
+            photo_url: null, avatar_url: null, is_active: true, 
+            subscription_status: 'activo', last_active_at: new Date().toISOString()
           }
         ]);
         alert('¡Usuario registrado con éxito! Ya puedes iniciar sesión.');
@@ -608,16 +501,16 @@
     }
 
     async function realizarLogin() {
+      if (!navigator.onLine) {
+        alert('⚠️ Estás offline. El inicio de sesión requiere conexión a internet o una sesión guardada previamente.');
+        return;
+      }
+
       const email = document.getElementById('loginEmail').value.trim();
       const password = document.getElementById('loginPassword').value.trim();
 
       if (!email || !password) {
         alert('Ingresa correo y contraseña.');
-        return;
-      }
-
-      if (!navigator.onLine) {
-        alert('El inicio de sesión inicial requiere conexión a internet. Usa una sesión guardada previamente.');
         return;
       }
 
@@ -632,16 +525,17 @@
     }
 
     async function cargarDatosUsuario(userId) {
+      if (!navigator.onLine) {
+        alert('⚠️ Estás offline. No es posible sincronizar datos remotos del usuario.');
+        return;
+      }
+
       let profileData = null;
       try {
-        const res = await sb
-          .from('apex_users')
-          .select('*')
-          .eq('id', userId)
-          .single();
+        const res = await sb.from('apex_users').select('*').eq('id', userId).single();
         profileData = res.data;
       } catch (e) {
-        console.warn("No se pudo cargar perfil online, buscando respaldo local");
+        console.warn("No se pudo cargar perfil online");
       }
 
       if (!profileData) {
@@ -653,33 +547,8 @@
         profileData = { id: userId, email: '', name: 'Usuario Apex', profile_id: 'estudiante', role: 'estudiante', photo_url: null, avatar_url: null, subscription_status: 'activo' };
       }
 
-      const rolActual = (profileData.role || '').toLowerCase();
-      const perfilActual = (profileData.profile_id || '').toLowerCase();
-      const esStaff = ['admin', 'administrador', 'coach', 'supervisor', 'coordinador'].includes(rolActual) || 
-                      ['admin', 'administrador', 'coach', 'supervisor', 'coordinador'].includes(perfilActual);
-
-      if (!esStaff) {
-        const hoy = new Date(); hoy.setHours(0,0,0,0);
-        const fechaExpStr = profileData.subscription_expires_at || profileData.membership_end;
-        let vencido = false;
-
-        if (fechaExpStr) {
-          const expDate = new Date(fechaExpStr.includes('T') ? fechaExpStr : fechaExpStr + 'T00:00:00');
-          if (expDate < hoy) vencido = true;
-        }
-
-        if (profileData.subscription_status === 'vencido' || profileData.is_active === false || vencido) {
-          alert('⚠️ Membresía inactiva o vencida. Por favor, habla con tu coach o administrador.');
-          if (sb && navigator.onLine) await sb.auth.signOut();
-          document.getElementById('appContainer').classList.remove('active');
-          document.getElementById('loginOverlay').style.display = 'flex';
-          return;
-        }
-      }
-
       currentSessionUser = profileData;
 
-      // Persistir sesión cifrada/respaldada para uso offline
       localStorage.setItem('apex_session_user', JSON.stringify(profileData));
       localStorage.setItem('apex_user_email', profileData.email || '');
       localStorage.setItem('apex_user_profile', profileData.profile_id || 'estudiante');
@@ -713,19 +582,10 @@
 
       localStorage.setItem('apex_user_modules', JSON.stringify(userModules));
 
-      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-        const urlsToCache = userModules.map(m => m.url);
-        navigator.serviceWorker.controller.postMessage({
-          type: 'CACHE_USER_MODULES',
-          urls: urlsToCache
-        });
-      }
-
       document.getElementById('loginOverlay').style.display = 'none';
       document.getElementById('appContainer').classList.add('active');
 
       renderAppModules(userModules);
-      sincronizarColaPendiente();
     }
 
     function renderAppModules(modules) {
@@ -772,6 +632,7 @@
         document.getElementById('loginPassword').value = '';
         document.getElementById('appContainer').classList.remove('active');
         document.getElementById('loginOverlay').style.display = 'flex';
+        closeConfigModal();
         initPortal();
       }
     }
@@ -799,6 +660,10 @@
     }
 
     async function subirFotoDesdeDispositivo(files) {
+      if (!navigator.onLine) {
+        alert("⚠️ Estás offline. No puedes subir archivos ni actualizar la foto de perfil sin conexión.");
+        return;
+      }
       if (!files || files.length === 0 || !currentSessionUser) return;
       
       const file = files[0];
@@ -814,41 +679,22 @@
         const cleanEmail = (currentSessionUser.email || currentSessionUser.id).replace(/[^a-zA-Z0-9]/g, '_');
         const filePath = `avatars/${Date.now()}_${cleanEmail}.${ext}`;
 
-        let publicUrl = '';
-        if (navigator.onLine && sb) {
-          const { error: uploadErr } = await sb.storage.from('avatars').upload(filePath, file, { upsert: true });
-          if (uploadErr) throw uploadErr;
-          const { data: urlData } = sb.storage.from('avatars').getPublicUrl(filePath);
-          publicUrl = urlData.publicUrl;
+        const { error: uploadErr } = await sb.storage.from('avatars').upload(filePath, file, { upsert: true });
+        if (uploadErr) throw uploadErr;
+        const { data: urlData } = sb.storage.from('avatars').getPublicUrl(filePath);
+        const publicUrl = urlData.publicUrl;
 
-          await sb.from('apex_users').update({ 
-            photo_url: publicUrl, 
-            avatar_url: publicUrl, 
-            last_active_at: new Date().toISOString() 
-          }).eq('id', currentSessionUser.id);
-        } else {
-          // En modo offline simulamos la ruta local o guardamos pendiente
-          publicUrl = URL.createObjectURL(file);
-          await ApexDB.enqueue({
-            type: 'update',
-            table: 'apex_users',
-            match_column: 'id',
-            match_value: currentSessionUser.id,
-            payload: { last_active_at: new Date().toISOString() }
-          });
-        }
+        await sb.from('apex_users').update({ 
+          photo_url: publicUrl, 
+          avatar_url: publicUrl, 
+          last_active_at: new Date().toISOString() 
+        }).eq('id', currentSessionUser.id);
 
         currentSessionUser.photo_url = publicUrl;
         currentSessionUser.avatar_url = publicUrl;
         localStorage.setItem('apex_user_avatar', publicUrl);
         localStorage.setItem('apex_session_user', JSON.stringify(currentSessionUser));
         actualizarPreviewFoto(publicUrl);
-
-        document.querySelectorAll('iframe.block-frame').forEach(frame => {
-          try {
-            frame.contentWindow.postMessage({ type: 'APEX_AVATAR_UPDATED', avatarUrl: publicUrl }, '*');
-          } catch(e) {}
-        });
 
         hint.innerText = '¡Foto actualizada con éxito!';
         hint.style.color = 'var(--status-ok)';
@@ -862,29 +708,21 @@
     }
 
     async function guardarAjustes() {
+      if (!navigator.onLine) {
+        alert("⚠️ Estás offline. Conéctate a internet para guardar los ajustes en el servidor.");
+        return;
+      }
+
       const newName = document.getElementById('cfgName').value.trim();
 
-      if (navigator.onLine && sb) {
-        const { error } = await sb
-          .from('apex_users')
-          .update({ 
-            name: newName, 
-            last_active_at: new Date().toISOString() 
-          })
-          .eq('id', currentSessionUser.id);
+      const { error } = await sb
+        .from('apex_users')
+        .update({ name: newName, last_active_at: new Date().toISOString() })
+        .eq('id', currentSessionUser.id);
 
-        if (error) {
-          alert('Error al guardar ajustes: ' + error.message);
-          return;
-        }
-      } else {
-        await ApexDB.enqueue({
-          type: 'update',
-          table: 'apex_users',
-          match_column: 'id',
-          match_value: currentSessionUser.id,
-          payload: { name: newName, last_active_at: new Date().toISOString() }
-        });
+      if (error) {
+        alert('Error al guardar ajustes: ' + error.message);
+        return;
       }
 
       currentSessionUser.name = newName;
@@ -894,6 +732,11 @@
     }
 
     async function actualizarContrasenaCuenta() {
+      if (!navigator.onLine) {
+        alert('⚠️ Estás offline. No es posible actualizar la contraseña sin conexión a internet.');
+        return;
+      }
+
       const p1 = document.getElementById('cfgNewPassword').value.trim();
       const p2 = document.getElementById('cfgConfirmPassword').value.trim();
 
@@ -906,17 +749,12 @@
         return;
       }
 
-      if (!navigator.onLine) {
-        alert('No es posible actualizar la contraseña sin conexión a internet.');
-        return;
-      }
-
       const { error } = await sb.auth.updateUser({ password: p1 });
 
       if (error) {
         alert('Error al actualizar la contraseña: ' + error.message);
       } else {
-        alert('¡Contraseña actualizada con éxito! Úsala en tu próximo inicio de sesión.');
+        alert('¡Contraseña actualizada con éxito!');
         document.getElementById('cfgNewPassword').value = '';
         document.getElementById('cfgConfirmPassword').value = '';
         closeConfigModal();
