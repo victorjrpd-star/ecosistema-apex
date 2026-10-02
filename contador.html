@@ -669,6 +669,32 @@
 
     async function init() {
       await cargarDatosGlobales();
+
+      // SUSCRIPCIÓN SUPABASE REALTIME PARA CONTABILIDAD Y CAJA TÁCTICA
+      if (sb) {
+        sb.channel('contabilidad-panel-realtime')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_cuentas' }, payload => {
+            console.log('[Realtime Contabilidad] Cuentas modificadas:', payload);
+            cargarDatosGlobales();
+          })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_payments' }, payload => {
+            console.log('[Realtime Contabilidad] Pagos en sala modificados:', payload);
+            cargarDatosGlobales();
+          })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_transacciones_libro_mayor' }, payload => {
+            console.log('[Realtime Contabilidad] Libro mayor actualizado:', payload);
+            cargarDatosGlobales();
+          })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_acreedores_deudores' }, payload => {
+            console.log('[Realtime Contabilidad] Deudores/Acreedores modificados:', payload);
+            cargarDatosGlobales();
+          })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_nomina' }, payload => {
+            console.log('[Realtime Contabilidad] Nómina modificada:', payload);
+            cargarDatosGlobales();
+          })
+          .subscribe();
+      }
     }
 
     async function cargarDatosGlobales() {
