@@ -72,7 +72,7 @@
     }
     .progress-meta-grid { display: flex; justify-content: space-between; font-size: 0.68rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
 
-    /* BANDEJA DE SANCIONES / ALERTAS DE COORDINACIÓN */
+    /* BANDEJA DE SANCIONES / NOTIFICACIONES DE COORDINACIÓN */
     .notif-container { display: none; flex-direction: column; gap: 8px; margin-bottom: 14px; }
     .notif-card {
       background: #18181a; border-left: 3px solid var(--accent); border-top: 1px solid var(--border);
@@ -498,6 +498,26 @@
       await cargarRegistrosSupervisiones();
       await cargarRegistrosStrikers();
       await actualizarNivelGlobalSupervisor();
+
+      // SUSCRIPCIÓN SUPABASE REALTIME PARA EL PANEL DEL SUPERVISOR
+      if (sb) {
+        sb.channel('supervisor-panel-realtime')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_coach_supervisions', filter: `supervisor_email=eq.${currentSupervisorEmail}` }, payload => {
+            console.log('[Realtime Supervisor] Supervisión modificada:', payload);
+            cargarRegistrosSupervisiones();
+            actualizarNivelGlobalSupervisor();
+          })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_checkins' }, payload => {
+            console.log('[Realtime Supervisor] Check-ins de strikers modificados:', payload);
+            cargarRegistrosStrikers();
+          })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_notifications', filter: `user_email=eq.${currentSupervisorEmail}` }, payload => {
+            console.log('[Realtime Supervisor] Notificación en vivo recibida:', payload);
+            cargarNotificacionesSupervisor();
+            actualizarNivelGlobalSupervisor();
+          })
+          .subscribe();
+      }
     }
 
     function renderAvatarVisual(url, nombreFallback = 'SP') {
