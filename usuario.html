@@ -665,6 +665,7 @@
     let userNivelOficial = 'Iniciado';
     let filtroHistorialActual = 'todos';
     let sliderTimeout = null;
+    let cacheCoachNames = {};
 
     function toggleGearMenu(e) {
       if (e) e.stopPropagation();
@@ -1056,6 +1057,7 @@
       emailInput.value = email;
       if (currentUser) { emailInput.setAttribute('readonly', 'true'); emailInput.style.opacity = '0.7'; }
 
+      await precargarNombresCoaches();
       await cargarDatosPerfil(email);
       await cargarRegistrosBD(email);
       await gestionarNotificacionesInteligentes(email);
@@ -1069,6 +1071,19 @@
         .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_notifications', filter: `user_email=eq.${email}` }, payload => { gestionarNotificacionesInteligentes(email); })
         .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_users', filter: `email=eq.${email}` }, payload => { cargarDatosPerfil(email); })
         .subscribe();
+    }
+
+    async function precargarNombresCoaches() {
+      if (!sb) return;
+      try {
+        const { data } = await sb.from('apex_users').select('id, email, name');
+        if (data) {
+          data.forEach(u => {
+            if (u.id) cacheCoachNames[u.id] = u.name || u.email;
+            if (u.email) cacheCoachNames[u.email] = u.name || u.email;
+          });
+        }
+      } catch(e) {}
     }
 
     function renderAvatarVisual(url, nombreFallback = 'ST') {
@@ -1113,7 +1128,8 @@
     async function cargarRegistrosBD(email) {
       if (!sb || !email) return;
       try {
-        const { data, error } = await sb.from('apex_checkins').select('*').eq('user_email', email).neq('status', 'rechazado').order('created_at', { ascending: true });
+        // Obtenemos todos los check-ins para reflejar estados aprobados, rechazados y pendientes
+        const { data, error } = await sb.from('apex_checkins').select('*').eq('user_email', email).order('created_at', { ascending: true });
         if (error || !data) return;
         cachedRecords = data;
         await calcularNivelOficialBimestralMultifunte(email);
@@ -1121,11 +1137,9 @@
       } catch (e) {}
     }
 
-    /* ==========================================================================
-       CÁLCULO UNIFICADO MULTIFUNTE (IGUAL AL PANEL COACH)
-       ========================================================================== */
     async function calcularNivelOficialBimestralMultifunte(email) {
-      document.getElementById('totalSesionesTxt').innerText = `${cachedRecords.length} Clases Totales`;
+      const recordsAprobados = cachedRecords.filter(r => r.status && r.status.toLowerCase() === 'aprobado');
+      document.getElementById('totalSesionesTxt').innerText = `${recordsAprobados.length} Clases Totales`;
       try {
         const hace60Dias = new Date();
         hace60Dias.setDate(hace60Dias.getDate() - 60);
@@ -1190,12 +1204,12 @@
       return '#ffffff';
     }
 
-    /* MOTOR DE PROYECCIÓN DINÁMICO PARA LAS PRÓXIMAS 3 CLASES (CON FLUCTUACIÓN REALISTA) */
     function calcularProyeccionAsistencia(records) {
-      if (!records || records.length < 2) {
-        const ultimaFecha = records.length > 0 ? new Date(records[records.length - 1].created_at) : new Date();
+      const recordsAprobados = records.filter(r => r.status && r.status.toLowerCase() === 'aprobado');
+      if (!recordsAprobados || recordsAprobados.length < 2) {
+        const ultimaFecha = recordsAprobados.length > 0 ? new Date(recordsAprobados[recordsAprobados.length - 1].created_at) : new Date();
         const proyecciones = [];
-        let promRend = records.length > 0 ? records.reduce((a,b)=>a+parseFloat(b.rendimiento||0),0)/records.length : 7;
+        let promRend = recordsAprobados.length > 0 ? recordsAprobados.reduce((a,b)=>a+parseFloat(b.rendimiento||0),0)/recordsAprobados.length : 7;
         for (let i = 1; i <= 3; i++) {
           ultimaFecha.setDate(ultimaFecha.getDate() + 3);
           const fluctuacion = (Math.random() * 1.6 - 0.8);
@@ -1205,20 +1219,20 @@
       }
 
       let diferencias = [];
-      for (let i = 1; i < records.length; i++) {
-        const diffTime = Math.abs(new Date(records[i].created_at) - new Date(records[i-1].created_at));
+      for (let i = 1; i < recordsAprobados.length; i++) {
+        const diffTime = Math.abs(new Date(recordsAprobados[i].created_at) - new Date(recordsAprobados[i-1].created_at));
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         diferencias.push(diffDays);
       }
       const promedioIntervaloDays = Math.max(1, Math.round(diferencias.reduce((a,b)=>a+b, 0) / diferencias.length));
       
-      const ultimaFecha = new Date(records[records.length - 1].created_at);
+      const ultimaFecha = new Date(recordsAprobados[recordsAprobados.length - 1].created_at);
       const proyecciones = [];
-      let promRend = records.reduce((a,b)=>a+parseFloat(b.rendimiento||0),0)/records.length;
+      let promRend = recordsAprobados.reduce((a,b)=>a+parseFloat(b.rendimiento||0),0)/recordsAprobados.length;
 
       for (let i = 1; i <= 3; i++) {
         ultimaFecha.setDate(ultimaFecha.getDate() + promedioIntervaloDays);
-        const variacion = (Math.random() * 2.2 - 1.1); // Fluctuación orgánica marcada
+        const variacion = (Math.random() * 2.2 - 1.1);
         const valProyectado = Math.min(10, Math.max(1, +(promRend + variacion).toFixed(1)));
         proyecciones.push({ fecha: new Date(ultimaFecha), valor: valProyectado });
       }
@@ -1226,32 +1240,33 @@
     }
 
     function actualizarDashboardConDatos(records) {
+      const recordsAprobados = records.filter(r => r.status && r.status.toLowerCase() === 'aprobado');
       const container = document.getElementById('historyContainer');
-      if (!records || records.length === 0) {
+      if (!recordsAprobados || recordsAprobados.length === 0) {
         document.getElementById('statSesiones').innerText = '0';
         document.getElementById('statRendProm').innerText = '0.0';
-        container.innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;">Sin registros en este periodo.</span>';
+        container.innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;">Sin registros aprobados en este periodo.</span>';
         ['chartEficiencia', 'chartFluidezReal', 'chartRendimiento', 'chartRpe', 'chartSoltura', 'chartFluidez', 'chartDiversion'].forEach(id => {
           if (chartInstances[id]) chartInstances[id].destroy();
         });
         return;
       }
 
-      document.getElementById('statSesiones').innerText = records.length;
-      const sumRend = records.reduce((acc, cur) => acc + (parseFloat(cur.rendimiento) || 0), 0);
-      document.getElementById('statRendProm').innerText = (sumRend / records.length).toFixed(1);
+      document.getElementById('statSesiones').innerText = recordsAprobados.length;
+      const sumRend = recordsAprobados.reduce((acc, cur) => acc + (parseFloat(cur.rendimiento) || 0), 0);
+      document.getElementById('statRendProm').innerText = (sumRend / recordsAprobados.length).toFixed(1);
 
-      const labelsHistoricas = records.map(r => {
+      const labelsHistoricas = recordsAprobados.map(r => {
         const d = new Date(r.created_at);
         return `${d.getDate()}/${d.getMonth() + 1}`;
       });
 
-      const proyeccionesAsistencia = calcularProyeccionAsistencia(records);
+      const proyeccionesAsistencia = calcularProyeccionAsistencia(recordsAprobados);
       const labelsProyeccion = proyeccionesAsistencia.map(p => `${p.fecha.getDate()}/${p.fecha.getMonth() + 1} (Proj)`);
       const labelsCompletas = [...labelsHistoricas, ...labelsProyeccion];
 
       const construirDatasetMetrica = (extractorFn) => {
-        const histData = records.map(extractorFn);
+        const histData = recordsAprobados.map(extractorFn);
         const projDataInicio = histData[histData.length - 1]; 
         
         const datasetHist = [...histData, ...new Array(proyeccionesAsistencia.length).fill(null)];
@@ -1272,13 +1287,13 @@
       const dTec = construirDatasetMetrica(r => r.preguntacoach || r.student_tech_score);
       const dDiv = construirDatasetMetrica(r => r.divertiste);
 
-      renderDualChartWithPopup('chartEficiencia', labelsCompletas, dEficiencia.datasetHist, dEficiencia.datasetProj, records);
-      renderDualChartWithPopup('chartFluidezReal', labelsCompletas, dFluidez.datasetHist, dFluidez.datasetProj, records);
-      renderDualChartWithPopup('chartRendimiento', labelsCompletas, dRend.datasetHist, dRend.datasetProj, records);
-      renderDualChartWithPopup('chartRpe', labelsCompletas, dRpe.datasetHist, dRpe.datasetProj, records);
-      renderDualChartWithPopup('chartSoltura', labelsCompletas, dSolt.datasetHist, dSolt.datasetProj, records);
-      renderDualChartWithPopup('chartFluidez', labelsCompletas, dTec.datasetHist, dTec.datasetProj, records);
-      renderDualChartWithPopup('chartDiversion', labelsCompletas, dDiv.datasetHist, dDiv.datasetProj, records);
+      renderDualChartWithPopup('chartEficiencia', labelsCompletas, dEficiencia.datasetHist, dEficiencia.datasetProj, recordsAprobados);
+      renderDualChartWithPopup('chartFluidezReal', labelsCompletas, dFluidez.datasetHist, dFluidez.datasetProj, recordsAprobados);
+      renderDualChartWithPopup('chartRendimiento', labelsCompletas, dRend.datasetHist, dRend.datasetProj, recordsAprobados);
+      renderDualChartWithPopup('chartRpe', labelsCompletas, dRpe.datasetHist, dRpe.datasetProj, recordsAprobados);
+      renderDualChartWithPopup('chartSoltura', labelsCompletas, dSolt.datasetHist, dSolt.datasetProj, recordsAprobados);
+      renderDualChartWithPopup('chartFluidez', labelsCompletas, dTec.datasetHist, dTec.datasetProj, recordsAprobados);
+      renderDualChartWithPopup('chartDiversion', labelsCompletas, dDiv.datasetHist, dDiv.datasetProj, recordsAprobados);
 
       renderizarHistorialCheckins(cachedRecords);
     }
@@ -1349,6 +1364,9 @@
       renderizarHistorialCheckins(cachedRecords);
     }
 
+    /* ==========================================================================
+       HISTORIAL DE CHECK-INS CON LÓGICA DE ESTADO Y COACH REVISOR
+       ========================================================================== */
     function renderizarHistorialCheckins(records) {
       const container = document.getElementById('checkinHistoryList');
       if (!container) return;
@@ -1363,7 +1381,18 @@
       container.innerHTML = filtrados.slice().reverse().map(r => {
         const d = new Date(r.created_at);
         const fechaStr = `${d.getDate()}/${d.getMonth()+1} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
-        const coachRevisor = r.coach_name || r.reviewed_by || 'Pendiente de Aprobación';
+        
+        let coachRevisor = 'Pendiente de Aprobación';
+        const st = (r.status || '').toLowerCase();
+        
+        if (st === 'aprobado') {
+          const coachKey = r.coach_id || r.coach_email;
+          const nombreCoachEnCache = coachKey ? cacheCoachNames[coachKey] : null;
+          coachRevisor = nombreCoachEnCache || r.coach_name || r.reviewed_by || 'Coach Apex';
+        } else if (st === 'rechazado') {
+          coachRevisor = 'Check-in rechazado';
+        }
+
         const colorNota = getColorDinamico(r.rendimiento);
         return `
           <div class="history-card">
@@ -1381,9 +1410,10 @@
     }
 
     function actualizarRadarConDatos(records) {
+      const recordsAprobados = records.filter(r => r.status && r.status.toLowerCase() === 'aprobado');
       const email = currentUser ? currentUser.email : document.getElementById('ciEmail').value.trim();
-      const totalClasesCarrera = cachedRecords.length;
-      const clasesPeriodo = records.length;
+      const totalClasesCarrera = recordsAprobados.length;
+      const clasesPeriodo = recordsAprobados.length;
       const metaPeriodo = ApexFiltros.tipo === 30 ? 12 : 24;
       const disciplinaPct = Math.min(100, Math.round((clasesPeriodo / metaPeriodo) * 100));
 
@@ -1404,15 +1434,15 @@
       const totalValEl = document.getElementById('dossierTotalVal');
       if (totalValEl) totalValEl.innerText = totalClasesCarrera;
 
-      if (records.length === 0) {
+      if (recordsAprobados.length === 0) {
         const statusLabel = document.getElementById('radarStatusLabel');
-        if (statusLabel) statusLabel.innerText = "Sin datos en el periodo";
+        if (statusLabel) statusLabel.innerText = "Sin datos aprobados en el periodo";
         if (chartInstances['chartRadar']) chartInstances['chartRadar'].destroy();
         return;
       }
 
       let sum = { rendimiento: 0, rpe: 0, soltura: 0, tecnica: 0, ram: 0, diversion: 0 };
-      records.forEach(r => {
+      recordsAprobados.forEach(r => {
         sum.rendimiento += parseFloat(r.rendimiento) || 0;
         sum.rpe += parseFloat(r.rpe) || 0;
         sum.soltura += parseFloat(r.soltura) || 0;
@@ -1421,7 +1451,7 @@
         sum.diversion += parseFloat(r.divertiste) || 0;
       });
 
-      const count = records.length;
+      const count = recordsAprobados.length;
       const averages = [
         +(sum.rendimiento / count).toFixed(1),
         +(sum.rpe / count).toFixed(1),
