@@ -683,8 +683,18 @@
     }
 
     function procesarMediaSeleccionada(files) {
-      if (!files || files.length === 0) return;
+      if (!files || files.length === 0) {
+        alert("⚠️ No se seleccionó ningún archivo o el dispositivo bloqueó el contenido.");
+        return;
+      }
+      
       const file = files[0];
+      
+      if (!file || file.size === 0) {
+        alert("⚠️ El archivo seleccionado está vacío o no es accesible (común en iOS con elementos de iCloud). Intenta elegir otra imagen o video.");
+        return;
+      }
+
       tempMediaFile = file;
       document.getElementById('selectedFileLabel').innerText = file.name;
 
@@ -702,6 +712,9 @@
             document.getElementById('trimmerBox').style.display = 'none';
             videoStartTime = 0; videoEndTime = duration;
           }
+        };
+        tempVideo.onerror = function() {
+          alert("⚠️ El formato del video no es compatible o no se pudo leer correctamente.");
         };
         tempVideo.src = URL.createObjectURL(file);
       } else {
