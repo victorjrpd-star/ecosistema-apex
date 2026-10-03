@@ -199,7 +199,7 @@
       <!-- NAVEGACIÓN DE MÓDULOS -->
       <nav class="apex-nav-container" id="apexNavBar"></nav>
       
-      <!-- ACCIONES GLOBALES SUPERIORES (CONFIGURACIÓN Y ACTUALIZAR SVG PURO SIN RECUADRO) -->
+      <!-- ACCIONES GLOBALES SUPERIORES -->
       <div class="global-actions">
         <button class="icon-btn" onclick="openConfigModal()" title="Configuración de Cuenta">⚙</button>
         <button class="icon-btn" onclick="forzarActualizacionTotal()" title="Actualizar Aplicación">
@@ -269,8 +269,8 @@
     let deferredPrompt = null;
 
     /* ==========================================================================
-       GESTOR DE RED Y NOTIFICACIÓN PROFESIONAL OFFLINE
-       ========================================================================== */
+        GESTOR DE RED Y NOTIFICACIÓN PROFESIONAL OFFLINE
+        ========================================================================== */
     window.addEventListener('online', () => {
       actualizarEstadoRed(true);
     });
@@ -299,21 +299,39 @@
       }
     });
 
-    /* FUNCIÓN MAESTRA DE ACTUALIZACIÓN TOTAL DE LA PWA */
-    function forzarActualizacionTotal() {
+    /* ==========================================================================
+        FUNCIÓN MEJORADA: PURGA DE CACHÉ Y RECARGA FORZADA (ÁMBITO LOCAL)
+        ========================================================================== */
+    async function forzarActualizacionTotal() {
       if (!navigator.onLine) {
         alert("⚠️ Estás offline. Conéctate a internet para actualizar la aplicación.");
         return;
       }
-      if (confirm("¿Deseas actualizar y recargar todas las herramientas de la aplicación?")) {
-        if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.getRegistrations().then(registrations => {
-            for(let registration of registrations) {
-              registration.unregister();
+      
+      if (confirm("¿Deseas purgar la memoria local y actualizar todas las herramientas del ecosistema?")) {
+        try {
+          // 1. Desregistrar de forma exclusiva los Service Workers de este dominio
+          if ('serviceWorker' in navigator) {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            for (const registration of registrations) {
+              await registration.unregister();
             }
-            window.location.reload(true);
-          });
-        } else {
+          }
+
+          // 2. Borrar las cachés locales exclusivas de la aplicación actual
+          if ('caches' in window) {
+            const cacheNames = await caches.keys();
+            for (const name of cacheNames) {
+              await caches.delete(name);
+            }
+          }
+
+          // 3. Recargar agregando una estampa de tiempo para evitar cualquier caché residual de red
+          const timestamp = new Date().getTime();
+          window.location.href = window.location.pathname + '?v=' + timestamp;
+          
+        } catch (error) {
+          console.error("Error al purgar la caché de Apex:", error);
           window.location.reload(true);
         }
       }
@@ -359,7 +377,6 @@
     }
 
     async function initPortal() {
-      // Forzar visibilidad del botón de instalación si la PWA es apta y no está instalada en modo standalone
       if (!window.matchMedia('(display-mode: standalone)').matches && window.navigator.standalone !== true) {
         const wrapper = document.getElementById('installPwaWrapper');
         if (wrapper) wrapper.style.display = 'block';
@@ -683,7 +700,7 @@
 
     async function guardarAjustes() {
       if (!navigator.onLine) {
-        alert("⚠️️ Estás offline. Conéctate a internet para guardar los ajustes en el servidor.");
+        alert("⚠ Estás offline. Conéctate a internet para guardar los ajustes en el servidor.");
         return;
       }
 
