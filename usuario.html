@@ -564,7 +564,7 @@
     </div>
   </div>
 
-  <!-- SIMULADOR TÁCTICO CON SLIDERS FLOTANTES LIMPIOS Y MALLA EN GRAN FORMATO -->
+  <!-- SIMULADOR TÁCTICO -->
   <div id="viewSim" class="view-section">
     <div class="dossier-viewport" id="simDossierViewport">
       <div id="simDossierMediaContainer" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:1;">
@@ -572,10 +572,8 @@
         <img id="simNativeImage" class="dossier-media-bg" src="" alt="" style="display:none; object-fit:cover;">
       </div>
 
-      <!-- BOTÓN DISPARADOR LATERAL (TRIGGER) REUBICADO -->
       <button class="sim-drawer-trigger" id="simDrawerTrigger" onclick="toggleSimDrawer()">⚡ Configurar Metas</button>
 
-      <!-- PANEL LATERAL DESPLEGABLE FLOTANTE SIN MARCOS -->
       <div class="sim-drawer" id="simDrawer">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; border-bottom:1px solid rgba(255,255,255,0.15); padding-bottom:4px;">
           <span style="font-size:0.58rem; font-weight:900; text-transform:uppercase; color:#00f0ff; text-shadow:0 2px 4px rgba(0,0,0,0.9);">Paneles de Control</span>
@@ -640,7 +638,6 @@
         </div>
       </div>
 
-      <!-- MALLA HEXAGONAL EN GRAN FORMATO (253px) -->
       <div class="radar-floating-wrap pulse-mesh">
         <canvas id="chartSimRadar"></canvas>
       </div>
@@ -706,7 +703,6 @@
       document.getElementById('historyChevron').classList.toggle('open');
     }
 
-    /* RELOJ DINÁMICO EN TIEMPO REAL CON HORA, SEGUNDOS Y FECHA EN LETRAS */
     function iniciarRelojTiempoReal() {
       setInterval(() => {
         const ahora = new Date();
@@ -1120,20 +1116,52 @@
         const { data, error } = await sb.from('apex_checkins').select('*').eq('user_email', email).neq('status', 'rechazado').order('created_at', { ascending: true });
         if (error || !data) return;
         cachedRecords = data;
-        await calcularNivelOficialBimestral(data, email);
+        await calcularNivelOficialBimestralMultifunte(email);
         ApexFiltros.recalcularVistas();
       } catch (e) {}
     }
 
-    async function calcularNivelOficialBimestral(records, email) {
-      document.getElementById('totalSesionesTxt').innerText = `${records.length} Clases Totales`;
+    /* ==========================================================================
+       CÁLCULO UNIFICADO MULTIFUNTE (IGUAL AL PANEL COACH)
+       ========================================================================== */
+    async function calcularNivelOficialBimestralMultifunte(email) {
+      document.getElementById('totalSesionesTxt').innerText = `${cachedRecords.length} Clases Totales`;
       try {
-        const { data: res, error } = await sb.rpc('obtener_puntos_globales_apex', { p_email: email });
-        if (error || !res) return;
-        const ptsTotales = parseFloat(res.pts_totales) || 0;
-        const porcentaje = parseInt(res.porcentaje) || 0;
-        const nivel = res.nivel || 'INICIADO';
-        const color = res.color || '#ffffff';
+        const hace60Dias = new Date();
+        hace60Dias.setDate(hace60Dias.getDate() - 60);
+        hace60Dias.setHours(0,0,0,0);
+
+        const [checkinsRes, ratingsRes, supervisionsRes, adjustmentsRes] = await Promise.all([
+          sb.from('apex_checkins').select('rendimiento, created_at, status').eq('user_email', email).ilike('status', 'aprobado'),
+          sb.from('apex_coach_ratings').select('note, created_at').eq('user_email', email),
+          sb.from('apex_supervisor_ratings').select('score, created_at').eq('user_email', email),
+          sb.from('apex_coordinator_adjustments').select('note, created_at').eq('user_email', email)
+        ]);
+
+        let ptsTotales = 0;
+        if (checkinsRes.data) {
+          checkinsRes.data.forEach(c => { if (new Date(c.created_at) >= hace60Dias) ptsTotales += parseFloat(c.rendimiento || 0); });
+        }
+        if (ratingsRes.data) {
+          ratingsRes.data.forEach(r => { if (new Date(r.created_at) >= hace60Dias) ptsTotales += parseFloat(r.note || 0); });
+        }
+        if (supervisionsRes.data) {
+          supervisionsRes.data.forEach(s => { if (new Date(s.created_at) >= hace60Dias) ptsTotales += parseFloat(s.score || 0); });
+        }
+        if (adjustmentsRes.data) {
+          adjustmentsRes.data.forEach(a => { if (new Date(a.created_at) >= hace60Dias) ptsTotales += parseFloat(a.note || 0); });
+        }
+
+        const meta = 240;
+        const porcentaje = Math.min(100, Math.round((ptsTotales / meta) * 100));
+
+        let nivel = 'INICIADO';
+        let color = '#ffffff';
+        if (porcentaje >= 101) { nivel = 'APEX+'; color = '#ffd700'; }
+        else if (porcentaje >= 76) { nivel = 'APEX'; color = '#d4af37'; }
+        else if (porcentaje >= 36) { nivel = 'AVANZADO'; color = '#c0c0c0'; }
+        else if (porcentaje >= 11) { nivel = 'INTERMEDIO'; color = '#cd7f32'; }
+
         userNivelOficial = nivel;
         document.getElementById('planNivelBadge').innerText = nivel;
         document.getElementById('ptsBimestreTxt').innerText = `${ptsTotales.toFixed(1)} / 240 PTS`;
