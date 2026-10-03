@@ -6,13 +6,14 @@
   <title>Apex - Panel Coach</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <style>
     :root {
-      --bg: #050505;
-      --card-bg: #0e0e10;
-      --card-sub: #141416;
-      --border: #202024;
-      --border-focus: #383840;
+      --bg: #000000;
+      --card-bg: #0a0a0c;
+      --card-sub: #111114;
+      --border: #1a1a1e;
+      --border-focus: #33333b;
       --accent: #e50914;
       --accent-dim: rgba(229, 9, 20, 0.15);
       --text-main: #f5f5f7;
@@ -20,6 +21,7 @@
       --status-ok: #22c55e;
       --status-warn: #eab308;
       --tier-color: #ffffff;
+      --pulse-color: #e50914;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     html, body { background: var(--bg); color: var(--text-main); width: 100vw; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
@@ -31,7 +33,7 @@
     }
     .coach-nav-bar::-webkit-scrollbar { display: none; }
     .nav-tab-btn {
-      background: #121214; border: 1px solid var(--border); color: var(--text-muted);
+      background: #0d0d10; border: 1px solid var(--border); color: var(--text-muted);
       padding: 6px 10px; border-radius: 4px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase;
       letter-spacing: 0.5px; cursor: pointer; transition: 0.2s; user-select: none; white-space: nowrap;
     }
@@ -45,12 +47,12 @@
     .header { border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
     .title { font-size: 1rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px; }
     .title span { color: var(--accent); }
-    .badge-coach { font-size: 0.65rem; font-weight: 700; background: #141416; color: var(--text-muted); border: 1px solid var(--border); padding: 4px 8px; border-radius: 3px; }
+    .badge-coach { font-size: 0.65rem; font-weight: 700; background: #111114; color: var(--text-muted); border: 1px solid var(--border); padding: 4px 8px; border-radius: 3px; }
 
     /* SUB-NAVEGADOR DE MEMBRESÍAS */
     .sub-nav-membresias { display: flex; gap: 6px; margin-bottom: 14px; background: var(--card-bg); padding: 6px; border: 1px solid var(--border); border-radius: 8px; }
     .sub-nav-btn {
-      flex: 1; padding: 8px 4px; background: #121214; border: 1px solid var(--border); color: var(--text-muted);
+      flex: 1; padding: 8px 4px; background: #0d0d10; border: 1px solid var(--border); color: var(--text-muted);
       border-radius: 6px; font-size: 0.62rem; font-weight: 800; text-transform: uppercase; cursor: pointer; text-align: center; transition: 0.2s;
     }
     .sub-nav-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
@@ -67,7 +69,7 @@
     .avatar-wrapper { position: relative; flex-shrink: 0; }
     .avatar-circle {
       width: 44px; height: 44px; border-radius: 50%; object-fit: cover;
-      border: 1px solid var(--border); background: #1c1c22; display: flex;
+      border: 1px solid var(--border); background: #141418; display: flex;
       align-items: center; justify-content: center; font-weight: 800; font-size: 0.8rem; color: #fff;
       flex-shrink: 0;
     }
@@ -76,7 +78,7 @@
     .profile-text span { font-size: 0.68rem; color: var(--text-muted); }
     .role-pill {
       font-size: 0.65rem; font-weight: 800; padding: 4px 8px; border-radius: 4px;
-      text-transform: uppercase; background: #1c1c1c; border: 1px solid var(--border); color: var(--accent);
+      text-transform: uppercase; background: #141414; border: 1px solid var(--border); color: var(--accent);
     }
 
     /* BARRA DE PROGRESO GLOBAL APEX */
@@ -88,8 +90,8 @@
     .progress-tier-title { font-size: 0.75rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; color: var(--tier-color); }
     .progress-percent-val { font-size: 1rem; font-weight: 900; color: var(--tier-color); }
     .progress-bar-track {
-      width: 100%; height: 8px; background: #18181c; border-radius: 4px;
-      overflow: hidden; border: 1px solid #25252a; margin-bottom: 6px;
+      width: 100%; height: 8px; background: #121216; border-radius: 4px;
+      overflow: hidden; border: 1px solid var(--border); margin-bottom: 6px;
     }
     .progress-bar-fill {
       height: 100%; width: 0%; background: var(--tier-color);
@@ -106,40 +108,40 @@
     .form-group { margin-bottom: 12px; position: relative; }
     .form-label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; display: block; }
     .input-apex {
-      width: 100%; padding: 11px 12px; background: #121214; border: 1px solid var(--border);
+      width: 100%; padding: 11px 12px; background: #070709; border: 1px solid var(--border);
       color: #fff; border-radius: 5px; font-size: 0.8rem; outline: none; transition: 0.2s; color-scheme: dark;
     }
     .input-apex:focus { border-color: var(--border-focus); }
 
     /* SUGERENCIAS PREDICTIVAS */
     .suggestions-box {
-      position: absolute; top: calc(100% + 2px); left: 0; right: 0; background: #141418;
+      position: absolute; top: calc(100% + 2px); left: 0; right: 0; background: #111114;
       border: 1px solid var(--border-focus); border-radius: 5px; max-height: 220px; overflow-y: auto;
       z-index: 50; display: none; box-shadow: 0 8px 24px rgba(0,0,0,0.8);
     }
     .suggestion-item { padding: 10px 12px; border-bottom: 1px solid var(--border); cursor: pointer; font-size: 0.78rem; display: flex; align-items: center; gap: 10px; }
     .suggestion-item:last-child { border-bottom: none; }
-    .suggestion-item:hover, .suggestion-item:active { background: #1c1c22; }
+    .suggestion-item:hover, .suggestion-item:active { background: #18181c; }
 
     /* FICHA DEL STRIKER */
     .striker-summary-card { background: var(--card-sub); border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-top: 10px; display: none; }
     .striker-summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
-    .info-box { background: #0a0a0c; border: 1px solid var(--border); padding: 8px 10px; border-radius: 4px; }
+    .info-box { background: #050507; border: 1px solid var(--border); padding: 8px 10px; border-radius: 4px; }
     .info-box-label { font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; }
     .info-box-val { font-size: 0.85rem; font-weight: 800; color: #fff; margin-top: 2px; }
 
     /* TARJETAS CHECK-INS */
     .checkin-card { background: var(--card-sub); border: 1px solid var(--border); border-radius: 6px; padding: 14px; margin-bottom: 14px; }
-    .checkin-profile-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #1a1a1e; padding-bottom: 10px; margin-bottom: 10px; gap: 10px; }
+    .checkin-profile-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #16161a; padding-bottom: 10px; margin-bottom: 10px; gap: 10px; }
     .checkin-profile-left { display: flex; align-items: center; gap: 12px; }
     
     .metrics-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #0a0a0c;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #050507;
       border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin: 10px 0;
     }
     .metric-row { display: flex; flex-direction: column; gap: 3px; }
     .metric-label { font-size: 0.62rem; color: var(--text-muted); text-transform: uppercase; }
-    .metric-control { display: flex; align-items: center; justify-content: space-between; background: #141416; border: 1px solid var(--border); border-radius: 4px; padding: 2px 6px; }
+    .metric-control { display: flex; align-items: center; justify-content: space-between; background: #0d0d10; border: 1px solid var(--border); border-radius: 4px; padding: 2px 6px; }
     .metric-btn { background: transparent; border: none; color: #fff; font-size: 0.95rem; font-weight: 800; width: 24px; height: 24px; cursor: pointer; }
     .metric-btn:active { color: var(--accent); }
     .metric-val { font-size: 0.8rem; font-weight: 800; color: #fff; }
@@ -148,32 +150,57 @@
     /* FILTROS DE EQUIPO Y HISTORIAL */
     .team-filter-bar { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
     .filter-chip {
-      background: #121214; border: 1px solid var(--border); color: var(--text-muted);
+      background: #0d0d10; border: 1px solid var(--border); color: var(--text-muted);
       padding: 5px 10px; border-radius: 16px; font-size: 0.62rem; font-weight: 800; text-transform: uppercase;
       cursor: pointer; transition: 0.2s; user-select: none;
     }
     .filter-chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
-    /* CARRETEL TÁCTICO CON TEXTURA HEXAGONAL HUD */
+    /* CARRETEL TÁCTICO CON ALERTA TITILANTE ROJA (7-15 DÍAS) */
+    @keyframes titilarRojo {
+      0%, 100% { border-color: var(--border); box-shadow: none; }
+      50% { border-color: #e50914; box-shadow: 0 0 14px rgba(229, 9, 20, 0.7); }
+    }
+    .carousel-card-item.inactivo-alerta { animation: titilarRojo 1.5s infinite ease-in-out; }
+
     .team-carousel {
       display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none; margin-bottom: 14px;
     }
     .team-carousel::-webkit-scrollbar { display: none; }
     
     .carousel-card-item {
-      background: #121214; border: 1px solid var(--border); border-radius: 10px; padding: 12px;
-      min-width: 230px; max-width: 230px; display: flex; flex-direction: column; cursor: pointer; transition: 0.2s; flex-shrink: 0;
-      position: relative; overflow: hidden;
+      position: relative; min-width: 220px; max-width: 220px; height: 340px; border-radius: 10px;
+      overflow: hidden; border: 1px solid var(--border); display: flex; flex-direction: column;
+      justify-content: space-between; padding: 10px 8px; cursor: pointer; flex-shrink: 0; background: #000;
+      transition: all 0.2s ease;
     }
-    .carousel-card-item.active { border-color: var(--accent); box-shadow: 0 0 12px rgba(229,9,20,0.3); }
+    .carousel-card-item.active { border-color: var(--accent); box-shadow: 0 0 16px rgba(229,9,20,0.4); transform: scale(1.02); }
+    
+    .carousel-media-bg {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; opacity: 0.85;
+    }
+    
+    .carousel-card-top, .carousel-radar-mini, .carousel-info-stack {
+      position: relative; z-index: 5; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.9));
+    }
+    
+    .carousel-card-top { display: flex; align-items: center; gap: 8px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 4px; }
+    .carousel-avatar { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 1px solid #fff; }
+    .carousel-title strong { display: block; font-size: 0.72rem; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; text-shadow: 0 2px 4px rgba(0,0,0,0.9); }
+    .carousel-title span { font-size: 0.52rem; color: #ccc; text-transform: uppercase; font-weight: 700; }
 
-    .carousel-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-    .carousel-card-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border); }
-    .carousel-card-title strong { display: block; font-size: 0.8rem; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; }
-    .carousel-card-title span { font-size: 0.62rem; color: var(--text-muted); text-transform: uppercase; }
+    /* MALLA HEXAGONAL EN LA PARTE INFERIOR (TERCIO INFERIOR) */
+    .carousel-radar-mini { width: 100%; height: 100px; display: flex; justify-content: center; align-items: center; margin-top: auto; }
 
-    .carousel-progress-track { width: 100%; height: 5px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; margin: 6px 0; }
-    .carousel-progress-fill { height: 100%; width: 0%; background: var(--status-ok); border-radius: 3px; transition: width 0.5s ease; }
+    /* BLOQUE INFERIOR MINIMALISTA */
+    .carousel-info-stack {
+      background: rgba(0, 0, 0, 0.5); padding: 8px; border-radius: 6px; backdrop-filter: blur(6px); display: flex; flex-direction: column; gap: 3px;
+    }
+    .carousel-stack-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.58rem; font-weight: 900; text-transform: uppercase; color: #ffffff; text-shadow: 0 1px 3px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.8); }
+    .carousel-progress-track { width: 100%; height: 4px; background: rgba(255,255,255,0.25); border-radius: 2px; overflow: hidden; margin-top: 2px; }
+    .carousel-progress-fill { height: 100%; width: 0%; background: #ffffff; border-radius: 2px; transition: width 0.5s ease; }
+
+    .export-header-title { display: none; font-size: 0.9rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; color: #fff; text-align: center; margin-bottom: 8px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
 
     /* BOTONES */
     .btn-main {
@@ -181,7 +208,7 @@
       font-weight: 800; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.8px;
       border-radius: 5px; cursor: pointer; transition: 0.2s;
     }
-    .btn-main:disabled { background: #222; color: #555; cursor: not-allowed; border: 1px solid #333; }
+    .btn-main:disabled { background: #141418; color: #444; cursor: not-allowed; border: 1px solid #222; }
     .btn-danger { background: transparent; border: 1px solid var(--accent); color: var(--accent); }
     .btn-danger:active { background: var(--accent-dim); }
 
@@ -189,7 +216,6 @@
       display: flex; gap: 8px; margin-bottom: 12px; background: var(--card-sub); padding: 10px; border: 1px solid var(--border); border-radius: 6px; align-items: center; justify-content: space-between;
     }
 
-    /* ESTILOS BANDEJA DE EVIDENCIAS Y HISTORIAL */
     .evidencia-item {
       background: var(--card-sub); border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-bottom: 10px;
     }
@@ -197,6 +223,10 @@
     .timer-badge { font-size: 0.65rem; font-weight: 900; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
     .timer-badge.normal { background: rgba(234, 179, 8, 0.15); color: var(--status-warn); border: 1px solid var(--status-warn); }
     .timer-badge.expired { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent); }
+
+    .historial-calif-box { background: #050507; border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin-top: 10px; }
+    .historial-calif-item { display: flex; justify-content: space-between; align-items: center; font-size: 0.7rem; padding: 6px 0; border-bottom: 1px solid #141418; }
+    .historial-calif-item:last-child { border-bottom: none; }
   </style>
 </head>
 <body>
@@ -265,20 +295,18 @@
       </div>
     </div>
 
-    <!-- SUBMÓDULO 2: GESTIÓN DE MEMBRESÍAS & EVIDENCIAS (CON SUBSECCIONES LIMPIAS) -->
+    <!-- SUBMÓDULO 2: GESTIÓN DE MEMBRESÍAS & EVIDENCIAS -->
     <div class="panel-view" id="modulo_membresias">
       <div class="header">
         <div class="title">Apex <span>Membresías</span></div>
         <div class="badge-coach">Auditoría</div>
       </div>
 
-      <!-- SUB-NAVEGADOR DE MEMBRESÍAS -->
       <div class="sub-nav-membresias">
         <button class="sub-nav-btn active" id="btn_sub_habilitacion" onclick="ApexMembresias.irSubSeccion('sub_habilitacion', this)">Habilitación y Control</button>
         <button class="sub-nav-btn" id="btn_sub_historial" onclick="ApexMembresias.irSubSeccion('sub_historial', this)">Historial de Membresías</button>
       </div>
 
-      <!-- SUBSECCIÓN A: HABILITACIÓN Y CONTROL + PENDIENTES -->
       <div class="sub-section-view active" id="sub_habilitacion">
         <div class="card">
           <div class="card-title">Habilitación y Control</div>
@@ -339,20 +367,18 @@
           </button>
         </div>
 
-        <!-- BANDEJA DE EVIDENCIAS / PENDIENTES EN VIVO -->
         <div class="card">
           <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
             <span>📥 Evidencias Pendientes de Facturación</span>
             <span id="cntPendientesBadge" style="font-size:0.65rem; background:var(--accent-dim); color:var(--accent); padding:2px 6px; border-radius:4px;">0 pendientes</span>
           </div>
-          <div class="card-desc">Cuenta regresiva de 72h (3 días de gracia). Si llega a 0, requiere gestión urgente.</div>
+          <div class="card-desc">Cuenta regresiva de 72h (3 días de gracia). Modifica o elimina registros si hubo un error.</div>
           <div id="listaEvidenciasPendientes">
             <div style="font-size: 0.75rem; color: var(--text-muted); text-align: center; padding: 12px;">Cargando pendientes...</div>
           </div>
         </div>
       </div>
 
-      <!-- SUBSECCIÓN B: HISTORIAL DE MEMBRESÍAS GESTIONADAS -->
       <div class="sub-section-view" id="sub_historial">
         <div class="card">
           <div class="card-title">📋 Historial de Membresías Gestionadas</div>
@@ -373,7 +399,7 @@
             <div class="filter-chip" id="h_chip_manual" onclick="ApexHistorialMembresias.toggleManual(this)">Manual</div>
           </div>
 
-          <div id="historialManualBox" style="display:none; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px; background:#101014; padding:8px; border-radius:6px; border:1px solid var(--border);">
+          <div id="historialManualBox" style="display:none; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px; background:#0a0a0c; padding:8px; border-radius:6px; border:1px solid var(--border);">
             <div><label class="form-label">Desde</label><input type="date" id="historialDesde" class="input-apex" onchange="ApexHistorialMembresias.filtrar()"></div>
             <div><label class="form-label">Hasta</label><input type="date" id="historialHasta" class="input-apex" onchange="ApexHistorialMembresias.filtrar()"></div>
           </div>
@@ -385,7 +411,7 @@
       </div>
     </div>
 
-    <!-- SUBMÓDULO 3: EQUIPO & ANALÍTICA UNIFICADA (4 PILARES) -->
+    <!-- SUBMÓDULO 3: EQUIPO & ANALÍTICA UNIFICADA -->
     <div class="panel-view" id="modulo_equipo">
       <div class="header">
         <div class="title">Apex <span>Equipo</span></div>
@@ -428,7 +454,9 @@
         </div>
       </div>
 
+      <!-- DESGLOSE DETALLADO INDIVIDUAL -->
       <div class="card" id="teamIndividualCard" style="display: none;">
+        <div class="export-header-title" id="exportHeaderTitle">APEX BOXING - FICHA DE STRIKER</div>
         <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 10px;">
           <div style="display: flex; align-items: center; gap: 10px;">
             <div id="indAvatar" class="avatar-circle avatar-sm">ST</div>
@@ -437,29 +465,43 @@
               <span id="indEmail" style="font-size: 0.65rem; color: var(--text-muted);">-</span>
             </div>
           </div>
-          <span id="indStatus" style="font-size: 0.65rem; font-weight: 800; padding: 2px 6px; border-radius: 3px;">-</span>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span id="indStatus" style="font-size: 0.65rem; font-weight: 800; padding: 2px 6px; border-radius: 3px;">-</span>
+            <button class="btn-main" id="btnDescargarFicha" style="padding:4px 8px; font-size:0.6rem; background:#fff; color:#000;" onclick="ApexEquipo.descargarFichaIndividual()">📥 Descargar</button>
+          </div>
         </div>
+
+        <div class="time-filter-wrap" style="background:#070709; border:1px solid var(--border); border-radius:6px; padding:8px; margin-bottom:12px;">
+          <div class="filter-btn-group" style="display:flex; gap:6px;">
+            <button class="filter-btn active" id="coach_f_60" onclick="ApexEquipo.setFiltroTiempo(60, this)" style="flex:1; padding:5px; background:#e50914; color:#fff; border:1px solid var(--border); border-radius:4px; font-size:0.6rem; font-weight:800; cursor:pointer;">Bimestre (60d)</button>
+            <button class="filter-btn" id="coach_f_30" onclick="ApexEquipo.setFiltroTiempo(30, this)" style="flex:1; padding:5px; background:#111; color:#777; border:1px solid var(--border); border-radius:4px; font-size:0.6rem; font-weight:800; cursor:pointer;">30 Días</button>
+            <button class="filter-btn" id="coach_f_all" onclick="ApexEquipo.setFiltroTiempo('all', this)" style="flex:1; padding:5px; background:#111; color:#777; border:1px solid var(--border); border-radius:4px; font-size:0.6rem; font-weight:800; cursor:pointer;">Todo</button>
+            <button class="filter-btn" id="coach_f_custom" onclick="ApexEquipo.toggleFiltroCustom(this)" style="flex:1; padding:5px; background:#111; color:#777; border:1px solid var(--border); border-radius:4px; font-size:0.6rem; font-weight:800; cursor:pointer;">Manual</button>
+          </div>
+          <div id="coachCustomRangeBox" style="display:none; grid-template-columns:1fr 1fr; gap:6px; margin-top:6px; border-top:1px solid #1a1a1e; padding-top:6px;">
+            <div><span style="font-size:0.55rem; color:var(--text-muted);">Desde:</span><input type="date" id="coachDateFrom" class="input-apex" onchange="ApexEquipo.aplicarFiltroCustom()" style="padding:4px; font-size:0.65rem;"></div>
+            <div><span style="font-size:0.55rem; color:var(--text-muted);">Hasta:</span><input type="date" id="coachDateTo" class="input-apex" onchange="ApexEquipo.aplicarFiltroCustom()" style="padding:4px; font-size:0.65rem;"></div>
+          </div>
+        </div>
+
         <div class="striker-summary-grid">
           <div class="info-box">
-            <div class="info-box-label">Disciplina</div>
-            <div class="info-box-val" id="indDisciplinaVal">0%</div>
+            <div class="info-box-label">Sesiones (Periodo)</div>
+            <div class="info-box-val" id="indSesionesBim">0</div>
           </div>
           <div class="info-box">
-            <div class="info-box-label">Historial (Clases Carrera)</div>
-            <div class="info-box-val" id="indTotalVal">0</div>
-          </div>
-          <div class="info-box">
-            <div class="info-box-label">Pts Bimestre (Total Multifuente)</div>
-            <div class="info-box-val" id="indBimesterPts">0</div>
-          </div>
-          <div class="info-box">
-            <div class="info-box-label">RPE Promedio</div>
-            <div class="info-box-val" id="indAvgRpe">0</div>
+            <div class="info-box-label">Promedio Rendimiento</div>
+            <div class="info-box-val" id="indRendProm">0.0</div>
           </div>
         </div>
-        <div style="width: 100%; height: 210px; margin-top: 14px; position: relative;">
-          <canvas id="coachChartRadar"></canvas>
-        </div>
+
+        <div style="margin-top: 14px;"><div class="card-title" style="margin-bottom: 6px;">Índice de Eficiencia</div><div style="height:140px; position:relative; background:#050507; border:1px solid var(--border); border-radius:6px; padding:6px;"><canvas id="coachChartEficiencia"></canvas></div></div>
+        <div style="margin-top: 10px;"><div class="card-title" style="margin-bottom: 6px;">Índice de Fluidez Real</div><div style="height:140px; position:relative; background:#050507; border:1px solid var(--border); border-radius:6px; padding:6px;"><canvas id="coachChartFluidezReal"></canvas></div></div>
+        <div style="margin-top: 10px;"><div class="card-title" style="margin-bottom: 6px;">Rendimiento (1 - 10)</div><div style="height:140px; position:relative; background:#050507; border:1px solid var(--border); border-radius:6px; padding:6px;"><canvas id="coachChartRendimiento"></canvas></div></div>
+        <div style="margin-top: 10px;"><div class="card-title" style="margin-bottom: 6px;">RPE - Esfuerzo (1 - 10)</div><div style="height:140px; position:relative; background:#050507; border:1px solid var(--border); border-radius:6px; padding:6px;"><canvas id="coachChartRpe"></canvas></div></div>
+        <div style="margin-top: 10px;"><div class="card-title" style="margin-bottom: 6px;">Soltura y Flexibilidad (1 - 10)</div><div style="height:140px; position:relative; background:#050507; border:1px solid var(--border); border-radius:6px; padding:6px;"><canvas id="coachChartSoltura"></canvas></div></div>
+        <div style="margin-top: 10px;"><div class="card-title" style="margin-bottom: 6px;">Fluidez Técnica (1 - 10)</div><div style="height:140px; position:relative; background:#050507; border:1px solid var(--border); border-radius:6px; padding:6px;"><canvas id="coachChartFluidez"></canvas></div></div>
+        <div style="margin-top: 10px;"><div class="card-title" style="margin-bottom: 6px;">Nivel de Diversión (1 - 10)</div><div style="height:140px; position:relative; background:#050507; border:1px solid var(--border); border-radius:6px; padding:6px;"><canvas id="coachChartDiversion"></canvas></div></div>
       </div>
     </div>
 
@@ -480,7 +522,7 @@
           <div class="suggestions-box" id="ratingSuggestionsBox"></div>
         </div>
 
-        <div class="striker-summary-card" id="ratingSelectedCard" style="display:block; background:#121214; margin-bottom:12px;">
+        <div class="striker-summary-card" id="ratingSelectedCard" style="display:block; background:#0d0d10; margin-bottom:12px;">
           <span id="ratingSelectedName" style="font-size:0.8rem; font-weight:800; color:#fff;">Ningún striker seleccionado</span>
           <span id="ratingSelectedEmail" style="font-size:0.65rem; color:var(--text-muted); display:block;">Usa el buscador superior</span>
         </div>
@@ -518,6 +560,16 @@
         <button class="btn-main" id="btnSubmitRating" disabled onclick="ApexCalificaciones.guardar()">
           Guardar Calificación
         </button>
+
+        <div style="margin-top: 16px; border-top: 1px solid var(--border); padding-top: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="ApexCalificaciones.toggleHistorial()">
+            <span class="card-title" style="margin-bottom:0;">📜 Historial de Calificaciones (Últimos 2 Meses)</span>
+            <span id="historialChevron" style="font-size: 0.9rem; font-weight: bold; color: var(--text-muted);">▼</span>
+          </div>
+          <div id="historialCalifBox" class="historial-calif-box" style="display: none;">
+            <div id="historialCalifList"><div style="font-size:0.7rem; color:var(--text-muted); text-align:center;">Cargando historial...</div></div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -528,6 +580,22 @@
     <div style="position:relative; max-width:90%; max-height:90%;">
       <span style="position:absolute; top:-30px; right:0; color:#fff; font-size:1.5rem; cursor:pointer; font-weight:bold;">✕</span>
       <img id="imgZoomPreview" src="" style="width:100%; height:auto; max-height:85vh; object-fit:contain; border-radius:6px; border:1px solid #333;">
+    </div>
+  </div>
+
+  <!-- MODAL EDITAR PAGO / MEMBRESÍA -->
+  <div id="modalEditarPago" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.85); z-index:1000; justify-content:center; align-items:center; padding:16px;">
+    <div style="background:var(--card-bg); border:1px solid var(--border); border-radius:8px; padding:16px; width:100%; max-width:350px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <span style="font-size:0.8rem; font-weight:900; text-transform:uppercase;">Modificar Membresía / Pago</span>
+        <button onclick="cerrarModalEditarPago()" style="background:none; border:none; color:#fff; font-size:1rem; cursor:pointer;">✕</button>
+      </div>
+      <input type="hidden" id="editPagoId">
+      <div class="form-group">
+        <label class="form-label">Plan / Vigencia</label>
+        <input type="text" id="editPlanType" class="input-apex">
+      </div>
+      <button class="btn-main" onclick="guardarEdicionPago()">Guardar Cambios</button>
     </div>
   </div>
 
@@ -554,6 +622,7 @@
         } else if (panelId === 'modulo_calificaciones') {
           document.getElementById('btn_nav_calificaciones')?.classList.add('active');
           ApexCalificaciones.inicializar();
+          ApexCalificaciones.cargarHistorial();
         }
       }
     };
@@ -592,15 +661,12 @@
       supabaseClient
         .channel('apex-coach-realtime')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_checkins' }, payload => {
-          console.log('[Realtime] Cambio detectado en apex_checkins:', payload);
           ApexCheckins.cargar();
         })
         .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_payments' }, payload => {
-          console.log('[Realtime] Cambio detectado en apex_payments:', payload);
           ApexMembresias.cargarPendientesYGestionadas();
         })
         .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_users' }, payload => {
-          console.log('[Realtime] Cambio detectado en apex_users:', payload);
           ApexMembresias.cargarDirectorio();
         })
         .subscribe();
@@ -662,9 +728,7 @@
           const avatarUrl = data.photo_url || data.avatar_url || localStorage.getItem('apex_user_avatar');
           renderAvatarVisualCoach(avatarUrl, data.name || data.email || 'CO');
         }
-      } catch (err) {
-        console.warn("Perfil coach en espera.");
-      }
+      } catch (err) {}
     }
 
     async function actualizarNivelGlobalCoach() {
@@ -715,13 +779,11 @@
         fill.style.width = `${porcentaje}%`;
         fill.style.background = color;
         fill.style.boxShadow = `0 0 10px ${color}66`;
-      } catch (err) {
-        console.warn("Error calculando nivel global coach:", err);
-      }
+      } catch (err) {}
     }
 
     /* ==========================================================================
-       4. GESTIÓN DE CHECK-INS CON SELECCIÓN MÚLTIPLE
+       4. GESTIÓN DE CHECK-INS
        ========================================================================== */
     const METRIC_KEYS = [
       { key: 'rendimiento', label: 'Rendimiento' },
@@ -934,7 +996,8 @@
                 ${avatarHtml}
                 <div>
                   <strong style="font-size:0.9rem; color:#fff; display:block;">${nombreMostrado}</strong>
-                  <span style="font-size:0.65rem; color:var(--text-muted); display:block;">${emailMostrado} • ${fechaMostrada}</span>
+                  <div style="font-size:0.85rem; font-weight:900; color:#fff; display:block; margin: 2px 0; letter-spacing: 0.3px;">${fechaMostrada}</div>
+                  <span style="font-size:0.62rem; color:var(--text-muted); display:block;">${emailMostrado}</span>
                   ${focusTag}
                 </div>
               </div>
@@ -1049,7 +1112,7 @@
     };
 
     /* ==========================================================================
-       5. GESTIÓN DE MEMBRESÍAS & EVIDENCIAS (CON SUBSECCIONES LIMPIAS)
+       5. GESTIÓN DE MEMBRESÍAS & EVIDENCIAS
        ========================================================================== */
     let selectedStriker = null;
     let cachePagosCoach = [];
@@ -1197,7 +1260,7 @@
 
         const baseDate = dateVal ? new Date(dateVal + 'T00:00:00') : new Date();
         const expDate = new Date(baseDate);
-        expDate.setDate(expDate.getDate() + 3); // 3 días de gracia inmediatos
+        expDate.setDate(expDate.getDate() + 3);
 
         const expDateISO = expDate.toISOString();
         const expDateLegible = `${expDate.getUTCDate()}/${expDate.getUTCMonth() + 1}/${expDate.getUTCFullYear()}`;
@@ -1301,7 +1364,7 @@
           const esVencido = diffMs <= 0;
           const itemClass = esVencido ? 'evidencia-item vencido' : 'evidencia-item';
           const timerClass = esVencido ? 'timer-badge expired' : 'timer-badge normal';
-          const timerText = esVencido ? '⚠️ VENCIDO EN GRACIA' : `⏳ Quedan ${horasRestantes}h ${minutosRestantes}m`;
+          const timerText = esVencido ? '⚠ VENCIDO EN GRACIA' : `⏳ Quedan ${horasRestantes}h ${minutosRestantes}m`;
 
           const user = registeredUsersCache.find(u => u.email.toLowerCase() === (p.user_email || '').toLowerCase());
           const nombreStriker = user?.name || p.user_email;
@@ -1331,14 +1394,54 @@
               <span style="color:var(--text-muted);">Plan: <strong style="color:#fff;">${p.plan_type || 'Membresía'}</strong></span>
               ${imgPreview}
             </div>
+            <div style="display:flex; gap:6px; margin-top:8px; border-top:1px solid #1f1f24; padding-top:6px;">
+              <button class="btn-main" style="padding:4px 8px; font-size:0.58rem; background:#222; color:#fff;" onclick="abrirModalEditarPago('${p.id}', '${p.plan_type || ''}')">Modificar</button>
+              <button class="btn-main btn-danger" style="padding:4px 8px; font-size:0.58rem;" onclick="eliminarPagoPendiente('${p.id}')">Eliminar</button>
+            </div>
           `;
           container.appendChild(item);
         });
       }
     };
 
+    function abrirModalEditarPago(pId, currentPlan) {
+      document.getElementById('editPagoId').value = pId;
+      document.getElementById('editPlanType').value = currentPlan;
+      document.getElementById('modalEditarPago').style.display = 'flex';
+    }
+
+    function cerrarModalEditarPago() {
+      document.getElementById('modalEditarPago').style.display = 'none';
+    }
+
+    async function guardarEdicionPago() {
+      const pId = document.getElementById('editPagoId').value;
+      const newPlan = document.getElementById('editPlanType').value.trim();
+      if (!newPlan) { alert('El plan no puede estar vacío.'); return; }
+      if (!confirm('¿Estás seguro de modificar este registro de pago?')) return;
+
+      if (supabaseClient) {
+        const { error } = await supabaseClient.from('apex_payments').update({ plan_type: newPlan }).eq('id', pId);
+        if (error) { alert('Error al actualizar: ' + error.message); return; }
+      }
+      alert('¡Modificado con éxito!');
+      cerrarModalEditarPago();
+      ApexMembresias.cargarPendientesYGestionadas();
+    }
+
+    async function eliminarPagoPendiente(pId) {
+      if (!confirm('⚠️ ¿Estás completamente seguro de ELIMINAR este registro de membresía pendiente?')) return;
+
+      if (supabaseClient) {
+        const { error } = await supabaseClient.from('apex_payments').delete().eq('id', pId);
+        if (error) { alert('Error al eliminar: ' + error.message); return; }
+      }
+      alert('Registro eliminado correctamente.');
+      ApexMembresias.cargarPendientesYGestionadas();
+    }
+
     /* ==========================================================================
-       6. HISTORIAL INTELIGENTE DE MEMBRESÍAS GESTIONADAS
+       6. HISTORIAL DE MEMBRESÍAS GESTIONADAS
        ========================================================================== */
     let filtroTiempoHistorial = 'semana';
 
@@ -1380,9 +1483,7 @@
           const dDesde = document.getElementById('historialDesde').value;
           const dHasta = document.getElementById('historialHasta').value;
           if (dDesde) fechaInicio = new Date(dDesde + 'T00:00:00');
-          if (dHasta) {
-            fechaFin = new Date(dHasta + 'T23:59:59');
-          }
+          if (dHasta) { fechaFin = new Date(dHasta + 'T23:59:59'); }
         }
 
         const gestionadas = cachePagosCoach.filter(p => {
@@ -1441,7 +1542,7 @@
     };
 
     /* ==========================================================================
-       7. MÓDULO DE EQUIPO Y ANALÍTICA (MULTIFUNTE 60 DÍAS + TELARAÑA)
+       7. MÓDULO DE EQUIPO Y ANALÍTICA (MALLA EN PARTE INFERIOR Y ESTABLE)
        ========================================================================== */
     let globalTeamUsers = [];
     let globalTeamCheckins = [];
@@ -1449,7 +1550,12 @@
     let globalTeamSupervisions = [];
     let globalTeamAdjustments = [];
     let currentTeamFilter = 'activos';
-    let coachRadarInstance = null;
+    let selectedActiveStriker = null;
+    let coachFiltroTiempo = 60;
+    let coachFechaDesde = null;
+    let coachFechaHasta = null;
+    let chartInstancesCoach = {};
+    let carouselRadarInstances = {};
 
     const ApexEquipo = {
       cargarAnaliticaGlobal: async function() {
@@ -1497,9 +1603,7 @@
 
           this.renderCarretel();
 
-        } catch (err) {
-          console.warn("Error cargando analítica de equipo:", err);
-        }
+        } catch (err) {}
       },
 
       filtrarCarretel: function(tipo) {
@@ -1511,7 +1615,9 @@
 
       renderCarretel: function() {
         const carousel = document.getElementById('teamCarouselContainer');
+        if (!carousel) return;
         carousel.innerHTML = '';
+        carouselRadarInstances = {};
 
         const hoy = new Date();
         const haceSesentaDias = new Date();
@@ -1519,6 +1625,18 @@
         haceSesentaDias.setHours(0, 0, 0, 0);
 
         const filteredUsers = globalTeamUsers.filter(user => {
+          const emailUser = (user.email || '').toLowerCase();
+          const userCheckinsAll = globalTeamCheckins.filter(c => (c.user_email || '').toLowerCase() === emailUser && c.status === 'aprobado');
+
+          let diasInactivo = 999;
+          if (userCheckinsAll.length > 0) {
+            const fechas = userCheckinsAll.map(c => new Date(c.created_at).getTime());
+            const ultimaFecha = Math.max(...fechas);
+            diasInactivo = Math.floor((hoy.getTime() - ultimaFecha) / (1000 * 60 * 60 * 24));
+          }
+
+          if (diasInactivo > 15) return false;
+
           if (currentTeamFilter === 'todos') return true;
 
           let activo = false;
@@ -1545,19 +1663,30 @@
           return;
         }
 
-        filteredUsers.forEach(user => {
+        filteredUsers.forEach((user, index) => {
+          const emailUser = (user.email || '').toLowerCase();
+          const userCheckinsAll = globalTeamCheckins.filter(c => (c.user_email || '').toLowerCase() === emailUser && c.status === 'aprobado');
+
+          let diasInactivo = 999;
+          if (userCheckinsAll.length > 0) {
+            const fechas = userCheckinsAll.map(c => new Date(c.created_at).getTime());
+            const ultimaFecha = Math.max(...fechas);
+            diasInactivo = Math.floor((hoy.getTime() - ultimaFecha) / (1000 * 60 * 60 * 24));
+          }
+
+          const tieneAlertaInactividad = diasInactivo >= 7 && diasInactivo <= 15;
+
           const item = document.createElement('div');
-          item.className = 'carousel-card-item';
+          item.className = tieneAlertaInactividad ? 'carousel-card-item inactivo-alerta' : 'carousel-card-item';
           item.onclick = (e) => ApexEquipo.seleccionarStriker(user, e.currentTarget);
 
           const avatarUrl = user.photo_url || user.avatar_url;
           const avatarHtml = (avatarUrl && typeof avatarUrl === 'string' && avatarUrl.startsWith('http')) 
-            ? `<img src="${avatarUrl}" class="carousel-card-avatar" alt="Avatar">`
-            : `<div class="carousel-card-avatar avatar-circle" style="width:40px;height:40px;">${(user.name || 'ST').substring(0,2).toUpperCase()}</div>`;
+            ? `<img src="${avatarUrl}" class="carousel-avatar" alt="Avatar">`
+            : `<div class="carousel-avatar avatar-circle" style="width:28px;height:28px;">${(user.name || 'ST').substring(0,2).toUpperCase()}</div>`;
 
-          const emailUser = (user.email || '').toLowerCase();
-
-          const userCheckinsBimestre = globalTeamCheckins.filter(c => (c.user_email || '').toLowerCase() === emailUser && c.status === 'aprobado' && new Date(c.created_at) >= haceSesentaDias);
+          const userCheckinsBimestre = userCheckinsAll.filter(c => new Date(c.created_at) >= haceSesentaDias);
+          
           let ptsRendimiento = 0;
           userCheckinsBimestre.forEach(c => ptsRendimiento += parseFloat(c.rendimiento || 0));
 
@@ -1576,31 +1705,110 @@
           let ptsTotalesBimestre = ptsRendimiento + ptsRatings + ptsSupervisions + ptsAdjustments;
           let progPercent = Math.min(100, Math.round((ptsTotalesBimestre / 240) * 100));
 
+          let nivelOficial = 'INICIADO';
+          if (progPercent >= 101) nivelOficial = 'APEX+';
+          else if (progPercent >= 76) nivelOficial = 'APEX';
+          else if (progPercent >= 36) nivelOficial = 'AVANZADO';
+          else if (progPercent >= 11) nivelOficial = 'INTERMEDIO';
+
+          const metaPeriodo = 24;
+          const discPct = Math.min(100, Math.round((userCheckinsBimestre.length / metaPeriodo) * 100));
+
+          let sum = { rendimiento: 0, rpe: 0, soltura: 0, tecnica: 0, ram: 0, diversion: 0 };
+          userCheckinsBimestre.forEach(r => {
+            sum.rendimiento += parseFloat(r.rendimiento) || 0;
+            sum.rpe += parseFloat(r.rpe) || 0;
+            sum.soltura += parseFloat(r.soltura) || 0;
+            sum.tecnica += parseFloat(r.preguntacoach || r.student_tech_score) || 0;
+            sum.ram += parseFloat(r.ram || r.preguntacoach) || 0;
+            sum.diversion += parseFloat(r.divertiste) || 0;
+          });
+
+          const count = userCheckinsBimestre.length;
+          const averages = count > 0 ? [
+            +(sum.rendimiento / count).toFixed(1),
+            +(sum.rpe / count).toFixed(1),
+            +(sum.soltura / count).toFixed(1),
+            +(sum.tecnica / count).toFixed(1),
+            +(sum.ram / count).toFixed(1),
+            +(sum.diversion / count).toFixed(1)
+          ] : [0,0,0,0,0,0];
+
+          const videoUrl = user.video_url;
+          let mediaHtml = '';
+          if (videoUrl && typeof videoUrl === 'string' && videoUrl.length > 5) {
+            if (videoUrl.match(/\.(mp4|webm|ogg|mov)$/i)) {
+              mediaHtml = `<video src="${videoUrl}" class="carousel-media-bg" playsinline muted loop autoplay></video>`;
+            } else {
+              mediaHtml = `<img src="${videoUrl}" class="carousel-media-bg" alt="Fondo">`;
+            }
+          }
+
+          const canvasId = `miniRadar_${index}_${Math.random().toString(36).substring(2,7)}`;
+
           item.innerHTML = `
-            <div class="carousel-card-header">
-              ${avatarHtml}
-              <div class="carousel-card-title">
-                <strong>${user.name || 'Striker'}</strong>
-                <span>${user.subscription_status === 'activo' ? 'Activo' : 'Inactivo'}</span>
+            ${mediaHtml}
+            <div class="carousel-card-top">
+              <div class="carousel-avatar-area">
+                ${avatarHtml}
+                <div class="carousel-title">
+                  <strong>${user.name || 'Striker'}</strong>
+                  <span>Clases: ${userCheckinsBimestre.length}</span>
+                </div>
               </div>
             </div>
-            <div style="font-size:0.62rem; color:var(--text-muted); display:flex; justify-content:space-between; margin-top:4px;">
-              <span>Progreso Bimestral</span>
-              <span style="color:#fff; font-weight:800;">${progPercent}%</span>
+            <div class="carousel-radar-mini">
+              <canvas id="${canvasId}"></canvas>
             </div>
-            <div class="carousel-progress-track">
-              <div class="carousel-progress-fill" style="width: ${progPercent}%; background: var(--status-ok);"></div>
-            </div>
-            <div style="font-size:0.6rem; color:var(--text-muted); margin-top:4px; display:flex; justify-content:space-between;">
-              <span>Pts: <strong style="color:#fff;">${ptsTotalesBimestre.toFixed(1)}</strong></span>
-              <span style="color:var(--accent);">Ver ficha ➔</span>
+            <div class="carousel-info-stack">
+              <div class="carousel-stack-row">
+                <span>Nivel: ${nivelOficial}</span>
+                <span>Disc: ${discPct}%</span>
+              </div>
+              <div class="carousel-stack-row">
+                <span>Bimestre</span>
+                <span>${progPercent}%</span>
+              </div>
+              <div class="carousel-progress-track">
+                <div class="carousel-progress-fill" style="width: ${progPercent}%;"></div>
+              </div>
+              <div class="carousel-stack-row" style="margin-top:2px;">
+                <span>PTS</span>
+                <span>${ptsTotalesBimestre.toFixed(1)}</span>
+              </div>
             </div>
           `;
           carousel.appendChild(item);
+
+          setTimeout(() => {
+            const cEl = document.getElementById(canvasId);
+            if (cEl) {
+              carouselRadarInstances[canvasId] = new Chart(cEl.getContext('2d'), {
+                type: 'radar',
+                data: {
+                  labels: ['Rend', 'RPE', 'Solt', 'Téc', 'RAM', 'Flow'],
+                  datasets: [{ data: averages, borderColor: '#ffffff', backgroundColor: 'rgba(255,255,255,0.2)', borderWidth: 1.5, pointRadius: 2 }]
+                },
+                options: {
+                  responsive: true, maintainAspectRatio: false,
+                  plugins: { legend: { display: false } },
+                  scales: {
+                    r: {
+                      min: 0, max: 10, ticks: { display: false },
+                      angleLines: { color: 'rgba(255,255,255,0.3)' },
+                      grid: { color: 'rgba(255,255,255,0.2)' },
+                      pointLabels: { color: '#ffffff', font: { size: 7, weight: '800' } }
+                    }
+                  }
+                }
+              });
+            }
+          }, 50);
         });
       },
 
       seleccionarStriker: function(user, elementNode) {
+        selectedActiveStriker = user;
         document.querySelectorAll('.carousel-card-item').forEach(el => el.classList.remove('active'));
         elementNode.classList.add('active');
 
@@ -1623,97 +1831,132 @@
           avatarContainer.outerHTML = `<div id="indAvatar" class="avatar-circle avatar-sm">${(user.name || 'ST').substring(0,2).toUpperCase()}</div>`;
         }
 
-        const haceSesentaDias = new Date();
-        haceSesentaDias.setDate(haceSesentaDias.getDate() - 60);
-        haceSesentaDias.setHours(0, 0, 0, 0);
+        this.renderizarDesglosesIndividuales();
+      },
 
+      setFiltroTiempo: function(dias, btnEl) {
+        coachFiltroTiempo = dias;
+        coachFechaDesde = null; coachFechaHasta = null;
+        document.querySelectorAll('.coach-viewport .filter-btn').forEach(b => { b.style.color = '#777'; b.style.background = '#111'; });
+        btnEl.style.color = '#fff'; btnEl.style.background = 'var(--accent)';
+        document.getElementById('coachCustomRangeBox').style.display = 'none';
+        if (selectedActiveStriker) this.renderizarDesglosesIndividuales();
+      },
+
+      toggleFiltroCustom: function(btnEl) {
+        coachFiltroTiempo = 'custom';
+        document.querySelectorAll('.coach-viewport .filter-btn').forEach(b => { b.style.color = '#777'; b.style.background = '#111'; });
+        btnEl.style.color = '#fff'; btnEl.style.background = 'var(--accent)';
+        document.getElementById('coachCustomRangeBox').style.display = 'grid';
+        this.aplicarFiltroCustom();
+      },
+
+      aplicarFiltroCustom: function() {
+        coachFechaDesde = document.getElementById('coachDateFrom').value;
+        coachFechaHasta = document.getElementById('coachDateTo').value;
+        if (selectedActiveStriker) this.renderizarDesglosesIndividuales();
+      },
+
+      obtenerRegistrosFiltradosStriker: function(emailUser) {
+        const allRecords = globalTeamCheckins.filter(c => (c.user_email || '').toLowerCase() === emailUser.toLowerCase() && c.status === 'aprobado');
+        if (coachFiltroTiempo === 'all') return allRecords;
+        if (coachFiltroTiempo === 'custom') {
+          if (!coachFechaDesde) return allRecords;
+          const fDesde = new Date(coachFechaDesde + 'T00:00:00');
+          const fHasta = coachFechaHasta ? new Date(coachFechaHasta + 'T23:59:59') : new Date();
+          return allRecords.filter(r => { const f = new Date(r.created_at); return f >= fDesde && f <= fHasta; });
+        }
+        const fLimite = new Date();
+        fLimite.setDate(fLimite.getDate() - parseInt(coachFiltroTiempo));
+        return allRecords.filter(r => new Date(r.created_at) >= fLimite);
+      },
+
+      renderizarDesglosesIndividuales: function() {
+        if (!selectedActiveStriker) return;
+        const user = selectedActiveStriker;
         const emailUser = (user.email || '').toLowerCase();
+        const filtrados = this.obtenerRegistrosFiltradosStriker(emailUser);
 
-        const userCheckinsAll = globalTeamCheckins.filter(c => (c.user_email || '').toLowerCase() === emailUser && c.status === 'aprobado');
-        const userCheckinsBimestre = userCheckinsAll.filter(c => new Date(c.created_at) >= haceSesentaDias);
+        document.getElementById('indSesionesBim').innerText = filtrados.length;
 
-        let ptsRendimiento = 0;
-        userCheckinsBimestre.forEach(c => ptsRendimiento += parseFloat(c.rendimiento || 0));
-
-        const userRatingsBimestre = globalTeamRatings.filter(r => (r.user_email || '').toLowerCase() === emailUser && new Date(r.created_at) >= haceSesentaDias);
-        let ptsRatings = 0;
-        userRatingsBimestre.forEach(r => ptsRatings += parseFloat(r.note || 0));
-
-        const userSupervisionsBimestre = globalTeamSupervisions.filter(s => (s.user_email || '').toLowerCase() === emailUser && new Date(s.created_at) >= haceSesentaDias);
-        let ptsSupervisions = 0;
-        userSupervisionsBimestre.forEach(s => ptsSupervisions += parseFloat(s.score || 0));
-
-        const userAdjustmentsBimestre = globalTeamAdjustments.filter(a => (a.user_email || '').toLowerCase() === emailUser && new Date(a.created_at) >= haceSesentaDias);
-        let ptsAdjustments = 0;
-        userAdjustmentsBimestre.forEach(a => ptsAdjustments += parseFloat(a.note || 0));
-
-        let totalBimester = ptsRendimiento + ptsRatings + ptsSupervisions + ptsAdjustments;
-
-        const metaPeriodo = 24; 
-        const disciplinaPct = Math.min(100, Math.round((userCheckinsBimestre.length / metaPeriodo) * 100));
-
-        document.getElementById('indDisciplinaVal').innerText = `${disciplinaPct}%`;
-        document.getElementById('indTotalVal').innerText = userCheckinsAll.length;
-        document.getElementById('indBimesterPts').innerText = totalBimester.toFixed(1);
-
-        if (userCheckinsBimestre.length > 0) {
-          let sumRpe = 0;
-          userCheckinsBimestre.forEach(c => {
-            sumRpe += parseFloat(c.rpe || 0);
-          });
-          document.getElementById('indAvgRpe').innerText = (sumRpe / userCheckinsBimestre.length).toFixed(1);
+        if (filtrados.length > 0) {
+          let sumRend = 0;
+          filtrados.forEach(c => sumRend += parseFloat(c.rendimiento || 0));
+          document.getElementById('indRendProm').innerText = (sumRend / filtrados.length).toFixed(1);
         } else {
-          document.getElementById('indAvgRpe').innerText = '0';
+          document.getElementById('indRendProm').innerText = '0.0';
         }
 
-        let sum = { rendimiento: 0, rpe: 0, soltura: 0, tecnica: 0, ram: 0, diversion: 0 };
-        userCheckinsBimestre.forEach(r => {
-          sum.rendimiento += parseFloat(r.rendimiento) || 0;
-          sum.rpe += parseFloat(r.rpe) || 0;
-          sum.soltura += parseFloat(r.soltura) || 0;
-          sum.tecnica += parseFloat(r.preguntacoach || r.student_tech_score) || 0;
-          sum.ram += parseFloat(r.ram || r.preguntacoach) || 0;
-          sum.diversion += parseFloat(r.divertiste) || 0;
+        const labelsBimestre = filtrados.map(r => {
+          const d = new Date(r.created_at);
+          return `${d.getDate()}/${d.getMonth() + 1}`;
         });
 
-        const count = userCheckinsBimestre.length;
-        const averages = count > 0 ? [
-          +(sum.rendimiento / count).toFixed(1),
-          +(sum.rpe / count).toFixed(1),
-          +(sum.soltura / count).toFixed(1),
-          +(sum.tecnica / count).toFixed(1),
-          +(sum.ram / count).toFixed(1),
-          +(sum.diversion / count).toFixed(1)
-        ] : [0,0,0,0,0,0];
+        const renderSingleCoachChart = (canvasId, dataPoints) => {
+          if (chartInstancesCoach[canvasId]) chartInstancesCoach[canvasId].destroy();
+          const canvasEl = document.getElementById(canvasId);
+          if (!canvasEl) return;
 
-        if (coachRadarInstance) coachRadarInstance.destroy();
-        const canvasEl = document.getElementById('coachChartRadar');
-        if (canvasEl) {
-          coachRadarInstance = new Chart(canvasEl.getContext('2d'), {
-            type: 'radar',
+          chartInstancesCoach[canvasId] = new Chart(canvasEl.getContext('2d'), {
+            type: 'line',
             data: {
-              labels: ['Rendimiento', 'RPE', 'Soltura', 'Técnica', 'RAM', 'Disfrute'],
-              datasets: [{ data: averages, borderColor: '#e50914', backgroundColor: '#e5091428', borderWidth: 2, pointRadius: 3 }]
+              labels: labelsBimestre,
+              datasets: [{
+                data: dataPoints,
+                borderColor: '#ffffff',
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                borderWidth: 2,
+                tension: 0.3,
+                fill: true,
+                pointRadius: 3
+              }]
             },
             options: {
               responsive: true, maintainAspectRatio: false,
               plugins: { legend: { display: false } },
               scales: {
-                r: {
-                  min: 0, max: 10, ticks: { display: false, stepSize: 2 },
-                  angleLines: { color: 'rgba(255, 255, 255, 0.25)' },
-                  grid: { color: 'rgba(255, 255, 255, 0.18)' },
-                  pointLabels: { color: '#f0f0f5', font: { size: 9, weight: '800' } }
-                }
+                x: { ticks: { color: '#666', font: { size: 9 } }, grid: { display: false } },
+                y: { min: 1, max: 10, ticks: { color: '#666', font: { size: 9 }, stepSize: 2 }, grid: { color: '#16161a' } }
               }
             }
           });
+        };
+
+        renderSingleCoachChart('coachChartEficiencia', filtrados.map(r => +((parseFloat(r.rendimiento) / (parseFloat(r.rpe) || 1)) * 5).toFixed(1)));
+        renderSingleCoachChart('coachChartFluidezReal', filtrados.map(r => +((parseFloat(r.preguntacoach || r.student_tech_score) + parseFloat(r.soltura)) / 2).toFixed(1)));
+        renderSingleCoachChart('coachChartRendimiento', filtrados.map(r => r.rendimiento));
+        renderSingleCoachChart('coachChartRpe', filtrados.map(r => r.rpe));
+        renderSingleCoachChart('coachChartSoltura', filtrados.map(r => r.soltura));
+        renderSingleCoachChart('coachChartFluidez', filtrados.map(r => r.preguntacoach || r.student_tech_score));
+        renderSingleCoachChart('coachChartDiversion', filtrados.map(r => r.divertiste));
+      },
+
+      descargarFichaIndividual: async function() {
+        const card = document.getElementById('teamIndividualCard');
+        const btnDescargar = document.getElementById('btnDescargarFicha');
+        const exportTitle = document.getElementById('exportHeaderTitle');
+        if (!card) return;
+
+        btnDescargar.style.display = 'none';
+        exportTitle.style.display = 'block';
+
+        try {
+          const canvas = await html2canvas(card, { scale: 2, useCORS: true, backgroundColor: '#0a0a0c' });
+          const link = document.createElement('a');
+          link.download = `Apex_Boxing_Ficha_${(selectedActiveStriker?.name || 'Striker').replace(/\s+/g, '_')}.png`;
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+        } catch(err) {
+          alert('Error al exportar ficha: ' + err.message);
+        } finally {
+          btnDescargar.style.display = 'inline-block';
+          exportTitle.style.display = 'none';
         }
       }
     };
 
     /* ==========================================================================
-       8. MÓDULO DE CALIFICACIONES MANUALES DEL COACH
+       8. MÓDULO DE CALIFICACIONES MANUALES
        ========================================================================== */
     let selectedRatingStriker = null;
 
@@ -1729,15 +1972,64 @@
         document.getElementById('btnSubmitRating').disabled = true;
       },
 
+      toggleHistorial: function() {
+        const box = document.getElementById('historialCalifBox');
+        const chevron = document.getElementById('historialChevron');
+        if (box.style.display === 'none') {
+          box.style.display = 'block';
+          chevron.textContent = '▲';
+          this.cargarHistorial();
+        } else {
+          box.style.display = 'none';
+          chevron.textContent = '▼';
+        }
+      },
+
+      cargarHistorial: async function() {
+        const container = document.getElementById('historialCalifList');
+        if (!supabaseClient) { container.innerHTML = 'Sin conexión'; return; }
+
+        try {
+          const hace60dias = new Date();
+          hace60dias.setDate(hace60dias.getDate() - 60);
+
+          const { data, error } = await supabaseClient
+            .from('apex_coach_ratings')
+            .select('*')
+            .eq('coach_email', currentCoachEmail)
+            .gte('created_at', hace60dias.toISOString())
+            .order('created_at', { ascending: false });
+
+          if (error || !data || data.length === 0) {
+            container.innerHTML = '<div style="font-size:0.7rem; color:var(--text-muted); text-align:center; padding:6px;">No hay calificaciones registradas en los últimos 2 meses.</div>';
+            return;
+          }
+
+          container.innerHTML = data.map(r => {
+            const d = new Date(r.created_at);
+            const fechaStr = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
+            const colorNota = r.note >= 0 ? 'var(--status-ok)' : 'var(--accent)';
+            return `
+              <div class="historial-calif-item">
+                <div>
+                  <strong style="color:#fff; display:block;">${r.user_email}</strong>
+                  <span style="font-size:0.6rem; color:var(--text-muted);">${r.category} • ${r.observation || 'Sin nota'} • ${fechaStr}</span>
+                </div>
+                <span style="font-weight:900; color:${colorNota}; font-size:0.78rem;">${r.note > 0 ? '+' + r.note : r.note} pts</span>
+              </div>
+            `;
+          }).join('');
+        } catch(e) {
+          container.innerHTML = '<div style="font-size:0.7rem; color:var(--accent);">Error cargando historial.</div>';
+        }
+      },
+
       buscar: function(query) {
         const q = query.trim().toLowerCase();
         const box = document.getElementById('ratingSuggestionsBox');
         box.innerHTML = '';
 
-        if (q.length < 1) {
-          box.style.display = 'none';
-          return;
-        }
+        if (q.length < 1) { box.style.display = 'none'; return; }
 
         const matches = registeredUsersCache.filter(u => {
           const emailMatch = u.email ? u.email.toLowerCase().includes(q) : false;
@@ -1776,11 +2068,9 @@
       seleccionar: function(user) {
         selectedRatingStriker = user;
         document.getElementById('ratingStudentSearch').value = user.email;
-        document.getElementById('ratingSuggestionsBox').style.display = 'none';
-
+        document.getElementById('suggestionsBox').style.display = 'none';
         document.getElementById('ratingSelectedName').textContent = user.name || 'Striker';
         document.getElementById('ratingSelectedEmail').textContent = user.email;
-
         document.getElementById('btnSubmitRating').disabled = false;
       },
 
@@ -1791,29 +2081,18 @@
         const dateInputVal = document.getElementById('ratingDateInput').value;
         const observation = document.getElementById('ratingObservation').value.trim();
 
-        if (isNaN(noteVal)) {
-          alert('Por favor ingresa una nota numérica válida.');
-          return;
-        }
+        if (isNaN(noteVal)) { alert('Por favor ingresa una nota numérica válida.'); return; }
 
         let fechaFinalISO = new Date().toISOString();
         if (dateInputVal) {
           const fechaSeleccionada = new Date(dateInputVal + 'T00:00:00');
           const hoy = new Date();
           hoy.setHours(23, 59, 59, 999);
-
           const hace60Dias = new Date();
           hace60Dias.setDate(hace60Dias.getDate() - 60);
-          hace60Dias.setHours(0, 0, 0, 0);
 
-          if (fechaSeleccionada > hoy) {
-            alert('No puedes asignar calificaciones con fechas futuras.');
-            return;
-          }
-          if (fechaSeleccionada < hace60Dias) {
-            alert('La fecha no puede exceder los 2 meses atrás (60 días).');
-            return;
-          }
+          if (fechaSeleccionada > hoy) { alert('No puedes asignar calificaciones con fechas futuras.'); return; }
+          if (fechaSeleccionada < hace60Dias) { alert('La fecha no puede exceder los 2 meses atrás (60 días).'); return; }
           fechaFinalISO = fechaSeleccionada.toISOString();
         }
 
@@ -1833,7 +2112,6 @@
             };
 
             const { error } = await supabaseClient.from('apex_coach_ratings').insert(payload);
-
             if (error) throw error;
 
             await supabaseClient.from('apex_notifications').insert({
