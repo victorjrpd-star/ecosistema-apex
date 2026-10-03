@@ -3,20 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#0c0c0c">
+  <meta name="theme-color" content="#000000">
   <title>Apex Master Admin Panel</title>
   
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     :root {
-      --bg: #0c0c0c;
-      --card-bg: #141414;
-      --border: #222222;
+      --bg: #000000;
+      --card-bg: #0a0a0c;
+      --card-sub: #111114;
+      --border: #1a1a1e;
       --accent: #e50914;
       --accent-hover: #b80710;
-      --text-main: #ffffff;
-      --text-muted: #888888;
+      --text-main: #f5f5f7;
+      --text-muted: #73737a;
       --status-ok: #22c55e;
       --status-warn: #eab308;
     }
@@ -30,7 +31,7 @@
     }
     .auth-card {
       background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px;
-      padding: 26px; width: 100%; max-width: 360px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+      padding: 26px; width: 100%; max-width: 360px; box-shadow: 0 10px 30px rgba(0,0,0,0.9);
     }
 
     /* HEADER & TABS NAVEGABLES */
@@ -41,8 +42,8 @@
     .nav-tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 16px; overflow-x: auto; scrollbar-width: none; }
     .nav-tabs::-webkit-scrollbar { display: none; }
     .tab-btn {
-      background: #1a1a1a; border: 1px solid var(--border); color: var(--text-muted);
-      padding: 8px 14px; border-radius: 6px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase;
+      background: #0d0d10; border: 1px solid var(--border); color: var(--text-muted);
+      padding: 8px 10px; border-radius: 6px; font-size: 0.62rem; font-weight: 800; text-transform: uppercase;
       cursor: pointer; white-space: nowrap; transition: 0.2s;
     }
     .tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
@@ -54,10 +55,20 @@
     .section-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
     .section-title { font-size: 0.82rem; font-weight: 900; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
 
-    .form-group { margin-bottom: 12px; }
+    .form-group { margin-bottom: 12px; position: relative; }
     .form-group label { display: block; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
-    .form-control { width: 100%; padding: 10px; background: #1c1c1c; border: 1px solid #333; color: #fff; border-radius: 6px; font-weight: 700; outline: none; font-size: 0.85rem; }
+    .form-control { width: 100%; padding: 10px; background: #070709; border: 1px solid var(--border); color: #fff; border-radius: 6px; font-weight: 700; outline: none; font-size: 0.85rem; color-scheme: dark; }
     .form-control:focus { border-color: var(--accent); }
+
+    /* SUGERENCIAS PREDICTIVAS */
+    .suggestions-box {
+      position: absolute; top: calc(100% + 2px); left: 0; right: 0; background: #111114;
+      border: 1px solid var(--border); border-radius: 6px; max-height: 200px; overflow-y: auto;
+      z-index: 50; display: none; box-shadow: 0 8px 24px rgba(0,0,0,0.9);
+    }
+    .suggestion-item { padding: 10px 12px; border-bottom: 1px solid var(--border); cursor: pointer; font-size: 0.78rem; display: flex; align-items: center; gap: 10px; }
+    .suggestion-item:last-child { border-bottom: none; }
+    .suggestion-item:hover, .suggestion-item:active { background: #18181c; }
 
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
@@ -67,20 +78,20 @@
 
     .btn { background: var(--accent); color: #fff; border: none; padding: 11px; width: 100%; font-weight: 900; text-transform: uppercase; border-radius: 6px; cursor: pointer; margin-top: 6px; font-size: 0.82rem; }
     .btn:active { background: var(--accent-hover); }
-    .btn-secondary { background: #1c1c1c; border: 1px solid #333; color: #ccc; margin-top: 6px; padding: 8px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; font-weight: 800; }
-    .btn-danger { background: #380d0d; border: 1px solid #7f1d1d; color: #f87171; padding: 5px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; cursor: pointer; }
-    .btn-edit { background: #1e293b; border: 1px solid #334155; color: #94a3b8; padding: 5px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; cursor: pointer; margin-right: 4px; }
-    .btn-pw { background: #1e1b4b; border: 1px solid #4338ca; color: #a5b4fc; padding: 5px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; cursor: pointer; margin-left: 4px; }
+    .btn-secondary { background: #0d0d10; border: 1px solid var(--border); color: #ccc; margin-top: 6px; padding: 8px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; font-weight: 800; }
+    .btn-danger { background: rgba(229,9,20,0.1); border: 1px solid rgba(229,9,20,0.3); color: var(--accent); padding: 5px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; cursor: pointer; }
+    .btn-edit { background: #111114; border: 1px solid var(--border); color: #fff; padding: 5px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; cursor: pointer; margin-right: 4px; }
+    .btn-pw { background: #0d0d10; border: 1px solid var(--border); color: #a5b4fc; padding: 5px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; cursor: pointer; margin-left: 4px; }
 
-    .list-item { background: #1c1c1c; border: 1px solid #2a2a2a; padding: 12px; border-radius: 6px; margin-top: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; gap: 8px; }
-    .badge { font-size: 0.65rem; font-weight: 900; text-transform: uppercase; padding: 3px 6px; border-radius: 4px; background: #222; border: 1px solid #444; }
+    .list-item { background: var(--card-sub); border: 1px solid var(--border); padding: 12px; border-radius: 6px; margin-top: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; gap: 8px; }
+    .badge { font-size: 0.65rem; font-weight: 900; text-transform: uppercase; padding: 3px 6px; border-radius: 4px; background: var(--card-sub); border: 1px solid var(--border); }
 
-    /* FILTROS USUARIOS */
-    .filter-bar { display: flex; gap: 8px; margin-bottom: 12px; }
-    .filter-bar .form-control { padding: 8px 10px; font-size: 0.78rem; }
+    /* FILTROS USUARIOS Y CHECKINS */
+    .filter-bar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+    .filter-bar .form-control { padding: 8px 10px; font-size: 0.78rem; flex: 1; min-width: 130px; }
 
-    /* MODAL FLOTANTE CONTRASEÑA */
-    #pwModal {
+    /* MODAL FLOTANTE CONTRASEÑA / EDICIÓN */
+    #pwModal, #editCheckinModal {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       background: rgba(0,0,0,0.85); backdrop-filter: blur(4px);
       z-index: 10000; display: none; justify-content: center; align-items: center; padding: 20px;
@@ -124,6 +135,62 @@
     </div>
   </div>
 
+  <!-- MODAL EDITAR CHECK-IN -->
+  <div id="editCheckinModal">
+    <div class="auth-card" style="position: relative; max-width: 420px; max-height: 90vh; overflow-y: auto;">
+      <div class="section-title">✏️ Editar Check-in Master</div>
+      <input type="hidden" id="editChkId">
+      
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Rendimiento (1-10)</label>
+          <input type="number" id="editChkRend" class="form-control" step="0.5" min="1" max="10">
+        </div>
+        <div class="form-group">
+          <label>RPE (1-10)</label>
+          <input type="number" id="editChkRpe" class="form-control" step="0.5" min="1" max="10">
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Soltura (1-10)</label>
+          <input type="number" id="editChkSolt" class="form-control" step="0.5" min="1" max="10">
+        </div>
+        <div class="form-group">
+          <label>Técnica (1-10)</label>
+          <input type="number" id="editChkTec" class="form-control" step="0.5" min="1" max="10">
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label>RAM (1-10)</label>
+          <input type="number" id="editChkRam" class="form-control" step="0.5" min="1" max="10">
+        </div>
+        <div class="form-group">
+          <label>Disfrute (1-10)</label>
+          <input type="number" id="editChkDiv" class="form-control" step="0.5" min="1" max="10">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Estatus</label>
+        <select id="editChkStatus" class="form-control">
+          <option value="aprobado">Aprobado</option>
+          <option value="rechazado">Rechazado</option>
+          <option value="pendiente_coach">Pendiente</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Bitácora / Nota</label>
+        <textarea id="editChkBitacora" class="form-control" style="min-height: 50px;"></textarea>
+      </div>
+
+      <div style="display: flex; gap: 8px; margin-top: 10px;">
+        <button class="btn" style="flex: 1;" onclick="guardarEdicionCheckinAdmin()">Guardar Cambios</button>
+        <button class="btn-secondary" style="flex: 1;" onclick="cerrarModalEdicionCheckin()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- PANEL PRINCIPAL CON TABS -->
   <div id="adminMainContent" style="display: none;">
     <div class="header">
@@ -137,8 +204,11 @@
     <!-- BARRA NAVEGABLE SUPERIOR -->
     <nav class="nav-tabs">
       <button class="tab-btn active" onclick="switchAdminTab('tabUsuarios', this)">👥 Usuarios</button>
-      <button class="tab-btn" onclick="switchAdminTab('tabBloques', this)">📦 Bloques / Apps</button>
-      <button class="tab-btn" onclick="switchAdminTab('tabRoles', this)">⚙️ Roles y Matriz</button>
+      <button class="tab-btn" onclick="switchAdminTab('tabStaff', this)">⚡ Staff</button>
+      <button class="tab-btn" onclick="switchAdminTab('tabCoord', this)">🎯 Coordinación</button>
+      <button class="tab-btn" onclick="switchAdminTab('tabCheckins', this)">📋 Check-ins</button>
+      <button class="tab-btn" onclick="switchAdminTab('tabBloques', this)">📦 Bloques</button>
+      <button class="tab-btn" onclick="switchAdminTab('tabRoles', this)">⚙️ Roles</button>
     </nav>
 
     <!-- MÓDULO 1: GESTIÓN DE USUARIOS -->
@@ -174,7 +244,6 @@
           <button class="btn-secondary" onclick="cargarUsuarios()" style="margin:0; padding: 4px 8px;">Actualizar</button>
         </div>
 
-        <!-- FILTRO POR ROLES Y BUSCADOR -->
         <div class="filter-bar">
           <select id="userRoleFilter" class="form-control" style="flex: 1;" onchange="filtrarUsuarios()">
             <option value="todos">Todos los Roles</option>
@@ -183,6 +252,180 @@
         </div>
 
         <div id="usersListContainer" style="max-height: 420px; overflow-y: auto;">Cargando directorio...</div>
+      </div>
+    </div>
+
+    <!-- MÓDULO: STAFF & MÉTRICAS MULTIRROL -->
+    <div id="tabStaff" class="tab-content">
+      <div class="section-card">
+        <div class="section-title">
+          <span>Monitoreo de Staff & Métricas Globales</span>
+          <button class="btn-secondary" onclick="cargarStaffAdmin()" style="margin:0; padding: 4px 8px;">Actualizar</button>
+        </div>
+        <div style="font-size:0.7rem; color:var(--text-muted); margin-bottom:12px;">Vista de observación de desempeño, total de puntos y barra de progreso global (ventana rodante de 2 meses).</div>
+        <div id="staffListContainer" style="max-height: 520px; overflow-y: auto;">Cargando fichas de staff...</div>
+      </div>
+    </div>
+
+    <!-- MÓDULO: CALIFICACIÓN AL COORDINADOR (CON BUSCADOR INTELIGENTE) -->
+    <div id="tabCoord" class="tab-content">
+      <div class="section-card">
+        <div class="section-title">Calificar al Coordinador</div>
+        
+        <div class="form-group">
+          <label>Seleccionar Coordinador</label>
+          <input type="text" id="coordSearchInput" class="form-control" placeholder="Escribe nombre o correo del coordinador..." autocomplete="off" oninput="buscarCoordinadoresInteligente(this.value)">
+          <input type="hidden" id="coordTargetEmail">
+          <div class="suggestions-box" id="coordSuggestionsBox"></div>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label>Categoría</label>
+            <select id="coordCategory" class="form-control">
+              <option value="GESTIÓN OPERATIVA">Gestión Operativa</option>
+              <option value="LIDERAZGO">Liderazgo</option>
+              <option value="COMUNICACIÓN">Comunicación</option>
+              <option value="CUMPLIMIENTO DE METAS">Cumplimiento de Metas</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Nota (1 al 10)</label>
+            <input type="number" id="coordNoteVal" class="form-control" step="0.5" min="1" max="10" placeholder="Ej: 9">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Fecha de Calificación (Opcional)</label>
+          <input type="date" id="coordDateInput" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>Observación</label>
+          <textarea id="coordObservation" class="form-control" placeholder="Comentarios sobre el desempeño..."></textarea>
+        </div>
+        <button class="btn" onclick="guardarCalificacionCoordinador()">Guardar Evaluación</button>
+      </div>
+
+      <!-- GESTIÓN DE CATEGORÍAS DEL COORDINADOR -->
+      <div class="section-card">
+        <div class="section-title">Gestionar Categorías de Coordinación</div>
+        <div class="form-group">
+          <label>Nueva Categoría</label>
+          <div style="display:flex; gap:6px;">
+            <input type="text" id="newCoordCatInput" class="form-control" placeholder="Ej: Logística">
+            <button class="btn" style="width:auto; margin-top:0; padding:8px 14px;" onclick="agregarCategoriaCoord()">Agregar</button>
+          </div>
+        </div>
+        <div id="coordCategoriesList" style="margin-top:8px;"></div>
+      </div>
+
+      <!-- HISTORIAL DE EVALUACIONES AL COORDINADOR -->
+      <div class="section-card">
+        <div class="section-title">Historial Reciente (Últimos 2 Meses)</div>
+        <div id="coordHistoryList" style="max-height: 300px; overflow-y:auto;">Cargando historial...</div>
+      </div>
+    </div>
+
+    <!-- MÓDULO: HISTORIAL GLOBAL DE CHECK-INS & CREACIÓN DIRECTA (CON BUSCADOR INTELIGENTE) -->
+    <div id="tabCheckins" class="tab-content">
+      <!-- FORMULARIO DE CREACIÓN DIRECTA DE CHECK-IN -->
+      <div class="section-card">
+        <div class="section-title">Crear Check-in Manual (Admin)</div>
+        
+        <div class="form-group">
+          <label>Striker</label>
+          <input type="text" id="chkSearchInput" class="form-control" placeholder="Escribe nombre o correo del striker..." autocomplete="off" oninput="buscarStrikersInteligente(this.value)">
+          <input type="hidden" id="newChkUserEmail">
+          <div class="suggestions-box" id="chkSuggestionsBox"></div>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label>Enfoque</label>
+            <select id="newChkFocus" class="form-control">
+              <option value="técnica / sombra">Técnica / Sombra</option>
+              <option value="acondicionamiento físico">Acondicionamiento físico</option>
+              <option value="sparring">Sparring</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Estatus Inicial</label>
+            <select id="newChkStatus" class="form-control">
+              <option value="aprobado">Aprobado (Suma puntos inmediato)</option>
+              <option value="pendiente_coach">Pendiente de revisión</option>
+              <option value="rechazado">Rechazado</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label>Rendimiento (1-10)</label>
+            <input type="number" id="newChkRend" class="form-control" step="0.5" min="1" max="10" value="8">
+          </div>
+          <div class="form-group">
+            <label>RPE (1-10)</label>
+            <input type="number" id="newChkRpe" class="form-control" step="0.5" min="1" max="10" value="7">
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label>Soltura (1-10)</label>
+            <input type="number" id="newChkSolt" class="form-control" step="0.5" min="1" max="10" value="8">
+          </div>
+          <div class="form-group">
+            <label>Técnica (1-10)</label>
+            <input type="number" id="newChkTec" class="form-control" step="0.5" min="1" max="10" value="8">
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label>RAM (1-10)</label>
+            <input type="number" id="newChkRam" class="form-control" step="0.5" min="1" max="10" value="8">
+          </div>
+          <div class="form-group">
+            <label>Disfrute (1-10)</label>
+            <input type="number" id="newChkDiv" class="form-control" step="0.5" min="1" max="10" value="10">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Fecha del Check-in (Retroactivo opcional)</label>
+          <input type="date" id="newChkDate" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>Bitácora / Nota</label>
+          <textarea id="newChkBitacora" class="form-control" placeholder="Notas de la sesión..." style="min-height:50px;"></textarea>
+        </div>
+        <button class="btn" onclick="crearCheckinDirectoAdmin()">Registrar Check-in en Base de Datos</button>
+      </div>
+
+      <div class="section-card">
+        <div class="section-title">
+          <span>Historial Global de Check-ins (Admin)</span>
+          <button class="btn-secondary" onclick="cargarCheckinsAdmin()" style="margin:0; padding: 4px 8px;">Actualizar</button>
+        </div>
+
+        <div class="filter-bar">
+          <input type="text" id="chkAdminSearch" class="form-control" placeholder="Buscar por striker o coach..." oninput="filtrarCheckinsAdmin()">
+          <select id="chkAdminStatus" class="form-control" onchange="filtrarCheckinsAdmin()">
+            <option value="todos">Todos los Estatus</option>
+            <option value="aprobado">Aprobados</option>
+            <option value="rechazado">Rechazados</option>
+            <option value="pendiente_coach">Pendientes</option>
+          </select>
+          <select id="chkAdminPeriodo" class="form-control" onchange="cambiarPeriodoCheckinsAdmin(this.value)">
+            <option value="semana">Semana</option>
+            <option value="quincena">Quincena</option>
+            <option value="mes" selected>Mes</option>
+            <option value="todo">Todo</option>
+            <option value="manual">Manual</option>
+          </select>
+        </div>
+
+        <div id="chkAdminManualBox" style="display:none; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px; background:#070709; padding:8px; border-radius:6px; border:1px solid var(--border);">
+          <div><label class="form-label" style="font-size:0.6rem;">Desde</label><input type="date" id="chkAdminDesde" class="form-control" style="padding:4px; font-size:0.7rem;" onchange="filtrarCheckinsAdmin()"></div>
+          <div><label class="form-label" style="font-size:0.6rem;">Hasta</label><input type="date" id="chkAdminHasta" class="form-control" style="padding:4px; font-size:0.7rem;" onchange="filtrarCheckinsAdmin()"></div>
+        </div>
+
+        <div id="adminCheckinsListContainer" style="max-height: 480px; overflow-y: auto;">Cargando check-ins globales...</div>
       </div>
     </div>
 
@@ -256,6 +499,9 @@
     let dbProfiles = [];
     let dbProfileBlocks = [];
     let rawUsersList = [];
+    let rawCheckinsList = [];
+    let coachNamesMap = {};
+    let customCoordCategories = ['GESTIÓN OPERATIVA', 'LIDERAZGO', 'COMUNICACIÓN', 'CUMPLIMIENTO DE METAS'];
 
     function verificarAccesoAdmin() {
       const u = document.getElementById('adminUser').value.trim();
@@ -281,6 +527,14 @@
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
       btn.classList.add('active');
       document.getElementById(tabId).classList.add('active');
+
+      if (tabId === 'tabCheckins') {
+        cargarCheckinsAdmin();
+      } else if (tabId === 'tabStaff') {
+        cargarStaffAdmin();
+      } else if (tabId === 'tabCoord') {
+        cargarDatosCoordinadorModulo();
+      }
     }
 
     window.onload = () => {
@@ -291,131 +545,142 @@
       }
     };
 
-    /* ================= CARGA DE DATOS ================= */
+    /* ================= CARGA DE DATOS SEGURA Y AISLADA ================= */
     async function loadAdminData() {
       if (!sb) return;
 
-      const [resBlocks, resProfiles, resRels] = await Promise.all([
-        sb.from('apex_blocks').select('*').order('title', { ascending: true }),
-        sb.from('apex_profiles').select('*').order('name', { ascending: true }),
-        sb.from('apex_profile_blocks').select('*').order('display_order', { ascending: true })
-      ]);
+      try {
+        const resBlocks = await sb.from('apex_blocks').select('*').order('title', { ascending: true });
+        dbBlocks = resBlocks.data || [];
+      } catch(e) { dbBlocks = []; }
 
-      dbBlocks = resBlocks.data || [];
-      dbProfiles = resProfiles.data || [];
-      dbProfileBlocks = resRels.data || [];
+      try {
+        const resProfiles = await sb.from('apex_profiles').select('*').order('name', { ascending: true });
+        dbProfiles = resProfiles.data || [];
+      } catch(e) { dbProfiles = []; }
+
+      try {
+        const resRels = await sb.from('apex_profile_blocks').select('*').order('display_order', { ascending: true });
+        dbProfileBlocks = resRels.data || [];
+      } catch(e) { dbProfileBlocks = []; }
+
+      try {
+        const resUsers = await sb.from('apex_users').select('id, email, name');
+        if (resUsers.data) {
+          resUsers.data.forEach(u => {
+            if (u.id) coachNamesMap[u.id] = u.name || u.email;
+            if (u.email) coachNamesMap[u.email] = u.name || u.email;
+          });
+        }
+      } catch(e) {}
 
       renderUI();
       actualizarSelectorRoles();
       await cargarUsuarios();
-
-      // SUSCRIPCIÓN SUPABASE REALTIME PARA EL PANEL DE ADMINISTRACIÓN MASTER
-      if (sb) {
-        sb.channel('admin-master-realtime')
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_users' }, payload => {
-            console.log('[Realtime Admin] Usuarios modificados:', payload);
-            cargarUsuarios();
-          })
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_blocks' }, payload => {
-            console.log('[Realtime Admin] Bloques modificados:', payload);
-            loadAdminData();
-          })
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_profiles' }, payload => {
-            console.log('[Realtime Admin] Perfiles modificados:', payload);
-            loadAdminData();
-          })
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_profile_blocks' }, payload => {
-            console.log('[Realtime Admin] Relación perfiles-bloques modificada:', payload);
-            loadAdminData();
-          })
-          .subscribe();
-      }
     }
 
     function actualizarSelectorRoles() {
       const nuSelect = document.getElementById('nuRole');
-      nuSelect.innerHTML = '';
-      dbProfiles.forEach(p => {
-        nuSelect.innerHTML += `<option value="${p.id}">${p.name.toUpperCase()}</option>`;
-      });
+      if (nuSelect) {
+        nuSelect.innerHTML = '';
+        dbProfiles.forEach(p => {
+          nuSelect.innerHTML += `<option value="${p.id}">${p.name.toUpperCase()}</option>`;
+        });
+      }
 
       const filterSelect = document.getElementById('userRoleFilter');
-      const valActual = filterSelect.value;
-      filterSelect.innerHTML = '<option value="todos">Todos los Roles</option>';
-      dbProfiles.forEach(p => {
-        filterSelect.innerHTML += `<option value="${p.id}">${p.name.toUpperCase()}</option>`;
-      });
-      filterSelect.value = valActual || 'todos';
+      if (filterSelect) {
+        const valActual = filterSelect.value;
+        filterSelect.innerHTML = '<option value="todos">Todos los Roles</option>';
+        dbProfiles.forEach(p => {
+          filterSelect.innerHTML += `<option value="${p.id}">${p.name.toUpperCase()}</option>`;
+        });
+        filterSelect.value = valActual || 'todos';
+      }
     }
 
     function renderUI() {
       const bContainer = document.getElementById('blocksCheckboxContainer');
-      bContainer.innerHTML = '';
-      dbBlocks.forEach(b => {
-        bContainer.innerHTML += `
-          <label class="checkbox-item">
-            <input type="checkbox" value="${b.id}" class="profile-block-checkbox">
-            <span>${b.title} <small style="color:var(--text-muted);">(${b.url})</small></span>
-          </label>
-        `;
-      });
-
-      const blkList = document.getElementById('blocksListContainer');
-      document.getElementById('blocksCountTxt').innerText = `${dbBlocks.length} Bloques`;
-      blkList.innerHTML = '';
-
-      if (dbBlocks.length === 0) {
-        blkList.innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;">No hay bloques registrados.</span>';
-      } else {
+      if (bContainer) {
+        bContainer.innerHTML = '';
         dbBlocks.forEach(b => {
-          blkList.innerHTML += `
-            <div class="list-item">
-              <div>
-                <strong>${b.title}</strong><br>
-                <small style="color:var(--accent); font-weight:800;">ID: ${b.id}</small> · 
-                <span style="color:var(--text-muted); font-size:0.72rem;">${b.url}</span>
-              </div>
-              <div style="display:flex; align-items:center;">
-                <button class="btn-edit" onclick="iniciarEdicionBloque('${b.id}')">✏️</button>
-                <button class="btn-danger" onclick="eliminarBloque('${b.id}')">🗑️</button>
-              </div>
-            </div>
+          bContainer.innerHTML += `
+            <label class="checkbox-item">
+              <input type="checkbox" value="${b.id}" class="profile-block-checkbox">
+              <span>${b.title} <small style="color:var(--text-muted);">(${b.url})</small></span>
+            </label>
           `;
         });
       }
 
+      const blkList = document.getElementById('blocksListContainer');
+      if (blkList) {
+        document.getElementById('blocksCountTxt').innerText = `${dbBlocks.length} Bloques`;
+        blkList.innerHTML = '';
+        if (dbBlocks.length === 0) {
+          blkList.innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;">No hay bloques registrados.</span>';
+        } else {
+          dbBlocks.forEach(b => {
+            blkList.innerHTML += `
+              <div class="list-item">
+                <div>
+                  <strong>${b.title}</strong><br>
+                  <small style="color:var(--accent); font-weight:800;">ID: ${b.id}</small> · 
+                  <span style="color:var(--text-muted); font-size:0.72rem;">${b.url}</span>
+                </div>
+                <div style="display:flex; align-items:center;">
+                  <button class="btn-edit" onclick="iniciarEdicionBloque('${b.id}')">✏️</button>
+                  <button class="btn-danger" onclick="eliminarBloque('${b.id}')">🗑️</button>
+                </div>
+              </div>
+            `;
+          });
+        }
+      }
+
       const select = document.getElementById('profileSelect');
-      const selectVal = select.value;
-      select.innerHTML = '<option value="">[ + CREAR NUEVO PERFIL / ROL ]</option>';
-      dbProfiles.forEach(p => {
-        select.innerHTML += `<option value="${p.id}">${p.name.toUpperCase()} (${p.id})</option>`;
-      });
-      select.value = selectVal;
+      if (select) {
+        const selectVal = select.value;
+        select.innerHTML = '<option value="">[ + CREAR NUEVO PERFIL / ROL ]</option>';
+        dbProfiles.forEach(p => {
+          select.innerHTML += `<option value="${p.id}">${p.name.toUpperCase()} (${p.id})</option>`;
+        });
+        select.value = selectVal;
+      }
 
       const listCont = document.getElementById('profilesListContainer');
-      listCont.innerHTML = '';
-      dbProfiles.forEach(p => {
-        const assigned = dbProfileBlocks
-          .filter(pb => pb.profile_id === p.id)
-          .map(pb => {
-            const b = dbBlocks.find(item => item.id === pb.block_id);
-            return b ? b.title : pb.block_id;
-          }).join(', ');
+      if (listCont) {
+        listCont.innerHTML = '';
+        dbProfiles.forEach(p => {
+          const assigned = dbProfileBlocks
+            .filter(pb => pb.profile_id === p.id)
+            .map(pb => {
+              const b = dbBlocks.find(item => item.id === pb.block_id);
+              return b ? b.title : pb.block_id;
+            }).join(', ');
 
-        listCont.innerHTML += `
-          <div class="list-item">
-            <div>
-              <strong>${p.name.toUpperCase()}</strong> <span class="badge" style="color:var(--status-ok);">${p.id}</span><br>
-              <span style="color: var(--text-muted); font-size: 0.72rem;">Bloques: ${assigned || 'Ninguno asignado'}</span>
+          const esRaiz = ['admin', 'estudiante', 'coach'].includes(p.id.toLowerCase());
+          const btnEliminarRolHTML = esRaiz 
+            ? `<span style="font-size:0.6rem; color:var(--text-muted);">Protegido</span>` 
+            : `<button class="btn-danger" onclick="eliminarRolDirecto('${p.id}')">🗑️ Eliminar</button>`;
+
+          listCont.innerHTML += `
+            <div class="list-item">
+              <div>
+                <strong>${p.name.toUpperCase()}</strong> <span class="badge" style="color:var(--status-ok);">${p.id}</span><br>
+                <span style="color: var(--text-muted); font-size: 0.72rem;">Bloques: ${assigned || 'Ninguno asignado'}</span>
+              </div>
+              <div>${btnEliminarRolHTML}</div>
             </div>
-          </div>
-        `;
-      });
+          `;
+        });
+      }
     }
 
-    /* ================= DIRECTORIO DE USUARIOS (ESTADO Y VIGENCIA) ================= */
+    /* ================= DIRECTORIO DE USUARIOS ================= */
     async function cargarUsuarios() {
       const container = document.getElementById('usersListContainer');
+      if (!container) return;
       container.innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;">Consultando directorio...</span>';
 
       try {
@@ -433,6 +698,7 @@
       const roleFilter = (document.getElementById('userRoleFilter')?.value || 'todos').toLowerCase();
       const search = (document.getElementById('userSearchInput')?.value || '').toLowerCase().trim();
       const container = document.getElementById('usersListContainer');
+      if (!container) return;
 
       if (!rawUsersList || rawUsersList.length === 0) {
         container.innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;padding:8px;display:block;">No hay usuarios en la base de datos.</span>';
@@ -460,8 +726,6 @@
 
       filtrados.forEach(u => {
         const rolUsuario = (u.profile_id || u.role || 'estudiante').toLowerCase();
-        
-        // Únicamente los estudiantes se rigen por vigencia; cualquier otro rol es staff/permanente
         const esEstudiante = rolUsuario === 'estudiante' || rolUsuario === 'estudiantes';
 
         let estadoVigenciaHTML = '';
@@ -505,6 +769,539 @@
           </div>
         `;
       });
+    }
+
+    /* ================= BUSCADORES INTELIGENTES (PREDICTIVOS) ================= */
+    function buscarStrikersInteligente(query) {
+      const q = (query || '').trim().toLowerCase();
+      const box = document.getElementById('chkSuggestionsBox');
+      if (!box) return;
+      box.innerHTML = '';
+
+      if (q.length < 1) {
+        box.style.display = 'none';
+        return;
+      }
+
+      const matches = rawUsersList.filter(u => {
+        const emailMatch = u.email ? u.email.toLowerCase().includes(q) : false;
+        const nameMatch = u.name ? u.name.toLowerCase().includes(q) : false;
+        return emailMatch || nameMatch;
+      });
+
+      if (matches.length === 0) {
+        box.innerHTML = '<div style="padding:10px; font-size:0.75rem; color:#777;">Sin coincidencias</div>';
+        box.style.display = 'block';
+        return;
+      }
+
+      matches.forEach(user => {
+        const item = document.createElement('div');
+        item.className = 'suggestion-item';
+        const displayName = user.name || 'Sin nombre';
+        item.innerHTML = `
+          <div>
+            <strong style="color:#fff;">${displayName}</strong><br>
+            <span style="color:var(--text-muted); font-size:0.7rem;">${user.email}</span>
+          </div>
+        `;
+        item.onclick = () => {
+          document.getElementById('chkSearchInput').value = `${displayName} (${user.email})`;
+          document.getElementById('newChkUserEmail').value = user.email;
+          box.style.display = 'none';
+        };
+        box.appendChild(item);
+      });
+      box.style.display = 'block';
+    }
+
+    function buscarCoordinadoresInteligente(query) {
+      const q = (query || '').trim().toLowerCase();
+      const box = document.getElementById('coordSuggestionsBox');
+      if (!box) return;
+      box.innerHTML = '';
+
+      if (q.length < 1) {
+        box.style.display = 'none';
+        return;
+      }
+
+      const matches = rawUsersList.filter(u => {
+        const rol = (u.profile_id || u.role || '').toLowerCase();
+        if (!rol.includes('coordinador')) return false;
+
+        const emailMatch = u.email ? u.email.toLowerCase().includes(q) : false;
+        const nameMatch = u.name ? u.name.toLowerCase().includes(q) : false;
+        return emailMatch || nameMatch;
+      });
+
+      if (matches.length === 0) {
+        box.innerHTML = '<div style="padding:10px; font-size:0.75rem; color:#777;">No hay coordinadores con ese criterio</div>';
+        box.style.display = 'block';
+        return;
+      }
+
+      matches.forEach(user => {
+        const item = document.createElement('div');
+        item.className = 'suggestion-item';
+        const displayName = user.name || 'Sin nombre';
+        item.innerHTML = `
+          <div>
+            <strong style="color:#fff;">${displayName}</strong><br>
+            <span style="color:var(--text-muted); font-size:0.7rem;">${user.email} (Coordinador)</span>
+          </div>
+        `;
+        item.onclick = () => {
+          document.getElementById('coordSearchInput').value = `${displayName} (${user.email})`;
+          document.getElementById('coordTargetEmail').value = user.email;
+          box.style.display = 'none';
+        };
+        box.appendChild(item);
+      });
+      box.style.display = 'block';
+    }
+
+    /* ================= MÓDULO: STAFF & MÉTRICAS CORREGIDAS ================= */
+    async function cargarStaffAdmin() {
+      const container = document.getElementById('staffListContainer');
+      if (!container) return;
+      container.innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;padding:8px;display:block;">Calculando métricas del staff...</span>';
+
+      try {
+        const [usersRes, checkinsRes, coachRatingsRes, supervisorRes] = await Promise.all([
+          sb.from('apex_users').select('*'),
+          sb.from('apex_checkins').select('user_email, rendimiento, status, created_at'),
+          sb.from('apex_coach_ratings').select('user_email, note, created_at'),
+          sb.from('apex_supervisor_ratings').select('user_email, score, created_at')
+        ]);
+
+        const users = usersRes.data || [];
+        const checkins = checkinsRes.data || [];
+        const coachRatings = coachRatingsRes.data || [];
+        const supervisorRatings = supervisorRes.data || [];
+
+        const staffList = users.filter(u => {
+          const rol = (u.profile_id || u.role || '').toLowerCase();
+          return rol && !['estudiante', 'estudiantes'].includes(rol);
+        });
+
+        if (staffList.length === 0) {
+          container.innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;padding:8px;display:block;">No hay personal registrado como staff.</span>';
+          return;
+        }
+
+        const hace60Dias = new Date();
+        hace60Dias.setDate(hace60Dias.getDate() - 60);
+        hace60Dias.setHours(0,0,0,0);
+
+        container.innerHTML = '';
+        staffList.forEach(stf => {
+          const email = (stf.email || '').toLowerCase();
+          
+          let ptsStriker = 0;
+          checkins.filter(c => (c.user_email || '').toLowerCase() === email && c.status === 'aprobado' && new Date(c.created_at) >= hace60Dias)
+            .forEach(c => ptsStriker += parseFloat(c.rendimiento || 0));
+          const pctStriker = Math.min(100, Math.round((ptsStriker / 240) * 100));
+
+          let ptsCoach = 0;
+          coachRatings.filter(r => (r.user_email || '').toLowerCase() === email && new Date(r.created_at) >= hace60Dias)
+            .forEach(r => ptsCoach += parseFloat(r.note || 0));
+          const pctCoach = Math.min(100, Math.round((ptsCoach / 240) * 100));
+
+          let ptsSupervisor = 0;
+          supervisorRatings.filter(s => (s.user_email || '').toLowerCase() === email && new Date(s.created_at) >= hace60Dias)
+            .forEach(s => ptsSupervisor += parseFloat(s.score || 0));
+          const pctSupervisor = Math.min(100, Math.round((ptsSupervisor / 240) * 100));
+
+          const totalPtsGlobal = ptsStriker + ptsCoach + ptsSupervisor;
+          const progGlobalPct = Math.min(100, Math.round((totalPtsGlobal / 240) * 100));
+
+          let colorProgreso = '#ffffff';
+          if (progGlobalPct >= 100) colorProgreso = '#ffd700';
+          else if (progGlobalPct >= 76) colorProgreso = '#d4af37';
+          else if (progGlobalPct >= 36) colorProgreso = '#c0c0c0';
+          else if (progGlobalPct >= 11) colorProgreso = '#cd7f32';
+
+          const activo = stf.is_active !== false && stf.subscription_status !== 'vencido';
+          const badgeEstado = activo 
+            ? '<span style="color:var(--status-ok); font-weight:800;">ACTIVO</span>' 
+            : '<span style="color:var(--accent); font-weight:800;">INACTIVO</span>';
+
+          const rolNombre = (stf.profile_id || stf.role || 'Staff').toUpperCase();
+
+          container.innerHTML += `
+            <div class="list-item" style="flex-direction:column; align-items:flex-start; gap:8px;">
+              <div style="width:100%; display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                  <strong style="font-size:0.85rem; color:#fff;">${stf.name || 'Sin nombre'}</strong> <span class="badge" style="color:var(--accent);">${rolNombre}</span><br>
+                  <span style="font-size:0.68rem; color:var(--text-muted);">${stf.email}</span>
+                </div>
+                <div>${badgeEstado}</div>
+              </div>
+              <div style="width:100%; display:grid; grid-template-columns: repeat(3, 1fr); gap:6px; background:#070709; padding:8px; border-radius:6px; border:1px solid var(--border); text-align:center;">
+                <div>
+                  <div style="font-size:0.55rem; color:var(--text-muted); text-transform:uppercase;">Striker</div>
+                  <div style="font-size:0.75rem; font-weight:900; color:#fff;">${pctStriker}%</div>
+                </div>
+                <div>
+                  <div style="font-size:0.55rem; color:var(--text-muted); text-transform:uppercase;">Coach</div>
+                  <div style="font-size:0.75rem; font-weight:900; color:#fff;">${pctCoach}%</div>
+                </div>
+                <div>
+                  <div style="font-size:0.55rem; color:var(--text-muted); text-transform:uppercase;">Supervisión</div>
+                  <div style="font-size:0.75rem; font-weight:900; color:#fff;">${pctSupervisor}%</div>
+                </div>
+              </div>
+              <div style="width:100%; background:#070709; padding:8px; border-radius:6px; border:1px solid var(--border);">
+                <div style="display:flex; justify-content:space-between; font-size:0.62rem; font-weight:800; text-transform:uppercase; margin-bottom:4px; color:#fff;">
+                  <span>Progreso Global (${totalPtsGlobal.toFixed(1)} / 240 PTS)</span>
+                  <span style="color:${colorProgreso};">${progGlobalPct}%</span>
+                </div>
+                <div style="width:100%; height:6px; background:#121216; border-radius:3px; overflow:hidden; border:1px solid var(--border);">
+                  <div style="height:100%; width:${progGlobalPct}%; background:${colorProgreso}; border-radius:3px; transition:width 0.5s ease;"></div>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+
+      } catch (err) {
+        container.innerHTML = `<span style="color:var(--accent);font-size:0.75rem;padding:8px;display:block;">Error cargando staff: ${err.message}</span>`;
+      }
+    }
+
+    /* ================= MÓDULO: CALIFICACIÓN AL COORDINADOR ================= */
+    async function cargarDatosCoordinadorModulo() {
+      const selectCat = document.getElementById('coordCategory');
+      if (selectCat) {
+        selectCat.innerHTML = '';
+        customCoordCategories.forEach(cat => {
+          selectCat.innerHTML += `<option value="${cat}">${cat}</option>`;
+        });
+      }
+
+      const catList = document.getElementById('coordCategoriesList');
+      if (catList) {
+        catList.innerHTML = '';
+        customCoordCategories.forEach((cat, idx) => {
+          catList.innerHTML += `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#070709; padding:6px 10px; border:1px solid var(--border); border-radius:4px; margin-top:4px; font-size:0.72rem;">
+              <span>${cat}</span>
+              <button class="btn-danger" style="padding:2px 6px; font-size:0.6rem;" onclick="eliminarCategoriaCoord(${idx})">🗑️</button>
+            </div>
+          `;
+        });
+      }
+
+      await cargarHistorialCoordinadorAdmin();
+    }
+
+    function agregarCategoriaCoord() {
+      const inp = document.getElementById('newCoordCatInput');
+      if (!inp) return;
+      const val = inp.value.trim().toUpperCase();
+      if (!val) return;
+      if (customCoordCategories.includes(val)) return alert('La categoría ya existe.');
+      customCoordCategories.push(val);
+      inp.value = '';
+      cargarDatosCoordinadorModulo();
+    }
+
+    function eliminarCategoriaCoord(idx) {
+      if (customCoordCategories.length <= 1) return alert('Debes conservar al menos una categoría.');
+      customCoordCategories.splice(idx, 1);
+      cargarDatosCoordinadorModulo();
+    }
+
+    async function guardarCalificacionCoordinador() {
+      const email = document.getElementById('coordTargetEmail')?.value;
+      const category = document.getElementById('coordCategory')?.value;
+      const note = parseFloat(document.getElementById('coordNoteVal')?.value);
+      const dateVal = document.getElementById('coordDateInput')?.value;
+      const observation = document.getElementById('coordObservation')?.value.trim();
+
+      if (!email) return alert('Selecciona un coordinador válido.');
+      if (isNaN(note)) return alert('Ingresa una nota válida del 1 al 10.');
+
+      let fechaFinalISO = new Date().toISOString();
+      if (dateVal) {
+        fechaFinalISO = new Date(dateVal + 'T00:00:00').toISOString();
+      }
+
+      const { error } = await sb.from('apex_coordinator_adjustments').insert({
+        user_email: email,
+        note: note,
+        created_at: fechaFinalISO
+      });
+
+      if (error) {
+        alert('Error al guardar evaluación: ' + error.message);
+      } else {
+        alert('¡Evaluación guardada con éxito!');
+        document.getElementById('coordNoteVal').value = '';
+        document.getElementById('coordObservation').value = '';
+        document.getElementById('coordDateInput').value = '';
+        document.getElementById('coordSearchInput').value = '';
+        document.getElementById('coordTargetEmail').value = '';
+        await cargarHistorialCoordinadorAdmin();
+      }
+    }
+
+    async function cargarHistorialCoordinadorAdmin() {
+      const listCont = document.getElementById('coordHistoryList');
+      if (!listCont) return;
+      listCont.innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;">Cargando historial...</span>';
+
+      try {
+        const hace60dias = new Date();
+        hace60dias.setDate(hace60dias.getDate() - 60);
+
+        const { data, error } = await sb.from('apex_coordinator_adjustments')
+          .select('*')
+          .gte('created_at', hace60dias.toISOString())
+          .order('created_at', { ascending: false });
+
+        if (error || !data || data.length === 0) {
+          listCont.innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;padding:6px;display:block;">No hay evaluaciones recientes de coordinación.</span>';
+          return;
+        }
+
+        listCont.innerHTML = '';
+        data.forEach(item => {
+          const d = new Date(item.created_at);
+          const fechaStr = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
+          listCont.innerHTML += `
+            <div class="list-item">
+              <div>
+                <strong>${item.user_email}</strong><br>
+                <span style="font-size:0.65rem; color:var(--text-muted);">${item.note >= 0 ? '+' + item.note : item.note} pts · ${fechaStr}</span>
+              </div>
+            </div>
+          `;
+        });
+      } catch(e) {
+        listCont.innerHTML = '<span style="color:var(--accent);font-size:0.75rem;">Error al cargar historial.</span>';
+      }
+    }
+
+    /* ================= HISTORIAL DE CHECK-INS & CREACIÓN DIRECTA ================= */
+    async function crearCheckinDirectoAdmin() {
+      const email = document.getElementById('newChkUserEmail')?.value;
+      const focus = document.getElementById('newChkFocus')?.value;
+      const status = document.getElementById('newChkStatus')?.value;
+      const rendimiento = parseFloat(document.getElementById('newChkRend')?.value);
+      const rpe = parseFloat(document.getElementById('newChkRpe')?.value);
+      const soltura = parseFloat(document.getElementById('newChkSolt')?.value);
+      const student_tech_score = parseFloat(document.getElementById('newChkTec')?.value);
+      const ram = parseFloat(document.getElementById('newChkRam')?.value);
+      const divertiste = parseFloat(document.getElementById('newChkDiv')?.value);
+      const dateVal = document.getElementById('newChkDate')?.value;
+      const bitacora = document.getElementById('newChkBitacora')?.value.trim() || null;
+
+      if (!email) return alert('Selecciona un Striker.');
+
+      let fechaFinalISO = new Date().toISOString();
+      if (dateVal) {
+        fechaFinalISO = new Date(dateVal + 'T00:00:00').toISOString();
+      }
+
+      let sumaMetricas = rendimiento + rpe + soltura + student_tech_score + ram + divertiste;
+      let finalScore = status === 'aprobado' ? Math.max(0, sumaMetricas) : 0;
+
+      const userObj = rawUsersList.find(u => u.email.toLowerCase() === email.toLowerCase());
+
+      const payload = {
+        user_id: userObj ? userObj.id : null,
+        user_email: email,
+        focus,
+        rendimiento,
+        rpe,
+        soltura,
+        student_tech_score,
+        preguntacoach: student_tech_score,
+        ram,
+        divertiste,
+        bitacora,
+        status,
+        final_score: finalScore,
+        created_at: fechaFinalISO
+      };
+
+      const { error } = await sb.from('apex_checkins').insert([payload]);
+      if (error) {
+        alert('Error al crear check-in: ' + error.message);
+      } else {
+        alert('¡Check-in creado con éxito!');
+        document.getElementById('newChkBitacora').value = '';
+        document.getElementById('newChkDate').value = '';
+        document.getElementById('chkSearchInput').value = '';
+        document.getElementById('newChkUserEmail').value = '';
+        await cargarCheckinsAdmin();
+      }
+    }
+
+    async function cargarCheckinsAdmin() {
+      const container = document.getElementById('adminCheckinsListContainer');
+      if (!container) return;
+      container.innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;padding:8px;display:block;">Consultando base de datos global...</span>';
+
+      try {
+        const { data, error } = await sb.from('apex_checkins').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+
+        rawCheckinsList = Array.isArray(data) ? data : [];
+        filtrarCheckinsAdmin();
+      } catch (err) {
+        container.innerHTML = `<span style="color:var(--accent);font-size:0.75rem;padding:8px;display:block;">Error: ${err.message}</span>`;
+      }
+    }
+
+    function cambiarPeriodoCheckinsAdmin(val) {
+      const manualBox = document.getElementById('chkAdminManualBox');
+      if (val === 'manual') {
+        manualBox.style.display = 'grid';
+      } else {
+        manualBox.style.display = 'none';
+      }
+      filtrarCheckinsAdmin();
+    }
+
+    function filtrarCheckinsAdmin() {
+      const container = document.getElementById('adminCheckinsListContainer');
+      if (!container) return;
+
+      const query = (document.getElementById('chkAdminSearch')?.value || '').trim().toLowerCase();
+      const estatusFiltro = document.getElementById('chkAdminStatus')?.value || 'todos';
+      const periodoFiltro = document.getElementById('chkAdminPeriodo')?.value || 'mes';
+
+      const ahora = new Date();
+      let fechaInicio = null;
+      let fechaFin = new Date();
+
+      if (periodoFiltro === 'semana') {
+        fechaInicio = new Date();
+        fechaInicio.setDate(ahora.getDate() - 7);
+      } else if (periodoFiltro === 'quincena') {
+        fechaInicio = new Date();
+        fechaInicio.setDate(ahora.getDate() - 15);
+      } else if (periodoFiltro === 'mes') {
+        fechaInicio = new Date();
+        fechaInicio.setMonth(ahora.getMonth() - 1);
+      } else if (periodoFiltro === 'manual') {
+        const dDesde = document.getElementById('chkAdminDesde')?.value;
+        const dHasta = document.getElementById('chkAdminHasta')?.value;
+        if (dDesde) fechaInicio = new Date(dDesde + 'T00:00:00');
+        if (dHasta) fechaFin = new Date(dHasta + 'T23:59:59');
+      }
+
+      const filtrados = rawCheckinsList.filter(item => {
+        const st = (item.status || '').toLowerCase();
+        if (estatusFiltro !== 'todos' && !st.includes(estatusFiltro)) return false;
+
+        const fechaReg = new Date(item.created_at);
+        if (fechaInicio && fechaReg < fechaInicio) return false;
+        if (fechaFin && fechaReg > fechaFin) return false;
+
+        if (query) {
+          const emailUser = (item.user_email || '').toLowerCase();
+          const coachId = item.coach_id || '';
+          const nombreCoach = coachNamesMap[coachId] ? coachNamesMap[coachId].toLowerCase() : '';
+          const enfoque = (item.focus || '').toLowerCase();
+
+          if (!emailUser.includes(query) && !nombreCoach.includes(query) && !enfoque.includes(query)) return false;
+        }
+        return true;
+      });
+
+      if (filtrados.length === 0) {
+        container.innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;padding:8px;display:block;">No hay check-ins con estos filtros.</span>';
+        return;
+      }
+
+      container.innerHTML = '';
+      filtrados.forEach(r => {
+        const d = new Date(r.created_at);
+        const fechaStr = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+        
+        const nombreCoach = r.coach_id ? (coachNamesMap[r.coach_id] || 'Coach asignado') : 'Sin revisar';
+        const st = (r.status || '').toLowerCase();
+        let badgeColor = 'var(--text-muted)';
+        if (st.includes('aprobado')) badgeColor = 'var(--status-ok)';
+        else if (st.includes('rechazado')) badgeColor = 'var(--accent)';
+        else badgeColor = 'var(--status-warn)';
+
+        container.innerHTML += `
+          <div class="list-item">
+            <div>
+              <strong style="color:#fff;">Striker: ${r.user_email}</strong><br>
+              <span style="font-size:0.72rem; color:var(--text-muted);">Enfoque: <strong>${r.focus || 'General'}</strong> (Rend: ${r.rendimiento}/10)</span><br>
+              <span style="font-size:0.65rem; color:#aaa;">Revisó: <b>${nombreCoach}</b> · <span style="color:${badgeColor}; font-weight:800;">${r.status}</span></span><br>
+              <span style="font-size:0.6rem; color:#666;">${fechaStr}</span>
+            </div>
+            <div style="display:flex; gap:4px; align-items:center;">
+              <button class="btn-edit" onclick="abrirModalEdicionCheckin('${r.id}')">✏️</button>
+              <button class="btn-danger" onclick="eliminarCheckinAdmin('${r.id}')">🗑️</button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function abrirModalEdicionCheckin(chkId) {
+      const r = rawCheckinsList.find(item => item.id === chkId);
+      if (!r) return;
+
+      document.getElementById('editChkId').value = r.id;
+      document.getElementById('editChkRend').value = r.rendimiento || 7;
+      document.getElementById('editChkRpe').value = r.rpe || 7;
+      document.getElementById('editChkSolt').value = r.soltura || 7;
+      document.getElementById('editChkTec').value = r.student_tech_score || r.preguntacoach || 7;
+      document.getElementById('editChkRam').value = r.ram || 7;
+      document.getElementById('editChkDiv').value = r.divertiste || 10;
+      document.getElementById('editChkStatus').value = r.status || 'aprobado';
+      document.getElementById('editChkBitacora').value = r.bitacora || '';
+
+      document.getElementById('editCheckinModal').style.display = 'flex';
+    }
+
+    function cerrarModalEdicionCheckin() {
+      document.getElementById('editCheckinModal').style.display = 'none';
+    }
+
+    async function guardarEdicionCheckinAdmin() {
+      const id = document.getElementById('editChkId').value;
+      const rendimiento = parseFloat(document.getElementById('editChkRend').value);
+      const rpe = parseFloat(document.getElementById('editChkRpe').value);
+      const soltura = parseFloat(document.getElementById('editChkSolt').value);
+      const student_tech_score = parseFloat(document.getElementById('editChkTec').value);
+      const ram = parseFloat(document.getElementById('editChkRam').value);
+      const divertiste = parseFloat(document.getElementById('editChkDiv').value);
+      const status = document.getElementById('editChkStatus').value;
+      const bitacora = document.getElementById('editChkBitacora').value.trim() || null;
+
+      const { error } = await sb.from('apex_checkins').update({
+        rendimiento, rpe, soltura, student_tech_score, preguntacoach: student_tech_score, ram, divertiste, status, bitacora
+      }).eq('id', id);
+
+      if (error) {
+        alert('Error al actualizar: ' + error.message);
+      } else {
+        alert('¡Check-in actualizado correctamente!');
+        cerrarModalEdicionCheckin();
+        await cargarCheckinsAdmin();
+      }
+    }
+
+    async function eliminarCheckinAdmin(chkId) {
+      if (!confirm('⚠️ ¿Estás seguro de ELIMINAR permanentemente este check-in de la base de datos?')) return;
+
+      const { error } = await sb.from('apex_checkins').delete().eq('id', chkId);
+      if (error) {
+        alert('Error al eliminar: ' + error.message);
+      } else {
+        alert('Check-in eliminado con éxito.');
+        await cargarCheckinsAdmin();
+      }
     }
 
     async function actualizarRolUsuario(userId, newRole) {
@@ -657,7 +1454,7 @@
       const btnEliminar = document.getElementById('btnEliminarPerfil');
       if (!profileId) {
         limpiarFormularioPerfil();
-        btnEliminar.style.display = 'none';
+        if (btnEliminar) btnEliminar.style.display = 'none';
         return;
       }
 
@@ -665,7 +1462,9 @@
       if (!perfil) return;
 
       document.getElementById('profileName').value = perfil.name;
-      btnEliminar.style.display = (['admin', 'estudiante'].includes(profileId)) ? 'none' : 'block';
+      if (btnEliminar) {
+        btnEliminar.style.display = (['admin', 'estudiante', 'coach'].includes(profileId.toLowerCase())) ? 'none' : 'block';
+      }
 
       const assigned = dbProfileBlocks.filter(pb => pb.profile_id === profileId).map(pb => pb.block_id);
       document.querySelectorAll('.profile-block-checkbox').forEach(cb => {
@@ -674,9 +1473,12 @@
     }
 
     function limpiarFormularioPerfil() {
-      document.getElementById('profileSelect').value = '';
-      document.getElementById('profileName').value = '';
-      document.getElementById('btnEliminarPerfil').style.display = 'none';
+      const pSel = document.getElementById('profileSelect');
+      const pName = document.getElementById('profileName');
+      const btnDel = document.getElementById('btnEliminarPerfil');
+      if (pSel) pSel.value = '';
+      if (pName) pName.value = '';
+      if (btnDel) btnDel.style.display = 'none';
       document.querySelectorAll('.profile-block-checkbox').forEach(cb => cb.checked = false);
     }
 
@@ -711,23 +1513,26 @@
     async function eliminarPerfilActual() {
       const selectedId = document.getElementById('profileSelect').value;
       if (!selectedId) return;
+      await eliminarRolDirecto(selectedId);
+    }
 
-      if (['admin', 'estudiante'].includes(selectedId)) {
-        return alert('Los roles raíz no pueden ser eliminados.');
+    async function eliminarRolDirecto(profileId) {
+      if (['admin', 'estudiante', 'coach'].includes(profileId.toLowerCase())) {
+        return alert('Los roles raíz (admin, estudiante, coach) no pueden ser eliminados.');
       }
 
-      if (!confirm(`¿Eliminar definitivamente el perfil "${selectedId}"? Los usuarios con este rol perderán sus accesos.`)) return;
+      if (!confirm(`⚠️ ¿Estás completamente seguro de ELIMINAR el rol "${profileId}"? Esta acción no se puede deshacer.`)) return;
 
       try {
-        await sb.from('apex_profile_blocks').delete().eq('profile_id', selectedId);
-        const { error } = await sb.from('apex_profiles').delete().eq('id', selectedId);
+        await sb.from('apex_profile_blocks').delete().eq('profile_id', profileId);
+        const { error } = await sb.from('apex_profiles').delete().eq('id', profileId);
         if (error) throw error;
 
-        alert(`Perfil "${selectedId}" eliminado.`);
+        alert(`Rol "${profileId}" eliminado correctamente.`);
         limpiarFormularioPerfil();
         await loadAdminData();
       } catch (err) {
-        alert('Error al eliminar perfil: ' + err.message);
+        alert('Error al eliminar rol: ' + err.message);
       }
     }
   </script>
