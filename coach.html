@@ -293,6 +293,51 @@
           </div>
         </div>
       </div>
+
+      <!-- HISTORIAL DE CHECK-INS VALIDADOS (MINIMIZADO POR DEFECTO) -->
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="ApexHistorialCheckinsCoach.toggleHistorial()">
+          <span class="card-title" style="margin-bottom:0;">📜 Historial de Check-ins Validados</span>
+          <span id="historialCheckinsChevron" style="font-size: 0.9rem; font-weight: bold; color: var(--text-muted);">▼</span>
+        </div>
+        
+        <div id="historialCheckinsBox" style="display: none; margin-top: 12px; border-top: 1px solid var(--border); padding-top: 12px;">
+          <div class="form-group">
+            <label class="form-label">Filtrar por Striker (Correo o Nombre)</label>
+            <input type="text" id="hCoachBusqueda" placeholder="Escribe para buscar..." class="input-apex" oninput="ApexHistorialCheckinsCoach.filtrar()">
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Estatus</label>
+              <select id="hCoachEstatus" class="input-apex" style="height:38px;" onchange="ApexHistorialCheckinsCoach.filtrar()">
+                <option value="todos">Todos (Aprobados / Rechazados)</option>
+                <option value="aprobado">Aprobados</option>
+                <option value="rechazado">Rechazados</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Periodo</label>
+              <select id="hCoachPeriodo" class="input-apex" style="height:38px;" onchange="ApexHistorialCheckinsCoach.cambiarPeriodo(this.value)">
+                <option value="semana">Última Semana</option>
+                <option value="quincena">Última Quincena</option>
+                <option value="mes" selected>Último Mes</option>
+                <option value="todo">Todo</option>
+                <option value="manual">Manual</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="hCoachManualBox" style="display:none; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px; background:#070709; padding:8px; border-radius:6px; border:1px solid var(--border);">
+            <div><label class="form-label">Desde</label><input type="date" id="hCoachDesde" class="input-apex" onchange="ApexHistorialCheckinsCoach.filtrar()"></div>
+            <div><label class="form-label">Hasta</label><input type="date" id="hCoachHasta" class="input-apex" onchange="ApexHistorialCheckinsCoach.filtrar()"></div>
+          </div>
+
+          <div id="listaHistorialCheckinsCoach">
+            <div style="font-size:0.7rem; color:var(--text-muted); text-align:center; padding:10px;">Cargando historial de validación...</div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- SUBMÓDULO 2: GESTIÓN DE MEMBRESÍAS & EVIDENCIAS -->
@@ -381,27 +426,38 @@
 
       <div class="sub-section-view" id="sub_historial">
         <div class="card">
-          <div class="card-title">📋 Historial de Membresías Gestionadas</div>
-          <div class="card-desc">Filtra por tiempo y busca por nombre o correo del striker.</div>
+          <div class="card-title">📋 Historial de Membresías Gestionadas (Tus Registros)</div>
+          <div class="card-desc">Filtra por usuario, estatus y periodos de tiempo personalizados o predeterminados.</div>
 
-          <div style="display:grid; grid-template-columns: 1fr; gap:8px; margin-bottom:10px;">
+          <div class="form-group" style="margin-bottom:8px;">
+            <label class="form-label">Filtrar por Striker (Correo o Nombre)</label>
+            <input type="text" id="hMemBusqueda" placeholder="Escribe para buscar striker..." class="input-apex" oninput="ApexHistorialMembresias.filtrar()">
+          </div>
+
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:10px;">
             <div class="form-group" style="margin-bottom:0;">
-              <label class="form-label">Buscador Predictivo</label>
-              <input type="text" id="historialBusquedaInput" placeholder="Escribe nombre o correo..." class="input-apex" oninput="ApexHistorialMembresias.filtrar()">
+              <label class="form-label">Estatus Contable</label>
+              <select id="hMemEstatus" class="input-apex" style="height:38px;" onchange="ApexHistorialMembresias.filtrar()">
+                <option value="todos">Todos</option>
+                <option value="pendiente_contabilidad">Pendientes</option>
+                <option value="redimido">Facturados / Redimidos</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Periodo</label>
+              <select id="hMemPeriodo" class="input-apex" style="height:38px;" onchange="ApexHistorialMembresias.cambiarPeriodo(this.value)">
+                <option value="semana">Última Semana</option>
+                <option value="quincena">Última Quincena</option>
+                <option value="mes" selected>Último Mes</option>
+                <option value="todo">Todo</option>
+                <option value="manual">Manual</option>
+              </select>
             </div>
           </div>
 
-          <div class="team-filter-bar">
-            <div class="filter-chip active" id="h_chip_semana" onclick="ApexHistorialMembresias.setFiltroTiempo('semana', this)">Semana</div>
-            <div class="filter-chip" id="h_chip_quincena" onclick="ApexHistorialMembresias.setFiltroTiempo('quincena', this)">Quincena</div>
-            <div class="filter-chip" id="h_chip_mes" onclick="ApexHistorialMembresias.setFiltroTiempo('mes', this)">Mes</div>
-            <div class="filter-chip" id="h_chip_todo" onclick="ApexHistorialMembresias.setFiltroTiempo('todo', this)">Todo</div>
-            <div class="filter-chip" id="h_chip_manual" onclick="ApexHistorialMembresias.toggleManual(this)">Manual</div>
-          </div>
-
-          <div id="historialManualBox" style="display:none; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px; background:#0a0a0c; padding:8px; border-radius:6px; border:1px solid var(--border);">
-            <div><label class="form-label">Desde</label><input type="date" id="historialDesde" class="input-apex" onchange="ApexHistorialMembresias.filtrar()"></div>
-            <div><label class="form-label">Hasta</label><input type="date" id="historialHasta" class="input-apex" onchange="ApexHistorialMembresias.filtrar()"></div>
+          <div id="hMemManualBox" style="display:none; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px; background:#070709; padding:8px; border-radius:6px; border:1px solid var(--border);">
+            <div><label class="form-label">Desde</label><input type="date" id="hMemDesde" class="input-apex" onchange="ApexHistorialMembresias.filtrar()"></div>
+            <div><label class="form-label">Hasta</label><input type="date" id="hMemHasta" class="input-apex" onchange="ApexHistorialMembresias.filtrar()"></div>
           </div>
 
           <div id="listaHistorialMembresias">
@@ -466,7 +522,10 @@
             </div>
           </div>
           <div style="display:flex; align-items:center; gap:8px;">
-            <span id="indStatus" style="font-size: 0.65rem; font-weight: 800; padding: 2px 6px; border-radius: 3px;">-</span>
+            <div style="text-align:right;">
+              <span id="indStatus" style="font-size: 0.65rem; font-weight: 800; padding: 2px 6px; border-radius: 3px; display:inline-block; margin-bottom:2px;">-</span>
+              <div id="indVigenciaDias" style="font-size:0.58rem; font-weight:700; color:var(--text-muted);">Calculando vigencia...</div>
+            </div>
             <button class="btn-main" id="btnDescargarFicha" style="padding:4px 8px; font-size:0.6rem; background:#fff; color:#000;" onclick="ApexEquipo.descargarFichaIndividual()">📥 Descargar</button>
           </div>
         </div>
@@ -562,10 +621,28 @@
         </button>
 
         <div style="margin-top: 16px; border-top: 1px solid var(--border); padding-top: 12px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="ApexCalificaciones.toggleHistorial()">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
             <span class="card-title" style="margin-bottom:0;">📜 Historial de Calificaciones (Últimos 2 Meses)</span>
-            <span id="historialChevron" style="font-size: 0.9rem; font-weight: bold; color: var(--text-muted);">▼</span>
+            <span id="historialCalifChevron" style="font-size: 0.9rem; font-weight: bold; color: var(--text-muted); cursor:pointer;" onclick="ApexCalificaciones.toggleHistorial()">▼</span>
           </div>
+          
+          <!-- FILTROS INTELIGENTES PARA HISTORIAL DE CALIFICACIONES -->
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; margin-bottom:8px;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Striker / Correo</label>
+              <input type="text" id="hCalifBusqueda" placeholder="Buscar striker..." class="input-apex" style="padding:6px; font-size:0.7rem;" oninput="ApexCalificaciones.cargarHistorial()">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Periodo</label>
+              <select id="hCalifPeriodo" class="input-apex" style="height:32px; padding:4px; font-size:0.7rem;" onchange="ApexCalificaciones.cargarHistorial()">
+                <option value="semana">Última Semana</option>
+                <option value="quincena">Última Quincena</option>
+                <option value="mes" selected>Último Mes</option>
+                <option value="todo">Todo (2 Meses)</option>
+              </select>
+            </div>
+          </div>
+
           <div id="historialCalifBox" class="historial-calif-box" style="display: none;">
             <div id="historialCalifList"><div style="font-size:0.7rem; color:var(--text-muted); text-align:center;">Cargando historial...</div></div>
           </div>
@@ -613,6 +690,8 @@
 
         if (panelId === 'modulo_checkins') {
           document.getElementById('btn_nav_checkins')?.classList.add('active');
+          ApexCheckins.cargar();
+          ApexHistorialCheckinsCoach.cargar();
         } else if (panelId === 'modulo_membresias') {
           document.getElementById('btn_nav_membresias')?.classList.add('active');
           ApexMembresias.cargarPendientesYGestionadas();
@@ -635,6 +714,7 @@
 
     let supabaseClient = null;
     let currentCoachEmail = 'coach@apexboxing.com';
+    let currentCoachUuid = null;
 
     function initSupabase() {
       let url = CONFIG_SUPABASE_URL;
@@ -662,6 +742,7 @@
         .channel('apex-coach-realtime')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_checkins' }, payload => {
           ApexCheckins.cargar();
+          ApexHistorialCheckinsCoach.cargar();
         })
         .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_payments' }, payload => {
           ApexMembresias.cargarPendientesYGestionadas();
@@ -686,6 +767,7 @@
           const { data: { session } } = await supabaseClient.auth.getSession();
           if (session && session.user) {
             currentCoachEmail = session.user.email;
+            currentCoachUuid = session.user.id;
           }
         } catch (e) {}
       }
@@ -698,6 +780,7 @@
 
       await cargarDatosPerfilCoach();
       await actualizarNivelGlobalCoach();
+      ApexHistorialCheckinsCoach.cargar();
     }
 
     function renderAvatarVisualCoach(url, fallback = 'CO') {
@@ -724,6 +807,7 @@
           .single();
 
         if (data) {
+          currentCoachUuid = data.id;
           document.getElementById('displayNombreCoach').innerText = data.name || 'Coach Apex';
           const avatarUrl = data.photo_url || data.avatar_url || localStorage.getItem('apex_user_avatar');
           renderAvatarVisualCoach(avatarUrl, data.name || data.email || 'CO');
@@ -876,14 +960,6 @@
 
         if (!confirm(`¿Estás seguro de aprobar ${checkboxes.length} check-ins seleccionados?`)) return;
 
-        let coachUuid = null;
-        try {
-          if (supabaseClient && supabaseClient.auth) {
-            const { data: authData } = await supabaseClient.auth.getUser();
-            if (authData?.user?.id) coachUuid = authData.user.id;
-          }
-        } catch (e) {}
-
         for (const cb of checkboxes) {
           const recId = cb.getAttribute('data-id');
           const rec = pendingRecords.find(r => r.id === recId);
@@ -891,8 +967,10 @@
 
           let sumaMetricas = 0;
           let penalty = 0;
-          const updates = { status: 'aprobado' };
-          if (coachUuid) updates.coach_id = coachUuid;
+          const updates = { 
+            status: 'aprobado'
+          };
+          if (currentCoachUuid) updates.coach_id = currentCoachUuid;
 
           METRIC_KEYS.forEach(m => {
             const orig = rec.original[m.key];
@@ -924,6 +1002,7 @@
         alert('¡Check-ins seleccionados aprobados con éxito!');
         document.getElementById('selectAllCheckins').checked = false;
         await this.cargar();
+        await ApexHistorialCheckinsCoach.cargar();
         await actualizarNivelGlobalCoach();
       },
 
@@ -1044,17 +1123,10 @@
         if (!rec) return;
 
         let penalty = 0;
-        let coachUuid = null;
-
-        try {
-          if (supabaseClient && supabaseClient.auth) {
-            const { data: authData } = await supabaseClient.auth.getUser();
-            if (authData?.user?.id) coachUuid = authData.user.id;
-          }
-        } catch (e) {}
-
-        const updates = { status: status };
-        if (coachUuid) updates.coach_id = coachUuid;
+        const updates = { 
+          status: status
+        };
+        if (currentCoachUuid) updates.coach_id = currentCoachUuid;
 
         if (status === 'aprobado') {
           let sumaMetricas = 0;
@@ -1107,7 +1179,144 @@
           document.getElementById('batchBar').style.display = 'none';
         }
 
+        await ApexHistorialCheckinsCoach.cargar();
         await actualizarNivelGlobalCoach();
+      }
+    };
+
+    /* ==========================================================================
+       4.1. HISTORIAL DE CHECK-INS VALIDADOS POR EL COACH (FILTRADO POR coach_id)
+       ========================================================================== */
+    let cacheHistorialCheckinsCoach = [];
+
+    const ApexHistorialCheckinsCoach = {
+      toggleHistorial: function() {
+        const box = document.getElementById('historialCheckinsBox');
+        const chevron = document.getElementById('historialCheckinsChevron');
+        if (box.style.display === 'none') {
+          box.style.display = 'block';
+          chevron.textContent = '▲';
+          this.cargar();
+        } else {
+          box.style.display = 'none';
+          chevron.textContent = '▼';
+        }
+      },
+
+      cambiarPeriodo: function(val) {
+        const manualBox = document.getElementById('hCoachManualBox');
+        if (val === 'manual') {
+          manualBox.style.display = 'grid';
+        } else {
+          manualBox.style.display = 'none';
+        }
+        this.filtrar();
+      },
+
+      cargar: async function() {
+        if (!supabaseClient) return;
+        try {
+          if (!currentCoachUuid && supabaseClient.auth) {
+            const { data: authData } = await supabaseClient.auth.getUser();
+            if (authData?.user?.id) currentCoachUuid = authData.user.id;
+          }
+
+          let queryBuilder = supabaseClient
+            .from('apex_checkins')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+          if (currentCoachUuid) {
+            queryBuilder = queryBuilder.eq('coach_id', currentCoachUuid);
+          }
+
+          const { data, error } = await queryBuilder;
+
+          if (!error && data) {
+            cacheHistorialCheckinsCoach = data;
+            this.filtrar();
+          }
+        } catch (e) {}
+      },
+
+      filtrar: function() {
+        const container = document.getElementById('listaHistorialCheckinsCoach');
+        if (!container) return;
+
+        const query = (document.getElementById('hCoachBusqueda').value || '').trim().toLowerCase();
+        const estatusFiltro = document.getElementById('hCoachEstatus').value;
+        const periodoFiltro = document.getElementById('hCoachPeriodo').value;
+
+        const ahora = new Date();
+        let fechaInicio = null;
+        let fechaFin = new Date();
+
+        if (periodoFiltro === 'semana') {
+          fechaInicio = new Date();
+          fechaInicio.setDate(ahora.getDate() - 7);
+        } else if (periodoFiltro === 'quincena') {
+          fechaInicio = new Date();
+          fechaInicio.setDate(ahora.getDate() - 15);
+        } else if (periodoFiltro === 'mes') {
+          fechaInicio = new Date();
+          fechaInicio.setMonth(ahora.getMonth() - 1);
+        } else if (periodoFiltro === 'manual') {
+          const dDesde = document.getElementById('hCoachDesde').value;
+          const dHasta = document.getElementById('hCoachHasta').value;
+          if (dDesde) fechaInicio = new Date(dDesde + 'T00:00:00');
+          if (dHasta) fechaFin = new Date(dHasta + 'T23:59:59');
+        }
+
+        const filtrados = cacheHistorialCheckinsCoach.filter(item => {
+          const st = (item.status || '').toLowerCase();
+          if (st.includes('pendiente')) return false;
+
+          if (estatusFiltro !== 'todos' && st !== estatusFiltro) return false;
+
+          const fechaReg = new Date(item.created_at);
+          if (fechaInicio && fechaReg < fechaInicio) return false;
+          if (fechaFin && fechaReg > fechaFin) return false;
+
+          if (query) {
+            const email = (item.user_email || '').toLowerCase();
+            const user = registeredUsersCache.find(u => u.email.toLowerCase() === email);
+            const nombre = (user?.name || '').toLowerCase();
+            if (!email.includes(query) && !nombre.includes(query)) return false;
+          }
+          return true;
+        });
+
+        if (filtrados.length === 0) {
+          container.innerHTML = '<div style="font-size:0.7rem; color:var(--text-muted); text-align:center; padding:10px;">No hay registros validados tuyos en este filtro.</div>';
+          return;
+        }
+
+        container.innerHTML = '';
+        filtrados.forEach(r => {
+          const d = new Date(r.created_at);
+          const fechaStr = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+          const user = registeredUsersCache.find(u => u.email.toLowerCase() === (r.user_email || '').toLowerCase());
+          const nombreStriker = user?.name || r.user_email;
+
+          const esAprobado = (r.status || '').toLowerCase() === 'aprobado';
+          const estadoBadge = esAprobado 
+            ? '<span style="color:var(--status-ok); font-weight:800;">Aprobado</span>' 
+            : '<span style="color:var(--accent); font-weight:800;">Rechazado</span>';
+
+          const item = document.createElement('div');
+          item.className = 'evidencia-item';
+          item.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <strong style="font-size:0.78rem; color:#fff;">${nombreStriker}</strong>
+              ${estadoBadge}
+            </div>
+            <div style="font-size:0.65rem; color:var(--text-muted); display:flex; justify-content:space-between; align-items:center;">
+              <span>Enfoque: <strong style="color:#fff;">${r.focus || 'General'}</strong> (Rend: ${r.rendimiento}/10)</span>
+              <span style="font-size:0.58rem; color:#777;">${fechaStr}</span>
+            </div>
+          `;
+          container.appendChild(item);
+        });
       }
     };
 
@@ -1342,12 +1551,12 @@
       renderPendientes: function() {
         const container = document.getElementById('listaEvidenciasPendientes');
         const badge = document.getElementById('cntPendientesBadge');
-        const pendientes = cachePagosCoach.filter(p => !p.accounting_status || p.accounting_status === 'pendiente_contabilidad');
+        const pendientes = cachePagosCoach.filter(p => (!p.accounting_status || p.accounting_status === 'pendiente_contabilidad') && (p.coach_email || '').toLowerCase() === currentCoachEmail.toLowerCase());
 
         badge.innerText = `${pendientes.length} pendientes`;
 
         if (pendientes.length === 0) {
-          container.innerHTML = '<div style="font-size:0.72rem; color:var(--text-muted); text-align:center; padding:12px;">No hay evidencias pendientes de facturación.</div>';
+          container.innerHTML = '<div style="font-size:0.72rem; color:var(--text-muted); text-align:center; padding:12px;">No hay evidencias pendientes tuyas.</div>';
           return;
         }
 
@@ -1430,7 +1639,7 @@
     }
 
     async function eliminarPagoPendiente(pId) {
-      if (!confirm('⚠️ ¿Estás completamente seguro de ELIMINAR este registro de membresía pendiente?')) return;
+      if (!confirm('⚠️️ ¿Estás completamente seguro de ELIMINAR este registro de membresía pendiente?')) return;
 
       if (supabaseClient) {
         const { error } = await supabaseClient.from('apex_payments').delete().eq('id', pId);
@@ -1441,55 +1650,56 @@
     }
 
     /* ==========================================================================
-       6. HISTORIAL DE MEMBRESÍAS GESTIONADAS
+       6. HISTORIAL DE MEMBRESÍAS GESTIONADAS CON FILTROS INTELIGENTES
        ========================================================================== */
-    let filtroTiempoHistorial = 'semana';
-
     const ApexHistorialMembresias = {
-      setFiltroTiempo: function(tipo, chipEl) {
-        filtroTiempoHistorial = tipo;
-        document.querySelectorAll('.team-filter-bar .filter-chip').forEach(c => c.classList.remove('active'));
-        if (chipEl) chipEl.classList.add('active');
-        document.getElementById('historialManualBox').style.display = 'none';
-        this.filtrar();
-      },
-
-      toggleManual: function(chipEl) {
-        filtroTiempoHistorial = 'manual';
-        document.querySelectorAll('.team-filter-bar .filter-chip').forEach(c => c.classList.remove('active'));
-        if (chipEl) chipEl.classList.add('active');
-        document.getElementById('historialManualBox').style.display = 'grid';
+      cambiarPeriodo: function(val) {
+        const manualBox = document.getElementById('hMemManualBox');
+        if (val === 'manual') {
+          manualBox.style.display = 'grid';
+        } else {
+          manualBox.style.display = 'none';
+        }
         this.filtrar();
       },
 
       filtrar: function() {
         const container = document.getElementById('listaHistorialMembresias');
-        const query = (document.getElementById('historialBusquedaInput').value || '').trim().toLowerCase();
+        if (!container) return;
+
+        const query = (document.getElementById('hMemBusqueda').value || '').trim().toLowerCase();
+        const estatusFiltro = document.getElementById('hMemEstatus').value;
+        const periodoFiltro = document.getElementById('hMemPeriodo').value;
 
         const ahora = new Date();
         let fechaInicio = null;
         let fechaFin = new Date();
 
-        if (filtroTiempoHistorial === 'semana') {
+        if (periodoFiltro === 'semana') {
           fechaInicio = new Date();
           fechaInicio.setDate(ahora.getDate() - 7);
-        } else if (filtroTiempoHistorial === 'quincena') {
+        } else if (periodoFiltro === 'quincena') {
           fechaInicio = new Date();
           fechaInicio.setDate(ahora.getDate() - 15);
-        } else if (filtroTiempoHistorial === 'mes') {
+        } else if (periodoFiltro === 'mes') {
           fechaInicio = new Date();
           fechaInicio.setMonth(ahora.getMonth() - 1);
-        } else if (filtroTiempoHistorial === 'manual') {
-          const dDesde = document.getElementById('historialDesde').value;
-          const dHasta = document.getElementById('historialHasta').value;
+        } else if (periodoFiltro === 'manual') {
+          const dDesde = document.getElementById('hMemDesde').value;
+          const dHasta = document.getElementById('hMemHasta').value;
           if (dDesde) fechaInicio = new Date(dDesde + 'T00:00:00');
-          if (dHasta) { fechaFin = new Date(dHasta + 'T23:59:59'); }
+          if (dHasta) fechaFin = new Date(dHasta + 'T23:59:59');
         }
 
         const gestionadas = cachePagosCoach.filter(p => {
+          if (!p.coach_email || p.coach_email.toLowerCase() !== currentCoachEmail.toLowerCase()) return false;
+
           const fechaReg = new Date(p.created_at);
           if (fechaInicio && fechaReg < fechaInicio) return false;
           if (fechaFin && fechaReg > fechaFin) return false;
+
+          const estatusContable = p.accounting_status || 'pendiente_contabilidad';
+          if (estatusFiltro !== 'todos' && estatusContable !== estatusFiltro) return false;
 
           if (query) {
             const email = (p.user_email || '').toLowerCase();
@@ -1501,7 +1711,7 @@
         });
 
         if (gestionadas.length === 0) {
-          container.innerHTML = '<div style="font-size:0.72rem; color:var(--text-muted); text-align:center; padding:12px;">Sin registros en este periodo / filtro.</div>';
+          container.innerHTML = '<div style="font-size:0.72rem; color:var(--text-muted); text-align:center; padding:12px;">Sin registros de membresías tuyas en este periodo / filtro.</div>';
           return;
         }
 
@@ -1542,7 +1752,7 @@
     };
 
     /* ==========================================================================
-       7. MÓDULO DE EQUIPO Y ANALÍTICA (MALLA EN PARTE INFERIOR Y ESTABLE)
+       7. MÓDULO DE EQUIPO Y ANALÍTICA (CON INDICADOR EXACTO DE VIGENCIA)
        ========================================================================== */
     let globalTeamUsers = [];
     let globalTeamCheckins = [];
@@ -1823,6 +2033,26 @@
         statusBadge.style.background = user.subscription_status === 'activo' ? 'rgba(34, 197, 94, 0.2)' : 'var(--accent-dim)';
         statusBadge.style.color = user.subscription_status === 'activo' ? 'var(--status-ok)' : 'var(--accent)';
 
+        // Cálculo exacto de días de vigencia o vencimiento
+        const hoy = new Date();
+        hoy.setHours(0,0,0,0);
+        const vigenciaEl = document.getElementById('indVigenciaDias');
+        if (user.subscription_expires_at) {
+          const expDate = new Date(user.subscription_expires_at.includes('T') ? user.subscription_expires_at : user.subscription_expires_at + 'T00:00:00');
+          const diffMs = expDate - hoy;
+          const dias = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+          if (dias >= 0) {
+            vigenciaEl.innerText = `Quedan ${dias} días de vigencia`;
+            vigenciaEl.style.color = 'var(--status-ok)';
+          } else {
+            vigenciaEl.innerText = `Vencido hace ${Math.abs(dias)} días`;
+            vigenciaEl.style.color = 'var(--accent)';
+          }
+        } else {
+          vigenciaEl.innerText = 'Sin fecha de vencimiento';
+          vigenciaEl.style.color = 'var(--text-muted)';
+        }
+
         const avatarContainer = document.getElementById('indAvatar');
         const avatarUrl = user.photo_url || user.avatar_url;
         if (avatarUrl && typeof avatarUrl === 'string' && avatarUrl.startsWith('http')) {
@@ -1956,7 +2186,7 @@
     };
 
     /* ==========================================================================
-       8. MÓDULO DE CALIFICACIONES MANUALES
+       8. MÓDULO DE CALIFICACIONES MANUALES CON FILTROS INTELIGENTES
        ========================================================================== */
     let selectedRatingStriker = null;
 
@@ -1974,14 +2204,11 @@
 
       toggleHistorial: function() {
         const box = document.getElementById('historialCalifBox');
-        const chevron = document.getElementById('historialChevron');
         if (box.style.display === 'none') {
           box.style.display = 'block';
-          chevron.textContent = '▲';
           this.cargarHistorial();
         } else {
           box.style.display = 'none';
-          chevron.textContent = '▼';
         }
       },
 
@@ -1989,23 +2216,48 @@
         const container = document.getElementById('historialCalifList');
         if (!supabaseClient) { container.innerHTML = 'Sin conexión'; return; }
 
-        try {
-          const hace60dias = new Date();
-          hace60dias.setDate(hace60dias.getDate() - 60);
+        const query = (document.getElementById('hCalifBusqueda').value || '').trim().toLowerCase();
+        const periodoFiltro = document.getElementById('hCalifPeriodo').value;
 
+        const ahora = new Date();
+        let fechaInicio = new Date();
+        fechaInicio.setDate(ahora.getDate() - 30);
+
+        if (periodoFiltro === 'semana') {
+          fechaInicio.setDate(ahora.getDate() - 7);
+        } else if (periodoFiltro === 'quincena') {
+          fechaInicio.setDate(ahora.getDate() - 15);
+        } else if (periodoFiltro === 'todo') {
+          fechaInicio.setDate(ahora.getDate() - 60);
+        }
+
+        try {
           const { data, error } = await supabaseClient
             .from('apex_coach_ratings')
             .select('*')
             .eq('coach_email', currentCoachEmail)
-            .gte('created_at', hace60dias.toISOString())
+            .gte('created_at', fechaInicio.toISOString())
             .order('created_at', { ascending: false });
 
           if (error || !data || data.length === 0) {
-            container.innerHTML = '<div style="font-size:0.7rem; color:var(--text-muted); text-align:center; padding:6px;">No hay calificaciones registradas en los últimos 2 meses.</div>';
+            container.innerHTML = '<div style="font-size:0.7rem; color:var(--text-muted); text-align:center; padding:6px;">No hay calificaciones en este periodo.</div>';
             return;
           }
 
-          container.innerHTML = data.map(r => {
+          const filtrados = data.filter(r => {
+            if (query) {
+              const email = (r.user_email || '').toLowerCase();
+              if (!email.includes(query)) return false;
+            }
+            return true;
+          });
+
+          if (filtrados.length === 0) {
+            container.innerHTML = '<div style="font-size:0.7rem; color:var(--text-muted); text-align:center; padding:6px;">Sin coincidencias para ese striker.</div>';
+            return;
+          }
+
+          container.innerHTML = filtrados.map(r => {
             const d = new Date(r.created_at);
             const fechaStr = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
             const colorNota = r.note >= 0 ? 'var(--status-ok)' : 'var(--accent)';
