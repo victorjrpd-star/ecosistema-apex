@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#070708">
+  <meta name="theme-color" content="#000000">
   <title>Apex Striker | Ficha Táctica</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -12,11 +12,11 @@
 
   <style>
     :root {
-      --bg-color: #070708;
-      --card-bg: #121214;
-      --border-color: #222226;
-      --text-main: #f5f5f5;
-      --text-muted: #9999a1;
+      --bg-color: #000000;
+      --card-bg: #0a0a0c;
+      --border-color: #1a1a1e;
+      --text-main: #f5f5f7;
+      --text-muted: #73737a;
       --accent: #e50914;
       --accent-white: #ffffff;
       --status-ok: #22c55e;
@@ -29,7 +29,7 @@
 
     .profile-bar {
       display: flex; align-items: center; justify-content: space-between;
-      background: rgba(18, 18, 20, 0.85); backdrop-filter: blur(10px);
+      background: rgba(10, 10, 12, 0.9); backdrop-filter: blur(10px);
       border: 1px solid var(--border-color); border-radius: 8px;
       padding: 10px 14px; margin-bottom: 10px;
     }
@@ -37,7 +37,7 @@
     .avatar-wrapper { position: relative; flex-shrink: 0; }
     .avatar-circle {
       width: 44px; height: 44px; border-radius: 50%; object-fit: cover;
-      background: #1c1c20; border: 2px solid var(--border-color);
+      background: #141418; border: 2px solid var(--border-color);
       display: flex; align-items: center; justify-content: center;
       font-size: 0.85rem; font-weight: 900; color: #fff;
     }
@@ -45,20 +45,20 @@
     .profile-text span { font-size: 0.68rem; color: var(--text-muted); }
     .membership-pill {
       font-size: 0.62rem; font-weight: 800; padding: 4px 8px; border-radius: 4px;
-      text-transform: uppercase; background: #16161a; border: 1px solid var(--border-color);
+      text-transform: uppercase; background: #141418; border: 1px solid var(--border-color);
       letter-spacing: 0.5px;
     }
 
     .progress-card {
-      background: rgba(18, 18, 20, 0.85); border: 1px solid var(--border-color);
+      background: rgba(10, 10, 12, 0.9); border: 1px solid var(--border-color);
       border-radius: 8px; padding: 12px 14px; margin-bottom: 10px;
     }
     .progress-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
     .progress-tier-title { font-size: 0.75rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; color: var(--tier-color); text-shadow: 0 2px 6px rgba(0,0,0,0.9); }
     .progress-percent-val { font-size: 1rem; font-weight: 900; color: var(--tier-color); text-shadow: 0 2px 6px rgba(0,0,0,0.9); }
     .progress-bar-track {
-      width: 100%; height: 8px; background: #18181c; border-radius: 4px;
-      overflow: hidden; border: 1px solid #25252a; margin-bottom: 6px;
+      width: 100%; height: 8px; background: #121216; border-radius: 4px;
+      overflow: hidden; border: 1px solid var(--border-color); margin-bottom: 6px;
     }
     .progress-bar-fill {
       height: 100%; width: 0%; background: var(--tier-color);
@@ -68,28 +68,28 @@
     .progress-meta-grid { display: flex; justify-content: space-between; font-size: 0.65rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
 
     .time-filter-wrap {
-      background: #111114; border: 1px solid var(--border-color); border-radius: 6px;
+      background: #0a0a0c; border: 1px solid var(--border-color); border-radius: 6px;
       padding: 8px; margin-bottom: 12px;
     }
     .filter-btn-group { display: flex; gap: 6px; flex-wrap: wrap; }
     .filter-btn {
-      flex: 1; min-width: 65px; padding: 6px 4px; background: #16161a; border: 1px solid var(--border-color);
+      flex: 1; min-width: 65px; padding: 6px 4px; background: #111114; border: 1px solid var(--border-color);
       color: var(--text-muted); border-radius: 4px; font-size: 0.62rem; font-weight: 800;
       text-transform: uppercase; cursor: pointer; text-align: center; transition: 0.2s;
     }
     .filter-btn.active { background: #fff; color: #000; border-color: #fff; }
     .custom-range-inputs {
       display: none; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px;
-      border-top: 1px solid #1f1f24; padding-top: 8px;
+      border-top: 1px solid var(--border-color); padding-top: 8px;
     }
     .custom-range-inputs input {
-      background: #09090b; border: 1px solid var(--border-color); color: #fff;
+      background: #050507; border: 1px solid var(--border-color); color: #fff;
       padding: 6px 8px; font-size: 0.7rem; border-radius: 4px; outline: none; color-scheme: dark;
     }
 
     .notif-container { display: none; flex-direction: column; gap: 6px; margin-bottom: 12px; }
     .notif-card {
-      background: rgba(22, 22, 24, 0.95); backdrop-filter: blur(6px);
+      background: rgba(15, 15, 18, 0.95); backdrop-filter: blur(6px);
       border-left: 3px solid #fff; border-top: 1px solid var(--border-color);
       border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);
       border-radius: 6px; padding: 10px 12px; position: relative; overflow: hidden;
@@ -105,8 +105,8 @@
 
     .module-nav { display: flex; gap: 4px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 14px; }
     .nav-btn {
-      flex: 1; padding: 8px 2px; background: #141418; border: 1px solid var(--border-color); color: var(--text-muted);
-      border-radius: 6px; font-size: 0.6rem; font-weight: 800; text-transform: uppercase; cursor: pointer; text-align: center; transition: 0.2s;
+      flex: 1; padding: 8px 2px; background: #0a0a0c; border: 1px solid var(--border-color); color: var(--text-muted);
+      border-radius: 6px; font-size: 0.52rem; font-weight: 800; text-transform: uppercase; cursor: pointer; text-align: center; transition: 0.2s;
     }
     .nav-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
@@ -145,23 +145,23 @@
       font-size: 1.3rem; cursor: pointer; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.9));
     }
     .gear-dropdown {
-      position: absolute; top: 44px; right: 0; background: #141418;
+      position: absolute; top: 44px; right: 0; background: #0a0a0c;
       border: 1px solid var(--border-color); border-radius: 8px; width: 165px;
       display: none; flex-direction: column; box-shadow: 0 8px 24px rgba(0,0,0,0.9); overflow: hidden; z-index: 30;
     }
     .gear-dropdown.show { display: flex; }
     .gear-item {
       padding: 10px 12px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase;
-      color: #fff; background: transparent; border: none; border-bottom: 1px solid #1f1f24; cursor: pointer; text-align: left;
+      color: #fff; background: transparent; border: none; border-bottom: 1px solid var(--border-color); cursor: pointer; text-align: left;
     }
-    .gear-item:hover { background: #22222a; }
-    .download-submenu { display: none; flex-direction: column; background: #0d0d10; }
+    .gear-item:hover { background: #16161a; }
+    .download-submenu { display: none; flex-direction: column; background: #050507; }
     .download-submenu.show { display: flex; }
     .sub-gear-item {
       padding: 8px 12px 8px 24px; font-size: 0.65rem; font-weight: 700; color: var(--text-muted);
-      background: transparent; border: none; border-bottom: 1px solid #18181c; cursor: pointer; text-align: left;
+      background: transparent; border: none; border-bottom: 1px solid var(--border-color); cursor: pointer; text-align: left;
     }
-    .sub-gear-item:hover { color: #fff; background: #16161a; }
+    .sub-gear-item:hover { color: #fff; background: #121216; }
 
     .dossier-top-meta { position: relative; z-index: 5; filter: drop-shadow(0 2px 10px rgba(0,0,0,0.95)); }
     .dossier-header-title { font-size: 1.35rem; font-weight: 900; text-transform: uppercase; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.95), 0 0 15px rgba(0,0,0,0.8); }
@@ -173,7 +173,7 @@
     .floating-stat-label { font-size: 0.62rem; color: #e2e2eb; text-transform: uppercase; font-weight: 800; margin-top: 3px; text-shadow: 0 2px 6px rgba(0,0,0,0.9); }
     .floating-stat-sub { font-size: 0.55rem; color: #cfcfd8; text-transform: uppercase; font-weight: 600; text-shadow: 0 2px 6px rgba(0,0,0,0.9); }
 
-    .radar-floating-wrap { position: relative; z-index: 5; width: 100%; height: 230px; display: flex; justify-content: center; align-items: center; filter: drop-shadow(0 4px 14px rgba(0,0,0,0.95)); }
+    .radar-floating-wrap { position: relative; z-index: 5; width: 100%; height: 253px; display: flex; justify-content: center; align-items: center; filter: drop-shadow(0 4px 14px rgba(0,0,0,0.95)); }
     .radar-floating-footer { position: relative; z-index: 5; display: flex; justify-content: space-between; align-items: center; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; padding: 0 6px; margin-top: 4px; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.95)); }
 
     .card { background-color: var(--card-bg); border: 1px solid var(--border-color); padding: 18px; border-radius: 8px; margin-bottom: 16px; }
@@ -183,35 +183,47 @@
     .header p { color: var(--text-muted); font-size: 0.72rem; text-transform: uppercase; }
 
     .form-group { margin-bottom: 14px; }
-    label { display: block; font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; font-weight: 700; }
-    input[type="email"], input[type="number"], select {
+    label { display: block; font-size: 0.72rem; text-transform: uppercase; color: #ffffff; margin-bottom: 4px; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
+    label span.note-secundaria { font-size: 0.62rem; color: #a1a1aa; font-weight: normal; text-transform: none; display: inline-block; margin-left: 4px; }
+    
+    input[type="email"], input[type="number"], select, textarea {
       width: 100%; padding: 10px; background-color: var(--bg-color); border: 1px solid var(--border-color);
-      color: var(--text-main); font-size: 0.85rem; border-radius: 4px; outline: none; font-weight: 600;
+      color: var(--text-main); font-size: 0.85rem; border-radius: 4px; outline: none; font-weight: 600; color-scheme: dark;
     }
+    textarea { resize: vertical; min-height: 60px; }
+
     .slider-container { background-color: var(--bg-color); border: 1px solid var(--border-color); padding: 10px; border-radius: 4px; text-align: center; }
     .slider-flex { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-    input[type="range"] { flex: 1; accent-color: var(--accent); cursor: pointer; }
+    input[type="range"] { flex: 1; accent-color: #ffffff; cursor: pointer; transition: 0.2s ease; }
     #emojiDisplay { font-size: 1.5rem; min-width: 32px; }
 
     .btn-submit {
       width: 100%; padding: 12px; background-color: var(--accent); color: #fff; border: none; font-weight: 800;
       text-transform: uppercase; letter-spacing: 1px; font-size: 0.82rem; cursor: pointer; border-radius: 4px;
     }
-    .btn-submit:disabled { background: #333; color: #777; cursor: not-allowed; }
+    .btn-submit:disabled { background: #222; color: #555; cursor: not-allowed; }
 
-    .chart-container { background: #111114; border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; margin-bottom: 12px; }
+    .chart-container { background: #050507; border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; margin-bottom: 12px; }
     .chart-title { font-size: 0.72rem; text-transform: uppercase; font-weight: 800; color: #fff; margin-bottom: 6px; }
     .canvas-wrap { height: 150px; position: relative; }
 
+    #bitacoraPopupModal {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      background: #111116; border: 1px solid var(--accent); border-radius: 8px;
+      padding: 12px 16px; width: 90%; max-width: 420px; z-index: 9999;
+      display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.9); animation: fadeInUp 0.25s ease;
+    }
+    @keyframes fadeInUp { from { opacity: 0; transform: translate(-50%, 15px); } to { opacity: 1; transform: translate(-50%, 0); } }
+
     .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
-    .summary-box { background: #151518; border: 1px solid var(--border-color); border-radius: 6px; padding: 10px; text-align: center; }
+    .summary-box { background: #0a0a0c; border: 1px solid var(--border-color); border-radius: 6px; padding: 10px; text-align: center; }
     .summary-num { font-size: 1.5rem; font-weight: 900; color: #fff; }
     .summary-txt { font-size: 0.62rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800; }
-    .history-card { background: #141418; border: 1px solid #222226; border-radius: 4px; padding: 8px 10px; margin-top: 6px; font-size: 0.72rem; }
+    .history-card { background: #0a0a0c; border: 1px solid var(--border-color); border-radius: 4px; padding: 8px 10px; margin-top: 6px; font-size: 0.72rem; }
 
     .history-dropdown-header {
       display: flex; justify-content: space-between; align-items: center;
-      background: #16161a; border: 1px solid var(--border-color); border-radius: 6px;
+      background: #0a0a0c; border: 1px solid var(--border-color); border-radius: 6px;
       padding: 10px 12px; cursor: pointer; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: #fff;
     }
     .chevron-icon { transition: transform 0.3s ease; font-size: 0.9rem; }
@@ -220,35 +232,67 @@
     .history-collapsible-body.show { display: block; }
     .history-filter-row { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
     .h-filter-btn {
-      background: #111114; border: 1px solid var(--border-color); color: var(--text-muted);
+      background: #050507; border: 1px solid var(--border-color); color: var(--text-muted);
       padding: 5px 8px; font-size: 0.6rem; font-weight: 800; text-transform: uppercase; border-radius: 4px; cursor: pointer;
     }
     .h-filter-btn.active { background: #fff; color: #000; border-color: #fff; }
 
     .plan-card {
-      background: #141418; border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; margin-top: 10px;
+      background: #0a0a0c; border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; margin-top: 10px;
     }
-    .plan-section-title { font-size: 0.75rem; font-weight: 900; color: #fff; text-transform: uppercase; margin-bottom: 4px; border-bottom: 1px solid #222; padding-bottom: 4px; }
+    .plan-section-title { font-size: 0.75rem; font-weight: 900; color: #fff; text-transform: uppercase; margin-bottom: 4px; border-bottom: 1px solid #1a1a1e; padding-bottom: 4px; }
     .plan-section-content { font-size: 0.7rem; color: #ccc; line-height: 1.4; margin-bottom: 10px; }
+
+    /* ESTILOS PANEL LATERAL DESPLEGABLE (SIN MARCOS Y REUBICADO ABAJO) */
+    .sim-drawer {
+      position: absolute; top: 155px; left: 0; width: 210px; max-height: 52vh; overflow-y: auto;
+      background: transparent; padding: 6px 8px; z-index: 25;
+      transform: translateX(-105%); transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      scrollbar-width: none;
+    }
+    .sim-drawer.open { transform: translateX(0); }
+    .sim-drawer::-webkit-scrollbar { display: none; }
+
+    .sim-drawer-trigger {
+      position: absolute; top: 155px; left: 0; z-index: 26;
+      background: #00f0ff; border: 1px solid #00f0ff; border-left: none;
+      border-top-right-radius: 6px; border-bottom-right-radius: 6px;
+      color: #000000; font-size: 0.58rem; font-weight: 900; text-transform: uppercase; padding: 10px 6px;
+      cursor: pointer; writing-mode: vertical-lr; letter-spacing: 1px; transition: background 0.3s ease, color 0.3s ease;
+      box-shadow: 4px 0 15px rgba(0,240,255,0.4);
+    }
+    .sim-drawer-trigger.active-dim {
+      background: rgba(40, 40, 48, 0.75); color: #888892; border-color: rgba(255,255,255,0.15); box-shadow: none;
+    }
+
+    .sim-slider-wrap { margin-bottom: 8px; text-shadow: 0 2px 4px rgba(0,0,0,0.9); }
+    .sim-slider-header { display: flex; justify-content: space-between; font-size: 0.52rem; font-weight: 800; text-transform: uppercase; color: #00f0ff; margin-bottom: 2px; text-shadow: 0 2px 4px rgba(0,0,0,0.9); }
+    .sim-slider-compact { width: 100% !important; opacity: 0.25; transition: opacity 0.3s ease; accent-color: #00f0ff; cursor: pointer; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.9)); }
+    .sim-slider-compact:hover, .sim-slider-compact:active { opacity: 0.95; }
 
     #mediaModal {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      background: rgba(0,0,0,0.88); backdrop-filter: blur(8px);
+      background: rgba(0,0,0,0.92); backdrop-filter: blur(8px);
       z-index: 10000; display: none; justify-content: center; align-items: center; padding: 16px;
     }
     .modal-box {
       background: var(--card-bg); border: 1px solid var(--border-color);
       border-radius: 10px; padding: 18px; width: 100%; max-width: 390px;
     }
-    .color-swatch-bar { display: flex; gap: 8px; justify-content: center; margin: 10px 0; flex-wrap: wrap; }
-    .swatch-btn { width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 2px solid #333; transition: 0.2s; }
-    .swatch-btn.selected { border-color: #fff; transform: scale(1.15); }
-    .range-cutter-box { background: #0b0b0e; border: 1px solid var(--border-color); border-radius: 6px; padding: 10px; margin-top: 8px; display: none; }
+    .range-cutter-box { background: #050507; border: 1px solid var(--border-color); border-radius: 6px; padding: 10px; margin-top: 8px; display: none; }
   </style>
 </head>
 <body>
 
   <input type="file" id="inputMediaRaw" accept="video/*,image/*" style="display: none;" onchange="procesarMediaSeleccionada(this.files)">
+
+  <div id="bitacoraPopupModal">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+      <span style="font-size:0.65rem; font-weight:900; text-transform:uppercase; color:var(--accent);">📝 Bitácora del Día (<span id="popFecha">--/--</span>)</span>
+      <button onclick="document.getElementById('bitacoraPopupModal').style.display='none'" style="background:none; border:none; color:#aaa; font-size:0.9rem; cursor:pointer;">✕</button>
+    </div>
+    <div id="popBitacoraTxt" style="font-size:0.75rem; color:#fff; line-height:1.4; font-style:italic;">Sin nota registrada.</div>
+  </div>
 
   <div id="mediaModal">
     <div class="modal-box">
@@ -258,27 +302,8 @@
       </div>
 
       <div style="margin-bottom: 12px;">
-        <button class="btn-submit" style="background:#222; border:1px solid var(--border-color); margin-bottom:6px;" onclick="document.getElementById('inputMediaRaw').click();">📁 Seleccionar Video, Imagen o GIF</button>
+        <button class="btn-submit" style="background:#16161a; border:1px solid var(--border-color); margin-bottom:6px;" onclick="document.getElementById('inputMediaRaw').click();">📁 Seleccionar Video, Imagen o GIF</button>
         <span id="selectedFileLabel" style="font-size:0.65rem; color:var(--text-muted); display:block; text-align:center;">Ningún archivo seleccionado</span>
-      </div>
-
-      <div class="form-group" style="margin-top: 8px;">
-        <label>Efecto de Transición (para video)</label>
-        <select id="transitionModeSelect" style="width:100%; padding:8px; background:#09090b; border:1px solid var(--border-color); color:#fff; border-radius:4px; font-size:0.75rem;">
-          <option value="fade_sutil">1. Fundido Sutil Extendido</option>
-          <option value="escaneo">2. Escaneo Láser Vertical</option>
-          <option value="blur">3. Enfoque Dinámico</option>
-          <option value="glitch_suave">4. Transición Pulso / Contraste</option>
-          <option value="flash_cinematico">5. Flash de Exposición</option>
-        </select>
-      </div>
-
-      <label style="font-size:0.68rem; margin-top:8px;">Color de Pulso / Iluminación</label>
-      <div class="color-swatch-bar">
-        <div class="swatch-btn selected" style="background:#e50914;" onclick="seleccionarColorPulso('#e50914', this)"></div>
-        <div class="swatch-btn" style="background:#00f0ff;" onclick="seleccionarColorPulso('#00f0ff', this)"></div>
-        <div class="swatch-btn" style="background:#22c55e;" onclick="seleccionarColorPulso('#22c55e', this)"></div>
-        <div class="swatch-btn" style="background:#ffd700;" onclick="seleccionarColorPulso('#ffd700', this)"></div>
       </div>
 
       <div id="trimmerBox" class="range-cutter-box">
@@ -344,6 +369,7 @@
     <button class="nav-btn" onclick="switchFichaTab('viewDash', this)">📊 Métricas</button>
     <button class="nav-btn" onclick="switchFichaTab('viewForm', this)">📝 Check-in</button>
     <button class="nav-btn" onclick="switchFichaTab('viewPlan', this)">🎯 Plan</button>
+    <button class="nav-btn" onclick="switchFichaTab('viewSim', this)">🚀 Simulador</button>
   </nav>
 
   <!-- PERFIL -->
@@ -360,8 +386,7 @@
           <button class="gear-item" onclick="abrirModalMedia(); toggleGearMenu();">📁 Personalizar Fondo</button>
           <button class="gear-item" onclick="toggleDownloadSubmenu(event)">⬇️ Descargar ▾</button>
           <div class="download-submenu" id="downloadSubmenu">
-            <button class="sub-gear-item" onclick="DossierExporter.descargarImagen(); toggleGearMenu();">📸 Foto PNG</button>
-            <button class="sub-gear-item" onclick="DossierExporter.descargarVideo(); toggleGearMenu();">🎥 Video WebM</button>
+            <button class="sub-gear-item" onclick="DossierExporter.descargarVideo(); toggleGearMenu();">🎥 Video Dossier</button>
           </div>
         </div>
       </div>
@@ -377,7 +402,10 @@
         <div class="dossier-header-title" id="dossierName">Striker Apex</div>
         <div class="dossier-header-sub">
           <span id="dossierMeta">Iniciado // 0 Clases</span>
-          <span id="dossierDateTag">SISTEMA TÁCTICO</span>
+          <div style="text-align:right;">
+            <div id="liveClockDisplay" style="font-size:0.95rem; font-weight:900; color:#fff; letter-spacing:0.5px; text-shadow:0 2px 6px rgba(0,0,0,0.9);">00:00:00</div>
+            <span id="dossierDateTag" style="font-size:0.6rem; color:#e0e0e8; text-transform:capitalize;">-- de -- de ----</span>
+          </div>
         </div>
       </div>
 
@@ -400,7 +428,7 @@
 
       <div class="radar-floating-footer">
         <span style="color:#fff; text-shadow:0 2px 6px rgba(0,0,0,0.9);">Escala: 1 - 10</span>
-        <span id="radarStatusLabel" style="color:var(--pulse-color); text-shadow:0 2px 6px rgba(0,0,0,0.9);">Calculando...</span>
+        <span style="color:#ffffff; text-shadow:0 2px 6px rgba(0,0,0,0.9);"></span>
       </div>
     </div>
   </div>
@@ -410,7 +438,7 @@
     <div class="card">
       <div class="header">
         <h1>Métricas <span>Striker</span></h1>
-        <p>Seguimiento Individual</p>
+        <p>Seguimiento e Inteligencia Predictiva</p>
       </div>
 
       <div class="summary-grid">
@@ -424,17 +452,17 @@
         </div>
       </div>
 
-      <div class="chart-container"><div class="chart-title">Índice de Eficiencia</div><div class="canvas-wrap"><canvas id="chartEficiencia"></canvas></div></div>
-      <div class="chart-container"><div class="chart-title">Índice de Fluidez Real</div><div class="canvas-wrap"><canvas id="chartFluidezReal"></canvas></div></div>
-      <div class="chart-container"><div class="chart-title">Rendimiento (1 - 10)</div><div class="canvas-wrap"><canvas id="chartRendimiento"></canvas></div></div>
-      <div class="chart-container"><div class="chart-title">RPE - Esfuerzo (1 - 10)</div><div class="canvas-wrap"><canvas id="chartRpe"></canvas></div></div>
-      <div class="chart-container"><div class="chart-title">Soltura y Flexibilidad (1 - 10)</div><div class="canvas-wrap"><canvas id="chartSoltura"></canvas></div></div>
-      <div class="chart-container"><div class="chart-title">Fluidez Técnica (1 - 10)</div><div class="canvas-wrap"><canvas id="chartFluidez"></canvas></div></div>
-      <div class="chart-container"><div class="chart-title">Nivel de Diversión (1 - 10)</div><div class="canvas-wrap"><canvas id="chartDiversion"></canvas></div></div>
+      <div class="chart-container"><div class="chart-title">Índice de Eficiencia (Proyección Próximas 3 Clases)</div><div class="canvas-wrap"><canvas id="chartEficiencia"></canvas></div></div>
+      <div class="chart-container"><div class="chart-title">Índice de Fluidez Real (Proyección Próximas 3 Clases)</div><div class="canvas-wrap"><canvas id="chartFluidezReal"></canvas></div></div>
+      <div class="chart-container"><div class="chart-title">Rendimiento (Proyección Próximas 3 Clases)</div><div class="canvas-wrap"><canvas id="chartRendimiento"></canvas></div></div>
+      <div class="chart-container"><div class="chart-title">RPE - Esfuerzo (Proyección Próximas 3 Clases)</div><div class="canvas-wrap"><canvas id="chartRpe"></canvas></div></div>
+      <div class="chart-container"><div class="chart-title">Soltura y Flexibilidad (Proyección Próximas 3 Clases)</div><div class="canvas-wrap"><canvas id="chartSoltura"></canvas></div></div>
+      <div class="chart-container"><div class="chart-title">Fluidez Técnica (Proyección Próximas 3 Clases)</div><div class="canvas-wrap"><canvas id="chartFluidez"></canvas></div></div>
+      <div class="chart-container"><div class="chart-title">Nivel de Diversión (Proyección Próximas 3 Clases)</div><div class="canvas-wrap"><canvas id="chartDiversion"></canvas></div></div>
 
       <div style="margin-top: 14px;">
         <label>Sesiones del Periodo</label>
-        <div id="historyContainer">Cargando sesiones...</div>
+        <div id="historyContainer"><span style="color:var(--text-muted);font-size:0.7rem;">Cargando sesiones...</span></div>
       </div>
     </div>
   </div>
@@ -457,19 +485,26 @@
             <option value="sparring">Sparring</option>
           </select>
         </div>
-        <div class="form-group"><label>Rendimiento del Día (1 al 10)</label><input type="number" id="ciRendimiento" min="1" max="10" required></div>
+        <div class="form-group"><label>Rendimiento del Día <span class="note-secundaria">(pregúntale a tu coach)</span></label><input type="number" id="ciRendimiento" min="1" max="10" required></div>
         <div class="form-group"><label>RPE - Esfuerzo Percibido (1 al 10)</label><input type="number" id="ciRpe" min="1" max="10" required></div>
         <div class="form-group"><label>Soltura y Flexibilidad (1 al 10)</label><input type="number" id="ciSoltura" min="1" max="10" required></div>
-        <div class="form-group"><label>Pregúntale a tu Coach (Fluidez Técnica)</label><input type="number" id="ciPreguntaCoach" min="1" max="10" required></div>
+        <div class="form-group"><label>Fluidez Técnica <span class="note-secundaria">(pregúntale a tu coach)</span></label><input type="number" id="ciPreguntaCoach" min="1" max="10" required></div>
+        
         <div class="form-group"><label>¿Te divertiste?</label>
           <div class="slider-container">
             <div class="slider-flex">
-              <input type="range" id="ciDivertiste" min="1" max="10" value="10" oninput="actualizarEmoji(this.value)">
+              <input type="range" id="ciDivertiste" min="1" max="10" value="10" oninput="actualizarSliderFluido(this.value)">
               <div id="emojiDisplay">🤩</div>
             </div>
             <div style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;">Nivel: <span id="valDivertiste">10</span> / 10</div>
           </div>
         </div>
+
+        <div class="form-group">
+          <label>Bitácora Personal <span class="note-secundaria">(opcional: notas de hoy)</span></label>
+          <textarea id="ciBitacora" placeholder="¿Cómo sentiste tus desplazamientos, el jab o tu energía hoy?"></textarea>
+        </div>
+
         <button type="submit" id="btnEnviar" class="btn-submit">Enviar Registro</button>
       </form>
 
@@ -529,6 +564,94 @@
     </div>
   </div>
 
+  <!-- SIMULADOR TÁCTICO CON SLIDERS FLOTANTES LIMPIOS Y MALLA EN GRAN FORMATO -->
+  <div id="viewSim" class="view-section">
+    <div class="dossier-viewport" id="simDossierViewport">
+      <div id="simDossierMediaContainer" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:1;">
+        <video id="simNativeVideo" class="dossier-media-bg" playsinline muted loop autoplay crossorigin="anonymous" style="display:none;"></video>
+        <img id="simNativeImage" class="dossier-media-bg" src="" alt="" style="display:none; object-fit:cover;">
+      </div>
+
+      <!-- BOTÓN DISPARADOR LATERAL (TRIGGER) REUBICADO -->
+      <button class="sim-drawer-trigger" id="simDrawerTrigger" onclick="toggleSimDrawer()">⚡ Configurar Metas</button>
+
+      <!-- PANEL LATERAL DESPLEGABLE FLOTANTE SIN MARCOS -->
+      <div class="sim-drawer" id="simDrawer">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; border-bottom:1px solid rgba(255,255,255,0.15); padding-bottom:4px;">
+          <span style="font-size:0.58rem; font-weight:900; text-transform:uppercase; color:#00f0ff; text-shadow:0 2px 4px rgba(0,0,0,0.9);">Paneles de Control</span>
+          <button onclick="toggleSimDrawer()" style="background:none; border:none; color:#fff; font-size:0.85rem; cursor:pointer;">✕</button>
+        </div>
+
+        <div class="sim-slider-wrap">
+          <div class="sim-slider-header"><span>Clases: <b id="simClasesVal" style="color:#fff;">12</b></span></div>
+          <input type="range" id="simSliderClases" min="1" max="24" value="12" class="sim-slider-compact" oninput="SimuladorTactico.calcular()">
+        </div>
+        <div class="sim-slider-wrap">
+          <div class="sim-slider-header"><span>Rendimiento: <b id="simRendVal" style="color:#fff;">7.0</b></span></div>
+          <input type="range" id="simSliderRend" min="1" max="10" step="0.5" value="7" class="sim-slider-compact" oninput="SimuladorTactico.calcular()">
+        </div>
+        <div class="sim-slider-wrap">
+          <div class="sim-slider-header"><span>RPE: <b id="simRpeVal" style="color:#fff;">7.0</b></span></div>
+          <input type="range" id="simSliderRpe" min="1" max="10" step="0.5" value="7" class="sim-slider-compact" oninput="SimuladorTactico.calcular()">
+        </div>
+        <div class="sim-slider-wrap">
+          <div class="sim-slider-header"><span>Soltura: <b id="simSoltVal" style="color:#fff;">7.0</b></span></div>
+          <input type="range" id="simSliderSolt" min="1" max="10" step="0.5" value="7" class="sim-slider-compact" oninput="SimuladorTactico.calcular()">
+        </div>
+        <div class="sim-slider-wrap">
+          <div class="sim-slider-header"><span>Técnica: <b id="simTecVal" style="color:#fff;">7.0</b></span></div>
+          <input type="range" id="simSliderTec" min="1" max="10" step="0.5" value="7" class="sim-slider-compact" oninput="SimuladorTactico.calcular()">
+        </div>
+        <div class="sim-slider-wrap">
+          <div class="sim-slider-header"><span>RAM: <b id="simRamVal" style="color:#fff;">7.0</b></span></div>
+          <input type="range" id="simSliderRam" min="1" max="10" step="0.5" value="7" class="sim-slider-compact" oninput="SimuladorTactico.calcular()">
+        </div>
+        <div class="sim-slider-wrap" style="margin-bottom:0;">
+          <div class="sim-slider-header"><span>Disfrute: <b id="simDivVal" style="color:#fff;">7.0</b></span></div>
+          <input type="range" id="simSliderDiv" min="1" max="10" step="0.5" value="7" class="sim-slider-compact" oninput="SimuladorTactico.calcular()">
+        </div>
+      </div>
+
+      <div class="dossier-branding">
+        <div>
+          <div class="brand-title">APEX <span>SIMULADOR</span></div>
+          <div class="brand-sub">Proyección Táctica Bimestral</div>
+        </div>
+      </div>
+
+      <div class="dossier-top-meta">
+        <div class="dossier-header-title" id="simResRangoHeader">INTERMEDIO</div>
+        <div class="dossier-header-sub">
+          <span id="simResPts">0 PTS</span>
+          <span style="color:#00f0ff;">HASTA 24 CLASES</span>
+        </div>
+      </div>
+
+      <div class="floating-stats-row">
+        <div class="floating-stat-item">
+          <div class="floating-stat-num" id="simDiscVal">0%</div>
+          <div class="floating-stat-label">Disciplina Sim.</div>
+          <div class="floating-stat-sub" id="simMetaRatio">0 / 24 Meta</div>
+        </div>
+        <div class="floating-stat-item">
+          <div class="floating-stat-num" id="simHistVal">0</div>
+          <div class="floating-stat-label">Historial Sim.</div>
+          <div class="floating-stat-sub">Clases Proyectadas</div>
+        </div>
+      </div>
+
+      <!-- MALLA HEXAGONAL EN GRAN FORMATO (253px) -->
+      <div class="radar-floating-wrap pulse-mesh">
+        <canvas id="chartSimRadar"></canvas>
+      </div>
+
+      <div class="radar-floating-footer">
+        <span style="color:#fff; text-shadow:0 2px 6px rgba(0,0,0,0.9);">Proyección Activa</span>
+        <button onclick="SimuladorTactico.guardarMeta()" style="background:#fff; color:#000; border:none; padding:4px 8px; font-size:0.58rem; font-weight:900; border-radius:4px; cursor:pointer; text-transform:uppercase;">Guardar Meta</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const SUPABASE_URL = 'https://fprvbvucmtdpxdihuvrw.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_xAMs8LpCwyMyoql3ohoJUQ_BIRhBQoD';
@@ -541,10 +664,10 @@
     let tempMediaFile = null;
     let videoStartTime = 0;
     let videoEndTime = 60;
-    let selectedTransitionMode = 'fade_sutil';
     let selectedPulseColor = '#e50914';
     let userNivelOficial = 'Iniciado';
     let filtroHistorialActual = 'todos';
+    let sliderTimeout = null;
 
     function toggleGearMenu(e) {
       if (e) e.stopPropagation();
@@ -557,9 +680,25 @@
       document.getElementById('downloadSubmenu').classList.toggle('show');
     }
 
-    window.addEventListener('click', () => {
+    function toggleSimDrawer() {
+      const drawer = document.getElementById('simDrawer');
+      const trigger = document.getElementById('simDrawerTrigger');
+      drawer.classList.toggle('open');
+      trigger.classList.toggle('active-dim');
+    }
+
+    window.addEventListener('click', (e) => {
       document.getElementById('gearDropdown')?.classList.remove('show');
       document.getElementById('downloadSubmenu')?.classList.remove('show');
+
+      const drawer = document.getElementById('simDrawer');
+      const trigger = document.getElementById('simDrawerTrigger');
+      if (drawer && drawer.classList.contains('open')) {
+        if (!drawer.contains(e.target) && !trigger.contains(e.target)) {
+          drawer.classList.remove('open');
+          trigger.classList.remove('active-dim');
+        }
+      }
     });
 
     function toggleHistorialDesplegable() {
@@ -567,23 +706,37 @@
       document.getElementById('historyChevron').classList.toggle('open');
     }
 
+    /* RELOJ DINÁMICO EN TIEMPO REAL CON HORA, SEGUNDOS Y FECHA EN LETRAS */
+    function iniciarRelojTiempoReal() {
+      setInterval(() => {
+        const ahora = new Date();
+        const horas = ahora.getHours().toString().padStart(2, '0');
+        const minutos = ahora.getMinutes().toString().padStart(2, '0');
+        const segundos = ahora.getSeconds().toString().padStart(2, '0');
+        const relojEl = document.getElementById('liveClockDisplay');
+        if (relojEl) relojEl.innerText = `${horas}:${minutos}:${segundos}`;
+
+        const opcionesFecha = { day: 'numeric', month: 'long', year: 'numeric' };
+        const fechaLetras = ahora.toLocaleDateString('es-ES', opcionesFecha);
+        const fechaEl = document.getElementById('dossierDateTag');
+        if (fechaEl) fechaEl.innerText = fechaLetras;
+      }, 1000);
+    }
+
     const DossierExporter = {
-      descargarImagen: async function() {
-        try {
-          const viewport = document.getElementById('dossierViewport');
-          const canvas = await html2canvas(viewport, { scale: 2, useCORS: true, backgroundColor: null, ignoreElements: (el) => el.classList.contains('hud-controls-bar') || el.id === 'dossierMediaContainer' });
-          const link = document.createElement('a');
-          link.download = `Apex_Striker_${(userProfile?.name || 'Ficha').replace(/\s+/g, '_')}.png`;
-          link.href = canvas.toDataURL('image/png');
-          link.click();
-        } catch (err) { alert('Error: ' + err.message); }
-      },
       descargarVideo: async function() {
         const video = document.getElementById('nativeProfileVideo');
         const img = document.getElementById('nativeProfileImage');
         
         if (img.style.display !== 'none') {
-          this.descargarImagen();
+          try {
+            const viewport = document.getElementById('dossierViewport');
+            const canvas = await html2canvas(viewport, { scale: 2, useCORS: true, backgroundColor: null, ignoreElements: (el) => el.classList.contains('hud-controls-bar') || el.id === 'dossierMediaContainer' });
+            const link = document.createElement('a');
+            link.download = `Apex_Striker_${(userProfile?.name || 'Ficha').replace(/\s+/g, '_')}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+          } catch(err) { alert('Error: ' + err.message); }
           return;
         }
 
@@ -656,44 +809,131 @@
       }
     };
 
+    const SimuladorTactico = {
+      calcular: function() {
+        const clases = parseInt(document.getElementById('simSliderClases').value);
+        const rendimiento = parseFloat(document.getElementById('simSliderRend').value);
+        const rpe = parseFloat(document.getElementById('simSliderRpe').value);
+        const solt = parseFloat(document.getElementById('simSliderSolt').value);
+        const tec = parseFloat(document.getElementById('simSliderTec').value);
+        const ram = parseFloat(document.getElementById('simSliderRam').value);
+        const div = parseFloat(document.getElementById('simSliderDiv').value);
+
+        document.getElementById('simClasesVal').innerText = clases;
+        document.getElementById('simRendVal').innerText = rendimiento.toFixed(1);
+        document.getElementById('simRpeVal').innerText = rpe.toFixed(1);
+        document.getElementById('simSoltVal').innerText = solt.toFixed(1);
+        document.getElementById('simTecVal').innerText = tec.toFixed(1);
+        document.getElementById('simRamVal').innerText = ram.toFixed(1);
+        document.getElementById('simDivVal').innerText = div.toFixed(1);
+
+        const historialSim = (cachedRecords.length > 0 ? cachedRecords.length : 0) + clases;
+        const discSim = Math.min(100, Math.round((clases / 24) * 100));
+
+        document.getElementById('simHistVal').innerText = historialSim;
+        document.getElementById('simDiscVal').innerText = `${discSim}%`;
+        document.getElementById('simMetaRatio').innerText = `${clases} / 24 Meta`;
+
+        const basePtsActual = clases * rendimiento;
+        const ptsEstimados = Math.min(240, basePtsActual * 1.25);
+        const porcentaje = Math.min(100, Math.round((ptsEstimados / 240) * 100));
+        const escala = determinarEscalaOficial(porcentaje);
+
+        document.getElementById('simResRangoHeader').innerText = escala.nombre;
+        document.getElementById('simResPts').innerText = `${ptsEstimados.toFixed(1)} PTS`;
+
+        const simAverages = [rendimiento, rpe, solt, tec, ram, div];
+        renderSimRadarChart(simAverages);
+      },
+      guardarMeta: async function() {
+        const clases = document.getElementById('simSliderClases').value;
+        const rendimiento = document.getElementById('simSliderRend').value;
+        const rango = document.getElementById('simResRangoHeader').innerText;
+        const pts = document.getElementById('simResPts').innerText;
+        
+        if (sb && userProfile?.email) {
+          await sb.from('apex_users').update({
+            meta_proyectada: { clases, rendimiento, rango, pts, fecha: new Date().toISOString() }
+          }).eq('email', userProfile.email);
+        }
+        alert('¡Meta proyectada guardada con éxito!');
+      }
+    };
+
+    function renderSimRadarChart(dataPoints) {
+      if (chartInstances['chartSimRadar']) chartInstances['chartSimRadar'].destroy();
+      const canvasEl = document.getElementById('chartSimRadar');
+      if (!canvasEl) return;
+
+      chartInstances['chartSimRadar'] = new Chart(canvasEl.getContext('2d'), {
+        type: 'radar',
+        data: {
+          labels: ['Rendimiento', 'RPE', 'Soltura', 'Técnica', 'RAM', 'Disfrute'],
+          datasets: [{
+            data: dataPoints,
+            borderColor: '#00f0ff',
+            backgroundColor: 'rgba(0, 240, 255, 0.2)',
+            borderWidth: 2,
+            pointRadius: 4,
+            pointBackgroundColor: '#00f0ff'
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          animation: { duration: 400 },
+          plugins: { legend: { display: false } },
+          scales: {
+            r: {
+              min: 0, max: 10, ticks: { display: false, stepSize: 2 },
+              angleLines: { color: 'rgba(255, 255, 255, 0.3)' },
+              grid: { color: 'rgba(255, 255, 255, 0.2)' },
+              pointLabels: { color: '#00f0ff', font: { size: 9, weight: '800' } }
+            }
+          }
+        }
+      });
+    }
+
     function switchFichaTab(tabId, btn) {
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
       btn.classList.add('active');
       document.getElementById(tabId).classList.add('active');
-      if (tabId === 'viewDash' || tabId === 'viewProfile') { ApexFiltros.recalcularVistas(); }
+      
+      if (tabId === 'viewDash' || tabId === 'viewProfile') { 
+        ApexFiltros.recalcularVistas(); 
+        if (tabId === 'viewProfile') {
+          setTimeout(() => {
+            requestAnimationFrame(() => ApexFiltros.recalcularVistas());
+          }, 50);
+        }
+      }
+      else if (tabId === 'viewSim') { 
+        SimuladorTactico.calcular(); 
+        setTimeout(() => {
+          requestAnimationFrame(() => SimuladorTactico.calcular());
+        }, 50);
+      }
       else if (tabId === 'viewPlan') { cargarPlanEntrenamiento(); }
     }
 
-    function actualizarEmoji(valor) {
-      document.getElementById('valDivertiste').innerText = valor;
-      const emojiEl = document.getElementById('emojiDisplay');
-      const v = parseInt(valor);
-      if (v <= 2) emojiEl.innerText = "😞"; else if (v <= 4) emojiEl.innerText = "😐"; else if (v <= 7) emojiEl.innerText = "🙂"; else if (v <= 9) emojiEl.innerText = "😄"; else emojiEl.innerText = "🤩";
+    function actualizarSliderFluido(valor) {
+      clearTimeout(sliderTimeout);
+      sliderTimeout = setTimeout(() => {
+        document.getElementById('valDivertiste').innerText = valor;
+        const emojiEl = document.getElementById('emojiDisplay');
+        const v = parseInt(valor);
+        if (v <= 2) emojiEl.innerText = "😞"; else if (v <= 4) emojiEl.innerText = "😐"; else if (v <= 7) emojiEl.innerText = "🙂"; else if (v <= 9) emojiEl.innerText = "😄"; else emojiEl.innerText = "🤩";
+      }, 50);
     }
 
     function abrirModalMedia() { document.getElementById('mediaModal').style.display = 'flex'; }
-    function cerrarModalMedia() { document.getElementById('mediaModal').style.display = 'none'; tempMediaFile = null; document.getElementById('trimmerBox').style.display = 'none'; document.getElementById('selectedFileLabel').innerText = 'Ningún archivo seleccionado'; }
+    function cerrarModalMedia() { document.getElementById('mediaModal').style.display = 'none'; tempMediaFile = null; document.getElementById('trimmerBox').style.display = 'none'; }
     
-    function seleccionarColorPulso(color, el) {
-      selectedPulseColor = color;
-      document.querySelectorAll('.swatch-btn').forEach(s => s.classList.remove('selected'));
-      if (el) el.classList.add('selected');
-      document.documentElement.style.setProperty('--pulse-color', color);
-    }
-
     function procesarMediaSeleccionada(files) {
-      if (!files || files.length === 0) {
-        alert("⚠️ No se seleccionó ningún archivo o el dispositivo bloqueó el contenido.");
-        return;
-      }
-      
+      if (!files || files.length === 0) { alert("⚠️ No se seleccionó ningún archivo."); return; }
       const file = files[0];
-      
-      if (!file || file.size === 0) {
-        alert("⚠️ El archivo seleccionado está vacío o no es accesible (común en iOS con elementos de iCloud). Intenta elegir otra imagen o video.");
-        return;
-      }
+      if (!file || file.size === 0) { alert("⚠️ El archivo seleccionado está vacío."); return; }
 
       tempMediaFile = file;
       document.getElementById('selectedFileLabel').innerText = file.name;
@@ -713,9 +953,6 @@
             videoStartTime = 0; videoEndTime = duration;
           }
         };
-        tempVideo.onerror = function() {
-          alert("⚠️ El formato del video no es compatible o no se pudo leer correctamente.");
-        };
         tempVideo.src = URL.createObjectURL(file);
       } else {
         document.getElementById('trimmerBox').style.display = 'none';
@@ -731,7 +968,6 @@
     async function guardarConfiguracionMedia() {
       const email = document.getElementById('ciEmail').value.trim();
       const btn = document.getElementById('btnGuardarMedia');
-      selectedTransitionMode = document.getElementById('transitionModeSelect').value;
       btn.disabled = true; btn.innerText = 'Guardando...';
       try {
         let mediaUrl = userProfile?.video_url || null;
@@ -741,12 +977,8 @@
             try {
               const oldUrl = userProfile.video_url;
               const pathParts = oldUrl.split('/avatars/');
-              if (pathParts.length > 1) {
-                await sb.storage.from('avatars').remove([pathParts[1]]);
-              }
-            } catch (errClean) {
-              console.warn('No se pudo borrar el archivo antiguo:', errClean);
-            }
+              if (pathParts.length > 1) { await sb.storage.from('avatars').remove([pathParts[1]]); }
+            } catch (errClean) {}
           }
 
           const ext = tempMediaFile.name.split('.').pop() || 'mp4';
@@ -766,11 +998,10 @@
 
           if (updateError) throw updateError;
           userProfile.video_url = mediaUrl;
-        } else {
-          throw new Error("No se encontró el ID de usuario activo para actualizar.");
         }
 
         aplicarVisualizacionMedia(mediaUrl);
+        aplicarVisualizacionSimuladorMedia(mediaUrl);
         alert('¡Configuración aplicada con éxito!'); cerrarModalMedia();
       } catch (err) { alert('Error: ' + err.message); } finally { btn.disabled = false; btn.innerText = 'Aplicar Configuración'; }
     }
@@ -778,30 +1009,31 @@
     function aplicarVisualizacionMedia(url) {
       const vid = document.getElementById('nativeProfileVideo');
       const img = document.getElementById('nativeProfileImage');
-
-      if (!url) {
-        vid.style.display = 'none';
-        img.style.display = 'none';
-        return;
-      }
-
+      if (!url) { vid.style.display = 'none'; img.style.display = 'none'; return; }
       const esVideo = url.match(/\.(mp4|webm|ogg|mov)$/i);
-
       if (esVideo) {
-        vid.src = url;
-        vid.style.display = 'block';
-        img.style.display = 'none';
+        vid.src = url; vid.style.display = 'block'; img.style.display = 'none';
         vid.play().catch(() => {});
       } else {
-        img.src = url;
-        img.style.display = 'block';
-        vid.style.display = 'none';
+        img.src = url; img.style.display = 'block'; vid.style.display = 'none';
+      }
+    }
+
+    function aplicarVisualizacionSimuladorMedia(url) {
+      const vid = document.getElementById('simNativeVideo');
+      const img = document.getElementById('simNativeImage');
+      if (!url) { vid.style.display = 'none'; img.style.display = 'none'; return; }
+      const esVideo = url.match(/\.(mp4|webm|ogg|mov)$/i);
+      if (esVideo) {
+        vid.src = url; vid.style.display = 'block'; img.style.display = 'none';
+        vid.play().catch(() => {});
+      } else {
+        img.src = url; img.style.display = 'block'; vid.style.display = 'none';
       }
     }
 
     async function init() {
-      const hoy = new Date();
-      document.getElementById('dossierDateTag').innerText = `${hoy.getDate()}/${hoy.getMonth() + 1}/${hoy.getFullYear()}`;
+      iniciarRelojTiempoReal();
       const cachedAvatar = localStorage.getItem('apex_user_avatar');
       if (cachedAvatar) renderAvatarVisual(cachedAvatar);
 
@@ -810,11 +1042,9 @@
         const currentTime = vid.currentTime;
         const timeLeft = videoEndTime - currentTime;
         const progressInSegment = currentTime - videoStartTime;
-        if (selectedTransitionMode === 'fade_sutil') {
-          if (progressInSegment <= 2.0) vid.style.opacity = Math.min(1.0, 0.2 + (progressInSegment / 2.0) * 0.8);
-          else if (timeLeft <= 2.0) vid.style.opacity = Math.max(0.2, (timeLeft / 2.0) * 0.8);
-          else vid.style.opacity = 1.0;
-        }
+        if (progressInSegment <= 2.0) vid.style.opacity = Math.min(1.0, 0.2 + (progressInSegment / 2.0) * 0.8);
+        else if (timeLeft <= 2.0) vid.style.opacity = Math.max(0.2, (timeLeft / 2.0) * 0.8);
+        else vid.style.opacity = 1.0;
         if (currentTime >= videoEndTime) { vid.currentTime = videoStartTime; vid.play(); }
       });
 
@@ -834,20 +1064,14 @@
       await cargarRegistrosBD(email);
       await gestionarNotificacionesInteligentes(email);
 
-      // SUSCRIPCIÓN SUPABASE REALTIME (ACTUALIZACIÓN AUTOMÁTICA EN VIVO)
+      setTimeout(() => {
+        requestAnimationFrame(() => ApexFiltros.recalcularVistas());
+      }, 100);
+
       sb.channel('usuario-ficha-realtime')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_checkins', filter: `user_email=eq.${email}` }, payload => {
-          console.log('[Realtime] Check-in actualizado en vivo:', payload);
-          cargarRegistrosBD(email);
-        })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_notifications', filter: `user_email=eq.${email}` }, payload => {
-          console.log('[Realtime] Notificación en vivo detectada:', payload);
-          gestionarNotificacionesInteligentes(email);
-        })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_users', filter: `email=eq.${email}` }, payload => {
-          console.log('[Realtime] Perfil de usuario actualizado en vivo:', payload);
-          cargarDatosPerfil(email);
-        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_checkins', filter: `user_email=eq.${email}` }, payload => { cargarRegistrosBD(email); })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_notifications', filter: `user_email=eq.${email}` }, payload => { gestionarNotificacionesInteligentes(email); })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_users', filter: `email=eq.${email}` }, payload => { cargarDatosPerfil(email); })
         .subscribe();
     }
 
@@ -873,8 +1097,8 @@
           const avatarUrl = data.photo_url || data.avatar_url || localStorage.getItem('apex_user_avatar');
           renderAvatarVisual(avatarUrl, data.name || data.email || 'ST');
           if (data.aura_color) { selectedPulseColor = data.aura_color; document.documentElement.style.setProperty('--pulse-color', data.aura_color); }
-          
           aplicarVisualizacionMedia(data.video_url);
+          aplicarVisualizacionSimuladorMedia(data.video_url);
 
           const hoy = new Date(); hoy.setHours(0,0,0,0);
           const fechaExpStr = data.subscription_expires_at || data.membership_end;
@@ -938,6 +1162,41 @@
       return '#ffffff';
     }
 
+    /* MOTOR DE PROYECCIÓN DINÁMICO PARA LAS PRÓXIMAS 3 CLASES (CON FLUCTUACIÓN REALISTA) */
+    function calcularProyeccionAsistencia(records) {
+      if (!records || records.length < 2) {
+        const ultimaFecha = records.length > 0 ? new Date(records[records.length - 1].created_at) : new Date();
+        const proyecciones = [];
+        let promRend = records.length > 0 ? records.reduce((a,b)=>a+parseFloat(b.rendimiento||0),0)/records.length : 7;
+        for (let i = 1; i <= 3; i++) {
+          ultimaFecha.setDate(ultimaFecha.getDate() + 3);
+          const fluctuacion = (Math.random() * 1.6 - 0.8);
+          proyecciones.push({ fecha: new Date(ultimaFecha), valor: Math.min(10, Math.max(1, +(promRend + fluctuacion).toFixed(1))) });
+        }
+        return proyecciones;
+      }
+
+      let diferencias = [];
+      for (let i = 1; i < records.length; i++) {
+        const diffTime = Math.abs(new Date(records[i].created_at) - new Date(records[i-1].created_at));
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        diferencias.push(diffDays);
+      }
+      const promedioIntervaloDays = Math.max(1, Math.round(diferencias.reduce((a,b)=>a+b, 0) / diferencias.length));
+      
+      const ultimaFecha = new Date(records[records.length - 1].created_at);
+      const proyecciones = [];
+      let promRend = records.reduce((a,b)=>a+parseFloat(b.rendimiento||0),0)/records.length;
+
+      for (let i = 1; i <= 3; i++) {
+        ultimaFecha.setDate(ultimaFecha.getDate() + promedioIntervaloDays);
+        const variacion = (Math.random() * 2.2 - 1.1); // Fluctuación orgánica marcada
+        const valProyectado = Math.min(10, Math.max(1, +(promRend + variacion).toFixed(1)));
+        proyecciones.push({ fecha: new Date(ultimaFecha), valor: valProyectado });
+      }
+      return proyecciones;
+    }
+
     function actualizarDashboardConDatos(records) {
       const container = document.getElementById('historyContainer');
       if (!records || records.length === 0) {
@@ -954,20 +1213,105 @@
       const sumRend = records.reduce((acc, cur) => acc + (parseFloat(cur.rendimiento) || 0), 0);
       document.getElementById('statRendProm').innerText = (sumRend / records.length).toFixed(1);
 
-      const labels = records.map(r => {
+      const labelsHistoricas = records.map(r => {
         const d = new Date(r.created_at);
         return `${d.getDate()}/${d.getMonth() + 1}`;
       });
 
-      renderSingleChart('chartEficiencia', labels, records.map(r => +((parseFloat(r.rendimiento) / (parseFloat(r.rpe) || 1)) * 5).toFixed(1)));
-      renderSingleChart('chartFluidezReal', labels, records.map(r => +((parseFloat(r.preguntacoach || r.student_tech_score) + parseFloat(r.soltura)) / 2).toFixed(1)));
-      renderSingleChart('chartRendimiento', labels, records.map(r => r.rendimiento));
-      renderSingleChart('chartRpe', labels, records.map(r => r.rpe));
-      renderSingleChart('chartSoltura', labels, records.map(r => r.soltura));
-      renderSingleChart('chartFluidez', labels, records.map(r => r.preguntacoach || r.student_tech_score));
-      renderSingleChart('chartDiversion', labels, records.map(r => r.divertiste));
+      const proyeccionesAsistencia = calcularProyeccionAsistencia(records);
+      const labelsProyeccion = proyeccionesAsistencia.map(p => `${p.fecha.getDate()}/${p.fecha.getMonth() + 1} (Proj)`);
+      const labelsCompletas = [...labelsHistoricas, ...labelsProyeccion];
+
+      const construirDatasetMetrica = (extractorFn) => {
+        const histData = records.map(extractorFn);
+        const projDataInicio = histData[histData.length - 1]; 
+        
+        const datasetHist = [...histData, ...new Array(proyeccionesAsistencia.length).fill(null)];
+        datasetHist[datasetHist.length - proyeccionesAsistencia.length - 1] = projDataInicio;
+
+        const datasetProj = new Array(histData.length - 1).fill(null);
+        datasetProj.push(projDataInicio);
+        proyeccionesAsistencia.forEach(p => datasetProj.push(p.valor));
+
+        return { datasetHist, datasetProj };
+      };
+
+      const dEficiencia = construirDatasetMetrica(r => +((parseFloat(r.rendimiento) / (parseFloat(r.rpe) || 1)) * 5).toFixed(1));
+      const dFluidez = construirDatasetMetrica(r => +((parseFloat(r.preguntacoach || r.student_tech_score) + parseFloat(r.soltura)) / 2).toFixed(1));
+      const dRend = construirDatasetMetrica(r => r.rendimiento);
+      const dRpe = construirDatasetMetrica(r => r.rpe);
+      const dSolt = construirDatasetMetrica(r => r.soltura);
+      const dTec = construirDatasetMetrica(r => r.preguntacoach || r.student_tech_score);
+      const dDiv = construirDatasetMetrica(r => r.divertiste);
+
+      renderDualChartWithPopup('chartEficiencia', labelsCompletas, dEficiencia.datasetHist, dEficiencia.datasetProj, records);
+      renderDualChartWithPopup('chartFluidezReal', labelsCompletas, dFluidez.datasetHist, dFluidez.datasetProj, records);
+      renderDualChartWithPopup('chartRendimiento', labelsCompletas, dRend.datasetHist, dRend.datasetProj, records);
+      renderDualChartWithPopup('chartRpe', labelsCompletas, dRpe.datasetHist, dRpe.datasetProj, records);
+      renderDualChartWithPopup('chartSoltura', labelsCompletas, dSolt.datasetHist, dSolt.datasetProj, records);
+      renderDualChartWithPopup('chartFluidez', labelsCompletas, dTec.datasetHist, dTec.datasetProj, records);
+      renderDualChartWithPopup('chartDiversion', labelsCompletas, dDiv.datasetHist, dDiv.datasetProj, records);
 
       renderizarHistorialCheckins(cachedRecords);
+    }
+
+    function renderDualChartWithPopup(canvasId, labels, dataHist, dataProj, records) {
+      if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
+      const canvasEl = document.getElementById(canvasId);
+      if (!canvasEl) return;
+
+      chartInstances[canvasId] = new Chart(canvasEl.getContext('2d'), {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Histórico',
+              data: dataHist,
+              borderColor: '#ffffff',
+              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              borderWidth: 2,
+              tension: 0.3,
+              fill: true,
+              pointRadius: 4,
+              pointBackgroundColor: '#ffffff'
+            },
+            {
+              label: 'Proyección (Próximas 3 Clases)',
+              data: dataProj,
+              borderColor: '#00f0ff',
+              backgroundColor: 'rgba(0, 240, 255, 0.05)',
+              borderWidth: 2,
+              borderDash: [4, 4],
+              tension: 0.3,
+              fill: false,
+              pointRadius: 3,
+              pointBackgroundColor: '#00f0ff'
+            }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          animation: { duration: 600, easing: 'easeInOutQuad' },
+          plugins: { legend: { display: false } },
+          onClick: (e, activeEls) => {
+            if (activeEls.length > 0) {
+              const idx = activeEls[0].index;
+              if (idx < records.length) {
+                const rec = records[idx];
+                const d = new Date(rec.created_at);
+                document.getElementById('popFecha').innerText = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
+                document.getElementById('popBitacoraTxt').innerText = rec.bitacora ? `"${rec.bitacora}"` : "Sin nota de bitácora registrada para este día.";
+                document.getElementById('bitacoraPopupModal').style.display = 'block';
+              }
+            }
+          },
+          scales: {
+            x: { ticks: { color: '#666', font: { size: 8 } }, grid: { display: false } },
+            y: { min: 1, max: 10, ticks: { color: '#666', font: { size: 9 }, stepSize: 2 }, grid: { color: '#1e1e1e' } }
+          }
+        }
+      });
     }
 
     function filtrarHistorialCheckin(tipo, btn) {
@@ -1015,15 +1359,26 @@
       const metaPeriodo = ApexFiltros.tipo === 30 ? 12 : 24;
       const disciplinaPct = Math.min(100, Math.round((clasesPeriodo / metaPeriodo) * 100));
 
-      document.getElementById('dossierName').innerText = userProfile?.name || 'Striker Apex';
-      const tierTxt = document.getElementById('tierLabel').innerText;
-      document.getElementById('dossierMeta').innerText = `${tierTxt} // ${email}`;
-      document.getElementById('dossierDisciplinaVal').innerText = `${disciplinaPct}%`;
-      document.getElementById('dossierClasesRatio').innerText = `${clasesPeriodo} / ${metaPeriodo} Meta`;
-      document.getElementById('dossierTotalVal').innerText = totalClasesCarrera;
+      const dossierNameEl = document.getElementById('dossierName');
+      if (dossierNameEl) dossierNameEl.innerText = userProfile?.name || 'Striker Apex';
+
+      const dossierMetaEl = document.getElementById('dossierMeta');
+      const tierLabelEl = document.getElementById('tierLabel');
+      const tierTxt = tierLabelEl ? tierLabelEl.innerText : 'Iniciado';
+      if (dossierMetaEl) dossierMetaEl.innerText = `${tierTxt} // ${email}`;
+
+      const discValEl = document.getElementById('dossierDisciplinaVal');
+      if (discValEl) discValEl.innerText = `${disciplinaPct}%`;
+
+      const clasesRatioEl = document.getElementById('dossierClasesRatio');
+      if (clasesRatioEl) clasesRatioEl.innerText = `${clasesPeriodo} / ${metaPeriodo} Meta`;
+
+      const totalValEl = document.getElementById('dossierTotalVal');
+      if (totalValEl) totalValEl.innerText = totalClasesCarrera;
 
       if (records.length === 0) {
-        document.getElementById('radarStatusLabel').innerText = "Sin datos en el periodo";
+        const statusLabel = document.getElementById('radarStatusLabel');
+        if (statusLabel) statusLabel.innerText = "Sin datos en el periodo";
         if (chartInstances['chartRadar']) chartInstances['chartRadar'].destroy();
         return;
       }
@@ -1052,7 +1407,9 @@
       const globalPct = Math.round((globalAvg / 10) * 100);
       const escala = determinarEscalaOficial(globalPct);
 
-      document.getElementById('radarStatusLabel').innerText = `${escala.estado} (${globalPct}%)`;
+      const statusLabel = document.getElementById('radarStatusLabel');
+      if (statusLabel) statusLabel.innerText = `${escala.estado} (${globalPct}%)`;
+      
       renderRadarChart(averages);
     }
 
@@ -1092,40 +1449,6 @@
       });
     }
 
-    function renderSingleChart(canvasId, labels, dataPoints) {
-      if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
-      const canvasEl = document.getElementById(canvasId);
-      if (!canvasEl) return;
-
-      const pointColors = dataPoints.map(val => getColorDinamico(val));
-
-      chartInstances[canvasId] = new Chart(canvasEl.getContext('2d'), {
-        type: 'line',
-        data: {
-          labels: labels,
-          datasets: [{
-            data: dataPoints,
-            borderColor: '#ffffff',
-            backgroundColor: 'rgba(255, 255, 255, 0.1)',
-            borderWidth: 2,
-            tension: 0.3,
-            fill: true,
-            pointRadius: 4,
-            pointBackgroundColor: pointColors
-          }]
-        },
-        options: {
-          responsive: true, maintainAspectRatio: false,
-          animation: { duration: 600, easing: 'easeInOutQuad' },
-          plugins: { legend: { display: false } },
-          scales: {
-            x: { ticks: { color: '#666', font: { size: 9 } }, grid: { display: false } },
-            y: { min: 1, max: 10, ticks: { color: '#666', font: { size: 9 }, stepSize: 2 }, grid: { color: '#1e1e1e' } }
-          }
-        }
-      });
-    }
-
     async function gestionarNotificacionesInteligentes(email) {
       if (!sb || !email) return;
       const area = document.getElementById('notifArea');
@@ -1140,11 +1463,8 @@
           const fechaCreacion = new Date(n.created_at);
           const horasTranscurridas = (ahora - fechaCreacion) / (1000 * 60 * 60);
           
-          if (horasTranscurridas > 24) {
-            await sb.from('apex_notifications').delete().eq('id', n.id);
-          } else {
-            validas.push(n);
-          }
+          if (horasTranscurridas > 24) { await sb.from('apex_notifications').delete().eq('id', n.id); }
+          else { validas.push(n); }
         }
 
         const visibles = validas.slice(0, 3);
@@ -1172,24 +1492,23 @@
 
     async function eliminarNotificacion(id) {
       const card = document.getElementById(`notif-${id}`);
-      if (card) { 
-        card.style.transform = 'translateX(100px)'; 
-        card.style.opacity = '0'; 
-        setTimeout(() => card.remove(), 200); 
-      }
-      if (sb) { 
-        await sb.from('apex_notifications').delete().eq('id', id); 
-      }
+      if (card) { card.style.transform = 'translateX(100px)'; card.style.opacity = '0'; setTimeout(() => card.remove(), 200); }
+      if (sb) { await sb.from('apex_notifications').delete().eq('id', id); }
     }
 
     async function cargarPlanEntrenamiento() {
       const pilar = document.getElementById('planPilarSelect').value;
       const semana = document.getElementById('planSemanaSelect').value;
       const container = document.getElementById('planContainer');
-      
-      container.innerHTML = '<span style="color:var(--text-muted);font-size:0.7rem;">Cargando contenido táctico...</span>';
+      const cacheKey = `apex_plan_${userNivelOficial}_${pilar}_${semana}`;
 
-      if (!sb) return;
+      if (!sb) {
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) renderPlanData(JSON.parse(cached), true);
+        else container.innerHTML = '<span style="color:var(--text-muted);font-size:0.7rem;">Sin conexión y sin plan en caché local.</span>';
+        return;
+      }
+
       try {
         const { data, error } = await sb
           .from('apex_training_plans')
@@ -1200,31 +1519,42 @@
           .maybeSingle();
 
         if (error || !data) {
-          container.innerHTML = `<span style="color:var(--text-muted);font-size:0.7rem;">No hay charlas registradas para ${userNivelOficial} - ${pilar} - ${semana} en la base de datos.</span>`;
+          const cached = localStorage.getItem(cacheKey);
+          if (cached) { renderPlanData(JSON.parse(cached), true); return; }
+          container.innerHTML = `<span style="color:var(--text-muted);font-size:0.7rem;">No hay charlas registradas para ${userNivelOficial} - ${pilar} - ${semana}.</span>`;
           return;
         }
 
-        container.innerHTML = `
-          <div class="plan-card">
-            <div class="plan-section-title">1. Apertura (Activación)</div>
-            <div class="plan-section-content">${data.apertura || 'N/A'}</div>
-
-            <div class="plan-section-title">2. Cuerpo (Bloque Biomecánico)</div>
-            <div class="plan-section-content">${data.cuerpo || 'N/A'}</div>
-
-            <div class="plan-section-title">3. Teoría Táctica (Charla)</div>
-            <div class="plan-section-content">${data.teoria || 'N/A'}</div>
-
-            <div class="plan-section-title" style="color:var(--accent);">4. Error Fatal a Evitar</div>
-            <div class="plan-section-content">${data.error_fatal || 'N/A'}</div>
-
-            <div class="plan-section-title" style="color:#00f0ff;">5. Debate en Sala</div>
-            <div class="plan-section-content">${data.debate || 'N/A'}</div>
-          </div>
-        `;
+        localStorage.setItem(cacheKey, JSON.stringify(data));
+        renderPlanData(data, false);
       } catch (err) {
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) { renderPlanData(JSON.parse(cached), true); return; }
         container.innerHTML = '<span style="color:var(--accent);font-size:0.7rem;">Error al sincronizar el plan táctico.</span>';
       }
+    }
+
+    function renderPlanData(data, isOffline) {
+      const container = document.getElementById('planContainer');
+      container.innerHTML = `
+        ${isOffline ? '<div style="font-size:0.58rem; color:var(--status-ok); margin-bottom:6px;">⚡ Mostrando versión guardada en caché (Modo Offline)</div>' : ''}
+        <div class="plan-card">
+          <div class="plan-section-title">1. Apertura (Activación)</div>
+          <div class="plan-section-content">${data.apertura || 'N/A'}</div>
+
+          <div class="plan-section-title">2. Cuerpo (Bloque Biomecánico)</div>
+          <div class="plan-section-content">${data.cuerpo || 'N/A'}</div>
+
+          <div class="plan-section-title">3. Teoría Táctica (Charla)</div>
+          <div class="plan-section-content">${data.teoria || 'N/A'}</div>
+
+          <div class="plan-section-title" style="color:var(--accent);">4. Error Fatal a Evitar</div>
+          <div class="plan-section-content">${data.error_fatal || 'N/A'}</div>
+
+          <div class="plan-section-title" style="color:#00f0ff;">5. Debate en Sala</div>
+          <div class="plan-section-content">${data.debate || 'N/A'}</div>
+        </div>
+      `;
     }
 
     async function enviarCheckin(event) {
@@ -1250,6 +1580,7 @@
         student_tech_score: parseFloat(document.getElementById('ciPreguntaCoach').value),
         ram: parseFloat(document.getElementById('ciPreguntaCoach').value),
         divertiste: parseFloat(document.getElementById('ciDivertiste').value),
+        bitacora: document.getElementById('ciBitacora').value.trim() || null,
         status: 'pendiente_coach'
       };
 
