@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#000000">
+  <title>Apex | Caja Táctica & Sala</title>
+
+  <!-- Supabase JS & html2canvas para exportar JPG -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #000000;
+      --card-bg: #0a0a0c;
+      --card-sub: #111115;
+      --border: #1a1a20;
+      --accent: #e50914;
+      --accent-dim: rgba(229, 9, 20, 0.1);
+      --text-main: #f0f0f2;
+      --text-muted: #777780;
+      --status-ok: #22c55e;
+      --status-warn: #eab308;
+      --status-info: #3b82f6;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text-main); padding: 10px; max-width: 680px; margin: 0 auto; padding-bottom: 90px; }
+
+    .header { border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+    .title { font-size: 0.95rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
+    .title span { color: var(--accent); }
+    .badge-role { font-size: 0.58rem; font-weight: 800; background: var(--card-sub); color: var(--text-muted); border: 1px solid var(--border); padding: 3px 6px; border-radius: 4px; text-transform: uppercase; }
+
+    /* NAVEGACIÓN SUPERIOR */
+    .sub-nav { display: flex; gap: 6px; margin-bottom: 12px; }
+    .nav-btn {
+      flex: 1; padding: 10px; background: var(--card-bg); border: 1px solid var(--border);
+      color: var(--text-muted); font-size: 0.7rem; font-weight: 900; text-transform: uppercase;
+      border-radius: 6px; cursor: pointer; text-align: center; transition: 0.2s; position: relative;
+    }
+    .nav-btn.active { background: #fff; color: #000; border-color: #fff; }
+    .nav-badge { position: absolute; top: -4px; right: -2px; background: var(--accent); color: #fff; border-radius: 10px; font-size: 0.52rem; padding: 1px 5px; font-weight: 900; }
+
+    .tab-section { display: none; }
+    .tab-section.active { display: block; }
+
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-bottom: 10px; }
+    .card-title { font-size: 0.7rem; font-weight: 900; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+
+    .form-group { margin-bottom: 8px; }
+    label { display: block; font-size: 0.62rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted); margin-bottom: 3px; }
+    .form-control { width: 100%; padding: 8px; background: var(--card-sub); border: 1px solid var(--border); color: #fff; border-radius: 4px; font-weight: 600; outline: none; font-size: 0.78rem; color-scheme: dark; }
+    .form-control:focus { border-color: var(--accent); }
+
+    .btn { background: var(--accent); color: #fff; border: none; padding: 10px; width: 100%; font-weight: 900; text-transform: uppercase; border-radius: 4px; cursor: pointer; font-size: 0.75rem; letter-spacing: 0.5px; transition: 0.2s; }
+    .btn:disabled { background: #151518; color: #444; cursor: not-allowed; }
+    .btn-secondary { background: var(--card-sub); border: 1px solid var(--border); color: #ccc; padding: 6px 10px; font-size: 0.65rem; font-weight: 800; border-radius: 4px; cursor: pointer; text-transform: uppercase; }
+    .btn-success { background: #113318; color: var(--status-ok); border: 1px solid rgba(34,197,94,0.3); font-weight: 900; padding: 6px 10px; border-radius: 4px; font-size: 0.65rem; cursor: pointer; text-transform: uppercase; }
+    .btn-danger { background: #331111; color: var(--accent); border: 1px solid rgba(229,9,20,0.3); font-weight: 900; padding: 6px 10px; border-radius: 4px; font-size: 0.65rem; cursor: pointer; text-transform: uppercase; }
+
+    /* KPIS */
+    .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 10px; }
+    .kpi-box { background: var(--card-sub); border: 1px solid var(--border); border-radius: 4px; padding: 8px; text-align: center; }
+    .kpi-num { font-size: 0.95rem; font-weight: 900; color: #fff; }
+    .kpi-label { font-size: 0.52rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800; margin-top: 2px; }
+
+    /* CATÁLOGO / TARJETAS */
+    .store-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 10px; }
+    .product-card {
+      background-size: cover; background-position: center; border-radius: 6px; border: 1px solid var(--border);
+      height: 110px; display: flex; flex-direction: column; justify-content: flex-end; padding: 8px; position: relative; overflow: hidden; cursor: pointer;
+      background-color: #0d0d10;
+    }
+    .product-card::before {
+      content: ''; position: absolute; top:0; left:0; right:0; bottom:0;
+      background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.4) 100%);
+    }
+    .product-card > * { position: relative; z-index: 1; }
+    .product-title { font-size: 0.72rem; font-weight: 900; color: #fff; text-transform: uppercase; }
+    .product-price { font-size: 0.75rem; font-weight: 900; color: var(--status-ok); margin-top: 2px; }
+
+    .cart-box { background: var(--card-sub); border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin-bottom: 10px; }
+
+    .inflow-item {
+      background: var(--card-sub); border-left: 2px solid var(--status-ok); border-top: 1px solid var(--border);
+      border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
+      border-radius: 4px; padding: 8px 10px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; gap: 6px;
+    }
+    .inflow-meta { font-size: 0.6rem; color: var(--text-muted); margin-top: 2px; }
+
+    .modal-overlay {
+      display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.9); backdrop-filter: blur(2px); z-index: 100;
+      align-items: center; justify-content: center; padding: 12px;
+    }
+
+    #ticketFactura {
+      background: #fff; color: #111; padding: 20px; border-radius: 6px; width: 100%; max-width: 360px; font-family: monospace; position: relative;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="title">Apex <span>Caja & Sala</span></div>
+    <div style="display:flex; align-items:center; gap:6px;">
+      <span id="lblCajeroActivo" style="font-size:0.55rem; color:var(--text-muted); background:var(--card-sub); padding:3px 6px; border:1px solid var(--border); border-radius:4px;">Cajero: No autenticado</span>
+      <div class="badge-role" id="lblEstadoCaja">Caja Cerrada</div>
+    </div>
+  </div>
+
+  <!-- NAVEGACIÓN PRINCIPAL -->
+  <div class="sub-nav">
+    <button class="nav-btn active" onclick="switchTab('tabCaja', this)">💵 Caja Diaria</button>
+    <button class="nav-btn" onclick="switchTab('tabBandejaCoach', this)">
+      📥 Sala Strikers <span id="badgeCoachCount" class="nav-badge" style="display:none;">0</span>
+    </button>
+  </div>
+
+  <!-- ================= 1. CAJA DIARIA ================= -->
+  <div id="tabCaja" class="tab-section active">
+    <div id="panelCajaCerrada" class="card" style="text-align: center; padding: 20px;">
+      <div style="font-size: 0.8rem; font-weight: 900; margin-bottom: 6px;">CAJA CERRADA</div>
+      <p style="font-size: 0.65rem; color: var(--text-muted); margin-bottom: 12px;">Inicia turno seleccionando la cuenta base propia.</p>
+      <div class="form-group" style="text-align: left;">
+        <label>Cuenta de Origen (Base - Propia)</label>
+        <select id="cajaCuentaBase" class="form-control"></select>
+      </div>
+      <div class="form-group" style="text-align: left;">
+        <label>Monto Base ($ COP)</label>
+        <input type="number" id="cajaBaseMonto" class="form-control" value="50000" min="0">
+      </div>
+      <button class="btn" onclick="CajaOperacion.abrirCaja()">Abrir Caja</button>
+    </div>
+
+    <div id="panelCajaAbierta" style="display: none;">
+      <div class="kpi-grid">
+        <div class="kpi-box">
+          <div class="kpi-num" id="cajaKpiBase">$0</div>
+          <div class="kpi-label">Base</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-num" id="cajaKpiVentas" style="color:var(--status-ok);">$0</div>
+          <div class="kpi-label">Ventas / Netas</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-num" id="cajaKpiEfectivo">$0</div>
+          <div class="kpi-label">Efectivo</div>
+        </div>
+      </div>
+
+      <div class="cart-box">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <strong style="font-size:0.75rem; color:#fff;" id="cartBoxTitle">🛒 Carrito Rápido (Venta)</strong>
+          <span id="cartTotalTxt" style="font-size:0.8rem; font-weight:900; color:var(--status-ok);">$0</span>
+        </div>
+        <div id="cartItemsList" style="font-size:0.68rem; color:var(--text-muted); margin-bottom:6px;">Selecciona productos abajo.</div>
+        
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:6px;">
+          <div class="form-group" style="margin-bottom:0;">
+            <label>Operación</label>
+            <select id="cartTipoOperacion" class="form-control" onchange="CajaOperacion.cambioOperacion()">
+              <option value="venta">Venta / Ingreso</option>
+              <option value="compra">Compra / Egreso</option>
+              <option value="prestamo_otorgado">Préstamo Otorgado (Deudor)</option>
+              <option value="prestamo_recibido">Préstamo Recibido (Acreedor)</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:0;" id="wrapCartPago">
+            <label>Pago</label>
+            <select id="cartTipoPago" class="form-control">
+              <option value="contado">Contado</option>
+              <option value="credito">Crédito</option>
+              <option value="nomina">Nómina Staff</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:6px;">
+          <label>Categoría Financiera (Obligatoria)</label>
+          <select id="cartSelectCategoria" class="form-control">
+            <option value="">-- Seleccionar categoría --</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom:6px;">
+          <label id="lblCuentaTransaccion">Cuenta de Destino / Procedencia (Propia)</label>
+          <select id="cartCuentaTransaccion" class="form-control"></select>
+        </div>
+
+        <div class="form-group" style="margin-bottom:6px;" id="wrapMontoPrestamo" style="display:none;">
+          <label>Monto del Préstamo ($ COP)</label>
+          <input type="number" id="cartMontoPrestamo" class="form-control" min="0" value="0">
+        </div>
+
+        <div class="form-group" style="margin-bottom:6px;">
+          <label id="lblCartCliente">Tercero (Cliente / Proveedor / Staff)</label>
+          <select id="cartSelectTercero" class="form-control">
+            <option value="">-- Seleccionar tercero --</option>
+          </select>
+        </div>
+
+        <button class="btn" id="btnCartCobrar" onclick="CajaOperacion.cobrar()">Registrar Transacción</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Catálogo Rápido (Disponible en Caja)</div>
+        <div class="store-grid" id="cajaCatalogoGrid">Cargando...</div>
+      </div>
+
+      <button class="btn btn-secondary" style="background:#151518; border-color:var(--border); color:#fff; margin-top:4px;" onclick="CajaOperacion.abrirModalCierre()">Cerrar Caja y Consolidar</button>
+    </div>
+  </div>
+
+  <!-- ================= 2. SALA / BANDEJA COACH ================= -->
+  <div id="tabBandejaCoach" class="tab-section">
+    <div class="card">
+      <div class="card-title">
+        <span>Pagos de Strikers en Sala</span>
+        <span id="lblCoachPendientesTxt" style="color: var(--status-ok); font-size: 0.6rem;">0 Pendientes</span>
+      </div>
+      <div id="listaMembresiasPendientes">Cargando...</div>
+    </div>
+  </div>
+
+  <!-- MODAL CIERRE DE CAJA -->
+  <div id="modalCierreCaja" class="modal-overlay">
+    <div style="background:var(--card-bg); border:1px solid var(--border); border-radius:6px; padding:16px; width:100%; max-width:360px;">
+      <div style="font-weight:900; font-size:0.8rem; color:#fff; text-transform:uppercase; margin-bottom:6px;">Cierre de Caja</div>
+      <p style="font-size:0.65rem; color:var(--text-muted); margin-bottom:10px;">Efectivo real contado en gaveta:</p>
+      <div class="form-group">
+        <input type="number" id="cierreEfectivoReal" class="form-control" min="0" value="0">
+      </div>
+      <div style="display:flex; gap:6px; margin-top:12px;">
+        <button class="btn" onclick="CajaOperacion.confirmarCierreCaja()">Consolidar</button>
+        <button class="btn-secondary" onclick="document.getElementById('modalCierreCaja').style.display='none'">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL REVISIÓN REPORTE COACH -->
+  <div id="modalRevisionCoach" class="modal-overlay">
+    <div style="background:var(--card-bg); border:1px solid var(--border); border-radius:6px; padding:16px; width:100%; max-width:380px; max-height:90vh; overflow-y:auto;">
+      <div style="font-weight:900; font-size:0.8rem; color:#fff; text-transform:uppercase; margin-bottom:6px;">Revisar Sala</div>
+      <p style="font-size:0.65rem; color:var(--text-muted); margin-bottom:10px;" id="modalCoachDetalle">-</p>
+      
+      <div class="form-group" id="modalComprobanteWrap" style="display:none; text-align:center; margin-bottom:10px;">
+        <img id="modalComprobanteImg" src="" style="width:100%; max-height:150px; object-fit:contain; border-radius:4px; border:1px solid var(--border); cursor:pointer; background:#000;" onclick="abrirZoomImagen(this.src)">
+      </div>
+
+      <div class="form-group">
+        <label>Seleccionar Membresía / Producto (Precarga)</label>
+        <select id="modalSelectProductoTienda" class="form-control" onchange="BandejaCoach.seleccionarProductoTienda()"></select>
+      </div>
+
+      <div class="form-group">
+        <label>Monto ($)</label>
+        <input type="number" id="modalCoachMontoReal" class="form-control" min="0">
+      </div>
+
+      <div class="form-group">
+        <label>Fecha de Pago Real</label>
+        <input type="date" id="modalCoachFechaPago" class="form-control">
+      </div>
+
+      <div class="form-group">
+        <label>Cuenta Destino (Propia)</label>
+        <select id="modalCoachCuenta" class="form-control"></select>
+      </div>
+
+      <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:4px; margin-top:12px;">
+        <button class="btn" onclick="BandejaCoach.confirmarFacturacion()" style="font-size:0.6rem; padding:8px 2px;">Facturar</button>
+        <button class="btn-danger" onclick="BandejaCoach.rechazarPago()" style="font-size:0.6rem; padding:8px 2px;">Rechazar</button>
+        <button class="btn-secondary" onclick="document.getElementById('modalRevisionCoach').style.display='none'" style="font-size:0.6rem; padding:8px 2px;">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL FACTURA / TICKET -->
+  <div id="modalFacturaTicket" class="modal-overlay" onclick="cerrarFacturaModal()">
+    <div onclick="event.stopPropagation()">
+      <div id="ticketFactura">
+        <div style="text-align: center; border-bottom: 2px dashed #111; padding-bottom: 8px; margin-bottom: 8px;">
+          <h2 style="font-size: 1rem; font-weight: 900; text-transform: uppercase;">APEX BOXING</h2>
+          <p style="font-size: 0.6rem; color: #555;">Cali, Colombia</p>
+          <p style="font-size: 0.7rem; font-weight: bold; margin-top: 3px;">COMPROBANTE CONTABLE</p>
+        </div>
+        <div style="font-size: 0.65rem; margin-bottom: 8px; line-height: 1.3;">
+          <div><strong>Fecha:</strong> <span id="facFecha">-</span></div>
+          <div><strong>ID:</strong> <span id="facId">-</span></div>
+          <div><strong>Categoría:</strong> <span id="facCategoria">-</span></div>
+          <div><strong>Responsable:</strong> <span id="facResponsable">-</span></div>
+          <div><strong>Cuenta:</strong> <span id="facCuenta">-</span></div>
+        </div>
+        <div style="border-top: 1px dashed #111; border-bottom: 1px dashed #111; padding: 6px 0; margin-bottom: 8px; font-size: 0.7rem;">
+          <div style="font-weight: bold; margin-bottom: 2px;">DESCRIPCIÓN:</div>
+          <div id="facDescripcion" style="color: #333;">-</div>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 900; margin-bottom: 12px;">
+          <span>TOTAL:</span>
+          <span id="facMonto">$0</span>
+        </div>
+        <div style="text-align: center; font-size: 0.55rem; color: #777; border-top: 1px solid #ddd; padding-top: 4px;">
+          <p>Comprobante de control interno Apex</p>
+        </div>
+      </div>
+      <div style="display:flex; gap:6px; margin-top:8px; max-width:360px;">
+        <button class="btn" onclick="window.print()">Imprimir / PDF</button>
+        <button class="btn-secondary" style="background:#fff; color:#000;" onclick="exportarTicketJPG()">Descargar JPG</button>
+        <button class="btn-secondary" style="background:#222; color:#fff;" onclick="cerrarFacturaModal()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL ZOOM IMAGEN -->
+  <div id="modalImagenZoom" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.95); z-index:1000; justify-content:center; align-items:center; padding:12px;" onclick="cerrarZoomImagen()">
+    <div style="position:relative; max-width:90%; max-height:90%;">
+      <span style="position:absolute; top:-25px; right:0; color:#fff; font-size:1.2rem; cursor:pointer; font-weight:bold;">✕</span>
+      <img id="imgZoomPreview" src="" style="width:100%; height:auto; max-height:85vh; object-fit:contain; border-radius:4px; border:1px solid #222;">
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://fprvbvucmtdpxdihuvrw.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_xAMs8LpCwyMyoql3ohoJUQ_BIRhBQoD';
+    const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+    let cuentasCache = [];
+    let productosCache = [];
+    let pagosPendientesCache = [];
+    let deudoresCache = [];
+    let categoriasCache = [];
+    let carrito = [];
+    let pagoCoachSeleccionado = null;
+    let cajaActiva = null;
+
+    function formatCOP(num) {
+      return '$' + Math.round(num || 0).toLocaleString('es-CO');
+    }
+
+    window.switchTab = function(tabId, btn) {
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+    };
+
+    async function init() {
+      await cargarDatosGlobales();
+      const userEmail = localStorage.getItem('apex_user_email') || sessionStorage.getItem('apex_user_email') || 'cajero@apex.com';
+      document.getElementById('lblCajeroActivo').innerText = `Cajero: ${userEmail}`;
+
+      if (sb) {
+        sb.channel('caja-sala-realtime')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_cuentas' }, () => cargarDatosGlobales())
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_payments' }, () => cargarDatosGlobales())
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_productos' }, () => cargarDatosGlobales())
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_categorias_financieras' }, () => cargarDatosGlobales())
+          .subscribe();
+      }
+    }
+
+    async function cargarDatosGlobales() {
+      if (!sb) return;
+      try {
+        const [resCta, resProd, resPag, resDeu, resCat] = await Promise.all([
+          sb.from('apex_cuentas').select('*').order('nombre'),
+          sb.from('apex_productos').select('*').order('nombre'),
+          sb.from('apex_payments').select('*').order('created_at', { ascending: false }),
+          sb.from('apex_acreedores_deudores').select('*').order('nombre'),
+          sb.from('apex_categorias_financieras').select('*').order('nombre')
+        ]);
+
+        cuentasCache = resCta.data || [];
+        productosCache = resProd.data || [];
+        pagosPendientesCache = resPag.data || [];
+        deudoresCache = resDeu.data || [];
+        categoriasCache = resCat.data || [];
+
+        poblarSelectsCuentasPropias();
+        poblarSelectsProductosModal();
+        poblarSelectsCategorias();
+        poblarSelectsTercerosCaja();
+
+        CajaOperacion.renderizarCatalogo();
+        BandejaCoach.renderizar();
+      } catch (e) {
+        console.warn("Error cargando datos:", e);
+      }
+    }
+
+    function poblarSelectsCuentasPropias() {
+      const selects = [
+        document.getElementById('cajaCuentaBase'),
+        document.getElementById('cartCuentaTransaccion'),
+        document.getElementById('modalCoachCuenta'),
+        document.getElementById('deuSelectCuenta')
+      ];
+      const propiasActivas = cuentasCache.filter(c => c.activa !== false && (c.clasificacion === 'propia' || !c.clasificacion));
+      selects.forEach(sel => {
+        if (!sel) return;
+        const valActual = sel.value;
+        sel.innerHTML = '';
+        propiasActivas.forEach(c => {
+          sel.innerHTML += `<option value="${c.id}">${c.nombre} (${formatCOP(c.saldo_actual)})</option>`;
+        });
+        sel.value = valActual;
+      });
+    }
+
+    function poblarSelectsProductosModal() {
+      const sel = document.getElementById('modalSelectProductoTienda');
+      if (!sel) return;
+      sel.innerHTML = '<option value="">-- Seleccionar producto / membresía --</option>';
+      productosCache.forEach(p => {
+        sel.innerHTML += `<option value="${p.id}" data-precio="${p.precio}" data-nombre="${p.nombre}" data-categoria="${p.categoria || 'Mensualidad'}">${p.nombre} (${formatCOP(p.precio)})</option>`;
+      });
+    }
+
+    function poblarSelectsCategorias() {
+      const selCart = document.getElementById('cartSelectCategoria');
+      if (selCart) {
+        const valActual = selCart.value;
+        selCart.innerHTML = '<option value="">-- Seleccionar categoría --</option>';
+        categoriasCache.forEach(c => selCart.innerHTML += `<option value="${c.id}">${c.nombre} (${c.tipo})</option>`);
+        selCart.value = valActual;
+      }
+    }
+
+    function poblarSelectsTercerosCaja() {
+      const sel = document.getElementById('cartSelectTercero');
+      if (!sel) return;
+      const valActual = sel.value;
+      sel.innerHTML = '<option value="">-- Seleccionar tercero --</option>';
+      deudoresCache.forEach(d => {
+        sel.innerHTML += `<option value="${d.nombre}">${d.nombre} (${d.tipo})</option>`;
+      });
+      sel.value = valActual;
+    }
+
+    const CajaOperacion = {
+      abrirCaja: async function() {
+        const emailCajero = (localStorage.getItem('apex_user_email') || sessionStorage.getItem('apex_user_email') || 'cajero@apex.com');
+        const cuentaId = document.getElementById('cajaCuentaBase').value;
+        const baseMonto = parseFloat(document.getElementById('cajaBaseMonto').value) || 0;
+
+        const cta = cuentasCache.find(c => c.id === cuentaId);
+        if (!cta || cta.saldo_actual < baseMonto) {
+          alert("Saldo insuficiente en cuenta base.");
+          return;
+        }
+
+        try {
+          await sb.from('apex_cuentas').update({ saldo_actual: cta.saldo_actual - baseMonto }).eq('id', cuentaId);
+          
+          const catObj = categoriasCache.find(c => c.nombre.toLowerCase().includes('operativo') || c.nombre.toLowerCase().includes('egreso')) || categoriasCache[0];
+          await sb.from('apex_transacciones_libro_mayor').insert([{
+            type: 'egreso',
+            category: 'Apertura Base de Caja',
+            categoria_id: catObj ? catObj.id : null,
+            amount: baseMonto,
+            account_id: cuentaId,
+            description: `Retiro de base (${formatCOP(baseMonto)}) para turno`,
+            registered_by: emailCajero
+          }]);
+
+          cajaActiva = { cajeroEmail: emailCajero, cuentaId, baseMonto, ventasTurno: 0, comprasTurno: 0, efectivoRecaudado: baseMonto };
+          
+          document.getElementById('lblCajeroActivo').innerText = `Cajero: ${emailCajero}`;
+          document.getElementById('panelCajaCerrada').style.display = 'none';
+          document.getElementById('panelCajaAbierta').style.display = 'block';
+          const lblCaja = document.getElementById('lblEstadoCaja');
+          lblCaja.innerText = 'ABIERTA';
+          lblCaja.style.background = 'rgba(34,197,94,0.15)';
+          lblCaja.style.color = 'var(--status-ok)';
+          lblCaja.style.borderColor = 'rgba(34,197,94,0.3)';
+
+          document.getElementById('cajaKpiBase').innerText = formatCOP(baseMonto);
+          document.getElementById('cajaKpiVentas').innerText = formatCOP(0);
+          document.getElementById('cajaKpiEfectivo').innerText = formatCOP(baseMonto);
+
+          await cargarDatosGlobales();
+        } catch (err) {
+          alert("Error: " + err.message);
+        }
+      },
+
+      renderizarCatalogo: function() {
+        const grid = document.getElementById('cajaCatalogoGrid');
+        if (!grid) return;
+        const visibles = productosCache.filter(p => p.mostrar_en_caja !== false);
+        if (visibles.length === 0) {
+          grid.innerHTML = '<span style="color:var(--text-muted); font-size:0.65rem;">Sin productos habilitados para caja.</span>';
+          return;
+        }
+        grid.innerHTML = '';
+        visibles.forEach(prod => {
+          const bgImg = prod.imagen_url || 'https://images.unsplash.com/photo-1517649763962-0c6232660102?w=300';
+          const stockTxt = (prod.categoria === 'Insumo' || prod.categoria === 'Equipo') ? `Stock: ${prod.stock ?? 0}` : 'Infinito';
+          grid.innerHTML += `
+            <div class="product-card" style="background-image: url('${bgImg}');" onclick="CajaOperacion.agregarAlCarrito('${prod.id}')">
+              <div class="product-title">${prod.nombre}</div>
+              <div style="font-size:0.55rem; color:var(--text-muted);">${prod.categoria} · ${stockTxt}</div>
+              <div class="product-price">${formatCOP(prod.precio)}</div>
+            </div>
+          `;
+        });
+      },
+
+      cambioOperacion: function() {
+        const tipoOp = document.getElementById('cartTipoOperacion').value;
+        const wrapPago = document.getElementById('wrapCartPago');
+        const wrapMontoPrestamo = document.getElementById('wrapMontoPrestamo');
+        const boxTitle = document.getElementById('cartBoxTitle');
+        const btnCobrar = document.getElementById('btnCartCobrar');
+
+        if (tipoOp === 'compra') {
+          wrapPago.style.display = 'none';
+          wrapMontoPrestamo.style.display = 'none';
+          boxTitle.innerText = '🛒 Carrito Rápido (Compra / Egreso)';
+          btnCobrar.innerText = 'Registrar Compra / Egreso';
+          btnCobrar.style.background = 'var(--accent)';
+        } else if (tipoOp === 'prestamo_otorgado' || tipoOp === 'prestamo_recibido') {
+          wrapPago.style.display = 'none';
+          wrapMontoPrestamo.style.display = 'block';
+          boxTitle.innerText = '🤝 Registro de Préstamo / Deuda';
+          btnCobrar.innerText = 'Registrar Préstamo';
+          btnCobrar.style.background = 'var(--status-info)';
+        } else {
+          wrapPago.style.display = 'block';
+          wrapMontoPrestamo.style.display = 'none';
+          boxTitle.innerText = '🛒 Carrito Rápido (Venta)';
+          btnCobrar.innerText = 'Registrar Venta';
+          btnCobrar.style.background = 'var(--accent)';
+        }
+      },
+
+      agregarAlCarrito: function(idProd) {
+        const prod = productosCache.find(p => p.id === idProd);
+        if (!prod) return;
+
+        if (prod.categoria === 'Insumo' || prod.categoria === 'Equipo') {
+          const enCarrito = carrito.filter(item => item.id === prod.id).length;
+          const stockActual = parseInt(prod.stock ?? 0, 10);
+          if (enCarrito >= stockActual) {
+            alert(`Stock insuficiente para "${prod.nombre}". Stock disponible: ${stockActual}`);
+            return;
+          }
+        }
+
+        carrito.push(prod);
+        this.renderCarrito();
+      },
+
+      renderCarrito: function() {
+        const list = document.getElementById('cartItemsList');
+        const totalTxt = document.getElementById('cartTotalTxt');
+        if (!list || !totalTxt) return;
+        if (carrito.length === 0) {
+          list.innerHTML = 'Selecciona productos abajo.';
+          totalTxt.innerText = '$0';
+          return;
+        }
+        let total = 0;
+        list.innerHTML = '';
+        carrito.forEach((item, idx) => {
+          total += parseFloat(item.precio);
+          list.innerHTML += `<div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>${item.nombre}</span> <strong>${formatCOP(item.precio)}</strong> <span style="cursor:pointer; color:var(--accent);" onclick="CajaOperacion.quitarDelCarrito(${idx})">✕</span></div>`;
+        });
+        totalTxt.innerText = formatCOP(total);
+      },
+
+      quitarDelCarrito: function(idx) {
+        carrito.splice(idx, 1);
+        this.renderCarrito();
+      },
+
+      cobrar: async function() {
+        if (!cajaActiva) { alert("Caja cerrada."); return; }
+        
+        const tipoOperacion = document.getElementById('cartTipoOperacion').value;
+        const tercero = document.getElementById('cartSelectTercero').value;
+        const cuentaTransaccionId = document.getElementById('cartCuentaTransaccion').value;
+        const categoriaId = document.getElementById('cartSelectCategoria').value;
+        const cajeroEmail = cajaActiva.cajeroEmail;
+
+        if (!tercero) {
+          alert("Debes seleccionar un Tercero obligatorio.");
+          return;
+        }
+        if (!cuentaTransaccionId) {
+          alert("Selecciona la cuenta propia.");
+          return;
+        }
+        if (!categoriaId) {
+          alert("Selecciona una categoría financiera obligatoria.");
+          return;
+        }
+
+        const ctaTrans = cuentasCache.find(c => c.id === cuentaTransaccionId);
+        const catObj = categoriasCache.find(c => c.id === categoriaId);
+
+        try {
+          if (tipoOperacion === 'prestamo_otorgado' || tipoOperacion === 'prestamo_recibido') {
+            const montoPrestamo = parseFloat(document.getElementById('cartMontoPrestamo').value) || 0;
+            if (montoPrestamo <= 0) {
+              alert("Ingresa un monto de préstamo válido.");
+              return;
+            }
+
+            if (tipoOperacion === 'prestamo_otorgado' && ctaTrans.saldo_actual < montoPrestamo) {
+              alert(`Saldo insuficiente en cuenta "${ctaTrans.nombre}". Fondos disponibles: ${formatCOP(ctaTrans.saldo_actual)}`);
+              return;
+            }
+
+            const nuevoSaldoCta = tipoOperacion === 'prestamo_otorgado' 
+              ? parseFloat(ctaTrans.saldo_actual) - montoPrestamo 
+              : parseFloat(ctaTrans.saldo_actual) + montoPrestamo;
+
+            await sb.from('apex_cuentas').update({ saldo_actual: nuevoSaldoCta }).eq('id', cuentaTransaccionId);
+
+            const tipoTerceroDB = tipoOperacion === 'prestamo_otorgado' ? 'deudor' : 'acreedor';
+            const tercObj = deudoresCache.find(d => d.nombre === tercero);
+            if (tercObj) {
+              const nuevoSaldoDeudor = parseFloat(tercObj.saldo || 0) + montoPrestamo;
+              await sb.from('apex_acreedores_deudores').update({ saldo: nuevoSaldoDeudor }).eq('id', tercObj.id);
+            } else {
+              await sb.from('apex_acreedores_deudores').insert([{ nombre: tercero, tipo: tipoTerceroDB, saldo: montoPrestamo }]);
+            }
+
+            await sb.from('apex_transacciones_libro_mayor').insert([{
+              type: tipoOperacion === 'prestamo_otorgado' ? 'egreso' : 'ingreso',
+              category: catObj ? catObj.nombre : (tipoOperacion === 'prestamo_otorgado' ? 'Préstamo Otorgado' : 'Préstamo Recibido'),
+              categoria_id: categoriaId,
+              amount: montoPrestamo,
+              account_id: cuentaTransaccionId,
+              description: `Préstamo con ${tercero}`,
+              registered_by: cajeroEmail
+            }]);
+
+            alert("Préstamo registrado exitosamente.");
+            document.getElementById('cartMontoPrestamo').value = 0;
+            await cargarDatosGlobales();
+            return;
+          }
+
+          if (carrito.length === 0) { alert("Carrito vacío."); return; }
+          const totalMonto = carrito.reduce((a, b) => a + parseFloat(b.precio), 0);
+          const detalleItems = carrito.map(i => i.nombre).join(', ');
+
+          if (tipoOperacion === 'compra') {
+            if (!ctaTrans || parseFloat(ctaTrans.saldo_actual) < totalMonto) {
+              alert(`Saldo insuficiente en cuenta "${ctaTrans?.nombre || 'Seleccionada'}". Saldo disponible: ${formatCOP(ctaTrans?.saldo_actual || 0)}. La compra no puede realizarse.`);
+              return;
+            }
+
+            await sb.from('apex_cuentas').update({ saldo_actual: parseFloat(ctaTrans.saldo_actual) - totalMonto }).eq('id', cuentaTransaccionId);
+
+            await sb.from('apex_transacciones_libro_mayor').insert([{
+              type: 'egreso',
+              category: catObj ? catObj.nombre : 'Compra / Egreso',
+              categoria_id: categoriaId,
+              amount: totalMonto,
+              account_id: cuentaTransaccionId,
+              description: `Compra a ${tercero}: ${detalleItems}`,
+              registered_by: cajeroEmail
+            }]);
+
+            if (cuentaTransaccionId === cajaActiva.cuentaId) {
+              cajaActiva.comprasTurno = (cajaActiva.comprasTurno || 0) + totalMonto;
+              cajaActiva.efectivoRecaudado -= totalMonto;
+            }
+
+          } else {
+            const tipoPago = document.getElementById('cartTipoPago').value;
+
+            if (tipoPago === 'contado') {
+              await sb.from('apex_cuentas').update({ saldo_actual: parseFloat(ctaTrans.saldo_actual) + totalMonto }).eq('id', cuentaTransaccionId);
+              if (cuentaTransaccionId === cajaActiva.cuentaId) {
+                cajaActiva.ventasTurno += totalMonto;
+                cajaActiva.efectivoRecaudado += totalMonto;
+              }
+            } else if (tipoPago === 'credito') {
+              await sb.from('apex_acreedores_deudores').insert([{ nombre: tercero, tipo: 'acreedor', saldo: totalMonto, notas: `Venta crédito: ${detalleItems}` }]);
+            } else if (tipoPago === 'nomina') {
+              await sb.from('apex_nomina').insert([{ staff_email: tercero, concepto: `Crédito Tienda: ${detalleItems}`, monto: totalMonto, estado: 'pendiente_pagar' }]);
+            }
+
+            await sb.from('apex_transacciones_libro_mayor').insert([{
+              type: 'ingreso',
+              category: catObj ? catObj.nombre : `Venta Caja (${tipoPago})`,
+              categoria_id: categoriaId,
+              amount: totalMonto,
+              account_id: cuentaTransaccionId,
+              description: `Venta a ${tercero}: ${detalleItems}`,
+              registered_by: cajeroEmail
+            }]);
+          }
+
+          for (const item of carrito) {
+            if (item.categoria === 'Insumo' || item.categoria === 'Equipo') {
+              const stockActual = parseInt(item.stock ?? 0, 10);
+              const nuevoStock = Math.max(0, stockActual - 1);
+              await sb.from('apex_productos').update({ stock: nuevoStock }).eq('id', item.id);
+            }
+          }
+
+          carrito = [];
+          document.getElementById('cartSelectTercero').value = '';
+          document.getElementById('cartSelectCategoria').value = '';
+          this.renderCarrito();
+
+          const ventasNetas = cajaActiva.ventasTurno - (cajaActiva.comprasTurno || 0);
+          document.getElementById('cajaKpiVentas').innerText = formatCOP(ventasNetas);
+          document.getElementById('cajaKpiEfectivo').innerText = formatCOP(cajaActiva.efectivoRecaudado);
+
+          await cargarDatosGlobales();
+        } catch (err) {
+          alert("Error: " + err.message);
+        }
+      },
+
+      abrirModalCierre: function() {
+        if (!cajaActiva) return;
+        document.getElementById('cierreEfectivoReal').value = Math.max(0, cajaActiva.efectivoRecaudado);
+        document.getElementById('modalCierreCaja').style.display = 'flex';
+      },
+
+      confirmarCierreCaja: async function() {
+        if (!cajaActiva) return;
+        const efectivoReal = parseFloat(document.getElementById('cierreEfectivoReal').value) || 0;
+        const esperado = cajaActiva.efectivoRecaudado;
+        const diferencia = efectivoReal - esperado;
+        
+        const cuentaId = cajaActiva.cuentaId;
+        const montoRetornoTotal = cajaActiva.baseMonto + cajaActiva.ventasTurno - (cajaActiva.comprasTurno || 0);
+        const cta = cuentasCache.find(c => c.id === cuentaId);
+        const catObj = categoriasCache[0];
+        const cajeroEmail = cajaActiva.cajeroEmail;
+
+        try {
+          if (montoRetornoTotal > 0) {
+            await sb.from('apex_cuentas').update({ saldo_actual: parseFloat(cta.saldo_actual) + montoRetornoTotal }).eq('id', cuentaId);
+          }
+
+          await sb.from('apex_transacciones_libro_mayor').insert([{
+            type: 'ingreso',
+            category: 'Cierre de Caja y Consolidación',
+            categoria_id: catObj ? catObj.id : null,
+            amount: Math.abs(montoRetornoTotal),
+            account_id: cuentaId,
+            description: `Cierre de turno. Base (${formatCOP(cajaActiva.baseMonto)}) + Ventas (${formatCOP(cajaActiva.ventasTurno)})`,
+            registered_by: cajeroEmail
+          }]);
+
+          if (diferencia !== 0) {
+            const tipoDesc = diferencia > 0 ? 'ingreso' : 'egreso';
+            await sb.from('apex_transacciones_libro_mayor').insert([{
+              type: tipoDesc,
+              category: 'Descuadre de Caja',
+              categoria_id: catObj ? catObj.id : null,
+              amount: Math.abs(diferencia),
+              account_id: cuentaId,
+              description: `Ajuste caja. Esperado: ${formatCOP(esperado)}, Real: ${formatCOP(efectivoReal)}`,
+              registered_by: cajeroEmail
+            }]);
+          }
+
+          document.getElementById('modalCierreCaja').style.display = 'none';
+          cajaActiva = null;
+          document.getElementById('panelCajaCerrada').style.display = 'block';
+          document.getElementById('panelCajaAbierta').style.display = 'none';
+          document.getElementById('lblCajeroActivo').innerText = 'Cajero: No autenticado';
+          
+          const lblCaja = document.getElementById('lblEstadoCaja');
+          lblCaja.innerText = 'Caja Cerrada';
+          lblCaja.style.background = 'var(--card-sub)';
+          lblCaja.style.color = 'var(--text-muted)';
+          lblCaja.style.borderColor = 'var(--border)';
+
+          await cargarDatosGlobales();
+        } catch (err) {
+          alert("Error: " + err.message);
+        }
+      }
+    };
+
+    const BandejaCoach = {
+      renderizar: function() {
+        const cont = document.getElementById('listaMembresiasPendientes');
+        if (!cont) return;
+        const pendientes = pagosPendientesCache.filter(p => !p.accounting_status || p.accounting_status === 'pendiente_contabilidad');
+        const badge = document.getElementById('badgeCoachCount');
+
+        if (pendientes.length > 0) {
+          badge.style.display = 'inline-block';
+          badge.innerText = pendientes.length;
+          document.getElementById('lblCoachPendientesTxt').innerText = `${pendientes.length} Pendientes`;
+        } else {
+          badge.style.display = 'none';
+          document.getElementById('lblCoachPendientesTxt').innerText = `0 Pendientes`;
+        }
+
+        if (pendientes.length === 0) {
+          cont.innerHTML = '<span style="color:var(--text-muted); font-size:0.65rem;">Sin pagos pendientes.</span>';
+          return;
+        }
+
+        cont.innerHTML = '';
+        pendientes.forEach(p => {
+          const monto = parseFloat(p.amount) || 0;
+          const imgThumb = (p.receipt_urls && p.receipt_urls.length > 0) 
+            ? `<img src="${p.receipt_urls[0]}" style="width:40px; height:40px; object-fit:cover; border-radius:4px; border:1px solid var(--border); cursor:pointer;" onclick="abrirZoomImagen('${p.receipt_urls[0]}')">` 
+            : '<span style="font-size:0.58rem; color:var(--text-muted);">Sin foto</span>';
+
+          cont.innerHTML += `
+            <div class="inflow-item">
+              <div style="display:flex; align-items:center; gap:6px;">
+                ${imgThumb}
+                <div>
+                  <strong style="color:#fff; font-size:0.72rem;">${p.user_email}</strong>
+                  <div class="inflow-meta">${p.plan_type || 'Mensualidad'} · ${formatCOP(monto)}</div>
+                </div>
+              </div>
+              <button class="btn-success" onclick="BandejaCoach.abrirModal('${p.id}')">Revisar</button>
+            </div>
+          `;
+        });
+      },
+
+      abrirModal: function(pagoId) {
+        pagoCoachSeleccionado = pagosPendientesCache.find(p => p.id === pagoId);
+        if (!pagoCoachSeleccionado) return;
+
+        poblarSelectsProductosModal();
+        poblarSelectsCuentasPropias();
+
+        const monto = parseFloat(pagoCoachSeleccionado.amount) || 0;
+        document.getElementById('modalCoachDetalle').innerText = `Striker: ${pagoCoachSeleccionado.user_email}`;
+        document.getElementById('modalCoachMontoReal').value = monto;
+        document.getElementById('modalSelectProductoTienda').value = '';
+        document.getElementById('modalCoachFechaPago').value = new Date().toISOString().split('T')[0];
+
+        const imgWrap = document.getElementById('modalComprobanteWrap');
+        const imgEl = document.getElementById('modalComprobanteImg');
+        if (pagoCoachSeleccionado.receipt_urls && pagoCoachSeleccionado.receipt_urls.length > 0) {
+          imgEl.src = pagoCoachSeleccionado.receipt_urls[0];
+          imgWrap.style.display = 'block';
+        } else {
+          imgWrap.style.display = 'none';
+        }
+
+        document.getElementById('modalRevisionCoach').style.display = 'flex';
+      },
+
+      seleccionarProductoTienda: function() {
+        const sel = document.getElementById('modalSelectProductoTienda');
+        const opt = sel.options[sel.selectedIndex];
+        if (!opt || !opt.value) return;
+
+        const precio = parseFloat(opt.getAttribute('data-precio')) || 0;
+        document.getElementById('modalCoachMontoReal').value = precio;
+      },
+
+      confirmarFacturacion: async function() {
+        if (!pagoCoachSeleccionado) return;
+        const ctaId = document.getElementById('modalCoachCuenta').value;
+        const montoReal = parseFloat(document.getElementById('modalCoachMontoReal').value) || 0;
+        const fechaPagoVal = document.getElementById('modalCoachFechaPago').value;
+        const selProd = document.getElementById('modalSelectProductoTienda');
+        const optProd = selProd.options[selProd.selectedIndex];
+        const cajeroEmail = (localStorage.getItem('apex_user_email') || sessionStorage.getItem('apex_user_email') || 'contabilidad@apex.com');
+        
+        if (!ctaId) {
+          alert("Por favor selecciona una cuenta destino propia.");
+          return;
+        }
+
+        const cta = cuentasCache.find(c => c.id === ctaId);
+        if (!cta) {
+          alert("La cuenta seleccionada no es válida.");
+          return;
+        }
+
+        const categoriaProd = optProd ? optProd.getAttribute('data-categoria') : 'Mensualidad';
+        const catObj = categoriasCache.find(c => c.nombre.toLowerCase().includes('membresía')) || categoriasCache[0];
+
+        try {
+          await sb.from('apex_cuentas').update({ saldo_actual: parseFloat(cta.saldo_actual) + montoReal }).eq('id', ctaId);
+          await sb.from('apex_transacciones_libro_mayor').insert([{
+            type: 'ingreso',
+            category: 'Membresías Sala',
+            categoria_id: catObj ? catObj.id : null,
+            amount: montoReal,
+            account_id: ctaId,
+            description: `Membresía sala: ${pagoCoachSeleccionado.user_email}`,
+            registered_by: cajeroEmail
+          }]);
+
+          await sb.from('apex_payments').update({ accounting_status: 'redimido' }).eq('id', pagoCoachSeleccionado.id);
+
+          const baseDate = fechaPagoVal ? new Date(fechaPagoVal + 'T00:00:00') : new Date();
+          baseDate.setHours(0, 0, 0, 0);
+          const expDate = new Date(baseDate);
+
+          if (categoriaProd === 'Trimestre') {
+            expDate.setMonth(expDate.getMonth() + 3);
+            expDate.setDate(expDate.getDate() - 1);
+          } else if (categoriaProd === 'Quincena') {
+            expDate.setDate(expDate.getDate() + 15);
+          } else if (categoriaProd === 'Pase_Dia') {
+            expDate.setDate(expDate.getDate() + 1);
+          } else {
+            expDate.setMonth(expDate.getMonth() + 1);
+            expDate.setDate(expDate.getDate() - 1);
+          }
+
+          const expDateLegible = `${expDate.getUTCDate()}/${expDate.getUTCMonth() + 1}/${expDate.getUTCFullYear()}`;
+
+          await sb.from('apex_users').update({
+            subscription_status: 'activo',
+            is_active: true,
+            subscription_expires_at: expDate.toISOString()
+          }).eq('email', pagoCoachSeleccionado.user_email);
+
+          await sb.from('apex_notifications').insert({
+            user_email: pagoCoachSeleccionado.user_email,
+            title: '¡Membresía Facturada!',
+            message: `Tu pago ha sido validado y facturado. Tu membresía está activa hasta el ${expDateLegible}.`,
+            type: 'membresia'
+          });
+
+          document.getElementById('modalRevisionCoach').style.display = 'none';
+          await cargarDatosGlobales();
+        } catch (err) {
+          alert("Error: " + err.message);
+        }
+      },
+
+      rechazarPago: async function() {
+        if (!pagoCoachSeleccionado) return;
+        if (!confirm("¿Rechazar este pago? Se eliminará la evidencia y se cancelará la membresía provisional del striker.")) return;
+
+        try {
+          await sb.from('apex_payments').update({ accounting_status: 'rechazado' }).eq('id', pagoCoachSeleccionado.id);
+
+          await sb.from('apex_users').update({
+            subscription_status: 'inactivo',
+            is_active: false
+          }).eq('email', pagoCoachSeleccionado.user_email);
+
+          await sb.from('apex_notifications').insert({
+            user_email: pagoCoachSeleccionado.user_email,
+            title: 'Pago Rechazado',
+            message: `Tu comprobante de pago fue rechazado. Por favor comunícate con administración.`,
+            type: 'membresia'
+          });
+
+          document.getElementById('modalRevisionCoach').style.display = 'none';
+          alert("Pago rechazado y membresía provisional revocada.");
+          await cargarDatosGlobales();
+        } catch (err) {
+          alert("Error al rechazar: " + err.message);
+        }
+      }
+    };
+
+    function abrirZoomImagen(url) {
+      document.getElementById('imgZoomPreview').src = url;
+      document.getElementById('modalImagenZoom').style.display = 'flex';
+    }
+
+    function cerrarZoomImagen() {
+      document.getElementById('modalImagenZoom').style.display = 'none';
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
