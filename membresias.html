@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#000000">
+  <title>Apex | Gestión de Membresías</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg: #000000;
+      --card-bg: #0a0a0c;
+      --card-sub: #111114;
+      --border: #1a1a1e;
+      --border-focus: #33333b;
+      --accent: #e50914;
+      --accent-dim: rgba(229, 9, 20, 0.15);
+      --text-main: #f5f5f7;
+      --text-muted: #73737a;
+      --status-ok: #22c55e;
+      --status-warn: #eab308;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text-main); padding: 16px; max-width: 600px; margin: 0 auto; padding-bottom: 50px; }
+
+    .header { border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+    .title { font-size: 1rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px; }
+    .title span { color: var(--accent); }
+    .badge-apex { font-size: 0.65rem; font-weight: 700; background: #111114; color: var(--text-muted); border: 1px solid var(--border); padding: 4px 8px; border-radius: 3px; }
+
+    .sub-nav { display: flex; gap: 6px; margin-bottom: 14px; background: var(--card-bg); padding: 6px; border: 1px solid var(--border); border-radius: 8px; }
+    .sub-nav-btn {
+      flex: 1; padding: 8px 4px; background: #0d0d10; border: 1px solid var(--border); color: var(--text-muted);
+      border-radius: 6px; font-size: 0.62rem; font-weight: 800; text-transform: uppercase; cursor: pointer; text-align: center; transition: 0.2s;
+    }
+    .sub-nav-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .sub-section-view { display: none; }
+    .sub-section-view.active { display: block; }
+
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 14px; }
+    .card-title { font-size: 0.74rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #fff; margin-bottom: 4px; }
+    .card-desc { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 12px; }
+
+    .form-group { margin-bottom: 12px; position: relative; }
+    .form-label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; display: block; }
+    .input-apex {
+      width: 100%; padding: 11px 12px; background: #070709; border: 1px solid var(--border);
+      color: #fff; border-radius: 5px; font-size: 0.8rem; outline: none; transition: 0.2s; color-scheme: dark;
+    }
+    .input-apex:focus { border-color: var(--border-focus); }
+
+    .suggestions-box {
+      position: absolute; top: calc(100% + 2px); left: 0; right: 0; background: #111114;
+      border: 1px solid var(--border-focus); border-radius: 5px; max-height: 220px; overflow-y: auto;
+      z-index: 50; display: none; box-shadow: 0 8px 24px rgba(0,0,0,0.8);
+    }
+    .suggestion-item { padding: 10px 12px; border-bottom: 1px solid var(--border); cursor: pointer; font-size: 0.78rem; display: flex; align-items: center; gap: 10px; }
+    .suggestion-item:hover { background: #18181c; }
+
+    .striker-summary-card { background: var(--card-sub); border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-top: 10px; display: none; }
+    .striker-summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+    .info-box { background: #050507; border: 1px solid var(--border); padding: 8px 10px; border-radius: 4px; }
+    .info-box-label { font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; }
+    .info-box-val { font-size: 0.85rem; font-weight: 800; color: #fff; margin-top: 2px; }
+
+    .avatar-circle {
+      width: 34px; height: 34px; border-radius: 50%; object-fit: cover;
+      border: 1px solid var(--border); background: #141418; display: flex;
+      align-items: center; justify-content: center; font-weight: 800; font-size: 0.75rem; color: #fff; flex-shrink: 0;
+    }
+
+    .evidencia-item { background: var(--card-sub); border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-bottom: 10px; }
+    .evidencia-item.vencido { border-color: var(--accent); background: rgba(229, 9, 20, 0.05); }
+    .timer-badge { font-size: 0.62rem; font-weight: 900; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
+    .timer-badge.normal { background: rgba(234, 179, 8, 0.15); color: var(--status-warn); border: 1px solid var(--status-warn); }
+    .timer-badge.expired { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent); }
+
+    .btn-main {
+      width: 100%; background: #fff; color: #000; border: none; padding: 12px;
+      font-weight: 800; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.8px;
+      border-radius: 5px; cursor: pointer; transition: 0.2s;
+    }
+    .btn-main:disabled { background: #141418; color: #444; cursor: not-allowed; border: 1px solid #222; }
+    .btn-secondary { background: #16161a; border: 1px solid var(--border); color: #ccc; padding: 6px 12px; font-size: 0.7rem; font-weight: 800; border-radius: 4px; cursor: pointer; text-transform: uppercase; }
+    .btn-danger { background: var(--accent-dim); border: 1px solid rgba(229,9,20,0.3); color: var(--accent); padding: 5px 10px; font-size: 0.65rem; font-weight: 800; border-radius: 4px; cursor: pointer; text-transform: uppercase; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="title">Apex <span>Membresías</span></div>
+    <div class="badge-apex" id="lblAgentRole">Módulo Independiente</div>
+  </div>
+
+  <div class="sub-nav">
+    <button class="sub-nav-btn active" onclick="ApexMembresiasApp.irSubSeccion('sub_habilitacion', this)">Habilitación</button>
+    <button class="sub-nav-btn" onclick="ApexMembresiasApp.irSubSeccion('sub_historial', this)">Historial & Auditoría</button>
+  </div>
+
+  <!-- SUBMÓDULO 1: HABILITACIÓN -->
+  <div class="sub-section-view active" id="sub_habilitacion">
+    <div class="card">
+      <div class="card-title">Habilitación y Control de Pago</div>
+      <div class="card-desc">Buscador predictivo de Strikers. Otorga 3 días de gracia y envía la evidencia al contador.</div>
+
+      <div class="form-group">
+        <label class="form-label">Striker (Correo o Nombre)</label>
+        <input type="text" id="studentEmailSearch" placeholder="Escribe para buscar..." class="input-apex" autocomplete="off" oninput="ApexMembresiasApp.buscar(this.value)">
+        <div class="suggestions-box" id="suggestionsBox"></div>
+      </div>
+
+      <div class="striker-summary-card" id="strikerCard">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div id="strikerCardAvatar" class="avatar-circle">AP</div>
+            <div>
+              <strong id="strikerName" style="color: #fff; font-size: 0.85rem; display: block;">-</strong>
+              <span id="strikerEmailTxt" style="font-size: 0.65rem; color: var(--text-muted);">-</span>
+            </div>
+          </div>
+          <span id="strikerStatusBadge" style="font-size: 0.65rem; font-weight: 800; padding: 2px 6px; border-radius: 3px;">-</span>
+        </div>
+        <div class="striker-summary-grid">
+          <div class="info-box">
+            <div class="info-box-label">Días Restantes</div>
+            <div class="info-box-val" id="strikerDaysVal">-</div>
+          </div>
+          <div class="info-box">
+            <div class="info-box-label">Vencimiento Actual</div>
+            <div class="info-box-val" id="strikerEndVal">-</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-top: 12px;">
+        <label class="form-label">Nota Opcional para el Contador</label>
+        <input type="text" id="coachNoteInput" placeholder="Ej: Pago realizado por transferencia..." class="input-apex" autocomplete="off">
+      </div>
+
+      <!-- UX OPTIMIZADA: BOTÓN GALERÍA + BOTÓN CÁMARA NATIVA DEDICADO -->
+      <div class="form-group">
+        <label class="form-label">Evidencia del Comprobante</label>
+        <div style="display: flex; gap: 8px;">
+          <button type="button" class="btn-secondary" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;" onclick="document.getElementById('evidenceGalleryInput').click()">
+            📁 Seleccionar Archivo
+          </button>
+          <button type="button" class="btn-secondary" style="width: 52px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;" onclick="document.getElementById('evidenceCameraInput').click()" title="Tomar foto con cámara">
+            📷
+          </button>
+        </div>
+        <input type="file" id="evidenceGalleryInput" accept="image/*" style="display: none;" onchange="ApexMembresiasApp.manejarArchivoSeleccionado(this)">
+        <input type="file" id="evidenceCameraInput" accept="image/*" capture="environment" style="display: none;" onchange="ApexMembresiasApp.manejarArchivoSeleccionado(this)">
+        <div id="fileSelectedIndicator" style="font-size: 0.65rem; color: var(--status-ok); margin-top: 5px; display: none;"></div>
+      </div>
+
+      <button class="btn-main" id="btnSubmitMembership" disabled onclick="ApexMembresiasApp.procesar()">
+        Adjunta Evidencia Para Habilitar
+      </button>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
+        <span>📥 Evidencias Pendientes (Tuyo)</span>
+        <span id="cntPendientesBadge" style="font-size:0.65rem; background:var(--accent-dim); color:var(--accent); padding:2px 6px; border-radius:4px;">0 pendientes</span>
+      </div>
+      <div id="listaEvidenciasPendientes"><div style="font-size: 0.75rem; color: var(--text-muted); text-align: center; padding: 12px;">Cargando...</div></div>
+    </div>
+  </div>
+
+  <!-- SUBMÓDULO 2: HISTORIAL Y AUDITORÍA (SOLO REDIMIDOS DEL COACH) -->
+  <div class="sub-section-view" id="sub_historial">
+    <div class="card">
+      <div class="card-title">📋 Historial de Auditoría (Tus Redimidos)</div>
+      <div class="card-desc">Fichas facturadas por el contador correspondientes a tus reportes.</div>
+
+      <div class="form-group" style="margin-bottom:8px;">
+        <label class="form-label">Filtrar por Striker</label>
+        <input type="text" id="hMemBusqueda" placeholder="Buscar striker..." class="input-apex" oninput="ApexMembresiasApp.renderHistorial()">
+      </div>
+
+      <div id="listaHistorialMembresias"><div style="font-size: 0.75rem; color: var(--text-muted); text-align: center; padding: 12px;">Cargando historial...</div></div>
+    </div>
+  </div>
+
+  <!-- MODAL EDITAR / MODIFICAR EVIDENCIA PENDIENTE -->
+  <div id="modalEditarPendiente" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.85); z-index:1000; justify-content:center; align-items:center; padding:16px;">
+    <div style="background:var(--card-bg); border:1px solid var(--border); border-radius:8px; padding:16px; width:100%; max-width:360px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <span style="font-size:0.8rem; font-weight:900; text-transform:uppercase;">Modificar Evidencia</span>
+        <button onclick="document.getElementById('modalEditarPendiente').style.display='none'" style="background:none; border:none; color:#fff; font-size:1rem; cursor:pointer;">✕</button>
+      </div>
+      <input type="hidden" id="editPagoId">
+      <div class="form-group">
+        <label class="form-label">Nota Opcional</label>
+        <input type="text" id="editCoachNote" class="input-apex">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nueva Evidencia (Opcional - Reemplazar foto)</label>
+        <div style="display: flex; gap: 8px;">
+          <button type="button" class="btn-secondary" style="flex: 1;" onclick="document.getElementById('editGalleryInput').click()">📁 Archivo</button>
+          <button type="button" class="btn-secondary" style="width: 52px; font-size: 1.1rem;" onclick="document.getElementById('editCameraInput').click()">📷</button>
+        </div>
+        <input type="file" id="editGalleryInput" accept="image/*" style="display: none;" onchange="ApexMembresiasApp.manejarArchivoEdicion(this)">
+        <input type="file" id="editCameraInput" accept="image/*" capture="environment" style="display: none;" onchange="ApexMembresiasApp.manejarArchivoEdicion(this)">
+        <div id="fileEditIndicator" style="font-size: 0.65rem; color: var(--status-ok); margin-top: 5px; display: none;"></div>
+      </div>
+      <button class="btn-main" onclick="ApexMembresiasApp.guardarEdicionPendiente()">Guardar Cambios</button>
+    </div>
+  </div>
+
+  <!-- MODAL ZOOM IMAGEN (DOBLE DE TAMAÑO) -->
+  <div id="modalImagenZoom" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.92); z-index:1000; justify-content:center; align-items:center; padding:16px;" onclick="cerrarZoomImagen()">
+    <div style="position:relative; max-width:95%; max-height:95%;">
+      <span style="position:absolute; top:-35px; right:0; color:#fff; font-size:1.8rem; cursor:pointer; font-weight:bold;">✕</span>
+      <img id="imgZoomPreview" src="" style="width:100%; height:auto; max-height:90vh; object-fit:contain; border-radius:8px; border:2px solid #333;">
+    </div>
+  </div>
+
+  <script>
+    const CONFIG_SUPABASE_URL = 'https://fprvbvucmtdpxdihuvrw.supabase.co';
+    const CONFIG_SUPABASE_KEY = 'sb_publishable_xAMs8LpCwyMyoql3ohoJUQ_BIRhBQoD';
+    let supabaseClient = null;
+    let currentAgentEmail = 'coach@apexboxing.com';
+    let registeredUsersCache = [];
+    let cachePagos = [];
+    let selectedStriker = null;
+    let archivoEvidenciaActual = null;
+    let archivoEdicionActual = null;
+    let timerCuentaRegresiva = null;
+
+    function initSupabase() {
+      if (window.supabase) supabaseClient = window.supabase.createClient(CONFIG_SUPABASE_URL, CONFIG_SUPABASE_KEY);
+    }
+
+    const ApexMembresiasApp = {
+      irSubSeccion: function(subId, btnEl) {
+        document.querySelectorAll('.sub-section-view').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.sub-nav .sub-nav-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(subId)?.classList.add('active');
+        btnEl.classList.add('active');
+        if (subId === 'sub_historial') this.renderHistorial();
+      },
+
+      cargarDatos: async function() {
+        if (!supabaseClient) return;
+        try {
+          const { data: { session } } = await supabaseClient.auth.getSession();
+          if (session && session.user) currentAgentEmail = session.user.email;
+        } catch(e){}
+
+        if (!currentAgentEmail) currentAgentEmail = localStorage.getItem('apex_coach_email') || 'coach@apexboxing.com';
+        document.getElementById('lblAgentRole').innerText = `Agente: ${currentAgentEmail}`;
+
+        try {
+          const [uRes, pRes] = await Promise.all([
+            supabaseClient.from('apex_users').select('id, email, name, photo_url, subscription_status, subscription_expires_at'),
+            supabaseClient.from('apex_payments').select('*').order('created_at', { ascending: false })
+          ]);
+          if (uRes.data) registeredUsersCache = uRes.data;
+          if (pRes.data) {
+            cachePagos = pRes.data;
+            this.renderPendientes();
+            this.renderHistorial();
+          }
+        } catch(e){}
+
+        if (timerCuentaRegresiva) clearInterval(timerCuentaRegresiva);
+        timerCuentaRegresiva = setInterval(() => this.renderPendientes(), 30000);
+      },
+
+      buscar: function(q) {
+        const box = document.getElementById('suggestionsBox');
+        box.innerHTML = '';
+        if (!q) { box.style.display = 'none'; return; }
+        const matches = registeredUsersCache.filter(u => (u.email||'').toLowerCase().includes(q.toLowerCase()) || (u.name||'').toLowerCase().includes(q.toLowerCase()));
+        if (matches.length === 0) {
+          box.innerHTML = '<div style="padding:10px; font-size:0.75rem; color:#777;">Sin coincidencias</div>';
+          box.style.display = 'block';
+          return;
+        }
+        matches.forEach(u => {
+          const item = document.createElement('div');
+          item.className = 'suggestion-item';
+          item.innerHTML = `<div><strong>${u.name || 'Striker'}</strong><br><span style="font-size:0.7rem; color:#777;">${u.email}</span></div>`;
+          item.onclick = () => {
+            selectedStriker = u;
+            document.getElementById('studentEmailSearch').value = u.email;
+            box.style.display = 'none';
+            ApexMembresiasApp.validarEvidencia();
+          };
+          box.appendChild(item);
+        });
+        box.style.display = 'block';
+      },
+
+      manejarArchivoSeleccionado: function(input) {
+        if (input.files && input.files[0]) {
+          archivoEvidenciaActual = input.files[0];
+          const indicator = document.getElementById('fileSelectedIndicator');
+          indicator.textContent = `✓ Archivo listo: ${archivoEvidenciaActual.name}`;
+          indicator.style.display = 'block';
+          this.validarEvidencia();
+        }
+      },
+
+      validarEvidencia: function() {
+        const btn = document.getElementById('btnSubmitMembership');
+        btn.disabled = !(selectedStriker && archivoEvidenciaActual);
+      },
+
+      procesar: async function() {
+        if (!selectedStriker || !archivoEvidenciaActual) return;
+        const coachNote = document.getElementById('coachNoteInput').value.trim();
+        const btn = document.getElementById('btnSubmitMembership');
+        btn.disabled = true;
+        btn.textContent = "Subiendo evidencia...";
+
+        try {
+          const path = `comprobantes/${Date.now()}_${selectedStriker.email}.${archivoEvidenciaActual.name.split('.').pop()}`;
+          await supabaseClient.storage.from('comprobantes').upload(path, archivoEvidenciaActual);
+          const url = supabaseClient.storage.from('comprobantes').getPublicUrl(path).data.publicUrl;
+
+          const expGracia = new Date();
+          expGracia.setDate(expGracia.getDate() + 3);
+
+          await supabaseClient.from('apex_users').update({ 
+            subscription_status: 'activo',
+            is_active: true,
+            subscription_expires_at: expGracia.toISOString()
+          }).eq('email', selectedStriker.email);
+
+          await supabaseClient.from('apex_payments').insert({
+            user_email: selectedStriker.email,
+            coach_email: currentAgentEmail,
+            coach_note: coachNote || null,
+            amount: 120000,
+            receipt_urls: [url],
+            accounting_status: 'pendiente_contabilidad'
+          });
+
+          alert('¡Evidencia enviada al contador con éxito! 3 días de gracia otorgados.');
+          selectedStriker = null;
+          archivoEvidenciaActual = null;
+          document.getElementById('studentEmailSearch').value = '';
+          document.getElementById('coachNoteInput').value = '';
+          document.getElementById('fileSelectedIndicator').style.display = 'none';
+          this.validarEvidencia();
+          await this.cargarDatos();
+        } catch(e) {
+          alert('Error: ' + e.message);
+          this.validarEvidencia();
+        }
+      },
+
+      renderPendientes: function() {
+        const container = document.getElementById('listaEvidenciasPendientes');
+        const badge = document.getElementById('cntPendientesBadge');
+        const pendientes = cachePagos.filter(p => (!p.accounting_status || p.accounting_status === 'pendiente_contabilidad') && (p.coach_email || '').toLowerCase() === currentAgentEmail.toLowerCase());
+        
+        badge.innerText = `${pendientes.length} pendientes`;
+        if (pendientes.length === 0) { container.innerHTML = '<div style="font-size:0.72rem; color:var(--text-muted); text-align:center; padding:12px;">Sin pendientes tuyas.</div>'; return; }
+
+        const ahora = new Date();
+        container.innerHTML = '';
+        pendientes.forEach(p => {
+          const user = registeredUsersCache.find(u => u.email.toLowerCase() === (p.user_email || '').toLowerCase());
+          const nombre = user?.name || p.user_email;
+          
+          const fechaCreacion = new Date(p.created_at);
+          const vencimientoGracia = new Date(fechaCreacion.getTime() + (72 * 60 * 60 * 1000));
+          const diffMs = vencimientoGracia - ahora;
+          const horasRestantes = Math.floor(diffMs / (1000 * 60 * 60));
+          const minutosRestantes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+          const esVencido = diffMs <= 0;
+          const timerClass = esVencido ? 'timer-badge expired' : 'timer-badge normal';
+          const timerText = esVencido ? '⚠ VENCIDO EN GRACIA' : `⏳ Quedan ${horasRestantes}h ${minutosRestantes}m`;
+
+          const imgThumb = (p.receipt_urls && p.receipt_urls.length > 0) ? `<div style="margin-top:6px;"><img src="${p.receipt_urls[0]}" style="width:100px; height:100px; object-fit:cover; border-radius:6px; border:1px solid var(--border); cursor:pointer;" onclick="abrirZoomImagen('${p.receipt_urls[0]}')" title="Haz clic para ampliar al doble"></div>` : '';
+
+          const item = document.createElement('div');
+          item.className = esVencido ? 'evidencia-item vencido' : 'evidencia-item';
+          item.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <strong style="font-size:0.8rem; color:#fff;">${nombre}</strong>
+              <span class="${timerClass}">${timerText}</span>
+            </div>
+            <div style="font-size:0.65rem; color:var(--text-muted); margin-top:2px;">Nota: ${p.coach_note || 'Sin nota'} • Reportado: ${fechaCreacion.toLocaleDateString()}</div>
+            ${imgThumb}
+            <div style="display:flex; gap:6px; margin-top:8px; border-top:1px solid #1f1f24; padding-top:6px;">
+              <button class="btn-secondary" onclick="ApexMembresiasApp.abrirModificar('${p.id}', '${p.coach_note || ''}')">Modificar</button>
+              <button class="btn-danger" onclick="ApexMembresiasApp.eliminarPendiente('${p.id}')">Eliminar</button>
+            </div>
+          `;
+          container.appendChild(item);
+        });
+      },
+
+      abrirModificar: function(id, nota) {
+        document.getElementById('editPagoId').value = id;
+        document.getElementById('editCoachNote').value = nota;
+        document.getElementById('editGalleryInput').value = '';
+        document.getElementById('editCameraInput').value = '';
+        archivoEdicionActual = null;
+        document.getElementById('fileEditIndicator').style.display = 'none';
+        document.getElementById('modalEditarPendiente').style.display = 'flex';
+      },
+
+      manejarArchivoEdicion: function(input) {
+        if (input.files && input.files[0]) {
+          archivoEdicionActual = input.files[0];
+          const indicator = document.getElementById('fileEditIndicator');
+          indicator.textContent = `✓ Nueva foto lista: ${archivoEdicionActual.name}`;
+          indicator.style.display = 'block';
+        }
+      },
+
+      guardarEdicionPendiente: async function() {
+        const id = document.getElementById('editPagoId').value;
+        const nota = document.getElementById('editCoachNote').value.trim();
+
+        try {
+          let updateData = { coach_note: nota || null };
+          if (archivoEdicionActual) {
+            const path = `comprobantes/${Date.now()}_edit.${archivoEdicionActual.name.split('.').pop()}`;
+            await supabaseClient.storage.from('comprobantes').upload(path, archivoEdicionActual);
+            const url = supabaseClient.storage.from('comprobantes').getPublicUrl(path).data.publicUrl;
+            updateData.receipt_urls = [url];
+          }
+
+          await supabaseClient.from('apex_payments').update(updateData).eq('id', id);
+          document.getElementById('modalEditarPendiente').style.display = 'none';
+          alert('¡Modificado con éxito!');
+          await this.cargarDatos();
+        } catch(e) {
+          alert('Error al modificar: ' + e.message);
+        }
+      },
+
+      eliminarPendiente: async function(id) {
+        if (!confirm('¿Estás seguro de eliminar esta evidencia pendiente?')) return;
+        try {
+          await supabaseClient.from('apex_payments').delete().eq('id', id);
+          alert('Eliminado correctamente.');
+          await this.cargarDatos();
+        } catch(e) {
+          alert('Error al eliminar: ' + e.message);
+        }
+      },
+
+      renderHistorial: function() {
+        const container = document.getElementById('listaHistorialMembresias');
+        if (!container) return;
+        const q = (document.getElementById('hMemBusqueda')?.value || '').toLowerCase().trim();
+
+        const filtrados = cachePagos.filter(p => {
+          if (p.accounting_status !== 'redimido') return false;
+          if ((p.coach_email || '').toLowerCase() !== currentAgentEmail.toLowerCase()) return false;
+          if (q && !(p.user_email||'').toLowerCase().includes(q)) return false;
+          return true;
+        });
+
+        if (filtrados.length === 0) {
+          container.innerHTML = '<div style="font-size:0.72rem; color:var(--text-muted); text-align:center; padding:12px;">Sin registros facturados tuyos en el historial.</div>';
+          return;
+        }
+
+        container.innerHTML = '';
+        filtrados.forEach(p => {
+          const user = registeredUsersCache.find(u => u.email.toLowerCase() === (p.user_email || '').toLowerCase());
+          const nombre = user?.name || p.user_email;
+          const fechaReporte = new Date(p.created_at).toLocaleString();
+          const fechaFact = p.updated_at ? new Date(p.updated_at).toLocaleString() : 'Facturado';
+          const imgThumb = (p.receipt_urls && p.receipt_urls.length > 0) ? `<div style="margin-top:6px;"><img src="${p.receipt_urls[0]}" style="width:100px; height:100px; object-fit:cover; border-radius:6px; border:1px solid var(--border); cursor:pointer;" onclick="abrirZoomImagen('${p.receipt_urls[0]}')" title="Haz clic para ampliar al doble"></div>` : '';
+
+          const item = document.createElement('div');
+          item.className = 'evidencia-item';
+          item.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <strong style="font-size:0.8rem; color:#fff;">${nombre}</strong>
+              <span style="font-size:0.6rem; color:var(--status-ok); font-weight:800; text-transform:uppercase;">Facturado / Redimido</span>
+            </div>
+            <div style="font-size:0.68rem; color:var(--text-muted); margin-top:4px; line-height:1.4;">
+              <div>📌 <strong>Reportado por ti:</strong> el ${fechaReporte} (Nota: ${p.coach_note || 'Sin nota'})</div>
+              <div>💵 <strong>Estado Contable:</strong> Facturado por Contador el ${fechaFact}</div>
+            </div>
+            ${imgThumb}
+          `;
+          container.appendChild(item);
+        });
+      }
+    };
+
+    function abrirZoomImagen(url) {
+      document.getElementById('imgZoomPreview').src = url;
+      document.getElementById('modalImagenZoom').style.display = 'flex';
+    }
+    function cerrarZoomImagen() {
+      document.getElementById('modalImagenZoom').style.display = 'none';
+    }
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      initSupabase();
+      await ApexMembresiasApp.cargarDatos();
+    });
+  </script>
+</body>
+</html>
