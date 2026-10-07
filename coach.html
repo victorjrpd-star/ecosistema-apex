@@ -49,16 +49,6 @@
     .title span { color: var(--accent); }
     .badge-coach { font-size: 0.65rem; font-weight: 700; background: #111114; color: var(--text-muted); border: 1px solid var(--border); padding: 4px 8px; border-radius: 3px; }
 
-    /* SUB-NAVEGADOR DE MEMBRESÍAS */
-    .sub-nav-membresias { display: flex; gap: 6px; margin-bottom: 14px; background: var(--card-bg); padding: 6px; border: 1px solid var(--border); border-radius: 8px; }
-    .sub-nav-btn {
-      flex: 1; padding: 8px 4px; background: #0d0d10; border: 1px solid var(--border); color: var(--text-muted);
-      border-radius: 6px; font-size: 0.62rem; font-weight: 800; text-transform: uppercase; cursor: pointer; text-align: center; transition: 0.2s;
-    }
-    .sub-nav-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-    .sub-section-view { display: none; }
-    .sub-section-view.active { display: block; }
-
     /* CABECERA DE PERFIL COACH */
     .profile-bar {
       display: flex; align-items: center; justify-content: space-between;
@@ -123,13 +113,6 @@
     .suggestion-item:last-child { border-bottom: none; }
     .suggestion-item:hover, .suggestion-item:active { background: #18181c; }
 
-    /* FICHA DEL STRIKER */
-    .striker-summary-card { background: var(--card-sub); border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-top: 10px; display: none; }
-    .striker-summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
-    .info-box { background: #050507; border: 1px solid var(--border); padding: 8px 10px; border-radius: 4px; }
-    .info-box-label { font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; }
-    .info-box-val { font-size: 0.85rem; font-weight: 800; color: #fff; margin-top: 2px; }
-
     /* TARJETAS CHECK-INS */
     .checkin-card { background: var(--card-sub); border: 1px solid var(--border); border-radius: 6px; padding: 14px; margin-bottom: 14px; }
     .checkin-profile-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #16161a; padding-bottom: 10px; margin-bottom: 10px; gap: 10px; }
@@ -147,6 +130,21 @@
     .metric-val { font-size: 0.8rem; font-weight: 800; color: #fff; }
     .metric-penalty-tag { font-size: 0.6rem; color: var(--accent); font-weight: 800; display: none; margin-left: 2px; }
 
+    /* MÉTRICAS GENERALES VISUALES MODERNAS */
+    .metrics-visual-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+    .metric-visual-card {
+      background: #050507; border: 1px solid var(--border); border-radius: 8px; padding: 12px;
+      display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden;
+    }
+    .metric-visual-card::after {
+      content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: var(--accent); opacity: 0.4;
+    }
+    .metric-visual-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .metric-visual-title { font-size: 0.62rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800; }
+    .metric-visual-icon { font-size: 0.85rem; }
+    .metric-visual-val { font-size: 1.25rem; font-weight: 900; color: #fff; letter-spacing: 0.5px; margin-bottom: 2px; }
+    .metric-visual-note { font-size: 0.58rem; color: var(--text-muted); text-transform: uppercase; }
+
     /* FILTROS DE EQUIPO Y HISTORIAL */
     .team-filter-bar { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
     .filter-chip {
@@ -156,7 +154,7 @@
     }
     .filter-chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
-    /* CARRETEL TÁCTICO CON ALERTA TITILANTE ROJA (7-15 DÍAS) */
+    /* CARRETEL TÁCTICO CON ALERTA TITILANTE ROJA (7-30 DÍAS) */
     @keyframes titilarRojo {
       0%, 100% { border-color: var(--border); box-shadow: none; }
       50% { border-color: #e50914; box-shadow: 0 0 14px rgba(229, 9, 20, 0.7); }
@@ -189,10 +187,8 @@
     .carousel-title strong { display: block; font-size: 0.72rem; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; text-shadow: 0 2px 4px rgba(0,0,0,0.9); }
     .carousel-title span { font-size: 0.52rem; color: #ccc; text-transform: uppercase; font-weight: 700; }
 
-    /* MALLA HEXAGONAL EN LA PARTE INFERIOR (TERCIO INFERIOR) */
     .carousel-radar-mini { width: 100%; height: 100px; display: flex; justify-content: center; align-items: center; margin-top: auto; }
 
-    /* BLOQUE INFERIOR MINIMALISTA */
     .carousel-info-stack {
       background: rgba(0, 0, 0, 0.5); padding: 8px; border-radius: 6px; backdrop-filter: blur(6px); display: flex; flex-direction: column; gap: 3px;
     }
@@ -219,10 +215,6 @@
     .evidencia-item {
       background: var(--card-sub); border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-bottom: 10px;
     }
-    .evidencia-item.vencido { border-color: var(--accent); background: rgba(229, 9, 20, 0.05); }
-    .timer-badge { font-size: 0.65rem; font-weight: 900; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
-    .timer-badge.normal { background: rgba(234, 179, 8, 0.15); color: var(--status-warn); border: 1px solid var(--status-warn); }
-    .timer-badge.expired { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent); }
 
     .historial-calif-box { background: #050507; border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin-top: 10px; }
     .historial-calif-item { display: flex; justify-content: space-between; align-items: center; font-size: 0.7rem; padding: 6px 0; border-bottom: 1px solid #141418; }
@@ -234,8 +226,8 @@
   <!-- PESTAÑAS -->
   <nav class="coach-nav-bar">
     <button class="nav-tab-btn active" id="btn_nav_checkins" onclick="ApexNav.irA('modulo_checkins')">Validación</button>
-    <button class="nav-tab-btn" id="btn_nav_membresias" onclick="ApexNav.irA('modulo_membresias')">Membresías</button>
     <button class="nav-tab-btn" id="btn_nav_equipo" onclick="ApexNav.irA('modulo_equipo')">Equipo</button>
+    <button class="nav-tab-btn" id="btn_nav_historico" onclick="ApexNav.irA('modulo_historico')">Histórico</button>
     <button class="nav-tab-btn" id="btn_nav_calificaciones" onclick="ApexNav.irA('modulo_calificaciones')">Calificar</button>
   </nav>
 
@@ -294,7 +286,7 @@
         </div>
       </div>
 
-      <!-- HISTORIAL DE CHECK-INS VALIDADOS (MINIMIZADO POR DEFECTO) -->
+      <!-- HISTORIAL DE CHECK-INS VALIDADOS -->
       <div class="card">
         <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="ApexHistorialCheckinsCoach.toggleHistorial()">
           <span class="card-title" style="margin-bottom:0;">📜 Historial de Check-ins Validados</span>
@@ -340,134 +332,7 @@
       </div>
     </div>
 
-    <!-- SUBMÓDULO 2: GESTIÓN DE MEMBRESÍAS & EVIDENCIAS -->
-    <div class="panel-view" id="modulo_membresias">
-      <div class="header">
-        <div class="title">Apex <span>Membresías</span></div>
-        <div class="badge-coach">Auditoría</div>
-      </div>
-
-      <div class="sub-nav-membresias">
-        <button class="sub-nav-btn active" id="btn_sub_habilitacion" onclick="ApexMembresias.irSubSeccion('sub_habilitacion', this)">Habilitación y Control</button>
-        <button class="sub-nav-btn" id="btn_sub_historial" onclick="ApexMembresias.irSubSeccion('sub_historial', this)">Historial de Membresías</button>
-      </div>
-
-      <div class="sub-section-view active" id="sub_habilitacion">
-        <div class="card">
-          <div class="card-title">Habilitación y Control</div>
-          <div class="card-desc">Buscador predictivo de Strikers. Otorga 3 días de gracia y envía evidencia al contador.</div>
-
-          <div class="form-group">
-            <label class="form-label">Striker (Correo o Nombre)</label>
-            <input type="text" id="studentEmailSearch" placeholder="Escribe para buscar..." class="input-apex" autocomplete="off" oninput="ApexMembresias.buscar(this.value)">
-            <div class="suggestions-box" id="suggestionsBox"></div>
-          </div>
-
-          <div class="striker-summary-card" id="strikerCard">
-            <div style="display: flex; align-items: center; justify-content: space-between;">
-              <div style="display: flex; align-items: center; gap: 10px;">
-                <div id="strikerCardAvatar" class="avatar-circle avatar-sm">AP</div>
-                <div>
-                  <strong id="strikerName" style="color: #fff; font-size: 0.85rem; display: block;">-</strong>
-                  <span id="strikerEmailTxt" style="font-size: 0.65rem; color: var(--text-muted);">-</span>
-                </div>
-              </div>
-              <span id="strikerStatusBadge" style="font-size: 0.65rem; font-weight: 800; padding: 2px 6px; border-radius: 3px;">-</span>
-            </div>
-            <div class="striker-summary-grid">
-              <div class="info-box">
-                <div class="info-box-label">Días Restantes</div>
-                <div class="info-box-val" id="strikerDaysVal">-</div>
-              </div>
-              <div class="info-box">
-                <div class="info-box-label">Vencimiento Actual</div>
-                <div class="info-box-val" id="strikerEndVal">-</div>
-              </div>
-            </div>
-          </div>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px;">
-            <div class="form-group">
-              <label class="form-label">Fecha de Pago (Opcional)</label>
-              <input type="date" id="paymentDateInput" class="input-apex">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Plan / Vigencia</label>
-              <select id="membershipPlan" class="input-apex" style="height: 42px;">
-                <option value="30">30 Días (Mes)</option>
-                <option value="15">15 Días (Quincena)</option>
-                <option value="90">90 Días (Trimestre)</option>
-                <option value="1">1 Día (Pase)</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Evidencia Obligatoria (Cámara o Galería)</label>
-            <input type="file" id="evidenceFileInput" accept="image/*" class="input-apex" onchange="ApexMembresias.validarEvidencia()" style="font-size: 0.72rem;">
-          </div>
-
-          <button class="btn-main" id="btnSubmitMembership" disabled onclick="ApexMembresias.procesar()">
-            Adjunta Evidencia Para Habilitar
-          </button>
-        </div>
-
-        <div class="card">
-          <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
-            <span>📥 Evidencias Pendientes de Facturación</span>
-            <span id="cntPendientesBadge" style="font-size:0.65rem; background:var(--accent-dim); color:var(--accent); padding:2px 6px; border-radius:4px;">0 pendientes</span>
-          </div>
-          <div class="card-desc">Cuenta regresiva de 72h (3 días de gracia). Modifica o elimina registros si hubo un error.</div>
-          <div id="listaEvidenciasPendientes">
-            <div style="font-size: 0.75rem; color: var(--text-muted); text-align: center; padding: 12px;">Cargando pendientes...</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="sub-section-view" id="sub_historial">
-        <div class="card">
-          <div class="card-title">📋 Historial de Membresías Gestionadas (Tus Registros)</div>
-          <div class="card-desc">Filtra por usuario, estatus y periodos de tiempo personalizados o predeterminados.</div>
-
-          <div class="form-group" style="margin-bottom:8px;">
-            <label class="form-label">Filtrar por Striker (Correo o Nombre)</label>
-            <input type="text" id="hMemBusqueda" placeholder="Escribe para buscar striker..." class="input-apex" oninput="ApexHistorialMembresias.filtrar()">
-          </div>
-
-          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:10px;">
-            <div class="form-group" style="margin-bottom:0;">
-              <label class="form-label">Estatus Contable</label>
-              <select id="hMemEstatus" class="input-apex" style="height:38px;" onchange="ApexHistorialMembresias.filtrar()">
-                <option value="todos">Todos</option>
-                <option value="pendiente_contabilidad">Pendientes</option>
-                <option value="redimido">Facturados / Redimidos</option>
-              </select>
-            </div>
-            <div class="form-group" style="margin-bottom:0;">
-              <label class="form-label">Periodo</label>
-              <select id="hMemPeriodo" class="input-apex" style="height:38px;" onchange="ApexHistorialMembresias.cambiarPeriodo(this.value)">
-                <option value="semana">Última Semana</option>
-                <option value="quincena">Última Quincena</option>
-                <option value="mes" selected>Último Mes</option>
-                <option value="todo">Todo</option>
-                <option value="manual">Manual</option>
-              </select>
-            </div>
-          </div>
-
-          <div id="hMemManualBox" style="display:none; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px; background:#070709; padding:8px; border-radius:6px; border:1px solid var(--border);">
-            <div><label class="form-label">Desde</label><input type="date" id="hMemDesde" class="input-apex" onchange="ApexHistorialMembresias.filtrar()"></div>
-            <div><label class="form-label">Hasta</label><input type="date" id="hMemHasta" class="input-apex" onchange="ApexHistorialMembresias.filtrar()"></div>
-          </div>
-
-          <div id="listaHistorialMembresias">
-            <div style="font-size: 0.75rem; color: var(--text-muted); text-align: center; padding: 12px;">Cargando historial...</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- SUBMÓDULO 3: EQUIPO & ANALÍTICA UNIFICADA -->
+    <!-- SUBMÓDULO 2: EQUIPO & ANALÍTICA UNIFICADA -->
     <div class="panel-view" id="modulo_equipo">
       <div class="header">
         <div class="title">Apex <span>Equipo</span></div>
@@ -475,24 +340,53 @@
       </div>
 
       <div class="card">
-        <div class="card-title">Métricas Generales (Últimos 2 Meses)</div>
-        <div class="card-desc">Pulso de rendimiento y estadísticas de la ventana bimestral activa.</div>
-        <div class="striker-summary-grid">
-          <div class="info-box">
-            <div class="info-box-label">Strikers Activos</div>
-            <div class="info-box-val" id="teamTotalStrikers">-</div>
+        <div class="card-title">Métricas de Strikers Activos (Últimos 2 Meses)</div>
+        <div class="card-desc">Pulso de rendimiento y estadísticas filtradas exclusivamente para Strikers con membresía activa o vigente.</div>
+        
+        <!-- MÉTRICAS VISUALES MODERNAS -->
+        <div class="metrics-visual-grid">
+          <div class="metric-visual-card">
+            <div class="metric-visual-header">
+              <span class="metric-visual-title">Strikers Activos</span>
+              <span class="metric-visual-icon">⚡</span>
+            </div>
+            <div>
+              <div class="metric-visual-val" id="teamTotalStrikers">-</div>
+              <div class="metric-visual-note">Con membresía vigente</div>
+            </div>
           </div>
-          <div class="info-box">
-            <div class="info-box-label">RPE Promedio Global</div>
-            <div class="info-box-val" id="teamAvgRpe">-</div>
+
+          <div class="metric-visual-card">
+            <div class="metric-visual-header">
+              <span class="metric-visual-title">RPE Promedio Global</span>
+              <span class="metric-visual-icon">🔥</span>
+            </div>
+            <div>
+              <div class="metric-visual-val" id="teamAvgRpe">-</div>
+              <div class="metric-visual-note">Escala 1 - 10</div>
+            </div>
           </div>
-          <div class="info-box">
-            <div class="info-box-label">Check-ins Totales</div>
-            <div class="info-box-val" id="teamTotalCheckins">-</div>
+
+          <div class="metric-visual-card">
+            <div class="metric-visual-header">
+              <span class="metric-visual-title">Check-ins Totales</span>
+              <span class="metric-visual-icon">🥊</span>
+            </div>
+            <div>
+              <div class="metric-visual-val" id="teamTotalCheckins">-</div>
+              <div class="metric-visual-note">Sesiones registradas</div>
+            </div>
           </div>
-          <div class="info-box">
-            <div class="info-box-label">Índice de Diversión</div>
-            <div class="info-box-val" id="teamAvgFun">-</div>
+
+          <div class="metric-visual-card">
+            <div class="metric-visual-header">
+              <span class="metric-visual-title">Índice de Diversión</span>
+              <span class="metric-visual-icon">🎯</span>
+            </div>
+            <div>
+              <div class="metric-visual-val" id="teamAvgFun">-</div>
+              <div class="metric-visual-note">Flujo / Disfrute</div>
+            </div>
           </div>
         </div>
       </div>
@@ -501,7 +395,8 @@
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
           <div class="card-title" style="margin-bottom:0;">Fichas de Strikers</div>
           <div class="team-filter-bar" style="margin-bottom:0;">
-            <div class="filter-chip active" id="chipActivos" onclick="ApexEquipo.filtrarCarretel('activos')">Activos</div>
+            <div class="filter-chip active" id="chipActivos" onclick="ApexEquipo.filtrarCarretel('activos')">Vigencia Activa</div>
+            <div class="filter-chip" id="chipInactivos" onclick="ApexEquipo.filtrarCarretel('inactivos')">Vigencia Inactiva</div>
             <div class="filter-chip" id="chipTodos" onclick="ApexEquipo.filtrarCarretel('todos')">Todos</div>
           </div>
         </div>
@@ -561,6 +456,28 @@
         <div style="margin-top: 10px;"><div class="card-title" style="margin-bottom: 6px;">Soltura y Flexibilidad (1 - 10)</div><div style="height:140px; position:relative; background:#050507; border:1px solid var(--border); border-radius:6px; padding:6px;"><canvas id="coachChartSoltura"></canvas></div></div>
         <div style="margin-top: 10px;"><div class="card-title" style="margin-bottom: 6px;">Fluidez Técnica (1 - 10)</div><div style="height:140px; position:relative; background:#050507; border:1px solid var(--border); border-radius:6px; padding:6px;"><canvas id="coachChartFluidez"></canvas></div></div>
         <div style="margin-top: 10px;"><div class="card-title" style="margin-bottom: 6px;">Nivel de Diversión (1 - 10)</div><div style="height:140px; position:relative; background:#050507; border:1px solid var(--border); border-radius:6px; padding:6px;"><canvas id="coachChartDiversion"></canvas></div></div>
+      </div>
+    </div>
+
+    <!-- SUBMÓDULO 3: HISTÓRICO DE STRIKERS -->
+    <div class="panel-view" id="modulo_historico">
+      <div class="header">
+        <div class="title">Apex <span>Histórico</span></div>
+        <div class="badge-coach">Registro Global</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Histórico de Strikers</div>
+        <div class="card-desc">Directorio absoluto de todos los Strikers registrados históricamente en el sistema.</div>
+
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label class="form-label">Buscar Striker (Nombre o Correo)</label>
+          <input type="text" id="historialStrikersBusqueda" placeholder="Escribe para buscar en el histórico..." class="input-apex" oninput="ApexHistoricoStrikers.filtrar()">
+        </div>
+
+        <div id="listaHistorialStrikers">
+          <div style="font-size: 0.75rem; color: var(--text-muted); text-align: center; padding: 16px;">Cargando histórico...</div>
+        </div>
       </div>
     </div>
 
@@ -626,7 +543,6 @@
             <span id="historialCalifChevron" style="font-size: 0.9rem; font-weight: bold; color: var(--text-muted); cursor:pointer;" onclick="ApexCalificaciones.toggleHistorial()">▼</span>
           </div>
           
-          <!-- FILTROS INTELIGENTES PARA HISTORIAL DE CALIFICACIONES -->
           <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; margin-bottom:8px;">
             <div class="form-group" style="margin-bottom:0;">
               <label class="form-label">Striker / Correo</label>
@@ -660,22 +576,6 @@
     </div>
   </div>
 
-  <!-- MODAL EDITAR PAGO / MEMBRESÍA -->
-  <div id="modalEditarPago" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.85); z-index:1000; justify-content:center; align-items:center; padding:16px;">
-    <div style="background:var(--card-bg); border:1px solid var(--border); border-radius:8px; padding:16px; width:100%; max-width:350px;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-        <span style="font-size:0.8rem; font-weight:900; text-transform:uppercase;">Modificar Membresía / Pago</span>
-        <button onclick="cerrarModalEditarPago()" style="background:none; border:none; color:#fff; font-size:1rem; cursor:pointer;">✕</button>
-      </div>
-      <input type="hidden" id="editPagoId">
-      <div class="form-group">
-        <label class="form-label">Plan / Vigencia</label>
-        <input type="text" id="editPlanType" class="input-apex">
-      </div>
-      <button class="btn-main" onclick="guardarEdicionPago()">Guardar Cambios</button>
-    </div>
-  </div>
-
   <script>
     /* ==========================================================================
        1. NAVEGADOR AUTÓNOMO
@@ -692,12 +592,12 @@
           document.getElementById('btn_nav_checkins')?.classList.add('active');
           ApexCheckins.cargar();
           ApexHistorialCheckinsCoach.cargar();
-        } else if (panelId === 'modulo_membresias') {
-          document.getElementById('btn_nav_membresias')?.classList.add('active');
-          ApexMembresias.cargarPendientesYGestionadas();
         } else if (panelId === 'modulo_equipo') {
           document.getElementById('btn_nav_equipo')?.classList.add('active');
           ApexEquipo.cargarAnaliticaGlobal();
+        } else if (panelId === 'modulo_historico') {
+          document.getElementById('btn_nav_historico')?.classList.add('active');
+          ApexHistoricoStrikers.cargar();
         } else if (panelId === 'modulo_calificaciones') {
           document.getElementById('btn_nav_calificaciones')?.classList.add('active');
           ApexCalificaciones.inicializar();
@@ -743,12 +643,6 @@
         .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_checkins' }, payload => {
           ApexCheckins.cargar();
           ApexHistorialCheckinsCoach.cargar();
-        })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_payments' }, payload => {
-          ApexMembresias.cargarPendientesYGestionadas();
-        })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_users' }, payload => {
-          ApexMembresias.cargarDirectorio();
         })
         .subscribe();
     }
@@ -1185,7 +1079,7 @@
     };
 
     /* ==========================================================================
-       4.1. HISTORIAL DE CHECK-INS VALIDADOS POR EL COACH (FILTRADO POR coach_id)
+       4.1. HISTORIAL DE CHECK-INS VALIDADOS POR EL COACH
        ========================================================================== */
     let cacheHistorialCheckinsCoach = [];
 
@@ -1260,7 +1154,7 @@
         } else if (periodoFiltro === 'mes') {
           fechaInicio = new Date();
           fechaInicio.setMonth(ahora.getMonth() - 1);
-        } else if (periodoFiltro === 'manual') {
+        } else if (periodoFritro === 'manual') {
           const dDesde = document.getElementById('hCoachDesde').value;
           const dHasta = document.getElementById('hCoachHasta').value;
           if (dDesde) fechaInicio = new Date(dDesde + 'T00:00:00');
@@ -1321,438 +1215,7 @@
     };
 
     /* ==========================================================================
-       5. GESTIÓN DE MEMBRESÍAS & EVIDENCIAS
-       ========================================================================== */
-    let selectedStriker = null;
-    let cachePagosCoach = [];
-    let timerCuentaRegresiva = null;
-
-    const ApexMembresias = {
-      irSubSeccion: function(subId, btnEl) {
-        document.querySelectorAll('.sub-section-view').forEach(s => s.classList.remove('active'));
-        document.querySelectorAll('.sub-nav-membresias .sub-nav-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(subId).classList.add('active');
-        btnEl.classList.add('active');
-      },
-
-      cargarDirectorio: async function() {
-        if (!supabaseClient) return;
-        try {
-          const { data, error } = await supabaseClient
-            .from('apex_users')
-            .select('id, email, name, photo_url, role, is_active, subscription_status, subscription_expires_at');
-          
-          if (!error && data) {
-            registeredUsersCache = data;
-          }
-        } catch (e) {}
-      },
-
-      buscar: function(query) {
-        const q = query.trim().toLowerCase();
-        const box = document.getElementById('suggestionsBox');
-        box.innerHTML = '';
-
-        if (q.length < 1) {
-          box.style.display = 'none';
-          return;
-        }
-
-        const matches = registeredUsersCache.filter(u => {
-          const emailMatch = u.email ? u.email.toLowerCase().includes(q) : false;
-          const nameMatch = u.name ? u.name.toLowerCase().includes(q) : false;
-          return emailMatch || nameMatch;
-        });
-
-        if (matches.length === 0) {
-          box.innerHTML = '<div style="padding:10px; font-size:0.75rem; color:#777;">Sin coincidencias</div>';
-          box.style.display = 'block';
-          return;
-        }
-
-        matches.forEach(user => {
-          const item = document.createElement('div');
-          item.className = 'suggestion-item';
-          const displayName = user.name || 'Sin nombre registrado';
-          const avatarUrl = user.photo_url;
-          const avatarImg = (avatarUrl && typeof avatarUrl === 'string' && avatarUrl.startsWith('http')) 
-            ? `<img src="${avatarUrl}" class="avatar-circle avatar-sm" alt="Foto">` 
-            : `<div class="avatar-circle avatar-sm">${displayName.substring(0,2).toUpperCase()}</div>`;
-
-          item.innerHTML = `
-            ${avatarImg}
-            <div>
-              <strong style="color:#fff;">${displayName}</strong>
-              <span style="color:var(--text-muted); font-size:0.7rem;">${user.email}</span>
-            </div>
-          `;
-          item.onclick = () => this.seleccionar(user);
-          box.appendChild(item);
-        });
-        box.style.display = 'block';
-      },
-
-      seleccionar: function(user) {
-        selectedStriker = user;
-        document.getElementById('studentEmailSearch').value = user.email;
-        document.getElementById('suggestionsBox').style.display = 'none';
-
-        const hoy = new Date();
-        let diasRestantes = 0;
-
-        if (user.subscription_expires_at) {
-          const fechaFin = new Date(user.subscription_expires_at);
-          const diffMs = fechaFin.getTime() - hoy.getTime();
-          diasRestantes = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-        }
-
-        const card = document.getElementById('strikerCard');
-        document.getElementById('strikerName').textContent = user.name || 'Striker';
-        document.getElementById('strikerEmailTxt').textContent = user.email;
-        
-        let fechaVencStr = 'Sin registro';
-        if (user.subscription_expires_at) {
-          const fv = new Date(user.subscription_expires_at);
-          fechaVencStr = `${fv.getUTCDate()}/${fv.getUTCMonth() + 1}/${fv.getUTCFullYear()}`;
-        }
-        document.getElementById('strikerEndVal').textContent = fechaVencStr;
-
-        const avatarContainer = document.getElementById('strikerCardAvatar');
-        const avatarUrl = user.photo_url;
-        if (avatarUrl && typeof avatarUrl === 'string' && avatarUrl.startsWith('http')) {
-          avatarContainer.outerHTML = `<img id="strikerCardAvatar" src="${avatarUrl}" class="avatar-circle avatar-sm" alt="Striker">`;
-        } else {
-          avatarContainer.outerHTML = `<div id="strikerCardAvatar" class="avatar-circle avatar-sm">${(user.name || 'ST').substring(0,2).toUpperCase()}</div>`;
-        }
-
-        const daysVal = document.getElementById('strikerDaysVal');
-        const statusBadge = document.getElementById('strikerStatusBadge');
-
-        if (diasRestantes > 0 && user.subscription_status === 'activo') {
-          daysVal.textContent = `${diasRestantes} días`;
-          daysVal.style.color = 'var(--status-ok)';
-          statusBadge.textContent = 'AL DÍA';
-          statusBadge.style.background = 'rgba(34, 197, 94, 0.2)';
-          statusBadge.style.color = 'var(--status-ok)';
-        } else {
-          daysVal.textContent = diasRestantes <= 0 ? 'Vencido' : 'Inactivo';
-          daysVal.style.color = 'var(--accent)';
-          statusBadge.textContent = 'INACTIVO';
-          statusBadge.style.background = 'var(--accent-dim)';
-          statusBadge.style.color = 'var(--accent)';
-        }
-
-        card.style.display = 'block';
-        this.validarEvidencia();
-      },
-
-      validarEvidencia: function() {
-        const fileInput = document.getElementById('evidenceFileInput');
-        const btn = document.getElementById('btnSubmitMembership');
-        const hasFile = fileInput.files && fileInput.files.length > 0;
-
-        if (selectedStriker && hasFile) {
-          btn.disabled = false;
-          btn.textContent = "Validar y Habilitar Membresía";
-        } else {
-          btn.disabled = true;
-          btn.textContent = !selectedStriker ? "Selecciona un Striker" : "Adjunta Evidencia Para Habilitar";
-        }
-      },
-
-      procesar: async function() {
-        if (!selectedStriker) return;
-        const fileInput = document.getElementById('evidenceFileInput');
-        const file = fileInput.files[0];
-        const planDays = parseInt(document.getElementById('membershipPlan').value, 10);
-        const dateVal = document.getElementById('paymentDateInput').value;
-
-        const baseDate = dateVal ? new Date(dateVal + 'T00:00:00') : new Date();
-        const expDate = new Date(baseDate);
-        expDate.setDate(expDate.getDate() + 3);
-
-        const expDateISO = expDate.toISOString();
-        const expDateLegible = `${expDate.getUTCDate()}/${expDate.getUTCMonth() + 1}/${expDate.getUTCFullYear()}`;
-
-        const btn = document.getElementById('btnSubmitMembership');
-        btn.disabled = true;
-        btn.textContent = "Subiendo...";
-
-        try {
-          let receiptUrl = null;
-          if (supabaseClient && file) {
-            const fileExt = file.name.split('.').pop();
-            const filePath = `comprobantes/${Date.now()}_${selectedStriker.email.replace(/[^a-zA-Z0-9]/g, '_')}.${fileExt}`;
-            const { error: uploadError } = await supabaseClient.storage.from('comprobantes').upload(filePath, file);
-
-            if (!uploadError) {
-              const { data: urlData } = supabaseClient.storage.from('comprobantes').getPublicUrl(filePath);
-              receiptUrl = urlData.publicUrl;
-            }
-          }
-
-          await supabaseClient.from('apex_users').update({ 
-            subscription_status: 'activo',
-            is_active: true,
-            subscription_expires_at: expDateISO
-          }).eq('email', selectedStriker.email);
-
-          await supabaseClient.from('apex_payments').insert({
-            user_email: selectedStriker.email,
-            coach_email: currentCoachEmail,
-            plan_type: `${planDays} Días (Reportado por Coach)`,
-            amount: 0,
-            receipt_urls: receiptUrl ? [receiptUrl] : [],
-            accounting_status: 'pendiente_contabilidad'
-          });
-
-          await supabaseClient.from('apex_notifications').insert({
-            user_email: selectedStriker.email,
-            title: 'Membresía Temporal (3 Días de Gracia)',
-            message: `Tu acceso fue habilitado temporalmente hasta el ${expDateLegible} mientras el contador consolida tu pago.`,
-            type: 'membresia'
-          });
-
-          alert(`¡Acceso temporal de 3 días habilitado!\nStriker: ${selectedStriker.email}\nGracia hasta: ${expDateLegible}`);
-          document.getElementById('studentEmailSearch').value = '';
-          document.getElementById('strikerCard').style.display = 'none';
-          fileInput.value = '';
-          selectedStriker = null;
-          this.validarEvidencia();
-          await this.cargarDirectorio();
-          await this.cargarPendientesYGestionadas();
-        } catch (err) {
-          alert("Error: " + err.message);
-          this.validarEvidencia();
-        }
-      },
-
-      cargarPendientesYGestionadas: async function() {
-        if (!supabaseClient) return;
-        try {
-          const { data, error } = await supabaseClient
-            .from('apex_payments')
-            .select('*')
-            .order('created_at', { ascending: false });
-
-          if (!error && data) {
-            cachePagosCoach = data;
-            this.renderPendientes();
-            ApexHistorialMembresias.filtrar();
-          }
-        } catch (e) {}
-
-        if (timerCuentaRegresiva) clearInterval(timerCuentaRegresiva);
-        timerCuentaRegresiva = setInterval(() => {
-          this.renderPendientes();
-        }, 30000);
-      },
-
-      renderPendientes: function() {
-        const container = document.getElementById('listaEvidenciasPendientes');
-        const badge = document.getElementById('cntPendientesBadge');
-        const pendientes = cachePagosCoach.filter(p => (!p.accounting_status || p.accounting_status === 'pendiente_contabilidad') && (p.coach_email || '').toLowerCase() === currentCoachEmail.toLowerCase());
-
-        badge.innerText = `${pendientes.length} pendientes`;
-
-        if (pendientes.length === 0) {
-          container.innerHTML = '<div style="font-size:0.72rem; color:var(--text-muted); text-align:center; padding:12px;">No hay evidencias pendientes tuyas.</div>';
-          return;
-        }
-
-        const ahora = new Date();
-        container.innerHTML = '';
-
-        pendientes.forEach(p => {
-          const fechaCreacion = new Date(p.created_at);
-          const vencimientoGracia = new Date(fechaCreacion.getTime() + (72 * 60 * 60 * 1000));
-          const diffMs = vencimientoGracia - ahora;
-          const horasRestantes = Math.floor(diffMs / (1000 * 60 * 60));
-          const minutosRestantes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-
-          const esVencido = diffMs <= 0;
-          const itemClass = esVencido ? 'evidencia-item vencido' : 'evidencia-item';
-          const timerClass = esVencido ? 'timer-badge expired' : 'timer-badge normal';
-          const timerText = esVencido ? '⚠ VENCIDO EN GRACIA' : `⏳ Quedan ${horasRestantes}h ${minutosRestantes}m`;
-
-          const user = registeredUsersCache.find(u => u.email.toLowerCase() === (p.user_email || '').toLowerCase());
-          const nombreStriker = user?.name || p.user_email;
-          const avatarUrl = user?.photo_url;
-          const avatarHtml = (avatarUrl && typeof avatarUrl === 'string' && avatarUrl.startsWith('http')) 
-            ? `<img src="${avatarUrl}" class="avatar-circle avatar-sm" alt="Foto">` 
-            : `<div class="avatar-circle avatar-sm">${nombreStriker.substring(0,2).toUpperCase()}</div>`;
-
-          const imgPreview = (p.receipt_urls && p.receipt_urls.length > 0 && typeof p.receipt_urls[0] === 'string' && p.receipt_urls[0].startsWith('http')) 
-            ? `<div style="margin-top:6px;"><img src="${p.receipt_urls[0]}" style="width:55px; height:55px; object-fit:cover; border-radius:4px; border:1px solid var(--border); cursor:pointer;" onclick="abrirZoomImagen('${p.receipt_urls[0]}')" title="Haz clic para ampliar"></div>` 
-            : '<span style="font-size:0.65rem; color:var(--text-muted);">Sin comprobante</span>';
-
-          const item = document.createElement('div');
-          item.className = itemClass;
-          item.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
-              <div style="display:flex; align-items:center; gap:8px;">
-                ${avatarHtml}
-                <div>
-                  <strong style="font-size:0.8rem; color:#fff; display:block;">${nombreStriker}</strong>
-                  <span style="font-size:0.62rem; color:var(--text-muted);">${p.user_email}</span>
-                </div>
-              </div>
-              <span class="${timerClass}">${timerText}</span>
-            </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.68rem; margin-top:6px; border-top:1px solid #1f1f24; padding-top:6px;">
-              <span style="color:var(--text-muted);">Plan: <strong style="color:#fff;">${p.plan_type || 'Membresía'}</strong></span>
-              ${imgPreview}
-            </div>
-            <div style="display:flex; gap:6px; margin-top:8px; border-top:1px solid #1f1f24; padding-top:6px;">
-              <button class="btn-main" style="padding:4px 8px; font-size:0.58rem; background:#222; color:#fff;" onclick="abrirModalEditarPago('${p.id}', '${p.plan_type || ''}')">Modificar</button>
-              <button class="btn-main btn-danger" style="padding:4px 8px; font-size:0.58rem;" onclick="eliminarPagoPendiente('${p.id}')">Eliminar</button>
-            </div>
-          `;
-          container.appendChild(item);
-        });
-      }
-    };
-
-    function abrirModalEditarPago(pId, currentPlan) {
-      document.getElementById('editPagoId').value = pId;
-      document.getElementById('editPlanType').value = currentPlan;
-      document.getElementById('modalEditarPago').style.display = 'flex';
-    }
-
-    function cerrarModalEditarPago() {
-      document.getElementById('modalEditarPago').style.display = 'none';
-    }
-
-    async function guardarEdicionPago() {
-      const pId = document.getElementById('editPagoId').value;
-      const newPlan = document.getElementById('editPlanType').value.trim();
-      if (!newPlan) { alert('El plan no puede estar vacío.'); return; }
-      if (!confirm('¿Estás seguro de modificar este registro de pago?')) return;
-
-      if (supabaseClient) {
-        const { error } = await supabaseClient.from('apex_payments').update({ plan_type: newPlan }).eq('id', pId);
-        if (error) { alert('Error al actualizar: ' + error.message); return; }
-      }
-      alert('¡Modificado con éxito!');
-      cerrarModalEditarPago();
-      ApexMembresias.cargarPendientesYGestionadas();
-    }
-
-    async function eliminarPagoPendiente(pId) {
-      if (!confirm('⚠️️ ¿Estás completamente seguro de ELIMINAR este registro de membresía pendiente?')) return;
-
-      if (supabaseClient) {
-        const { error } = await supabaseClient.from('apex_payments').delete().eq('id', pId);
-        if (error) { alert('Error al eliminar: ' + error.message); return; }
-      }
-      alert('Registro eliminado correctamente.');
-      ApexMembresias.cargarPendientesYGestionadas();
-    }
-
-    /* ==========================================================================
-       6. HISTORIAL DE MEMBRESÍAS GESTIONADAS CON FILTROS INTELIGENTES
-       ========================================================================== */
-    const ApexHistorialMembresias = {
-      cambiarPeriodo: function(val) {
-        const manualBox = document.getElementById('hMemManualBox');
-        if (val === 'manual') {
-          manualBox.style.display = 'grid';
-        } else {
-          manualBox.style.display = 'none';
-        }
-        this.filtrar();
-      },
-
-      filtrar: function() {
-        const container = document.getElementById('listaHistorialMembresias');
-        if (!container) return;
-
-        const query = (document.getElementById('hMemBusqueda').value || '').trim().toLowerCase();
-        const estatusFiltro = document.getElementById('hMemEstatus').value;
-        const periodoFiltro = document.getElementById('hMemPeriodo').value;
-
-        const ahora = new Date();
-        let fechaInicio = null;
-        let fechaFin = new Date();
-
-        if (periodoFiltro === 'semana') {
-          fechaInicio = new Date();
-          fechaInicio.setDate(ahora.getDate() - 7);
-        } else if (periodoFiltro === 'quincena') {
-          fechaInicio = new Date();
-          fechaInicio.setDate(ahora.getDate() - 15);
-        } else if (periodoFiltro === 'mes') {
-          fechaInicio = new Date();
-          fechaInicio.setMonth(ahora.getMonth() - 1);
-        } else if (periodoFiltro === 'manual') {
-          const dDesde = document.getElementById('hMemDesde').value;
-          const dHasta = document.getElementById('hMemHasta').value;
-          if (dDesde) fechaInicio = new Date(dDesde + 'T00:00:00');
-          if (dHasta) fechaFin = new Date(dHasta + 'T23:59:59');
-        }
-
-        const gestionadas = cachePagosCoach.filter(p => {
-          if (!p.coach_email || p.coach_email.toLowerCase() !== currentCoachEmail.toLowerCase()) return false;
-
-          const fechaReg = new Date(p.created_at);
-          if (fechaInicio && fechaReg < fechaInicio) return false;
-          if (fechaFin && fechaReg > fechaFin) return false;
-
-          const estatusContable = p.accounting_status || 'pendiente_contabilidad';
-          if (estatusFiltro !== 'todos' && estatusContable !== estatusFiltro) return false;
-
-          if (query) {
-            const email = (p.user_email || '').toLowerCase();
-            const user = registeredUsersCache.find(u => u.email.toLowerCase() === email);
-            const nombre = (user?.name || '').toLowerCase();
-            if (!email.includes(query) && !nombre.includes(query)) return false;
-          }
-          return true;
-        });
-
-        if (gestionadas.length === 0) {
-          container.innerHTML = '<div style="font-size:0.72rem; color:var(--text-muted); text-align:center; padding:12px;">Sin registros de membresías tuyas en este periodo / filtro.</div>';
-          return;
-        }
-
-        container.innerHTML = '';
-        gestionadas.forEach(p => {
-          const fechaReg = new Date(p.created_at);
-          const fechaStr = `${fechaReg.getDate()}/${fechaReg.getMonth()+1}/${fechaReg.getFullYear()} ${fechaReg.getHours().toString().padStart(2,'0')}:${fechaReg.getMinutes().toString().padStart(2,'0')}`;
-          
-          const esRedimido = p.accounting_status === 'redimido';
-          const estadoTxt = esRedimido ? '✅ Facturado / Redimido' : '⏳ Pendiente Contador';
-          const estadoColor = esRedimido ? 'var(--status-ok)' : 'var(--status-warn)';
-
-          const user = registeredUsersCache.find(u => u.email.toLowerCase() === (p.user_email || '').toLowerCase());
-          const nombreStriker = user?.name || p.user_email;
-
-          const imgThumb = (p.receipt_urls && p.receipt_urls.length > 0 && typeof p.receipt_urls[0] === 'string' && p.receipt_urls[0].startsWith('http')) 
-            ? `<div style="margin-top:4px;"><img src="${p.receipt_urls[0]}" style="width:40px; height:40px; object-fit:cover; border-radius:4px; border:1px solid var(--border); cursor:pointer;" onclick="abrirZoomImagen('${p.receipt_urls[0]}')" title="Ver comprobante"></div>` 
-            : '';
-
-          const item = document.createElement('div');
-          item.className = 'evidencia-item';
-          item.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-              <strong style="font-size:0.78rem; color:#fff;">${nombreStriker}</strong>
-              <span style="font-size:0.62rem; color:${estadoColor}; font-weight:800;">${estadoTxt}</span>
-            </div>
-            <div style="font-size:0.65rem; color:var(--text-muted); display:flex; justify-content:space-between; align-items:flex-end;">
-              <div>
-                <span>Plan: ${p.plan_type || 'Membresía'}</span>
-                <div style="font-size:0.58rem; color:#777; margin-top:2px;">${fechaStr}</div>
-              </div>
-              ${imgThumb}
-            </div>
-          `;
-          container.appendChild(item);
-        });
-      }
-    };
-
-    /* ==========================================================================
-       7. MÓDULO DE EQUIPO Y ANALÍTICA (CON INDICADOR EXACTO DE VIGENCIA)
+       5. MÓDULO DE EQUIPO Y ANALÍTICA (VIGENCIA ACTIVA / INACTIVA / TODOS)
        ========================================================================== */
     let globalTeamUsers = [];
     let globalTeamCheckins = [];
@@ -1768,6 +1231,24 @@
     let carouselRadarInstances = {};
 
     const ApexEquipo = {
+      esStrikerActivo: function(user, hoy) {
+        const rol = (user.role || '').toLowerCase();
+        const perfil = (user.profile_id || '').toLowerCase();
+        const esStaff = ['admin', 'administrador', 'coach', 'supervisor', 'coordinador'].includes(rol) || 
+                        ['admin', 'administrador', 'coach', 'supervisor', 'coordinador'].includes(perfil);
+        if (esStaff) return true;
+
+        if (user.subscription_status === 'activo' && user.is_active !== false) {
+          if (user.subscription_expires_at) {
+            const expDate = new Date(user.subscription_expires_at.includes('T') ? user.subscription_expires_at : user.subscription_expires_at + 'T00:00:00');
+            if (expDate >= hoy) return true;
+          } else {
+            return true;
+          }
+        }
+        return false;
+      },
+
       cargarAnaliticaGlobal: async function() {
         if (!supabaseClient) return;
 
@@ -1788,27 +1269,36 @@
           globalTeamSupervisions = supervisionsRes.data || [];
           globalTeamAdjustments = adjustmentsRes.data || [];
 
+          const hoy = new Date();
+          hoy.setHours(0,0,0,0);
           const haceSesentaDias = new Date();
           haceSesentaDias.setDate(haceSesentaDias.getDate() - 60);
           haceSesentaDias.setHours(0, 0, 0, 0);
 
-          const checkinsBimestre = globalTeamCheckins.filter(c => new Date(c.created_at) >= haceSesentaDias && c.status === 'aprobado');
+          // Filtrar Strikers Activos para las Métricas Generales
+          const activeUsers = globalTeamUsers.filter(user => this.esStrikerActivo(user, hoy));
+          const activeEmails = new Set(activeUsers.map(u => (u.email || '').toLowerCase()));
 
-          document.getElementById('teamTotalStrikers').innerText = globalTeamUsers.length;
-          document.getElementById('teamTotalCheckins').innerText = checkinsBimestre.length;
+          const checkinsBimestreActivos = globalTeamCheckins.filter(c => {
+            const email = (c.user_email || '').toLowerCase();
+            return activeEmails.has(email) && new Date(c.created_at) >= haceSesentaDias && c.status === 'aprobado';
+          });
 
-          if (checkinsBimestre.length > 0) {
+          document.getElementById('teamTotalStrikers').innerText = activeUsers.length;
+          document.getElementById('teamTotalCheckins').innerText = checkinsBimestreActivos.length;
+
+          if (checkinsBimestreActivos.length > 0) {
             let totalRpe = 0;
             let totalFun = 0;
-            checkinsBimestre.forEach(c => {
+            checkinsBimestreActivos.forEach(c => {
               totalRpe += parseFloat(c.rpe || c.rendimiento || 0);
               totalFun += parseFloat(c.divertiste || 0);
             });
-            document.getElementById('teamAvgRpe').innerText = (totalRpe / checkinsBimestre.length).toFixed(1);
-            document.getElementById('teamAvgFun').innerText = (totalFun / checkinsBimestre.length).toFixed(1);
+            document.getElementById('teamAvgRpe').innerText = (totalRpe / checkinsBimestreActivos.length).toFixed(1);
+            document.getElementById('teamAvgFun').innerText = (totalFun / checkinsBimestreActivos.length).toFixed(1);
           } else {
-            document.getElementById('teamAvgRpe').innerText = '0';
-            document.getElementById('teamAvgFun').innerText = '0';
+            document.getElementById('teamAvgRpe').innerText = '0.0';
+            document.getElementById('teamAvgFun').innerText = '0.0';
           }
 
           this.renderCarretel();
@@ -1819,6 +1309,7 @@
       filtrarCarretel: function(tipo) {
         currentTeamFilter = tipo;
         document.getElementById('chipActivos').classList.toggle('active', tipo === 'activos');
+        document.getElementById('chipInactivos').classList.toggle('active', tipo === 'inactivos');
         document.getElementById('chipTodos').classList.toggle('active', tipo === 'todos');
         this.renderCarretel();
       },
@@ -1830,6 +1321,7 @@
         carouselRadarInstances = {};
 
         const hoy = new Date();
+        hoy.setHours(0,0,0,0);
         const haceSesentaDias = new Date();
         haceSesentaDias.setDate(haceSesentaDias.getDate() - 60);
         haceSesentaDias.setHours(0, 0, 0, 0);
@@ -1845,27 +1337,16 @@
             diasInactivo = Math.floor((hoy.getTime() - ultimaFecha) / (1000 * 60 * 60 * 24));
           }
 
-          if (diasInactivo > 15) return false;
+          const esActivo = this.esStrikerActivo(user, hoy);
 
-          if (currentTeamFilter === 'todos') return true;
-
-          let activo = false;
-          const rol = (user.role || '').toLowerCase();
-          const perfil = (user.profile_id || '').toLowerCase();
-          const esStaff = ['admin', 'administrador', 'coach', 'supervisor', 'coordinador'].includes(rol) || 
-                          ['admin', 'administrador', 'coach', 'supervisor', 'coordinador'].includes(perfil);
-
-          if (esStaff) return true;
-
-          if (user.subscription_status === 'activo' && user.is_active !== false) {
-            if (user.subscription_expires_at) {
-              const expDate = new Date(user.subscription_expires_at);
-              if (expDate >= hoy) activo = true;
-            } else {
-              activo = true;
-            }
+          if (currentTeamFilter === 'activos') {
+            return esActivo && diasInactivo <= 15;
+          } else if (currentTeamFilter === 'inactivos') {
+            return !esActivo && diasInactivo <= 30;
+          } else {
+            // Todos: vigentes o con inactividad de hasta 30 días
+            return diasInactivo <= 30;
           }
-          return activo;
         });
 
         if (filteredUsers.length === 0) {
@@ -1884,7 +1365,7 @@
             diasInactivo = Math.floor((hoy.getTime() - ultimaFecha) / (1000 * 60 * 60 * 24));
           }
 
-          const tieneAlertaInactividad = diasInactivo >= 7 && diasInactivo <= 15;
+          const tieneAlertaInactividad = diasInactivo >= 7 && diasInactivo <= 30;
 
           const item = document.createElement('div');
           item.className = tieneAlertaInactividad ? 'carousel-card-item inactivo-alerta' : 'carousel-card-item';
@@ -2033,7 +1514,6 @@
         statusBadge.style.background = user.subscription_status === 'activo' ? 'rgba(34, 197, 94, 0.2)' : 'var(--accent-dim)';
         statusBadge.style.color = user.subscription_status === 'activo' ? 'var(--status-ok)' : 'var(--accent)';
 
-        // Cálculo exacto de días de vigencia o vencimiento
         const hoy = new Date();
         hoy.setHours(0,0,0,0);
         const vigenciaEl = document.getElementById('indVigenciaDias');
@@ -2186,7 +1666,62 @@
     };
 
     /* ==========================================================================
-       8. MÓDULO DE CALIFICACIONES MANUALES CON FILTROS INTELIGENTES
+       6. MÓDULO HISTÓRICO DE STRIKERS
+       ========================================================================== */
+    const ApexHistoricoStrikers = {
+      cargar: function() {
+        this.filtrar();
+      },
+
+      filtrar: function() {
+        const container = document.getElementById('listaHistorialStrikers');
+        if (!container) return;
+
+        const q = (document.getElementById('historialStrikersBusqueda').value || '').trim().toLowerCase();
+
+        const filtrados = globalTeamUsers.filter(user => {
+          if (!q) return true;
+          const name = (user.name || '').toLowerCase();
+          const email = (user.email || '').toLowerCase();
+          return name.includes(q) || email.includes(q);
+        });
+
+        if (filtrados.length === 0) {
+          container.innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); text-align:center; padding:12px;">No se encontraron Strikers en el histórico.</div>';
+          return;
+        }
+
+        container.innerHTML = '';
+        filtrados.forEach(user => {
+          const avatarUrl = user.photo_url || user.avatar_url;
+          const avatarHtml = (avatarUrl && typeof avatarUrl === 'string' && avatarUrl.startsWith('http')) 
+            ? `<img src="${avatarUrl}" class="avatar-circle avatar-sm" alt="Foto">`
+            : `<div class="avatar-circle avatar-sm">${(user.name || 'ST').substring(0,2).toUpperCase()}</div>`;
+
+          const estatusTxt = user.subscription_status === 'activo' ? 'ACTIVO' : 'INACTIVO';
+          const estatusColor = user.subscription_status === 'activo' ? 'var(--status-ok)' : 'var(--accent)';
+
+          const item = document.createElement('div');
+          item.className = 'evidencia-item';
+          item.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                ${avatarHtml}
+                <div>
+                  <strong style="font-size:0.8rem; color:#fff; display:block;">${user.name || 'Striker'}</strong>
+                  <span style="font-size:0.65rem; color:var(--text-muted);">${user.email}</span>
+                </div>
+              </div>
+              <span style="font-size:0.6rem; font-weight:800; color:${estatusColor};">${estatusTxt}</span>
+            </div>
+          `;
+          container.appendChild(item);
+        });
+      }
+    };
+
+    /* ==========================================================================
+       7. MÓDULO DE CALIFICACIONES MANUALES
        ========================================================================== */
     let selectedRatingStriker = null;
 
@@ -2386,7 +1921,7 @@
     };
 
     /* ==========================================================================
-       9. FUNCIONES DE ZOOM MODAL
+       8. FUNCIONES DE ZOOM MODAL
        ========================================================================== */
     function abrirZoomImagen(url) {
       document.getElementById('imgZoomPreview').src = url;
@@ -2398,14 +1933,12 @@
     }
 
     /* ==========================================================================
-       10. ARRANQUE
+       9. ARRANQUE
        ========================================================================== */
     window.addEventListener('DOMContentLoaded', async () => {
       initSupabase();
       await initPerfilCoach();
       ApexCheckins.cargar();
-      ApexMembresias.cargarDirectorio();
-      ApexMembresias.cargarPendientesYGestionadas();
     });
   </script>
 </body>
