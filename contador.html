@@ -4,11 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#000000">
-  <title>Apex | Contabilidad & Caja Táctica</title>
+  <title>Apex | Inventario Global & Caja Táctica</title>
 
-  <!-- Supabase JS & Chart.js -->
+  <!-- Supabase JS & html2canvas para exportar JPG -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
   <style>
     :root {
@@ -59,6 +59,7 @@
     .btn:disabled { background: #151518; color: #444; cursor: not-allowed; }
     .btn-secondary { background: var(--card-sub); border: 1px solid var(--border); color: #ccc; padding: 6px 10px; font-size: 0.65rem; font-weight: 800; border-radius: 4px; cursor: pointer; text-transform: uppercase; }
     .btn-success { background: #113318; color: var(--status-ok); border: 1px solid rgba(34,197,94,0.3); font-weight: 900; padding: 6px 10px; border-radius: 4px; font-size: 0.65rem; cursor: pointer; text-transform: uppercase; }
+    .btn-danger { background: #331111; color: var(--accent); border: 1px solid rgba(229,9,20,0.3); font-weight: 900; padding: 6px 10px; border-radius: 4px; font-size: 0.65rem; cursor: pointer; text-transform: uppercase; }
 
     /* KPIS */
     .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 10px; }
@@ -104,110 +105,97 @@
 <body>
 
   <div class="header">
-    <div class="title">Apex <span>Contabilidad</span></div>
-    <div class="badge-role" id="lblEstadoCaja">Caja Cerrada</div>
+    <div class="title">Apex <span>Inventario Global</span></div>
+    <div style="display:flex; align-items:center; gap:6px;">
+      <span id="lblCajeroActivo" style="font-size:0.55rem; color:var(--text-muted); background:var(--card-sub); padding:3px 6px; border:1px solid var(--border); border-radius:4px;">Cajero: No autenticado</span>
+      <div class="badge-role" id="lblEstadoCaja">Caja Cerrada</div>
+    </div>
   </div>
 
   <!-- NAVEGACIÓN -->
   <div class="sub-nav">
     <button class="nav-btn active" onclick="switchTab('tabGlobal', this)">📊 General</button>
     <button class="nav-btn" onclick="switchTab('tabCaja', this)">💵 Caja</button>
-    <button class="nav-btn" onclick="switchTab('tabTienda', this)">🛍️ Tienda</button>
+    <button class="nav-btn" onclick="switchTab('tabTienda', this)">🛍️ Inventario</button>
     <button class="nav-btn" onclick="switchTab('tabBandejaCoach', this)">
       📥 Sala <span id="badgeCoachCount" class="nav-badge" style="display:none;">0</span>
     </button>
     <button class="nav-btn" onclick="switchTab('tabCuentas', this)">🏦 Cuentas</button>
     <button class="nav-btn" onclick="switchTab('tabNomina', this)">👥 Nómina</button>
-    <button class="nav-btn" onclick="switchTab('tabDeudores', this)">📒 Deudores</button>
+    <button class="nav-btn" onclick="switchTab('tabDeudores', this)">📒 Clientes</button>
     <button class="nav-btn" onclick="switchTab('tabMovimientos', this)">📋 Historial</button>
   </div>
 
-  <!-- ================= 0. MÉTRICAS GENERALES & GRÁFICA APEX ================= -->
+  <!-- ================= 0. PANEL DE BALANCES & REPORTES GENERALES ================= -->
   <div id="tabGlobal" class="tab-section active">
+    <div class="card">
+      <div class="card-title">Panel de Balances & Facturación</div>
+      
+      <!-- FILTROS DE REPORTE -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:6px;">
+        <div>
+          <label>Periodo</label>
+          <select id="repPeriodo" class="form-control" onchange="ReporteGeneral.cambioPeriodo()" style="font-size:0.62rem;">
+            <option value="todo">Todo el Historial</option>
+            <option value="hoy">Hoy</option>
+            <option value="semana">Última Semana</option>
+            <option value="mes" selected>Este Mes</option>
+            <option value="manual">Rango Manual</option>
+          </select>
+        </div>
+        <div>
+          <label>Cuenta Financiera</label>
+          <select id="repCuenta" class="form-control" onchange="ReporteGeneral.renderizar()" style="font-size:0.62rem;">
+            <option value="">-- Todas las cuentas --</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px;">
+        <div>
+          <label>Categoría</label>
+          <select id="repCategoria" class="form-control" onchange="ReporteGeneral.renderizar()" style="font-size:0.62rem;">
+            <option value="">-- Todas las categorías --</option>
+          </select>
+        </div>
+        <div>
+          <label>Cajero / Responsable</label>
+          <select id="repResponsable" class="form-control" onchange="ReporteGeneral.renderizar()" style="font-size:0.62rem;">
+            <option value="">-- Todos los cajeros --</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="wrapRepManual" style="display:none; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px;">
+        <div><label>Desde</label><input type="date" id="repDesde" class="form-control" onchange="ReporteGeneral.renderizar()" style="font-size:0.58rem;"></div>
+        <div><label>Hasta</label><input type="date" id="repHasta" class="form-control" onchange="ReporteGeneral.renderizar()" style="font-size:0.58rem;"></div>
+      </div>
+    </div>
+
+    <!-- KPIS DEL REPORTE -->
     <div class="kpi-grid">
       <div class="kpi-box" style="grid-column: span 3; background: var(--card-sub); border: 1px solid var(--border);">
-        <div class="kpi-num" id="kpiTotalEmpresa" style="font-size: 1.25rem; color: var(--status-ok);">$0</div>
-        <div class="kpi-label">Patrimonio Total en Cuentas</div>
+        <div class="kpi-num" id="kpiPatrimonioTotal" style="font-size: 1.15rem; color: var(--status-ok);">$0</div>
+        <div class="kpi-label">Patrimonio Total en Cuentas Propias</div>
       </div>
       <div class="kpi-box">
-        <div class="kpi-num" id="kpiTotalDeudores" style="color:var(--status-warn);">$0</div>
-        <div class="kpi-label">Por Cobrar</div>
+        <div class="kpi-num" id="kpiIngresosPeriodo" style="color:var(--status-ok);">$0</div>
+        <div class="kpi-label">Ingresos / Ventas</div>
       </div>
       <div class="kpi-box">
-        <div class="kpi-num" id="kpiTotalAcreedores" style="color:var(--accent);">$0</div>
-        <div class="kpi-label">Por Pagar</div>
+        <div class="kpi-num" id="kpiEgresosPeriodo" style="color:var(--accent);">$0</div>
+        <div class="kpi-label">Gastos / Compras</div>
       </div>
       <div class="kpi-box">
-        <div class="kpi-num" id="kpiTotalNominaPendiente" style="color:var(--status-info);">$0</div>
-        <div class="kpi-label">Nómina Pend.</div>
+        <div class="kpi-num" id="kpiUtilidadNeta" style="color:var(--status-info);">$0</div>
+        <div class="kpi-label">Utilidad Neta</div>
       </div>
     </div>
 
-    <!-- SECCIÓN GRÁFICA DE RENDIMIENTO APEX -->
+    <!-- DESGLOSE DE CATEGORÍAS EN EL PERIODO -->
     <div class="card">
-      <div class="card-title">📈 Rendimiento Temporal</div>
-      
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px;">
-        <div class="form-group" style="margin-bottom:0;">
-          <label>Periodo</label>
-          <select id="grafPeriodo" class="form-control" onchange="GraficaRendimiento.cambioPeriodo()">
-            <option value="semana">Última Semana</option>
-            <option value="mes" selected>Último Mes</option>
-            <option value="trimestre">Trimestre</option>
-            <option value="semestre">Semestre</option>
-            <option value="manual">Manual</option>
-          </select>
-        </div>
-        <div class="form-group" style="margin-bottom:0;">
-          <label>Cuenta</label>
-          <select id="grafCuenta" class="form-control" onchange="GraficaRendimiento.renderizar()">
-            <option value="">-- Todas --</option>
-          </select>
-        </div>
-      </div>
-
-      <div id="grafFechasManuales" style="display:none; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px;">
-        <div class="form-group" style="margin-bottom:0;">
-          <label>Desde</label>
-          <input type="date" id="grafFechaInicio" class="form-control" onchange="GraficaRendimiento.renderizar()">
-        </div>
-        <div class="form-group" style="margin-bottom:0;">
-          <label>Hasta</label>
-          <input type="date" id="grafFechaFin" class="form-control" onchange="GraficaRendimiento.renderizar()">
-        </div>
-      </div>
-
-      <div class="form-group" style="margin-bottom:8px;">
-        <label>Productos / Servicios</label>
-        <div id="grafProductosCheckList" style="max-height:90px; overflow-y:auto; background:var(--card-sub); border:1px solid var(--border); border-radius:4px; padding:6px; font-size:0.68rem;">
-          Cargando opciones...
-        </div>
-      </div>
-
-      <div style="position: relative; height:200px; width:100%; background:#000; border-radius:4px; border:1px solid var(--border); padding:4px;">
-        <canvas id="apexRendimientoChart"></canvas>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">Desglose de Cuentas</div>
-      <div id="globalListaCuentas">Cargando desglose...</div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">Categorías Financieras</div>
-      <form onsubmit="CategoriasAdmin.crear(event)" style="margin-bottom:8px;">
-        <div style="display:flex; gap:6px;">
-          <input type="text" id="catNombre" class="form-control" placeholder="Nueva categoría..." required style="flex:2;">
-          <select id="catTipo" class="form-control" style="flex:1;">
-            <option value="ingreso">Ingreso</option>
-            <option value="egreso">Egreso</option>
-            <option value="nomina">Nómina</option>
-          </select>
-          <button type="submit" class="btn-success" style="padding:0 10px;">+</button>
-        </div>
-      </form>
-      <div id="listaCategoriasFinancieras">Cargando categorías...</div>
+      <div class="card-title">Desglose por Categorías (Periodo Seleccionado)</div>
+      <div id="listaDesgloseCategorias" style="font-size: 0.68rem; color: var(--text-muted);">Calculando balance...</div>
     </div>
   </div>
 
@@ -215,9 +203,9 @@
   <div id="tabCaja" class="tab-section">
     <div id="panelCajaCerrada" class="card" style="text-align: center; padding: 20px;">
       <div style="font-size: 0.8rem; font-weight: 900; margin-bottom: 6px;">CAJA CERRADA</div>
-      <p style="font-size: 0.65rem; color: var(--text-muted); margin-bottom: 12px;">Selecciona la cuenta que proporcionará la base inicial del turno.</p>
+      <p style="font-size: 0.65rem; color: var(--text-muted); margin-bottom: 12px;">Inicia turno seleccionando la cuenta base propia.</p>
       <div class="form-group" style="text-align: left;">
-        <label>Cuenta de Origen (Base)</label>
+        <label>Cuenta de Origen (Base - Propia)</label>
         <select id="cajaCuentaBase" class="form-control"></select>
       </div>
       <div class="form-group" style="text-align: left;">
@@ -254,8 +242,10 @@
           <div class="form-group" style="margin-bottom:0;">
             <label>Operación</label>
             <select id="cartTipoOperacion" class="form-control" onchange="CajaOperacion.cambioOperacion()">
-              <option value="venta">Venta</option>
+              <option value="venta">Venta / Ingreso</option>
               <option value="compra">Compra / Egreso</option>
+              <option value="prestamo_otorgado">Préstamo Otorgado (Deudor)</option>
+              <option value="prestamo_recibido">Préstamo Recibido (Acreedor)</option>
             </select>
           </div>
           <div class="form-group" style="margin-bottom:0;" id="wrapCartPago">
@@ -269,15 +259,34 @@
         </div>
 
         <div class="form-group" style="margin-bottom:6px;">
-          <label id="lblCartCliente">Cliente</label>
-          <input type="text" id="cartCliente" class="form-control" placeholder="Nombre / Proveedor / Concepto">
+          <label>Categoría Financiera (Obligatoria)</label>
+          <select id="cartSelectCategoria" class="form-control">
+            <option value="">-- Seleccionar categoría --</option>
+          </select>
         </div>
 
-        <button class="btn" id="btnCartCobrar" onclick="CajaOperacion.cobrar()">Registrar Venta</button>
+        <div class="form-group" style="margin-bottom:6px;">
+          <label id="lblCuentaTransaccion">Cuenta de Destino / Procedencia (Propia)</label>
+          <select id="cartCuentaTransaccion" class="form-control"></select>
+        </div>
+
+        <div class="form-group" style="margin-bottom:6px;" id="wrapMontoPrestamo" style="display:none;">
+          <label>Monto del Préstamo ($ COP)</label>
+          <input type="number" id="cartMontoPrestamo" class="form-control" min="0" value="0">
+        </div>
+
+        <div class="form-group" style="margin-bottom:6px;">
+          <label id="lblCartCliente">Tercero (Cliente / Proveedor / Staff)</label>
+          <select id="cartSelectTercero" class="form-control">
+            <option value="">-- Seleccionar tercero --</option>
+          </select>
+        </div>
+
+        <button class="btn" id="btnCartCobrar" onclick="CajaOperacion.cobrar()">Registrar Transacción</button>
       </div>
 
       <div class="card">
-        <div class="card-title">Catálogo Rápido</div>
+        <div class="card-title">Catálogo Rápido (Disponible en Caja)</div>
         <div class="store-grid" id="cajaCatalogoGrid">Cargando...</div>
       </div>
 
@@ -285,23 +294,31 @@
     </div>
   </div>
 
-  <!-- ================= 2. TIENDA / CATÁLOGO ================= -->
+  <!-- ================= 2. INVENTARIO GLOBAL ================= -->
   <div id="tabTienda" class="tab-section">
+    <div class="sub-nav" style="margin-bottom: 8px;">
+      <button class="nav-btn active" id="subBtnMembresias" onclick="TiendaAdmin.cambiarSubseccion('Membresias', this)">Membresías</button>
+      <button class="nav-btn" id="subBtnInsumos" onclick="TiendaAdmin.cambiarSubseccion('Insumos', this)">Insumos / Compras</button>
+      <button class="nav-btn" id="subBtnEquipos" onclick="TiendaAdmin.cambiarSubseccion('Equipos', this)">Equipos</button>
+    </div>
+
     <div class="card">
-      <div class="card-title">Gestión de Producto / Servicio</div>
+      <div class="card-title" id="subseccionTitulo">Gestión de Membresías</div>
       <form onsubmit="TiendaAdmin.guardar(event)">
         <input type="hidden" id="prodId">
+        <input type="hidden" id="prodSubseccion" value="Membresias">
         <div class="form-group">
           <label>Nombre</label>
-          <input type="text" id="prodNombre" class="form-control" required>
+          <input type="text" id="prodNombre" class="form-control" placeholder="Ej: Mensualidad / Guantes / Saco" required>
         </div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
           <div class="form-group">
-            <label>Tipo</label>
+            <label>Tipo / Duración</label>
             <select id="prodCategoria" class="form-control">
-              <option value="Membresía">Membresía (Stock Infinito)</option>
-              <option value="Servicio">Servicio (Stock Infinito)</option>
-              <option value="Equipo">Equipo / Físico</option>
+              <option value="Mensualidad">Mensualidad (1 Mes -1 día)</option>
+              <option value="Trimestre">Trimestre (3 Meses -1 día)</option>
+              <option value="Quincena">Quincena (15 Días)</option>
+              <option value="Pase_Dia">Pase 1 Día</option>
             </select>
           </div>
           <div class="form-group">
@@ -309,27 +326,31 @@
             <input type="number" id="prodPrecio" class="form-control" min="0" required>
           </div>
         </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;" id="wrapStockOrden">
           <div class="form-group">
             <label>Stock</label>
-            <input type="number" id="prodStock" class="form-control" value="99" min="0">
+            <input type="number" id="prodStock" class="form-control" value="999999" min="0">
           </div>
           <div class="form-group">
             <label>Orden</label>
             <input type="number" id="prodOrden" class="form-control" value="0">
           </div>
         </div>
-        <div class="form-group">
+        <div class="form-group" style="display:flex; align-items:center; gap:6px; background:var(--card-sub); padding:6px; border-radius:4px; border:1px solid var(--border);">
+          <input type="checkbox" id="prodMostrarCaja" checked style="width:16px; height:16px; accent-color:var(--accent);">
+          <label for="prodMostrarCaja" style="margin-bottom:0; cursor:pointer; color:#fff;">Mostrar en el Catálogo Rápido de Caja</label>
+        </div>
+        <div class="form-group" style="margin-top:6px;">
           <label>Imagen (URL)</label>
           <input type="text" id="prodImagenUrl" class="form-control" placeholder="https://..." style="margin-bottom:3px;">
           <input type="file" id="prodFile" class="form-control" accept="image/*" style="font-size:0.65rem;">
         </div>
-        <button type="submit" id="btnGuardarProd" class="btn">Guardar Producto</button>
+        <button type="submit" id="btnGuardarProd" class="btn">Guardar en Inventario</button>
       </form>
     </div>
 
     <div class="card">
-      <div class="card-title">Inventario</div>
+      <div class="card-title">Listado de Inventario Global</div>
       <div class="store-grid" id="listaInventarioTienda">Cargando...</div>
     </div>
   </div>
@@ -348,13 +369,22 @@
   <!-- ================= 4. CUENTAS FINANCIERAS ================= -->
   <div id="tabCuentas" class="tab-section">
     <div class="card">
-      <div class="card-title">Crear Cuenta</div>
+      <div class="card-title">Crear Cuenta Financiera</div>
       <form onsubmit="CuentasAdmin.crear(event)">
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
           <div class="form-group">
             <label>Nombre</label>
-            <input type="text" id="ctaNombre" class="form-control" placeholder="Efectivo / Banco" required>
+            <input type="text" id="ctaNombre" class="form-control" placeholder="Efectivo / Banco / Tercero" required>
           </div>
+          <div class="form-group">
+            <label>Naturaleza / Propiedad</label>
+            <select id="ctaClasificacion" class="form-control">
+              <option value="propia">Cuenta Propia (Operativa en Caja)</option>
+              <option value="tercero">Cuenta de Tercero (Externa)</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
           <div class="form-group">
             <label>Tipo</label>
             <select id="ctaTipo" class="form-control">
@@ -363,10 +393,10 @@
               <option value="ahorro">Ahorro</option>
             </select>
           </div>
-        </div>
-        <div class="form-group">
-          <label>Saldo Inicial ($)</label>
-          <input type="number" id="ctaSaldo" class="form-control" value="0" min="0">
+          <div class="form-group">
+            <label>Saldo Inicial ($)</label>
+            <input type="number" id="ctaSaldo" class="form-control" value="0" min="0">
+          </div>
         </div>
         <button type="submit" class="btn">Crear Cuenta</button>
       </form>
@@ -391,10 +421,10 @@
     </div>
   </div>
 
-  <!-- ================= 6. DEUDORES Y ACREEDORES ================= -->
+  <!-- ================= 6. CLIENTES / TERCEROS & CATEGORÍAS ================= -->
   <div id="tabDeudores" class="tab-section">
     <div class="card">
-      <div class="card-title">Registrar Contacto</div>
+      <div class="card-title">Crear Cliente / Proveedor (Tercero)</div>
       <form onsubmit="DeudoresAdmin.crear(event)">
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
           <div class="form-group">
@@ -404,14 +434,14 @@
           <div class="form-group">
             <label>Tipo</label>
             <select id="deuTipo" class="form-control">
-              <option value="acreedor">Acreedor (Nos deben)</option>
-              <option value="deudor">Deudor (Debemos)</option>
+              <option value="acreedor">Acreedor (Cliente / Nos deben)</option>
+              <option value="deudor">Deudor (Proveedor / Debemos)</option>
             </select>
           </div>
         </div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
           <div class="form-group">
-            <label>Saldo ($)</label>
+            <label>Saldo Inicial ($)</label>
             <input type="number" id="deuSaldo" class="form-control" value="0" min="0">
           </div>
           <div class="form-group">
@@ -419,27 +449,72 @@
             <input type="text" id="deuTel" class="form-control">
           </div>
         </div>
-        <button type="submit" class="btn">Guardar</button>
+        <button type="submit" class="btn">Guardar Tercero</button>
       </form>
     </div>
+
     <div class="card">
-      <div class="card-title">Directorio Financiero</div>
+      <div class="card-title">Directorio de Terceros</div>
       <div id="listaDeudores">Cargando directorio...</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Categorías Financieras</div>
+      <form onsubmit="CategoriasAdmin.crear(event)" style="margin-bottom:8px;">
+        <div style="display:flex; gap:6px;">
+          <input type="text" id="catNombre" class="form-control" placeholder="Nueva categoría..." required style="flex:2;">
+          <select id="catTipo" class="form-control" style="flex:1;">
+            <option value="ingreso">Ingreso</option>
+            <option value="egreso">Egreso</option>
+            <option value="nomina">Nómina</option>
+          </select>
+          <button type="submit" class="btn-success" style="padding:0 10px;">+</button>
+        </div>
+      </form>
+      <div id="listaCategoriasFinancieras">Cargando categorías...</div>
     </div>
   </div>
 
-  <!-- ================= 7. HISTORIAL Y REVERSOS ================= -->
+  <!-- ================= 7. HISTORIAL Y FILTROS AVANZADOS ================= -->
   <div id="tabMovimientos" class="tab-section">
     <div class="card">
-      <div class="card-title">Historial & Filtros</div>
+      <div class="card-title">Historial & Filtros Avanzados</div>
       
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:4px; margin-bottom:6px;">
+        <div>
+          <label>Cuenta</label>
+          <select id="filtroHistorialCuenta" class="form-control" onchange="HistorialAdmin.renderizar()" style="font-size:0.58rem;">
+            <option value="">-- Todas --</option>
+          </select>
+        </div>
+        <div>
+          <label>Categoría</label>
+          <select id="filtroHistorialCat" class="form-control" onchange="HistorialAdmin.renderizar()" style="font-size:0.58rem;">
+            <option value="">-- Todas --</option>
+          </select>
+        </div>
+        <div>
+          <label>Cajero / Resp.</label>
+          <select id="filtroHistorialResponsable" class="form-control" onchange="HistorialAdmin.renderizar()" style="font-size:0.58rem;">
+            <option value="">-- Todos --</option>
+          </select>
+        </div>
+      </div>
+
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px;">
-        <select id="filtroHistorialCuenta" class="form-control" onchange="HistorialAdmin.renderizar()" style="font-size:0.62rem;">
-          <option value="">-- Cuentas --</option>
-        </select>
-        <select id="filtroHistorialCat" class="form-control" onchange="HistorialAdmin.renderizar()" style="font-size:0.62rem;">
-          <option value="">-- Categorías --</option>
-        </select>
+        <div>
+          <label>Periodo</label>
+          <select id="filtroHistorialPeriodo" class="form-control" onchange="HistorialAdmin.cambioPeriodo()" style="font-size:0.62rem;">
+            <option value="todo" selected>Todo</option>
+            <option value="semana">Última Semana</option>
+            <option value="mes">Último Mes</option>
+            <option value="manual">Manual</option>
+          </select>
+        </div>
+        <div id="wrapHistorialManual" style="display:none; grid-template-columns:1fr 1fr; gap:3px;">
+          <div><label>Desde</label><input type="date" id="filtroHistorialDesde" class="form-control" onchange="HistorialAdmin.renderizar()" style="font-size:0.58rem;"></div>
+          <div><label>Hasta</label><input type="date" id="filtroHistorialHasta" class="form-control" onchange="HistorialAdmin.renderizar()" style="font-size:0.58rem;"></div>
+        </div>
       </div>
 
       <div id="listaMovimientosRecientes">Cargando historial...</div>
@@ -451,11 +526,9 @@
     <div style="background:var(--card-bg); border:1px solid var(--border); border-radius:6px; padding:16px; width:100%; max-width:360px;">
       <div style="font-weight:900; font-size:0.8rem; color:#fff; text-transform:uppercase; margin-bottom:6px;">Cierre de Caja</div>
       <p style="font-size:0.65rem; color:var(--text-muted); margin-bottom:10px;">Efectivo real contado en gaveta:</p>
-      
       <div class="form-group">
         <input type="number" id="cierreEfectivoReal" class="form-control" min="0" value="0">
       </div>
-
       <div style="display:flex; gap:6px; margin-top:12px;">
         <button class="btn" onclick="CajaOperacion.confirmarCierreCaja()">Consolidar</button>
         <button class="btn-secondary" onclick="document.getElementById('modalCierreCaja').style.display='none'">Cancelar</button>
@@ -468,19 +541,15 @@
     <div style="background:var(--card-bg); border:1px solid var(--border); border-radius:6px; padding:16px; width:100%; max-width:340px;">
       <div style="font-weight:900; font-size:0.8rem; color:#fff; text-transform:uppercase; margin-bottom:6px;" id="modalDeudorTitle">Cartera</div>
       <p style="font-size:0.65rem; color:var(--text-muted); margin-bottom:10px;" id="modalDeudorSub">-</p>
-      
       <input type="hidden" id="deuCobroId">
-      
       <div class="form-group">
-        <label>Cuenta</label>
+        <label>Cuenta Propia Destino</label>
         <select id="deuSelectCuenta" class="form-control"></select>
       </div>
-
       <div class="form-group">
         <label>Monto ($)</label>
         <input type="number" id="deuMontoAbono" class="form-control" min="0" value="0">
       </div>
-
       <div style="display:flex; gap:6px; margin-top:12px;">
         <button class="btn" onclick="DeudoresAdmin.ejecutarTransaccion()">Procesar</button>
         <button class="btn-secondary" onclick="document.getElementById('modalCobroDeudor').style.display='none'">Cancelar</button>
@@ -499,7 +568,7 @@
       </div>
 
       <div class="form-group">
-        <label>Producto / Servicio</label>
+        <label>Seleccionar Membresía / Producto (Precarga)</label>
         <select id="modalSelectProductoTienda" class="form-control" onchange="BandejaCoach.seleccionarProductoTienda()"></select>
       </div>
 
@@ -509,18 +578,19 @@
       </div>
 
       <div class="form-group">
-        <label>Vigencia (Días)</label>
-        <input type="number" id="modalCoachDiasVigencia" class="form-control" value="30" min="1">
+        <label>Fecha de Pago Real</label>
+        <input type="date" id="modalCoachFechaPago" class="form-control">
       </div>
 
       <div class="form-group">
-        <label>Cuenta Destino</label>
+        <label>Cuenta Destino (Propia)</label>
         <select id="modalCoachCuenta" class="form-control"></select>
       </div>
 
-      <div style="display:flex; gap:6px; margin-top:12px;">
-        <button class="btn" onclick="BandejaCoach.confirmarFacturacion()">Facturar</button>
-        <button class="btn-secondary" onclick="document.getElementById('modalRevisionCoach').style.display='none'">Cancelar</button>
+      <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:4px; margin-top:12px;">
+        <button class="btn" onclick="BandejaCoach.confirmarFacturacion()" style="font-size:0.6rem; padding:8px 2px;">Facturar</button>
+        <button class="btn-danger" onclick="BandejaCoach.rechazarPago()" style="font-size:0.6rem; padding:8px 2px;">Rechazar</button>
+        <button class="btn-secondary" onclick="document.getElementById('modalRevisionCoach').style.display='none'" style="font-size:0.6rem; padding:8px 2px;">Cancelar</button>
       </div>
     </div>
   </div>
@@ -546,7 +616,7 @@
       </div>
 
       <div class="form-group" id="wrapNominaCuenta">
-        <label>Cuenta</label>
+        <label>Cuenta Propia de Pago</label>
         <select id="nomSelectCuenta" class="form-control"></select>
       </div>
 
@@ -575,6 +645,13 @@
       <div class="form-group">
         <label>Nombre</label>
         <input type="text" id="editCtaNombre" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label>Naturaleza</label>
+        <select id="editCtaClasificacion" class="form-control">
+          <option value="propia">Cuenta Propia (Operativa en Caja)</option>
+          <option value="tercero">Cuenta de Tercero (Externa)</option>
+        </select>
       </div>
       <div class="form-group">
         <label>Tipo</label>
@@ -621,7 +698,8 @@
       </div>
       <div style="display:flex; gap:6px; margin-top:8px; max-width:360px;">
         <button class="btn" onclick="window.print()">Imprimir / PDF</button>
-        <button class="btn-secondary" style="background:#fff; color:#000;" onclick="cerrarFacturaModal()">Cerrar</button>
+        <button class="btn-secondary" style="background:#fff; color:#000;" onclick="exportarTicketJPG()">Descargar JPG</button>
+        <button class="btn-secondary" style="background:#222; color:#fff;" onclick="cerrarFacturaModal()">Cerrar</button>
       </div>
     </div>
   </div>
@@ -651,49 +729,64 @@
     let pagoCoachSeleccionado = null;
     let cajaActiva = null;
     let staffSeleccionadoNomina = null;
-    let apexChartInstance = null;
 
     function formatCOP(num) {
       return '$' + Math.round(num || 0).toLocaleString('es-CO');
     }
 
-    function switchTab(tabId, btn) {
+    window.switchTab = function(tabId, btn) {
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
       btn.classList.add('active');
       document.getElementById(tabId).classList.add('active');
-      if (tabId === 'tabGlobal') {
-        setTimeout(() => GraficaRendimiento.renderizar(), 150);
+      if (tabId === 'tabMovimientos') {
+        HistorialAdmin.renderizar();
+      } else if (tabId === 'tabGlobal') {
+        ReporteGeneral.renderizar();
       }
-    }
+    };
 
     async function init() {
       await cargarDatosGlobales();
+      await sincronizarStaffComoTerceros();
 
-      // SUSCRIPCIÓN SUPABASE REALTIME PARA CONTABILIDAD Y CAJA TÁCTICA
+      const userEmail = localStorage.getItem('apex_user_email') || sessionStorage.getItem('apex_user_email') || 'cajero@apex.com';
+      document.getElementById('lblCajeroActivo').innerText = `Cajero: ${userEmail}`;
+
       if (sb) {
-        sb.channel('contabilidad-panel-realtime')
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_cuentas' }, payload => {
-            console.log('[Realtime Contabilidad] Cuentas modificadas:', payload);
-            cargarDatosGlobales();
-          })
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_payments' }, payload => {
-            console.log('[Realtime Contabilidad] Pagos en sala modificados:', payload);
-            cargarDatosGlobales();
-          })
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_transacciones_libro_mayor' }, payload => {
-            console.log('[Realtime Contabilidad] Libro mayor actualizado:', payload);
-            cargarDatosGlobales();
-          })
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_acreedores_deudores' }, payload => {
-            console.log('[Realtime Contabilidad] Deudores/Acreedores modificados:', payload);
-            cargarDatosGlobales();
-          })
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_nomina' }, payload => {
-            console.log('[Realtime Contabilidad] Nómina modificada:', payload);
-            cargarDatosGlobales();
-          })
+        sb.channel('inventario-global-realtime')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_cuentas' }, () => cargarDatosGlobales())
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_payments' }, () => cargarDatosGlobales())
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_transacciones_libro_mayor' }, () => cargarDatosGlobales())
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_acreedores_deudores' }, () => cargarDatosGlobales())
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_productos' }, () => cargarDatosGlobales())
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_categorias_financieras' }, () => cargarDatosGlobales())
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_nomina' }, () => cargarDatosGlobales())
           .subscribe();
+      }
+    }
+
+    async function sincronizarStaffComoTerceros() {
+      if (!sb || staffCache.length === 0) return;
+      try {
+        for (const st of staffCache) {
+          const nombreStaff = st.name || st.email;
+          const existe = deudoresCache.some(d => (d.nombre || '').toLowerCase() === nombreStaff.toLowerCase());
+          if (!existe) {
+            await sb.from('apex_acreedores_deudores').insert([{
+              nombre: nombreStaff,
+              tipo: 'acreedor',
+              saldo: 0,
+              telefono: st.phone || ''
+            }]);
+          }
+        }
+        const resDeu = await sb.from('apex_acreedores_deudores').select('*').order('nombre');
+        deudoresCache = resDeu.data || [];
+        poblarSelectsTercerosCaja();
+        DeudoresAdmin.renderizar();
+      } catch (e) {
+        console.warn("Error sincronizando staff:", e);
       }
     }
 
@@ -706,7 +799,7 @@
           sb.from('apex_payments').select('*').order('created_at', { ascending: false }),
           sb.from('apex_users').select('*'),
           sb.from('apex_acreedores_deudores').select('*').order('nombre'),
-          sb.from('apex_transacciones_libro_mayor').select('*').order('created_at', { ascending: false }).limit(150),
+          sb.from('apex_transacciones_libro_mayor').select('*').order('created_at', { ascending: false }).limit(300),
           sb.from('apex_categorias_financieras').select('*').order('nombre'),
           sb.from('apex_nomina').select('*').order('created_at', { ascending: false })
         ]);
@@ -726,13 +819,14 @@
         categoriasCache = resCat.data || [];
         nominaCache = resNom.data || [];
 
-        poblarSelectsCuentas();
+        poblarSelectsCuentasPropias();
         poblarSelectsProductosModal();
         poblarSelectsCategorias();
+        poblarSelectsTercerosCaja();
         poblarFiltrosHistorial();
-        GraficaRendimiento.inicializarControles();
+        poblarFiltrosReporteGeneral();
         
-        GlobalMetrics.renderizar();
+        ReporteGeneral.renderizar();
         CuentasAdmin.renderizar();
         TiendaAdmin.renderizarInventario();
         CajaOperacion.renderizarCatalogo();
@@ -741,26 +835,25 @@
         DeudoresAdmin.renderizar();
         HistorialAdmin.renderizar();
         CategoriasAdmin.renderizar();
-        GraficaRendimiento.renderizar();
       } catch (e) {
         console.warn("Error cargando datos:", e);
       }
     }
 
-    function poblarSelectsCuentas() {
+    function poblarSelectsCuentasPropias() {
       const selects = [
         document.getElementById('cajaCuentaBase'),
+        document.getElementById('cartCuentaTransaccion'),
         document.getElementById('modalCoachCuenta'),
         document.getElementById('nomSelectCuenta'),
-        document.getElementById('deuSelectCuenta'),
-        document.getElementById('grafCuenta')
+        document.getElementById('deuSelectCuenta')
       ];
-      const activas = cuentasCache.filter(c => c.activa !== false);
+      const propiasActivas = cuentasCache.filter(c => c.activa !== false && (c.clasificacion === 'propia' || !c.clasificacion));
       selects.forEach(sel => {
         if (!sel) return;
         const valActual = sel.value;
-        sel.innerHTML = sel.id === 'grafCuenta' ? '<option value="">-- Todas --</option>' : '';
-        activas.forEach(c => {
+        sel.innerHTML = '';
+        propiasActivas.forEach(c => {
           sel.innerHTML += `<option value="${c.id}">${c.nombre} (${formatCOP(c.saldo_actual)})</option>`;
         });
         sel.value = valActual;
@@ -770,181 +863,186 @@
     function poblarSelectsProductosModal() {
       const sel = document.getElementById('modalSelectProductoTienda');
       if (!sel) return;
-      sel.innerHTML = '<option value="">-- Seleccionar producto --</option>';
+      sel.innerHTML = '<option value="">-- Seleccionar producto / membresía --</option>';
       productosCache.forEach(p => {
-        sel.innerHTML += `<option value="${p.id}" data-precio="${p.precio}" data-nombre="${p.nombre}">${p.nombre} (${formatCOP(p.precio)})</option>`;
+        sel.innerHTML += `<option value="${p.id}" data-precio="${p.precio}" data-nombre="${p.nombre}" data-categoria="${p.categoria || 'Mensualidad'}">${p.nombre} (${formatCOP(p.precio)})</option>`;
       });
     }
 
     function poblarSelectsCategorias() {
       const selNom = document.getElementById('nomSelectCategoria');
-      if (!selNom) return;
-      selNom.innerHTML = '';
-      categoriasCache.forEach(c => {
-        selNom.innerHTML += `<option value="${c.id}">${c.nombre} (${c.tipo})</option>`;
+      const selCart = document.getElementById('cartSelectCategoria');
+      
+      if (selNom) {
+        selNom.innerHTML = '';
+        categoriasCache.forEach(c => selNom.innerHTML += `<option value="${c.id}">${c.nombre} (${c.tipo})</option>`);
+      }
+      if (selCart) {
+        const valActual = selCart.value;
+        selCart.innerHTML = '<option value="">-- Seleccionar categoría --</option>';
+        categoriasCache.forEach(c => selCart.innerHTML += `<option value="${c.id}">${c.nombre} (${c.tipo})</option>`);
+        selCart.value = valActual;
+      }
+    }
+
+    function poblarSelectsTercerosCaja() {
+      const sel = document.getElementById('cartSelectTercero');
+      if (!sel) return;
+      const valActual = sel.value;
+      sel.innerHTML = '<option value="">-- Seleccionar tercero --</option>';
+      deudoresCache.forEach(d => {
+        sel.innerHTML += `<option value="${d.nombre}">${d.nombre} (${d.tipo})</option>`;
       });
+      sel.value = valActual;
     }
 
     function poblarFiltrosHistorial() {
       const selCta = document.getElementById('filtroHistorialCuenta');
       const selCat = document.getElementById('filtroHistorialCat');
+      const selResp = document.getElementById('filtroHistorialResponsable');
+      
       if (selCta) {
-        selCta.innerHTML = '<option value="">-- Cuentas --</option>';
+        const valCta = selCta.value;
+        selCta.innerHTML = '<option value="">-- Todas --</option>';
         cuentasCache.forEach(c => selCta.innerHTML += `<option value="${c.id}">${c.nombre}</option>`);
+        selCta.value = valCta;
       }
       if (selCat) {
-        selCat.innerHTML = '<option value="">-- Categorías --</option>';
+        const valCat = selCat.value;
+        selCat.innerHTML = '<option value="">-- Todas --</option>';
         categoriasCache.forEach(ct => selCat.innerHTML += `<option value="${ct.id}">${ct.nombre}</option>`);
+        selCat.value = valCat;
+      }
+      if (selResp) {
+        const valResp = selResp.value;
+        selResp.innerHTML = '<option value="">-- Todos --</option>';
+        const responsablessUnicos = [...new Set(transaccionesCache.map(t => t.registered_by).filter(Boolean))];
+        responsablessUnicos.forEach(r => selResp.innerHTML += `<option value="${r}">${r}</option>`);
+        selResp.value = valResp;
       }
     }
 
-    /* ================= 0. MÉTRICAS GENERALES & GRÁFICA APEX ================= */
-    const GlobalMetrics = {
+    function poblarFiltrosReporteGeneral() {
+      const selCta = document.getElementById('repCuenta');
+      const selCat = document.getElementById('repCategoria');
+      const selResp = document.getElementById('repResponsable');
+
+      if (selCta) {
+        const val = selCta.value;
+        selCta.innerHTML = '<option value="">-- Todas las cuentas --</option>';
+        cuentasCache.forEach(c => selCta.innerHTML += `<option value="${c.id}">${c.nombre}</option>`);
+        selCta.value = val;
+      }
+      if (selCat) {
+        const val = selCat.value;
+        selCat.innerHTML = '<option value="">-- Todas las categorías --</option>';
+        categoriasCache.forEach(ct => selCat.innerHTML += `<option value="${ct.id}">${ct.nombre}</option>`);
+        selCat.value = val;
+      }
+      if (selResp) {
+        const val = selResp.value;
+        selResp.innerHTML = '<option value="">-- Todos los cajeros --</option>';
+        const respUnicos = [...new Set(transaccionesCache.map(t => t.registered_by).filter(Boolean))];
+        respUnicos.forEach(r => selResp.innerHTML += `<option value="${r}">${r}</option>`);
+        selResp.value = val;
+      }
+    }
+
+    const ReporteGeneral = {
+      cambioPeriodo: function() {
+        const p = document.getElementById('repPeriodo').value;
+        const manual = document.getElementById('wrapRepManual');
+        if (manual) manual.style.display = (p === 'manual') ? 'grid' : 'none';
+        this.renderizar();
+      },
+
       renderizar: function() {
-        const totalCuentas = cuentasCache.filter(c => c.activa !== false).reduce((a, b) => a + parseFloat(b.saldo_actual || 0), 0);
-        const acreedores = deudoresCache.filter(d => d.tipo === 'acreedor').reduce((a, b) => a + parseFloat(b.saldo || 0), 0);
-        const deudores = deudoresCache.filter(d => d.tipo === 'deudor').reduce((a, b) => a + parseFloat(b.saldo || 0), 0);
-        
-        const nominaPendiente = nominaCache
-          .filter(n => n.estado === 'pendiente_pagar')
-          .reduce((a, b) => a + parseFloat(b.monto || 0), 0);
+        const totalCuentas = cuentasCache.filter(c => c.activa !== false && (c.clasificacion === 'propia' || !c.clasificacion)).reduce((a, b) => a + parseFloat(b.saldo_actual || 0), 0);
+        document.getElementById('kpiPatrimonioTotal').innerText = formatCOP(totalCuentas);
 
-        document.getElementById('kpiTotalEmpresa').innerText = formatCOP(totalCuentas);
-        document.getElementById('kpiTotalDeudores').innerText = formatCOP(acreedores);
-        document.getElementById('kpiTotalAcreedores').innerText = formatCOP(deudores);
-        document.getElementById('kpiTotalNominaPendiente').innerText = formatCOP(nominaPendiente);
+        const cuentaId = document.getElementById('repCuenta').value;
+        const categoriaId = document.getElementById('repCategoria').value;
+        const responsable = document.getElementById('repResponsable').value;
+        const periodo = document.getElementById('repPeriodo').value;
 
-        const list = document.getElementById('globalListaCuentas');
-        if (!list) return;
-        list.innerHTML = '';
-        cuentasCache.forEach(c => {
-          list.innerHTML += `
-            <div style="background:var(--card-sub); border:1px solid var(--border); border-radius:4px; padding:8px 10px; margin-top:5px; display:flex; justify-content:space-between; align-items:center;">
-              <div><strong>${c.nombre}</strong> <span style="font-size:0.58rem; color:var(--text-muted);">(${c.tipo})</span></div>
-              <div style="font-weight:900; color:var(--status-ok);">${formatCOP(c.saldo_actual)}</div>
+        let ahora = new Date();
+        let fechaInicio = null;
+        let fechaFin = new Date(ahora);
+
+        if (periodo === 'hoy') {
+          fechaInicio = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
+        } else if (periodo === 'semana') {
+          fechaInicio = new Date();
+          fechaInicio.setDate(ahora.getDate() - 7);
+        } else if (periodo === 'mes') {
+          fechaInicio = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
+        } else if (periodo === 'manual') {
+          const dIni = document.getElementById('repDesde').value;
+          const dFin = document.getElementById('repHasta').value;
+          if (dIni) fechaInicio = new Date(dIni + 'T00:00:00');
+          if (dFin) fechaFin = new Date(dFin + 'T23:59:59');
+        }
+
+        let filtradas = transaccionesCache.filter(t => {
+          if (cuentaId && t.account_id !== cuentaId) return false;
+          if (categoriaId && t.categoria_id !== categoriaId) return false;
+          if (responsable && t.registered_by !== responsable) return false;
+          if (fechaInicio) {
+            const tDate = new Date(t.created_at);
+            if (tDate < fechaInicio || tDate > fechaFin) return false;
+          }
+          return true;
+        });
+
+        let totalIngresos = 0;
+        let totalEgresos = 0;
+        let desgloseCats = {};
+
+        filtradas.forEach(t => {
+          const monto = parseFloat(t.amount || 0);
+          const catNombre = t.category || 'General';
+
+          if (!desgloseCats[catNombre]) desgloseCats[catNombre] = { ingresos: 0, egresos: 0 };
+
+          if (t.type === 'ingreso') {
+            totalIngresos += monto;
+            desgloseCats[catNombre].ingresos += monto;
+          } else {
+            totalEgresos += monto;
+            desgloseCats[catNombre].egresos += monto;
+          }
+        });
+
+        const utilidadNeta = totalIngresos - totalEgresos;
+
+        document.getElementById('kpiIngresosPeriodo').innerText = formatCOP(totalIngresos);
+        document.getElementById('kpiEgresosPeriodo').innerText = formatCOP(totalEgresos);
+        document.getElementById('kpiUtilidadNeta').innerText = formatCOP(utilidadNeta);
+
+        const contCat = document.getElementById('listaDesgloseCategorias');
+        if (!contCat) return;
+
+        const keysCats = Object.keys(desgloseCats);
+        if (keysCats.length === 0) {
+          contCat.innerHTML = '<span style="color:var(--text-muted);">Sin movimientos registrados en este periodo.</span>';
+          return;
+        }
+
+        contCat.innerHTML = '';
+        keysCats.forEach(cat => {
+          const item = desgloseCats[cat];
+          const netoCat = item.ingresos - item.egresos;
+          const colorNeto = netoCat >= 0 ? 'var(--status-ok)' : 'var(--accent)';
+          contCat.innerHTML += `
+            <div style="background:var(--card-sub); border:1px solid var(--border); border-radius:4px; padding:6px 8px; margin-top:4px; display:flex; justify-content:space-between; align-items:center;">
+              <div><strong>${cat}</strong><div style="font-size:0.55rem; color:var(--text-muted);">Ingresos: ${formatCOP(item.ingresos)} | Egresos: ${formatCOP(item.egresos)}</div></div>
+              <div style="font-weight:900; color:${colorNeto}; font-size:0.75rem;">${formatCOP(netoCat)}</div>
             </div>
           `;
         });
       }
     };
 
-    const GraficaRendimiento = {
-      inicializarControles: function() {
-        const container = document.getElementById('grafProductosCheckList');
-        if (!container) return;
-        const seleccionAnterior = Array.from(container.querySelectorAll('input[type="checkbox"]:checked')).map(el => el.value);
-        
-        container.innerHTML = '';
-        productosCache.forEach((p) => {
-          const isChecked = seleccionAnterior.length === 0 || seleccionAnterior.includes(p.nombre);
-          container.innerHTML += `
-            <label style="display:flex; align-items:center; gap:6px; margin-bottom:3px; cursor:pointer; color:#ccc;">
-              <input type="checkbox" value="${p.nombre}" ${isChecked ? 'checked' : ''} onchange="GraficaRendimiento.renderizar()"> ${p.nombre}
-            </label>
-          `;
-        });
-      },
-
-      cambioPeriodo: function() {
-        const val = document.getElementById('grafPeriodo').value;
-        const manualWrap = document.getElementById('grafFechasManuales');
-        if (manualWrap) manualWrap.style.display = (val === 'manual') ? 'grid' : 'none';
-        this.renderizar();
-      },
-
-      renderizar: function() {
-        const canvas = document.getElementById('apexRendimientoChart');
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-
-        const periodo = document.getElementById('grafPeriodo').value;
-        const cuentaFiltro = document.getElementById('grafCuenta').value;
-        
-        const checkboxes = document.querySelectorAll('#grafProductosCheckList input[type="checkbox"]');
-        const productosSeleccionados = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
-
-        let fechaFin = new Date();
-        let fechaInicio = new Date();
-        if (periodo === 'semana') {
-          fechaInicio.setDate(fechaFin.getDate() - 7);
-        } else if (periodo === 'mes') {
-          fechaInicio.setMonth(fechaFin.getMonth() - 1);
-        } else if (periodo === 'trimestre') {
-          fechaInicio.setMonth(fechaFin.getMonth() - 3);
-        } else if (periodo === 'semestre') {
-          fechaInicio.setMonth(fechaFin.getMonth() - 6);
-        } else if (periodo === 'manual') {
-          const fIniVal = document.getElementById('grafFechaInicio').value;
-          const fFinVal = document.getElementById('grafFechaFin').value;
-          if (fIniVal) fechaInicio = new Date(fIniVal);
-          if (fFinVal) {
-            fechaFin = new Date(fFinVal);
-            fechaFin.setHours(23, 59, 59);
-          }
-        }
-
-        let diasMap = {};
-        let curr = new Date(fechaInicio);
-        while (curr <= fechaFin) {
-          const key = curr.toISOString().split('T')[0];
-          diasMap[key] = {};
-          productosSeleccionados.forEach(prod => diasMap[key][prod] = 0);
-          curr.setDate(curr.getDate() + 1);
-        }
-
-        transaccionesCache.forEach(t => {
-          if (t.type !== 'ingreso') return;
-          if (cuentaFiltro && t.account_id !== cuentaFiltro) return;
-          const tDate = new Date(t.created_at);
-          if (tDate < fechaInicio || tDate > fechaFin) return;
-
-          const diaKey = tDate.toISOString().split('T')[0];
-          if (!diasMap[diaKey]) return;
-
-          productosSeleccionados.forEach(prod => {
-            if ((t.description || '').toLowerCase().includes(prod.toLowerCase()) || (t.category || '').toLowerCase().includes(prod.toLowerCase())) {
-              diasMap[diaKey][prod] = (diasMap[diaKey][prod] || 0) + parseFloat(t.amount || 0);
-            }
-          });
-        });
-
-        const labels = Object.keys(diasMap).sort();
-        const datasets = productosSeleccionados.map((prod, idx) => {
-          const colores = ['#e50914', '#22c55e', '#3b82f6', '#eab308', '#a855f7', '#06b6d4', '#f97316', '#ec4899'];
-          const color = colores[idx % colores.length];
-          const data = labels.map(dia => diasMap[dia][prod] || 0);
-          return {
-            label: prod,
-            data: data,
-            borderColor: color,
-            backgroundColor: color,
-            borderWidth: 1.8,
-            pointRadius: 2.5,
-            tension: 0.1
-          };
-        });
-
-        if (apexChartInstance) apexChartInstance.destroy();
-
-        apexChartInstance = new Chart(ctx, {
-          type: 'line',
-          data: { labels: labels, datasets: datasets },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { labels: { color: '#888', font: { size: 9, weight: 'bold' } } }
-            },
-            scales: {
-              x: { ticks: { color: '#555', font: { size: 8 } }, grid: { color: '#15151a' } },
-              y: { ticks: { color: '#555', font: { size: 8 }, callback: (val) => '$' + val.toLocaleString() }, grid: { color: '#15151a' } }
-            }
-          }
-        });
-      }
-    };
-
-    /* ================= 1. CATEGORÍAS FINANCIERAS ================= */
     const CategoriasAdmin = {
       crear: async function(e) {
         e.preventDefault();
@@ -984,13 +1082,13 @@
       }
     };
 
-    /* ================= 2. CAJA DIARIA (VENTAS Y COMPRAS/EGRESOS) ================= */
     const CajaOperacion = {
       abrirCaja: async function() {
+        const emailCajero = (localStorage.getItem('apex_user_email') || sessionStorage.getItem('apex_user_email') || 'admin@apex.com');
         const cuentaId = document.getElementById('cajaCuentaBase').value;
         const baseMonto = parseFloat(document.getElementById('cajaBaseMonto').value) || 0;
-        const cta = cuentasCache.find(c => c.id === cuentaId);
 
+        const cta = cuentasCache.find(c => c.id === cuentaId);
         if (!cta || cta.saldo_actual < baseMonto) {
           alert("Saldo insuficiente en cuenta base.");
           return;
@@ -1003,15 +1101,16 @@
           await sb.from('apex_transacciones_libro_mayor').insert([{
             type: 'egreso',
             category: 'Apertura Base de Caja',
-            category_id: catObj ? catObj.id : null,
+            categoria_id: catObj ? catObj.id : null,
             amount: baseMonto,
             account_id: cuentaId,
-            description: `Retiro de base (${formatCOP(baseMonto)}) para turno desde ${cta.nombre}`,
-            registered_by: 'Caja'
+            description: `Retiro de base (${formatCOP(baseMonto)}) para turno`,
+            registered_by: emailCajero
           }]);
 
-          cajaActiva = { cuentaId, baseMonto, ventasTurno: 0, comprasTurno: 0, efectivoRecaudado: baseMonto };
+          cajaActiva = { cajeroEmail: emailCajero, cuentaId, baseMonto, ventasTurno: 0, comprasTurno: 0, efectivoRecaudado: baseMonto };
           
+          document.getElementById('lblCajeroActivo').innerText = `Cajero: ${emailCajero}`;
           document.getElementById('panelCajaCerrada').style.display = 'none';
           document.getElementById('panelCajaAbierta').style.display = 'block';
           const lblCaja = document.getElementById('lblEstadoCaja');
@@ -1033,16 +1132,19 @@
       renderizarCatalogo: function() {
         const grid = document.getElementById('cajaCatalogoGrid');
         if (!grid) return;
-        if (productosCache.length === 0) {
-          grid.innerHTML = '<span style="color:var(--text-muted); font-size:0.65rem;">Sin productos.</span>';
+        const visibles = productosCache.filter(p => p.mostrar_en_caja !== false);
+        if (visibles.length === 0) {
+          grid.innerHTML = '<span style="color:var(--text-muted); font-size:0.65rem;">Sin productos habilitados para caja.</span>';
           return;
         }
         grid.innerHTML = '';
-        productosCache.forEach(prod => {
+        visibles.forEach(prod => {
           const bgImg = prod.imagen_url || 'https://images.unsplash.com/photo-1517649763962-0c6232660102?w=300';
+          const stockTxt = (prod.categoria === 'Insumo' || prod.categoria === 'Equipo') ? `Stock: ${prod.stock ?? 0}` : 'Infinito';
           grid.innerHTML += `
             <div class="product-card" style="background-image: url('${bgImg}');" onclick="CajaOperacion.agregarAlCarrito('${prod.id}')">
               <div class="product-title">${prod.nombre}</div>
+              <div style="font-size:0.55rem; color:var(--text-muted);">${prod.categoria} · ${stockTxt}</div>
               <div class="product-price">${formatCOP(prod.precio)}</div>
             </div>
           `;
@@ -1052,19 +1154,25 @@
       cambioOperacion: function() {
         const tipoOp = document.getElementById('cartTipoOperacion').value;
         const wrapPago = document.getElementById('wrapCartPago');
-        const lblCliente = document.getElementById('lblCartCliente');
+        const wrapMontoPrestamo = document.getElementById('wrapMontoPrestamo');
         const boxTitle = document.getElementById('cartBoxTitle');
         const btnCobrar = document.getElementById('btnCartCobrar');
 
         if (tipoOp === 'compra') {
           wrapPago.style.display = 'none';
-          lblCliente.innerText = 'Proveedor / Concepto';
+          wrapMontoPrestamo.style.display = 'none';
           boxTitle.innerText = '🛒 Carrito Rápido (Compra / Egreso)';
           btnCobrar.innerText = 'Registrar Compra / Egreso';
           btnCobrar.style.background = 'var(--accent)';
+        } else if (tipoOp === 'prestamo_otorgado' || tipoOp === 'prestamo_recibido') {
+          wrapPago.style.display = 'none';
+          wrapMontoPrestamo.style.display = 'block';
+          boxTitle.innerText = '🤝 Registro de Préstamo / Deuda';
+          btnCobrar.innerText = 'Registrar Préstamo';
+          btnCobrar.style.background = 'var(--status-info)';
         } else {
           wrapPago.style.display = 'block';
-          lblCliente.innerText = 'Cliente';
+          wrapMontoPrestamo.style.display = 'none';
           boxTitle.innerText = '🛒 Carrito Rápido (Venta)';
           btnCobrar.innerText = 'Registrar Venta';
           btnCobrar.style.background = 'var(--accent)';
@@ -1074,6 +1182,16 @@
       agregarAlCarrito: function(idProd) {
         const prod = productosCache.find(p => p.id === idProd);
         if (!prod) return;
+
+        if (prod.categoria === 'Insumo' || prod.categoria === 'Equipo') {
+          const enCarrito = carrito.filter(item => item.id === prod.id).length;
+          const stockActual = parseInt(prod.stock ?? 0, 10);
+          if (enCarrito >= stockActual) {
+            alert(`Stock insuficiente para "${prod.nombre}". Stock disponible: ${stockActual}`);
+            return;
+          }
+        }
+
         carrito.push(prod);
         this.renderCarrito();
       },
@@ -1103,66 +1221,137 @@
 
       cobrar: async function() {
         if (!cajaActiva) { alert("Caja cerrada."); return; }
-        if (carrito.length === 0) { alert("Carrito vacío."); return; }
-
+        
         const tipoOperacion = document.getElementById('cartTipoOperacion').value;
-        const totalMonto = carrito.reduce((a, b) => a + parseFloat(b.precio), 0);
-        const detalleItems = carrito.map(i => i.nombre).join(', ');
+        const tercero = document.getElementById('cartSelectTercero').value;
+        const cuentaTransaccionId = document.getElementById('cartCuentaTransaccion').value;
+        const categoriaId = document.getElementById('cartSelectCategoria').value;
+        const cajeroEmail = cajaActiva.cajeroEmail;
+
+        if (!tercero) {
+          alert("Debes seleccionar un Tercero obligatorio.");
+          return;
+        }
+        if (!cuentaTransaccionId) {
+          alert("Selecciona la cuenta propia.");
+          return;
+        }
+        if (!categoriaId) {
+          alert("Selecciona una categoría financiera obligatoria.");
+          return;
+        }
+
+        const ctaTrans = cuentasCache.find(c => c.id === cuentaTransaccionId);
+        const catObj = categoriasCache.find(c => c.id === categoriaId);
 
         try {
-          if (tipoOperacion === 'compra') {
-            const proveedor = document.getElementById('cartCliente').value.trim() || 'Proveedor General';
-            const catObj = categoriasCache.find(c => c.nombre.toLowerCase().includes('operativo') || c.nombre.toLowerCase().includes('egreso') || c.tipo === 'egreso') || categoriasCache[0];
-            
-            const cta = cuentasCache.find(c => c.id === cajaActiva.cuentaId);
-            if (!cta || cta.saldo_actual < totalMonto) {
-              alert("Saldo insuficiente en caja/cuenta para realizar esta compra.");
+          if (tipoOperacion === 'prestamo_otorgado' || tipoOperacion === 'prestamo_recibido') {
+            const montoPrestamo = parseFloat(document.getElementById('cartMontoPrestamo').value) || 0;
+            if (montoPrestamo <= 0) {
+              alert("Ingresa un monto de préstamo válido.");
               return;
             }
 
-            // Descontar saldo temporalmente de la cuenta financiera durante el turno
-            await sb.from('apex_cuentas').update({ saldo_actual: cta.saldo_actual - totalMonto }).eq('id', cajaActiva.cuentaId);
+            if (tipoOperacion === 'prestamo_otorgado' && ctaTrans.saldo_actual < montoPrestamo) {
+              alert(`Saldo insuficiente en cuenta "${ctaTrans.nombre}". Fondos disponibles: ${formatCOP(ctaTrans.saldo_actual)}`);
+              return;
+            }
+
+            const nuevoSaldoCta = tipoOperacion === 'prestamo_otorgado' 
+              ? parseFloat(ctaTrans.saldo_actual) - montoPrestamo 
+              : parseFloat(ctaTrans.saldo_actual) + montoPrestamo;
+
+            await sb.from('apex_cuentas').update({ saldo_actual: nuevoSaldoCta }).eq('id', cuentaTransaccionId);
+
+            const tipoTerceroDB = tipoOperacion === 'prestamo_otorgado' ? 'deudor' : 'acreedor';
+            const tercObj = deudoresCache.find(d => d.nombre === tercero);
+            if (tercObj) {
+              const nuevoSaldoDeudor = parseFloat(tercObj.saldo || 0) + montoPrestamo;
+              await sb.from('apex_acreedores_deudores').update({ saldo: nuevoSaldoDeudor }).eq('id', tercObj.id);
+            } else {
+              await sb.from('apex_acreedores_deudores').insert([{ nombre: tercero, tipo: tipoTerceroDB, saldo: montoPrestamo }]);
+            }
+
+            await sb.from('apex_transacciones_libro_mayor').insert([{
+              type: tipoOperacion === 'prestamo_otorgado' ? 'egreso' : 'ingreso',
+              category: catObj ? catObj.nombre : (tipoOperacion === 'prestamo_otorgado' ? 'Préstamo Otorgado' : 'Préstamo Recibido'),
+              categoria_id: categoriaId,
+              amount: montoPrestamo,
+              account_id: cuentaTransaccionId,
+              description: `Préstamo con ${tercero}`,
+              registered_by: cajeroEmail
+            }]);
+
+            alert("Préstamo registrado exitosamente.");
+            document.getElementById('cartMontoPrestamo').value = 0;
+            await cargarDatosGlobales();
+            return;
+          }
+
+          if (carrito.length === 0) { alert("Carrito vacío."); return; }
+          const totalMonto = carrito.reduce((a, b) => a + parseFloat(b.precio), 0);
+          const detalleItems = carrito.map(i => i.nombre).join(', ');
+
+          if (tipoOperacion === 'compra') {
+            if (!ctaTrans || parseFloat(ctaTrans.saldo_actual) < totalMonto) {
+              alert(`Saldo insuficiente en cuenta "${ctaTrans?.nombre || 'Seleccionada'}". Saldo disponible: ${formatCOP(ctaTrans?.saldo_actual || 0)}. La compra no puede realizarse.`);
+              return;
+            }
+
+            await sb.from('apex_cuentas').update({ saldo_actual: parseFloat(ctaTrans.saldo_actual) - totalMonto }).eq('id', cuentaTransaccionId);
 
             await sb.from('apex_transacciones_libro_mayor').insert([{
               type: 'egreso',
-              category: 'Compra / Egreso Caja',
-              category_id: catObj ? catObj.id : null,
+              category: catObj ? catObj.nombre : 'Compra / Egreso',
+              categoria_id: categoriaId,
               amount: totalMonto,
-              account_id: cajaActiva.cuentaId,
-              description: `Compra a ${proveedor}: ${detalleItems}`,
-              registered_by: 'Caja'
+              account_id: cuentaTransaccionId,
+              description: `Compra a ${tercero}: ${detalleItems}`,
+              registered_by: cajeroEmail
             }]);
 
-            cajaActiva.comprasTurno = (cajaActiva.comprasTurno || 0) + totalMonto;
-            cajaActiva.efectivoRecaudado -= totalMonto;
+            if (cuentaTransaccionId === cajaActiva.cuentaId) {
+              cajaActiva.comprasTurno = (cajaActiva.comprasTurno || 0) + totalMonto;
+              cajaActiva.efectivoRecaudado -= totalMonto;
+            }
 
           } else {
             const tipoPago = document.getElementById('cartTipoPago').value;
-            const cliente = document.getElementById('cartCliente').value.trim() || 'Cliente General';
-            const catObj = categoriasCache.find(c => c.nombre.toLowerCase().includes('tienda') || c.nombre.toLowerCase().includes('membresía')) || categoriasCache[0];
 
             if (tipoPago === 'contado') {
-              cajaActiva.ventasTurno += totalMonto;
-              cajaActiva.efectivoRecaudado += totalMonto;
+              await sb.from('apex_cuentas').update({ saldo_actual: parseFloat(ctaTrans.saldo_actual) + totalMonto }).eq('id', cuentaTransaccionId);
+              if (cuentaTransaccionId === cajaActiva.cuentaId) {
+                cajaActiva.ventasTurno += totalMonto;
+                cajaActiva.efectivoRecaudado += totalMonto;
+              }
             } else if (tipoPago === 'credito') {
-              await sb.from('apex_acreedores_deudores').insert([{ nombre: cliente, tipo: 'acreedor', saldo: totalMonto, notas: `Venta crédito: ${detalleItems}` }]);
+              await sb.from('apex_acreedores_deudores').insert([{ nombre: tercero, tipo: 'acreedor', saldo: totalMonto, notas: `Venta crédito: ${detalleItems}` }]);
             } else if (tipoPago === 'nomina') {
-              await sb.from('apex_nomina').insert([{ staff_email: cliente, concepto: `Crédito Tienda: ${detalleItems}`, monto: totalMonto, estado: 'pendiente_pagar' }]);
+              await sb.from('apex_nomina').insert([{ staff_email: tercero, concepto: `Crédito Tienda: ${detalleItems}`, monto: totalMonto, estado: 'pendiente_pagar' }]);
             }
 
             await sb.from('apex_transacciones_libro_mayor').insert([{
               type: 'ingreso',
-              category: `Venta Caja (${tipoPago})`,
-              category_id: catObj ? catObj.id : null,
+              category: catObj ? catObj.nombre : `Venta Caja (${tipoPago})`,
+              categoria_id: categoriaId,
               amount: totalMonto,
-              account_id: cajaActiva.cuentaId,
-              description: `Venta a ${cliente}: ${detalleItems}`,
-              registered_by: 'Caja'
+              account_id: cuentaTransaccionId,
+              description: `Venta a ${tercero}: ${detalleItems}`,
+              registered_by: cajeroEmail
             }]);
           }
 
+          for (const item of carrito) {
+            if (item.categoria === 'Insumo' || item.categoria === 'Equipo') {
+              const stockActual = parseInt(item.stock ?? 0, 10);
+              const nuevoStock = Math.max(0, stockActual - 1);
+              await sb.from('apex_productos').update({ stock: nuevoStock }).eq('id', item.id);
+            }
+          }
+
           carrito = [];
-          document.getElementById('cartCliente').value = '';
+          document.getElementById('cartSelectTercero').value = '';
+          document.getElementById('cartSelectCategoria').value = '';
           this.renderCarrito();
 
           const ventasNetas = cajaActiva.ventasTurno - (cajaActiva.comprasTurno || 0);
@@ -1190,7 +1379,8 @@
         const cuentaId = cajaActiva.cuentaId;
         const montoRetornoTotal = cajaActiva.baseMonto + cajaActiva.ventasTurno - (cajaActiva.comprasTurno || 0);
         const cta = cuentasCache.find(c => c.id === cuentaId);
-        const catObj = categoriasCache.find(c => c.nombre.toLowerCase().includes('ingreso') || c.nombre.toLowerCase().includes('tienda')) || categoriasCache[0];
+        const catObj = categoriasCache[0];
+        const cajeroEmail = cajaActiva.cajeroEmail;
 
         try {
           if (montoRetornoTotal > 0) {
@@ -1200,11 +1390,11 @@
           await sb.from('apex_transacciones_libro_mayor').insert([{
             type: 'ingreso',
             category: 'Cierre de Caja y Consolidación',
-            category_id: catObj ? catObj.id : null,
+            categoria_id: catObj ? catObj.id : null,
             amount: Math.abs(montoRetornoTotal),
             account_id: cuentaId,
-            description: `Cierre de turno. Base (${formatCOP(cajaActiva.baseMonto)}) + Ventas (${formatCOP(cajaActiva.ventasTurno)}) - Compras (${formatCOP(cajaActiva.comprasTurno || 0)})`,
-            registered_by: 'Caja'
+            description: `Cierre de turno. Base (${formatCOP(cajaActiva.baseMonto)}) + Ventas (${formatCOP(cajaActiva.ventasTurno)})`,
+            registered_by: cajeroEmail
           }]);
 
           if (diferencia !== 0) {
@@ -1212,11 +1402,11 @@
             await sb.from('apex_transacciones_libro_mayor').insert([{
               type: tipoDesc,
               category: 'Descuadre de Caja',
-              category_id: catObj ? catObj.id : null,
+              categoria_id: catObj ? catObj.id : null,
               amount: Math.abs(diferencia),
               account_id: cuentaId,
               description: `Ajuste caja. Esperado: ${formatCOP(esperado)}, Real: ${formatCOP(efectivoReal)}`,
-              registered_by: 'Caja'
+              registered_by: cajeroEmail
             }]);
           }
 
@@ -1224,6 +1414,7 @@
           cajaActiva = null;
           document.getElementById('panelCajaCerrada').style.display = 'block';
           document.getElementById('panelCajaAbierta').style.display = 'none';
+          document.getElementById('lblCajeroActivo').innerText = 'Cajero: No autenticado';
           
           const lblCaja = document.getElementById('lblEstadoCaja');
           lblCaja.innerText = 'Caja Cerrada';
@@ -1238,8 +1429,36 @@
       }
     };
 
-    /* ================= 3. TIENDA Y CATÁLOGO ================= */
     const TiendaAdmin = {
+      cambiarSubseccion: function(sub, btn) {
+        document.querySelectorAll('#tabTienda .sub-nav .nav-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('prodSubseccion').value = sub;
+
+        const titulo = document.getElementById('subseccionTitulo');
+        const selCat = document.getElementById('prodCategoria');
+        const wrapStock = document.getElementById('wrapStockOrden');
+
+        if (sub === 'Membresias') {
+          titulo.innerText = 'Gestión de Membresías';
+          selCat.innerHTML = `
+            <option value="Mensualidad">Mensualidad (1 Mes -1 día)</option>
+            <option value="Trimestre">Trimestre (3 Meses -1 día)</option>
+            <option value="Quincena">Quincena (15 Días)</option>
+            <option value="Pase_Dia">Pase 1 Día</option>
+          `;
+          wrapStock.style.display = 'none';
+        } else if (sub === 'Insumos') {
+          titulo.innerText = 'Gestión de Insumos y Compras';
+          selCat.innerHTML = `<option value="Insumo">Insumo / Suministro</option>`;
+          wrapStock.style.display = 'grid';
+        } else if (sub === 'Equipos') {
+          titulo.innerText = 'Gestión de Equipos y Herramientas';
+          selCat.innerHTML = `<option value="Equipo">Equipo / Venta Exhibición</option>`;
+          wrapStock.style.display = 'grid';
+        }
+      },
+
       guardar: async function(e) {
         e.preventDefault();
         const id = document.getElementById('prodId').value;
@@ -1248,10 +1467,13 @@
         const precio = parseFloat(document.getElementById('prodPrecio').value) || 0;
         let stock = parseInt(document.getElementById('prodStock').value) || 99;
         const orden = parseInt(document.getElementById('prodOrden').value) || 0;
+        const mostrar_en_caja = document.getElementById('prodMostrarCaja').checked;
         let imagen_url = document.getElementById('prodImagenUrl').value.trim();
         const fileInput = document.getElementById('prodFile');
 
-        if (categoria === 'Servicio' || categoria === 'Membresía') stock = 999999;
+        if (categoria === 'Mensualidad' || categoria === 'Trimestre' || categoria === 'Quincena' || categoria === 'Pase_Dia') {
+          stock = 999999;
+        }
 
         const btn = document.getElementById('btnGuardarProd');
         btn.disabled = true;
@@ -1267,7 +1489,7 @@
             imagen_url = pubData.publicUrl;
           }
 
-          const payload = { nombre, categoria, precio, stock, orden, imagen_url };
+          const payload = { nombre, categoria, precio, stock, orden, mostrar_en_caja, imagen_url };
           let error;
           if (id) {
             const res = await sb.from('apex_productos').update(payload).eq('id', id);
@@ -1292,17 +1514,18 @@
         const cont = document.getElementById('listaInventarioTienda');
         if (!cont) return;
         if (productosCache.length === 0) {
-          cont.innerHTML = '<span style="color:var(--text-muted); font-size:0.65rem;">Sin productos.</span>';
+          cont.innerHTML = '<span style="color:var(--text-muted); font-size:0.65rem;">Sin registros en inventario.</span>';
           return;
         }
         cont.innerHTML = '';
         productosCache.forEach(p => {
           const bgImg = p.imagen_url || 'https://images.unsplash.com/photo-1517649763962-0c6232660102?w=300';
-          const stockTxt = (p.categoria === 'Servicio' || p.categoria === 'Membresía') ? 'Infinito' : `Stock: ${p.stock ?? 'N/A'}`;
+          const stockTxt = (p.categoria === 'Insumo' || p.categoria === 'Equipo') ? `Stock: ${p.stock ?? 0}` : 'Infinito';
+          const cajaBadge = p.mostrar_en_caja === false ? '<span style="color:var(--accent);">[Oculto en Caja]</span>' : '<span style="color:var(--status-ok);">[En Caja]</span>';
           cont.innerHTML += `
             <div class="product-card" style="background-image: url('${bgImg}');">
               <div class="product-title">${p.nombre}</div>
-              <div style="font-size:0.55rem; color:var(--text-muted);">${p.categoria} · ${stockTxt}</div>
+              <div style="font-size:0.55rem; color:var(--text-muted);">${p.categoria} · ${stockTxt} ${cajaBadge}</div>
               <div style="display:flex; justify-content:space-between; align-items:center; margin-top:3px;">
                 <span class="product-price">${formatCOP(p.precio)}</span>
                 <div style="display:flex; gap:3px;">
@@ -1320,22 +1543,22 @@
         if (!p) return;
         document.getElementById('prodId').value = p.id;
         document.getElementById('prodNombre').value = p.nombre;
-        document.getElementById('prodCategoria').value = p.categoria;
+        document.getElementById('prodCategoria').value = p.categoria || 'Mensualidad';
         document.getElementById('prodPrecio').value = p.precio;
         document.getElementById('prodStock').value = p.stock ?? 99;
         document.getElementById('prodOrden').value = p.orden ?? 0;
+        document.getElementById('prodMostrarCaja').checked = p.mostrar_en_caja !== false;
         document.getElementById('prodImagenUrl').value = p.imagen_url || '';
         switchTab('tabTienda', document.querySelectorAll('.nav-btn')[2]);
       },
 
       eliminar: async function(id) {
-        if (!confirm("¿Eliminar?")) return;
+        if (!confirm("¿Eliminar de inventario?")) return;
         await sb.from('apex_productos').delete().eq('id', id);
         await cargarDatosGlobales();
       }
     };
 
-    /* ================= 4. BANDEJA COACH (SALA) ================= */
     const BandejaCoach = {
       renderizar: function() {
         const cont = document.getElementById('listaMembresiasPendientes');
@@ -1384,13 +1607,13 @@
         if (!pagoCoachSeleccionado) return;
 
         poblarSelectsProductosModal();
-        poblarSelectsCuentas();
+        poblarSelectsCuentasPropias();
 
         const monto = parseFloat(pagoCoachSeleccionado.amount) || 0;
         document.getElementById('modalCoachDetalle').innerText = `Striker: ${pagoCoachSeleccionado.user_email}`;
         document.getElementById('modalCoachMontoReal').value = monto;
-        document.getElementById('modalCoachDiasVigencia').value = 30;
         document.getElementById('modalSelectProductoTienda').value = '';
+        document.getElementById('modalCoachFechaPago').value = new Date().toISOString().split('T')[0];
 
         const imgWrap = document.getElementById('modalComprobanteWrap');
         const imgEl = document.getElementById('modalComprobanteImg');
@@ -1410,24 +1633,20 @@
         if (!opt || !opt.value) return;
 
         const precio = parseFloat(opt.getAttribute('data-precio')) || 0;
-        const nombreProd = (opt.getAttribute('data-nombre') || '').toLowerCase();
-        
         document.getElementById('modalCoachMontoReal').value = precio;
-        let dias = 30;
-        if (nombreProd.includes('trimestre') || nombreProd.includes('90')) dias = 90;
-        else if (nombreProd.includes('quincena') || nombreProd.includes('15')) dias = 15;
-        else if (nombreProd.includes('pase') || nombreProd.includes('1 día')) dias = 1;
-        document.getElementById('modalCoachDiasVigencia').value = dias;
       },
 
       confirmarFacturacion: async function() {
         if (!pagoCoachSeleccionado) return;
         const ctaId = document.getElementById('modalCoachCuenta').value;
         const montoReal = parseFloat(document.getElementById('modalCoachMontoReal').value) || 0;
-        const diasVigencia = parseInt(document.getElementById('modalCoachDiasVigencia').value, 10) || 30;
+        const fechaPagoVal = document.getElementById('modalCoachFechaPago').value;
+        const selProd = document.getElementById('modalSelectProductoTienda');
+        const optProd = selProd.options[selProd.selectedIndex];
+        const cajeroEmail = (localStorage.getItem('apex_user_email') || sessionStorage.getItem('apex_user_email') || 'contabilidad@apex.com');
         
         if (!ctaId) {
-          alert("Por favor selecciona una cuenta destino.");
+          alert("Por favor selecciona una cuenta destino propia.");
           return;
         }
 
@@ -1437,6 +1656,7 @@
           return;
         }
 
+        const categoriaProd = optProd ? optProd.getAttribute('data-categoria') : 'Mensualidad';
         const catObj = categoriasCache.find(c => c.nombre.toLowerCase().includes('membresía')) || categoriasCache[0];
 
         try {
@@ -1444,24 +1664,29 @@
           await sb.from('apex_transacciones_libro_mayor').insert([{
             type: 'ingreso',
             category: 'Membresías Sala',
-            category_id: catObj ? catObj.id : null,
+            categoria_id: catObj ? catObj.id : null,
             amount: montoReal,
             account_id: ctaId,
             description: `Membresía sala: ${pagoCoachSeleccionado.user_email}`,
-            registered_by: 'Contabilidad'
+            registered_by: cajeroEmail
           }]);
 
           await sb.from('apex_payments').update({ accounting_status: 'redimido' }).eq('id', pagoCoachSeleccionado.id);
 
-          // CÁLCULO EXACTO: UN MES MENOS UN DÍA (O VIGENCIA EXACTA SELECCIONADA)
-          const hoy = new Date();
-          hoy.setHours(0, 0, 0, 0);
-          const expDate = new Date(hoy);
-          if (diasVigencia >= 28 && diasVigencia <= 31) {
+          const baseDate = fechaPagoVal ? new Date(fechaPagoVal + 'T00:00:00') : new Date();
+          baseDate.setHours(0, 0, 0, 0);
+          const expDate = new Date(baseDate);
+
+          if (categoriaProd === 'Trimestre') {
+            expDate.setMonth(expDate.getMonth() + 3);
+            expDate.setDate(expDate.getDate() - 1);
+          } else if (categoriaProd === 'Quincena') {
+            expDate.setDate(expDate.getDate() + 15);
+          } else if (categoriaProd === 'Pase_Dia') {
+            expDate.setDate(expDate.getDate() + 1);
+          } else {
             expDate.setMonth(expDate.getMonth() + 1);
             expDate.setDate(expDate.getDate() - 1);
-          } else {
-            expDate.setDate(expDate.getDate() + diasVigencia);
           }
 
           const expDateLegible = `${expDate.getUTCDate()}/${expDate.getUTCMonth() + 1}/${expDate.getUTCFullYear()}`;
@@ -1472,11 +1697,10 @@
             subscription_expires_at: expDate.toISOString()
           }).eq('email', pagoCoachSeleccionado.user_email);
 
-          // GENERAR NOTIFICACIÓN AUTOMÁTICA AL USUARIO
           await sb.from('apex_notifications').insert({
             user_email: pagoCoachSeleccionado.user_email,
             title: '¡Membresía Facturada!',
-            message: `Tu pago ha sido validado y facturado por contabilidad. Tu membresía está activa hasta el ${expDateLegible}.`,
+            message: `Tu pago ha sido validado y facturado. Tu membresía está activa hasta el ${expDateLegible}.`,
             type: 'membresia'
           });
 
@@ -1485,18 +1709,45 @@
         } catch (err) {
           alert("Error: " + err.message);
         }
+      },
+
+      rechazarPago: async function() {
+        if (!pagoCoachSeleccionado) return;
+        if (!confirm("¿Rechazar este pago? Se eliminará la evidencia y se cancelará la membresía provisional del striker.")) return;
+
+        try {
+          await sb.from('apex_payments').update({ accounting_status: 'rechazado' }).eq('id', pagoCoachSeleccionado.id);
+
+          await sb.from('apex_users').update({
+            subscription_status: 'inactivo',
+            is_active: false
+          }).eq('email', pagoCoachSeleccionado.user_email);
+
+          await sb.from('apex_notifications').insert({
+            user_email: pagoCoachSeleccionado.user_email,
+            title: 'Pago Rechazado',
+            message: `Tu comprobante de pago fue rechazado. Por favor comunícate con administración.`,
+            type: 'membresia'
+          });
+
+          document.getElementById('modalRevisionCoach').style.display = 'none';
+          alert("Pago rechazado y membresía provisional revocada.");
+          await cargarDatosGlobales();
+        } catch (err) {
+          alert("Error al rechazar: " + err.message);
+        }
       }
     };
 
-    /* ================= 5. CUENTAS FINANCIERAS ================= */
     const CuentasAdmin = {
       crear: async function(e) {
         e.preventDefault();
         const nombre = document.getElementById('ctaNombre').value.trim();
+        const clasificacion = document.getElementById('ctaClasificacion').value;
         const tipo = document.getElementById('ctaTipo').value;
         const saldo = parseFloat(document.getElementById('ctaSaldo').value) || 0;
 
-        const { error } = await sb.from('apex_cuentas').insert([{ nombre, tipo, saldo_actual: saldo, activa: true }]);
+        const { error } = await sb.from('apex_cuentas').insert([{ nombre, clasificacion, tipo, saldo_actual: saldo, activa: true }]);
         if (error) alert("Error: " + error.message);
         else {
           e.target.reset();
@@ -1514,9 +1765,10 @@
 
         contActivas.innerHTML = activas.length ? '' : '<span style="color:var(--text-muted); font-size:0.65rem;">Sin cuentas activas.</span>';
         activas.forEach(c => {
+          const badgeClasif = c.clasificacion === 'tercero' ? '<span style="color:var(--status-warn); font-size:0.5rem;">[Tercero]</span>' : '<span style="color:var(--status-ok); font-size:0.5rem;">[Propia]</span>';
           contActivas.innerHTML += `
             <div style="background:var(--card-sub); border:1px solid var(--border); border-radius:4px; padding:8px 10px; margin-top:5px; display:flex; justify-content:space-between; align-items:center;">
-              <div><strong>${c.nombre}</strong> <span style="font-size:0.58rem; color:var(--text-muted);">(${c.tipo})</span><div style="font-size:0.75rem; font-weight:900; color:#fff;">${formatCOP(c.saldo_actual)}</div></div>
+              <div><strong>${c.nombre}</strong> ${badgeClasif} <span style="font-size:0.58rem; color:var(--text-muted);">(${c.tipo})</span><div style="font-size:0.75rem; font-weight:900; color:#fff;">${formatCOP(c.saldo_actual)}</div></div>
               <div style="display:flex; gap:4px;">
                 <button class="btn-secondary" style="padding:3px 6px; font-size:0.55rem;" onclick="CuentasAdmin.abrirEdicion('${c.id}')">Edit</button>
                 <button class="btn-secondary" style="padding:3px 6px; font-size:0.55rem; color:var(--accent);" onclick="CuentasAdmin.archivar('${c.id}')">Archivar</button>
@@ -1541,6 +1793,7 @@
         if (!c) return;
         document.getElementById('editCtaId').value = c.id;
         document.getElementById('editCtaNombre').value = c.nombre;
+        document.getElementById('editCtaClasificacion').value = c.clasificacion || 'propia';
         document.getElementById('editCtaTipo').value = c.tipo;
         document.getElementById('modalEditarCuenta').style.display = 'flex';
       },
@@ -1548,9 +1801,10 @@
       guardarEdicion: async function() {
         const id = document.getElementById('editCtaId').value;
         const nombre = document.getElementById('editCtaNombre').value.trim();
+        const clasificacion = document.getElementById('editCtaClasificacion').value;
         const tipo = document.getElementById('editCtaTipo').value;
 
-        await sb.from('apex_cuentas').update({ nombre, tipo }).eq('id', id);
+        await sb.from('apex_cuentas').update({ nombre, clasificacion, tipo }).eq('id', id);
         document.getElementById('modalEditarCuenta').style.display = 'none';
         await cargarDatosGlobales();
       },
@@ -1566,7 +1820,6 @@
       }
     };
 
-    /* ================= 6. NÓMINA Y STAFF ================= */
     const NominaAdmin = {
       renderizar: function() {
         const cont = document.getElementById('listaStaffNomina');
@@ -1607,7 +1860,7 @@
         document.getElementById('nomMonto').value = 0;
         
         poblarSelectsCategorias();
-        poblarSelectsCuentas();
+        poblarSelectsCuentasPropias();
         document.getElementById('modalNominaAccion').style.display = 'flex';
         this.cambioTipoAccion();
       },
@@ -1626,6 +1879,7 @@
         const concepto = document.getElementById('nomConcepto').value.trim() || 'Nómina';
         const monto = parseFloat(document.getElementById('nomMonto').value) || 0;
         const catObj = categoriasCache.find(c => c.id === categoriaId);
+        const cajeroEmail = (localStorage.getItem('apex_user_email') || sessionStorage.getItem('apex_user_email') || 'contabilidad@apex.com');
 
         if (monto <= 0) { alert("Ingresa un monto válido."); return; }
 
@@ -1645,22 +1899,20 @@
           }]);
 
           if (tipoAccion === 'pago_nomina') {
-            if (!cuentaId) { alert("Selecciona cuenta."); return; }
+            if (!cuentaId) { alert("Selecciona cuenta propia."); return; }
             const cta = cuentasCache.find(c => c.id === cuentaId);
-            if (!cta || cta.saldo_actual < monto) { alert("Saldo insuficiente."); return; }
+            if (!cta || cta.saldo_actual < monto) { alert("Saldo insuficiente en cuenta."); return; }
 
-            // 1. Descontar saldo de la cuenta financiera
             await sb.from('apex_cuentas').update({ saldo_actual: cta.saldo_actual - monto }).eq('id', cuentaId);
             
-            // 2. REGISTRO ESPEJO OBLIGATORIO EN EL HISTORIAL (LIBRO MAYOR)
             await sb.from('apex_transacciones_libro_mayor').insert([{
               type: 'egreso',
               category: catObj ? catObj.nombre : 'Sueldos y Salarios',
-              category_id: categoriaId || null,
+              categoria_id: categoriaId || null,
               amount: monto,
               account_id: cuentaId,
               description: `Pago de nómina a ${staffSeleccionadoNomina}: ${concepto}`,
-              registered_by: 'Contabilidad'
+              registered_by: cajeroEmail
             }]);
 
             const pendientesStaff = nominaCache.filter(n => n.staff_email === staffSeleccionadoNomina && n.estado === 'pendiente_pagar');
@@ -1692,7 +1944,6 @@
       }
     };
 
-    /* ================= 7. DEUDORES Y ACREEDORES ================= */
     const DeudoresAdmin = {
       crear: async function(e) {
         e.preventDefault();
@@ -1743,10 +1994,10 @@
         document.getElementById('modalDeudorSub').innerText = `Saldo actual: ${formatCOP(d.saldo)} (${d.tipo})`;
         document.getElementById('deuMontoAbono').value = d.saldo;
 
-        poblarSelectsCuentas();
+        poblarSelectsCuentasPropias();
         const selCta = document.getElementById('deuSelectCuenta');
         selCta.innerHTML = '';
-        cuentasCache.filter(c => c.activa !== false).forEach(c => {
+        cuentasCache.filter(c => c.activa !== false && (c.clasificacion === 'propia' || !c.clasificacion)).forEach(c => {
           selCta.innerHTML += `<option value="${c.id}">${c.nombre} (${formatCOP(c.saldo_actual)})</option>`;
         });
 
@@ -1757,12 +2008,13 @@
         const id = document.getElementById('deuCobroId').value;
         const cuentaId = document.getElementById('deuSelectCuenta').value;
         const monto = parseFloat(document.getElementById('deuMontoAbono').value) || 0;
+        const cajeroEmail = (localStorage.getItem('apex_user_email') || sessionStorage.getItem('apex_user_email') || 'contabilidad@apex.com');
         
         const deudor = deudoresCache.find(x => x.id === id);
         if (!deudor) return;
 
         if (monto <= 0) { alert("Ingresa un monto válido."); return; }
-        if (!cuentaId) { alert("Selecciona cuenta."); return; }
+        if (!cuentaId) { alert("Selecciona cuenta propia."); return; }
 
         try {
           const nuevoSaldo = Math.max(0, parseFloat(deudor.saldo) - monto);
@@ -1773,7 +2025,7 @@
           const saldoCuentaFinal = esIngreso ? (parseFloat(cta.saldo_actual) + monto) : (parseFloat(cta.saldo_actual) - monto);
 
           if (!esIngreso && cta.saldo_actual < monto) {
-            alert("Saldo insuficiente.");
+            alert("Saldo insuficiente en cuenta.");
             return;
           }
 
@@ -1783,11 +2035,11 @@
           await sb.from('apex_transacciones_libro_mayor').insert([{
             type: esIngreso ? 'ingreso' : 'egreso',
             category: esIngreso ? 'Cobro Cartera' : 'Pago Acreedor',
-            category_id: catObj ? catObj.id : null,
+            categoria_id: catObj ? catObj.id : null,
             amount: monto,
             account_id: cuentaId,
             description: `Transacción cartera con ${deudor.nombre}`,
-            registered_by: 'Contabilidad'
+            registered_by: cajeroEmail
           }]);
 
           document.getElementById('modalCobroDeudor').style.display = 'none';
@@ -1804,35 +2056,79 @@
       }
     };
 
-    /* ================= 8. HISTORIAL Y FACTURA TICKET ================= */
     const HistorialAdmin = {
+      cambioPeriodo: function() {
+        const val = document.getElementById('filtroHistorialPeriodo').value;
+        const manualWrap = document.getElementById('wrapHistorialManual');
+        if (manualWrap) manualWrap.style.display = (val === 'manual') ? 'grid' : 'none';
+        this.renderizar();
+      },
+
       renderizar: function() {
         const cont = document.getElementById('listaMovimientosRecientes');
         if (!cont) return;
         const filtroCta = document.getElementById('filtroHistorialCuenta').value;
         const filtroCat = document.getElementById('filtroHistorialCat').value;
+        const filtroResp = document.getElementById('filtroHistorialResponsable').value;
+        const periodo = document.getElementById('filtroHistorialPeriodo').value;
 
-        let filtradas = transaccionesCache;
-        if (filtroCta) filtradas = filtradas.filter(t => t.account_id === filtroCta);
-        if (filtroCat) filtradas = filtradas.filter(t => t.category_id === filtroCat);
+        let fechaFin = new Date();
+        let fechaInicio = null;
+        if (periodo === 'semana') {
+          fechaInicio = new Date();
+          fechaInicio.setDate(fechaFin.getDate() - 7);
+        } else if (periodo === 'mes') {
+          fechaInicio = new Date();
+          fechaInicio.setMonth(fechaFin.getMonth() - 1);
+        } else if (periodo === 'manual') {
+          const dIni = document.getElementById('filtroHistorialDesde').value;
+          const dFin = document.getElementById('filtroHistorialHasta').value;
+          if (dIni) fechaInicio = new Date(dIni + 'T00:00:00');
+          if (dFin) {
+            fechaFin = new Date(dFin + 'T23:59:59');
+          }
+        }
+
+        let filtradas = transaccionesCache.filter(t => {
+          if (filtroCta && t.account_id !== filtroCta) return false;
+          if (filtroCat && t.categoria_id !== filtroCat) return false;
+          if (filtroResp && t.registered_by !== filtroResp) return false;
+          if (fechaInicio) {
+            const tDate = new Date(t.created_at);
+            if (tDate < fechaInicio || tDate > fechaFin) return false;
+          }
+          return true;
+        });
 
         if (filtradas.length === 0) {
-          cont.innerHTML = '<span style="color:var(--text-muted); font-size:0.65rem;">Sin movimientos.</span>';
+          cont.innerHTML = '<span style="color:var(--text-muted); font-size:0.65rem;">Sin movimientos con los filtros seleccionados.</span>';
           return;
         }
 
         cont.innerHTML = '';
         filtradas.forEach(t => {
           const color = t.type === 'ingreso' ? 'var(--status-ok)' : 'var(--accent)';
+          const signo = t.type === 'ingreso' ? '+' : '-';
+          const ctaObj = cuentasCache.find(c => c.id === t.account_id);
+          const nombreCuenta = ctaObj ? `${ctaObj.nombre} (${ctaObj.tipo})` : 'Cuenta General';
+          const fechaFormateada = new Date(t.created_at || Date.now()).toLocaleString('es-CO');
+
           cont.innerHTML += `
-            <div style="background:var(--card-sub); border:1px solid var(--border); border-radius:4px; padding:8px 10px; margin-top:5px; display:flex; justify-content:space-between; align-items:center;">
-              <div style="cursor:pointer; flex:1;" onclick="HistorialAdmin.abrirFactura('${t.id}')">
-                <strong style="color:#fff; font-size:0.75rem;">${t.category || 'General'}</strong>
-                <div style="font-size:0.6rem; color:var(--text-muted);">${t.description || 'Sin nota'}</div>
-              </div>
-              <div style="text-align:right;">
-                <div style="font-weight:900; color:${color}; font-size:0.78rem;">${formatCOP(t.amount)}</div>
-                <button class="btn-secondary" style="font-size:0.5rem; padding:2px 5px; margin-top:2px; color:var(--accent);" onclick="HistorialAdmin.reversar('${t.id}')">Anular</button>
+            <div style="background:var(--card-sub); border:1px solid var(--border); border-radius:6px; padding:10px; margin-top:6px;">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px;">
+                <div style="cursor:pointer; flex:1;" onclick="HistorialAdmin.abrirFactura('${t.id}')">
+                  <strong style="color:#fff; font-size:0.75rem; text-transform:uppercase;">${t.category || 'Transacción'}</strong>
+                  <div style="font-size:0.62rem; color:var(--text-muted); margin-top:2px;">
+                    <div><strong>Cuenta:</strong> ${nombreCuenta}</div>
+                    <div><strong>Nota/Detalle:</strong> ${t.description || 'Sin nota'}</div>
+                    <div><strong>Responsable:</strong> <span style="color:var(--status-info);">${t.registered_by || 'Sistema'}</span></div>
+                    <div><strong>Fecha:</strong> ${fechaFormateada}</div>
+                  </div>
+                </div>
+                <div style="text-align:right;">
+                  <div style="font-weight:900; color:${color}; font-size:0.85rem;">${signo}${formatCOP(t.amount)}</div>
+                  <button class="btn-secondary" style="font-size:0.5rem; padding:2px 6px; margin-top:4px; color:var(--accent);" onclick="HistorialAdmin.reversar('${t.id}')">Anular</button>
+                </div>
               </div>
             </div>
           `;
@@ -1877,6 +2173,17 @@
         }
       }
     };
+
+    function exportarTicketJPG() {
+      const ticketEl = document.getElementById('ticketFactura');
+      if (!ticketEl) return;
+      html2canvas(ticketEl, { scale: 2 }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `comprobante_${Date.now()}.jpg`;
+        link.href = canvas.toDataURL('image/jpeg', 0.9);
+        link.click();
+      });
+    }
 
     function cerrarFacturaModal() {
       document.getElementById('modalFacturaTicket').style.display = 'none';
