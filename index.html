@@ -19,9 +19,9 @@
 
   <style>
     :root {
-      --bg: #0c0c0c;
-      --card-bg: #141414;
-      --border: #222222;
+      --bg: #050507;
+      --card-bg: rgba(18, 18, 22, 0.75);
+      --border: rgba(255, 255, 255, 0.08);
       --accent: #e50914;
       --text-main: #ffffff;
       --text-muted: #888888;
@@ -31,26 +31,86 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     html, body { background: var(--bg); color: var(--text-main); width: 100vw; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
-    /* PORTAL DE ACCESO (LOGIN / REGISTRO) */
+    @keyframes pulseGlow {
+      0% { box-shadow: 0 0 20px rgba(255, 255, 255, 0.03), inset 0 0 15px rgba(255, 255, 255, 0.02); }
+      50% { box-shadow: 0 0 35px rgba(255, 255, 255, 0.08), inset 0 0 25px rgba(255, 255, 255, 0.05); }
+      100% { box-shadow: 0 0 20px rgba(255, 255, 255, 0.03), inset 0 0 15px rgba(255, 255, 255, 0.02); }
+    }
+
+    /* PORTAL DE ACCESO (LOGIN / REGISTRO) - EFECTO CRISTAL 3D */
     .login-overlay {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      background: var(--bg); z-index: 2000; display: flex; justify-content: center; align-items: center; padding: 20px;
+      background: radial-gradient(circle at center, #111116 0%, #050507 100%);
+      z-index: 2000; display: flex; justify-content: center; align-items: center; padding: 20px; overflow-y: auto;
     }
-    .login-box { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 24px; max-width: 380px; width: 100%; }
+    .login-box {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 26px;
+      max-width: 380px;
+      width: 100%;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.1);
+      animation: pulseGlow 4s infinite ease-in-out;
+      transform: perspective(1000px);
+    }
     .login-title { font-size: 1.2rem; font-weight: 900; text-transform: uppercase; text-align: center; margin-bottom: 6px; letter-spacing: 1px; }
     .login-title span { color: var(--accent); }
-    .login-sub { font-size: 0.75rem; color: var(--text-muted); text-align: center; margin-bottom: 20px; text-transform: uppercase; font-weight: 700; }
+    .login-sub { font-size: 0.75rem; color: #888888; text-align: center; margin-bottom: 16px; text-transform: uppercase; font-weight: 700; }
 
-    .form-group { margin-bottom: 14px; }
-    .form-group label { display: block; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
-    .form-control { width: 100%; padding: 10px 12px; background: #1c1c1c; border: 1px solid #333; color: #fff; border-radius: 6px; font-weight: 700; outline: none; font-size: 0.85rem; }
+    /* IDENTIFICACIÓN PREVIA DE FOTO Y ROL DINÁMICO */
+    .login-identity-preview {
+      display: flex; align-items: center; gap: 12px; background: rgba(10, 10, 14, 0.6); border: 1px solid var(--border);
+      border-radius: 8px; padding: 10px; margin-bottom: 14px; display: none;
+    }
+    .identity-avatar {
+      width: 42px; height: 42px; border-radius: 50%; object-fit: cover; background: #222;
+      border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+      font-weight: 900; font-size: 0.8rem; color: #fff; flex-shrink: 0; overflow: hidden;
+    }
+    .identity-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .identity-text { flex: 1; min-width: 0; }
+    .identity-text strong { font-size: 0.85rem; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+    .identity-text span { font-size: 0.62rem; color: #888888; display: block; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* BANNER DE MENSAJES / ALERTAS SOBRIO */
+    .login-message-banner {
+      background: rgba(15, 15, 20, 0.8); border: 1px solid var(--border); border-radius: 6px;
+      padding: 10px 12px; margin-bottom: 14px; font-size: 0.73rem; color: #ccc; line-height: 1.4;
+      display: none;
+    }
+    .login-message-banner.error { border-color: rgba(229,9,20,0.4); background: rgba(229,9,20,0.08); color: #fca5a5; }
+    .login-message-banner.success { border-color: rgba(34,197,94,0.4); background: rgba(34,197,94,0.08); color: #86efac; }
+
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #888888; margin-bottom: 6px; }
+    .form-control { width: 100%; padding: 10px 12px; background: rgba(10, 10, 14, 0.7); border: 1px solid var(--border); color: #fff; border-radius: 6px; font-weight: 700; outline: none; font-size: 0.85rem; color-scheme: dark; }
+    .form-control:focus { border-color: var(--accent); }
     
-    .btn { background: var(--accent); color: #fff; border: none; padding: 12px; width: 100%; font-weight: 900; text-transform: uppercase; border-radius: 6px; cursor: pointer; margin-top: 6px; font-size: 0.85rem; }
-    .btn:active { filter: brightness(0.85); }
-    .btn:disabled { background: #333; color: #777; cursor: not-allowed; }
-    .btn-secondary { background: #1c1c1c; border: 1px solid #333; color: #aaa; margin-top: 8px; }
+    /* BOTÓN ESTILO APEX */
+    .btn {
+      background: #141418;
+      color: #fff;
+      border: 1px solid rgba(229, 9, 20, 0.4);
+      padding: 12px;
+      width: 100%;
+      font-weight: 900;
+      text-transform: uppercase;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 6px;
+      font-size: 0.85rem;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(229, 9, 20, 0.1);
+    }
+    .btn:hover { background: #1a1a20; border-color: var(--accent); }
+    .btn:active { filter: brightness(0.85); transform: scale(0.99); }
+    .btn:disabled { background: #111; color: #555; border-color: #222; box-shadow: none; cursor: not-allowed; }
+    .btn-secondary { background: rgba(20,20,24,0.5); border: 1px solid var(--border); color: #aaa; margin-top: 8px; box-shadow: none; }
 
-    .form-switch-text { text-align: center; font-size: 0.75rem; color: var(--text-muted); margin-top: 14px; font-weight: 700; cursor: pointer; }
+    .form-switch-text { text-align: center; font-size: 0.75rem; color: #888888; margin-top: 14px; font-weight: 700; cursor: pointer; }
     .form-switch-text span { color: var(--accent); text-decoration: underline; }
 
     /* APLICACIÓN PRINCIPAL */
@@ -59,7 +119,7 @@
 
     /* MARCO GENERAL: BARRA SUPERIOR */
     .apex-global-header {
-      height: 62px; background: var(--card-bg); border-bottom: 1px solid var(--border);
+      height: 62px; background: #141414; border-bottom: 1px solid var(--border);
       display: flex; justify-content: space-between; align-items: center; padding: 0 14px; flex-shrink: 0; z-index: 100;
     }
     
@@ -67,11 +127,10 @@
     .apex-brand { font-size: 0.85rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.8px; color: #fff; line-height: 1; }
     .apex-brand-sub { font-size: 0.55rem; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; color: var(--accent); line-height: 1; }
 
-    /* ESTADO DE CONEXIÓN SEPARADO Y LIMPIO */
     .connection-status-pill {
       background: transparent; padding: 0;
       border-radius: 0; font-size: 0.52rem; font-weight: 800; text-transform: uppercase;
-      display: flex; align-items: center; gap: 4px; color: var(--text-muted);
+      display: flex; align-items: center; gap: 4px; color: #888888;
       letter-spacing: 0.5px; line-height: 1; margin-top: 2px;
     }
     .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--status-ok); }
@@ -81,13 +140,12 @@
     .apex-nav-container::-webkit-scrollbar { display: none; }
 
     .nav-tab-btn {
-      background: #1a1a1a; border: 1px solid var(--border); color: var(--text-muted);
+      background: #1a1a1a; border: 1px solid var(--border); color: #888888;
       padding: 6px 10px; border-radius: 6px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase;
       cursor: pointer; white-space: nowrap; transition: 0.2s;
     }
     .nav-tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
-    /* ICONOS MINIMALISTAS Y GRANDES MODO APEX (SIN RECUADROS) */
     .global-actions { display: flex; align-items: center; gap: 10px; }
     .icon-btn {
       background: transparent; border: none; color: #fff; width: 36px; height: 36px;
@@ -101,33 +159,20 @@
     .block-frame { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; display: none; background: var(--bg); }
     .block-frame.active { display: block; }
 
-    /* MODAL DE AJUSTES & SUBIDA DE FOTO */
+    /* MODAL DE AJUSTES */
     .modal-overlay {
       display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.85); z-index: 3000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(4px);
     }
     .modal-overlay.open { display: flex; }
-    .modal-box { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; max-width: 380px; width: 100%; max-height: 90vh; overflow-y: auto; }
+    .modal-box { background: #141414; border: 1px solid var(--border); border-radius: 12px; padding: 20px; max-width: 380px; width: 100%; max-height: 90vh; overflow-y: auto; }
     .modal-title { font-size: 1rem; font-weight: 900; text-transform: uppercase; margin-bottom: 14px; text-align: center; color: #fff; }
     
-    .profile-preview-wrapper {
-      position: relative; width: 80px; height: 80px; margin: 0 auto 10px auto; cursor: pointer;
-    }
-    .profile-preview {
-      width: 100%; height: 100%; border-radius: 50%; background: #222;
-      border: 2px solid var(--accent); display: flex; align-items: center; justify-content: center;
-      overflow: hidden;
-    }
+    .profile-preview-wrapper { position: relative; width: 80px; height: 80px; margin: 0 auto 10px auto; cursor: pointer; }
+    .profile-preview { width: 100%; height: 100%; border-radius: 50%; background: #222; border: 2px solid var(--accent); display: flex; align-items: center; justify-content: center; overflow: hidden; }
     .profile-preview img { width: 100%; height: 100%; object-fit: cover; }
-    .avatar-camera-pill {
-      position: absolute; bottom: -2px; right: -2px; background: var(--accent);
-      color: #fff; border-radius: 50%; width: 24px; height: 24px; font-size: 0.75rem;
-      display: flex; align-items: center; justify-content: center; border: 2px solid #000;
-    }
-    .upload-hint {
-      text-align: center; font-size: 0.65rem; color: var(--text-muted); font-weight: 700;
-      text-transform: uppercase; margin-bottom: 12px;
-    }
+    .avatar-camera-pill { position: absolute; bottom: -2px; right: -2px; background: var(--accent); color: #fff; border-radius: 50%; width: 24px; height: 24px; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; border: 2px solid #000; }
+    .upload-hint { text-align: center; font-size: 0.65rem; color: #888888; font-weight: 700; text-transform: uppercase; margin-bottom: 12px; }
     .modal-divider { border: 0; border-top: 1px solid var(--border); margin: 16px 0; }
   </style>
 </head>
@@ -141,10 +186,22 @@
       <div id="loginFormSection">
         <div class="login-title">Apex Boxing <span>Core</span></div>
         <div class="login-sub">Iniciar Sesión</div>
+
+        <!-- BANNER DE MENSAJES UX SOBRIO -->
+        <div id="loginMessageBanner" class="login-message-banner"></div>
+
+        <!-- IDENTIFICACIÓN PREVIA DE FOTO Y ROL DINÁMICO -->
+        <div id="loginIdentityPreview" class="login-identity-preview">
+          <div class="identity-avatar" id="identityAvatarBox">ST</div>
+          <div class="identity-text">
+            <strong id="identityNameTxt">Identificando...</strong>
+            <span id="identityRoleSub">Striker Identificado</span>
+          </div>
+        </div>
         
         <div class="form-group">
           <label>Correo Electrónico</label>
-          <input type="email" id="loginEmail" class="form-control" placeholder="usuario@apex.com">
+          <input type="email" id="loginEmail" class="form-control" placeholder="usuario@apex.com" onblur="identificarUsuarioPorCorreo(this.value)">
         </div>
 
         <div class="form-group">
@@ -293,6 +350,62 @@
       }
     }
 
+    function mostrarMensajeLogin(texto, tipo = 'error') {
+      const banner = document.getElementById('loginMessageBanner');
+      if (!banner) return;
+      banner.innerText = texto;
+      banner.className = `login-message-banner ${tipo}`;
+      banner.style.display = 'block';
+    }
+
+    function ocultarMensajeLogin() {
+      const banner = document.getElementById('loginMessageBanner');
+      if (banner) banner.style.display = 'none';
+    }
+
+    async function identificarUsuarioPorCorreo(correo) {
+      const email = (correo || '').trim().toLowerCase();
+      const previewBox = document.getElementById('loginIdentityPreview');
+      const avatarBox = document.getElementById('identityAvatarBox');
+      const nameTxt = document.getElementById('identityNameTxt');
+      const roleSub = document.getElementById('identityRoleSub');
+
+      if (!email || !email.includes('@') || !sb) {
+        if (previewBox) previewBox.style.display = 'none';
+        return;
+      }
+
+      try {
+        const { data, error } = await sb.from('apex_users').select('name, email, photo_url, avatar_url, role, profile_id').eq('email', email).maybeSingle();
+        
+        if (error || !data) {
+          if (previewBox) previewBox.style.display = 'none';
+          return;
+        }
+
+        if (nameTxt) nameTxt.innerText = data.name || 'Usuario Apex';
+
+        const rawRole = data.role || data.profile_id || 'estudiante';
+        const formattedRole = rawRole.charAt(0).toUpperCase() + rawRole.slice(1).toLowerCase();
+        if (roleSub) {
+          roleSub.innerText = `${formattedRole} Apex Identificado`;
+        }
+
+        const foto = data.photo_url || data.avatar_url;
+        if (avatarBox) {
+          if (foto && foto.startsWith('http')) {
+            avatarBox.innerHTML = `<img src="${foto}" alt="Avatar">`;
+          } else {
+            avatarBox.innerHTML = (data.name || 'ST').substring(0, 2).toUpperCase();
+          }
+        }
+
+        if (previewBox) previewBox.style.display = 'flex';
+      } catch (e) {
+        if (previewBox) previewBox.style.display = 'none';
+      }
+    }
+
     window.addEventListener('fetch', (event) => {
       if (!navigator.onLine) {
         alert("⚠️ Estás sin conexión. Conéctate a internet para ejecutar esta acción en el Ecosistema Apex.");
@@ -310,7 +423,6 @@
       
       if (confirm("¿Deseas purgar la memoria local y actualizar todas las herramientas del ecosistema?")) {
         try {
-          // 1. Desregistrar de forma exclusiva los Service Workers de este dominio
           if ('serviceWorker' in navigator) {
             const registrations = await navigator.serviceWorker.getRegistrations();
             for (const registration of registrations) {
@@ -318,7 +430,6 @@
             }
           }
 
-          // 2. Borrar las cachés locales exclusivas de la aplicación actual
           if ('caches' in window) {
             const cacheNames = await caches.keys();
             for (const name of cacheNames) {
@@ -326,7 +437,6 @@
             }
           }
 
-          // 3. Recargar agregando una estampa de tiempo para evitar cualquier caché residual de red
           const timestamp = new Date().getTime();
           window.location.href = window.location.pathname + '?v=' + timestamp;
           
@@ -422,7 +532,6 @@
         }
 
         if (profileData.subscription_status === 'vencido' || profileData.is_active === false || vencido) {
-          alert('⚠️ Membresía inactiva o vencida (Validación Offline). Conéctate a internet para actualizar tu estado.');
           return;
         }
       }
@@ -440,47 +549,46 @@
     }
 
     function toggleFormMode(mode) {
+      ocultarMensajeLogin();
       document.getElementById('loginFormSection').style.display = mode === 'register' ? 'none' : 'block';
       document.getElementById('registerFormSection').style.display = mode === 'register' ? 'block' : 'none';
     }
 
     async function realizarRegistro() {
       if (!navigator.onLine) {
-        alert('⚠️ Estás offline. Conéctate a internet para registrar una nueva cuenta.');
+        mostrarMensajeLogin('⚠️ Estás offline. Conéctate a internet para registrar una nueva cuenta.', 'error');
         return;
       }
 
       const name = document.getElementById('regName').value.trim();
-      const role = 'estudiante';
-      const profile_id = 'estudiante';
       const email = document.getElementById('regEmail').value.trim();
       const password = document.getElementById('regPassword').value.trim();
 
       if (!name || !email || !password) {
-        alert('Por favor completa todos los campos.');
+        mostrarMensajeLogin('Por favor completa todos los campos del formulario.', 'error');
         return;
       }
 
       if (password.length < 6) {
-        alert('La contraseña debe tener mínimo 6 caracteres.');
+        mostrarMensajeLogin('La contraseña debe tener mínimo 6 caracteres.', 'error');
         return;
       }
 
       const { data, error } = await sb.auth.signUp({ 
         email, 
         password,
-        options: { data: { name: name, role: role, profile_id: profile_id } }
+        options: { data: { name: name, role: 'estudiante', profile_id: 'estudiante' } }
       });
 
       if (error) {
-        alert('Error en registro: ' + error.message);
+        mostrarMensajeLogin('Error en registro: ' + error.message, 'error');
         return;
       }
 
       if (data.user) {
         await sb.from('apex_users').upsert([
           { 
-            id: data.user.id, email, name, role: role, profile_id: profile_id, 
+            id: data.user.id, email, name, role: 'estudiante', profile_id: 'estudiante', 
             photo_url: null, avatar_url: null, is_active: true, 
             subscription_status: 'activo', last_active_at: new Date().toISOString()
           }
@@ -492,8 +600,9 @@
     }
 
     async function realizarLogin() {
+      ocultarMensajeLogin();
       if (!navigator.onLine) {
-        alert('⚠️ Estás offline. El inicio de sesión requiere conexión a internet o una sesión guardada previamente.');
+        mostrarMensajeLogin('⚠️ Estás offline. El inicio de sesión requiere conexión a internet.', 'error');
         return;
       }
 
@@ -501,18 +610,47 @@
       const password = document.getElementById('loginPassword').value.trim();
 
       if (!email || !password) {
-        alert('Ingresa correo y contraseña.');
+        mostrarMensajeLogin('Por favor ingresa tu correo electrónico y tu contraseña.', 'error');
+        return;
+      }
+
+      const { data: userCheck } = await sb.from('apex_users').select('*').eq('email', email.toLowerCase()).maybeSingle();
+      if (!userCheck) {
+        mostrarMensajeLogin('El correo ingresado no se encuentra registrado en el ecosistema. Verifica tus datos o contacta a administración.', 'error');
         return;
       }
 
       const { data, error } = await sb.auth.signInWithPassword({ email, password });
       if (error) {
-        alert('Error al iniciar sesión: ' + error.message);
+        mostrarMensajeLogin('La contraseña es incorrecta. Por favor, vuelve a intentarlo.', 'error');
         return;
       }
 
+      const rolActual = (userCheck.role || '').toLowerCase();
+      const perfilActual = (userCheck.profile_id || '').toLowerCase();
+      const esStaff = ['admin', 'administrador', 'coach', 'supervisor', 'coordinador'].includes(rolActual) || 
+                      ['admin', 'administrador', 'coach', 'supervisor', 'coordinador'].includes(perfilActual);
+
+      if (!esStaff) {
+        const hoy = new Date(); hoy.setHours(0,0,0,0);
+        const fechaExpStr = userCheck.subscription_expires_at || userCheck.membership_end;
+        let vencido = false;
+
+        if (fechaExpStr) {
+          const expDate = new Date(fechaExpStr.includes('T') ? fechaExpStr : fechaExpStr + 'T00:00:00');
+          if (expDate < hoy) vencido = true;
+        }
+
+        if (userCheck.subscription_status === 'vencido' || userCheck.is_active === false || vencido) {
+          mostrarMensajeLogin('Tu membresía se encuentra inactiva o ha expirado. Consulta con tu coach o administración para gestionar tu renovación y reactivar el acceso.', 'error');
+          await sb.auth.signOut();
+          return;
+        }
+      }
+
+      mostrarMensajeLogin('¡Acceso autorizado! Cargando entorno Apex...', 'success');
       await sb.from('apex_users').update({ last_active_at: new Date().toISOString() }).eq('id', data.user.id);
-      await cargarDatosUsuario(data.user.id);
+      setTimeout(() => { cargarDatosUsuario(data.user.id); }, 600);
     }
 
     async function cargarDatosUsuario(userId) {
@@ -614,17 +752,8 @@
       if (confirm("¿Estás seguro de que deseas cerrar sesión?")) {
         if (navigator.onLine && sb) await sb.auth.signOut();
         currentSessionUser = null;
-        localStorage.removeItem('apex_user_email');
-        localStorage.removeItem('apex_user_avatar');
-        localStorage.removeItem('apex_user_profile');
-        localStorage.removeItem('apex_session_user');
-        localStorage.removeItem('apex_user_modules');
-        document.getElementById('loginEmail').value = '';
-        document.getElementById('loginPassword').value = '';
-        document.getElementById('appContainer').classList.remove('active');
-        document.getElementById('loginOverlay').style.display = 'flex';
-        closeConfigModal();
-        initPortal();
+        localStorage.clear();
+        window.location.reload();
       }
     }
 
