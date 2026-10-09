@@ -71,6 +71,13 @@
     .filter-bar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
     .filter-bar .form-control { padding: 8px 10px; font-size: 0.78rem; flex: 1; min-width: 130px; }
 
+    /* CLASES DE SEGMENTOS Y BARRAS */
+    .progress-segment { height: 100%; transition: width 0.6s ease; }
+    .seg-checkins { background: #22c55e; }
+    .seg-coach { background: #3b82f6; }
+    .seg-supervision { background: #a855f7; }
+    .seg-adjustments { background: #eab308; }
+
     /* AVATAR MINI */
     .avatar-mini {
       width: 36px; height: 36px; border-radius: 50%; object-fit: cover; background: #16161a;
@@ -79,19 +86,42 @@
     }
     .avatar-mini img { width: 100%; height: 100%; object-fit: cover; }
 
-    /* MODALES FLOTANTES */
-    #pwModal, #editCheckinModal, #staffDetailModal {
+    /* SUGGESTIONS BOX (CHECK-INS ADMIN) */
+    .suggestions-box {
+      position: absolute; top: 100%; left: 0; width: 100%; background: #0a0a0c;
+      border: 1px solid var(--border); border-radius: 6px; max-height: 180px; overflow-y: auto;
+      z-index: 99; display: none; box-shadow: 0 8px 24px rgba(0,0,0,0.9);
+    }
+    .suggestion-item {
+      display: flex; align-items: center; gap: 8px; padding: 8px 10px;
+      border-bottom: 1px solid var(--border); cursor: pointer; font-size: 0.75rem;
+    }
+    .suggestion-item:hover { background: #16161a; }
+
+    /* MODALES FLOTANTES CON SOPORTE DE CIERRE RÁPIDO */
+    .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       background: rgba(0,0,0,0.85); backdrop-filter: blur(4px);
       z-index: 10000; display: none; justify-content: center; align-items: center; padding: 20px;
     }
+    .modal-box {
+      background: #0a0a0c; border: 1px solid var(--border); border-radius: 10px;
+      padding: 18px; width: 100%; max-width: 440px; max-height: 90vh; overflow-y: auto;
+      position: relative; box-shadow: 0 16px 36px rgba(0,0,0,0.9);
+    }
+    .modal-close-btn {
+      position: absolute; top: 12px; right: 14px; background: none; border: none;
+      color: var(--text-muted); font-size: 1.1rem; cursor: pointer; font-weight: 900;
+    }
+    .modal-close-btn:hover { color: #fff; }
   </style>
 </head>
 <body>
 
   <!-- MODAL CAMBIAR CONTRASEÑA -->
-  <div id="pwModal">
-    <div class="auth-card" style="position: relative;">
+  <div id="pwModal" class="modal-overlay" onclick="if(event.target === this) cerrarModalPassword()">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <button class="modal-close-btn" onclick="cerrarModalPassword()">✕</button>
       <div class="section-title">🔑 Restablecer Contraseña</div>
       <p id="pwModalUserDesc" style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 12px;"></p>
       <input type="hidden" id="pwModalUserId">
@@ -106,9 +136,10 @@
     </div>
   </div>
 
-  <!-- MODAL DETALLE DE STAFF / USUARIO (VENTANA FLOTANTE ANIDADA) -->
-  <div id="staffDetailModal">
-    <div class="auth-card" style="position: relative; max-width: 440px; max-height: 90vh; overflow-y: auto;">
+  <!-- MODAL DETALLE UNIVERSAL -->
+  <div id="staffDetailModal" class="modal-overlay" onclick="if(event.target === this) cerrarModalStaffDetail()">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <button class="modal-close-btn" onclick="cerrarModalStaffDetail()">✕</button>
       <div class="section-title">⚡ Desglose Detallado</div>
       <div id="staffDetailModalBody" style="font-size: 0.78rem; color: #ffffff; line-height: 1.5;">Cargando detalles...</div>
       <button class="btn-secondary" style="width: 100%; margin-top: 14px;" onclick="cerrarModalStaffDetail()">Cerrar</button>
@@ -116,8 +147,9 @@
   </div>
 
   <!-- MODAL EDITAR CHECK-IN -->
-  <div id="editCheckinModal">
-    <div class="auth-card" style="position: relative; max-width: 420px; max-height: 90vh; overflow-y: auto;">
+  <div id="editCheckinModal" class="modal-overlay" onclick="if(event.target === this) cerrarModalEdicionCheckin()">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <button class="modal-close-btn" onclick="cerrarModalEdicionCheckin()">✕</button>
       <div class="section-title">✏️ Editar Check-in Master</div>
       <input type="hidden" id="editChkId">
       
@@ -246,14 +278,14 @@
       </div>
     </div>
 
-    <!-- MÓDULO: STAFF CON DESGLOSE INDEPENDIENTE EXACTO -->
+    <!-- MÓDULO: STAFF CON DESGLOSE MULTIFUENTE EXACTO -->
     <div id="tabStaff" class="tab-content">
       <div class="section-card">
         <div class="section-title">
           <span>Monitoreo de Staff & Métricas Globales</span>
           <button class="btn-secondary" onclick="cargarStaffAdmin()" style="margin:0; padding: 4px 8px;">Actualizar</button>
         </div>
-        <div style="font-size:0.7rem; color:var(--text-muted); margin-bottom:12px;">Vista de desempeño separada por roles (Striker, Coach, Supervisión) con sus respectivos puntajes y nivel bimestral global. Toca cualquier columna para ver el desglose detallado.</div>
+        <div style="font-size:0.7rem; color:var(--text-muted); margin-bottom:12px;">Vista de desempeño multifuente para staff (Check-ins, Coach, Supervisión y Ajustes) con sus respectivos puntajes y nivel bimestral global. Toca cualquier columna para ver el desglose detallado.</div>
         <div id="staffListContainer" style="max-height: 520px; overflow-y: auto;">Cargando fichas de staff...</div>
       </div>
     </div>
@@ -305,8 +337,8 @@
             </select>
           </div>
           <div class="form-group">
-            <label>Nota (1 al 10)</label>
-            <input type="number" id="coordNoteVal" class="form-control" step="0.5" min="1" max="10" placeholder="Ej: 9">
+            <label>Puntos de Ajuste (-100 a +100)</label>
+            <input type="number" id="coordNoteVal" class="form-control" step="0.5" min="-100" max="100" placeholder="Ej: 15 o -10">
           </div>
         </div>
         <div class="form-group">
@@ -333,21 +365,21 @@
       </div>
 
       <div class="section-card">
-        <div class="section-title">Historial Reciente (Últimos 2 Meses)</div>
+        <div class="section-title">Historial Reciente (Último Mes)</div>
         <div id="coordHistoryList" style="max-height: 300px; overflow-y:auto;">Cargando historial...</div>
       </div>
     </div>
 
-    <!-- MÓDULO: HISTORIAL GLOBAL DE CHECK-INS CON CONTADOR -->
+    <!-- MÓDULO: HISTORIAL GLOBAL DE CHECK-INS CON CONTADOR Y ESTATUS EN BUSCADOR -->
     <div id="tabCheckins" class="tab-content">
       <div class="section-card">
         <div class="section-title">Crear Check-in Manual (Admin)</div>
         
         <div class="form-group">
-          <label>Striker</label>
+          <label>Striker / Staff</label>
           <div style="display:flex; align-items:center; gap:8px;">
             <div id="chkSelectedAvatar" style="flex-shrink:0;"></div>
-            <input type="text" id="chkSearchInput" class="form-control" placeholder="Escribe nombre o correo del striker..." autocomplete="off" oninput="buscarStrikersInteligente(this.value)">
+            <input type="text" id="chkSearchInput" class="form-control" placeholder="Escribe nombre o correo..." autocomplete="off" oninput="buscarStrikersInteligente(this.value)">
           </div>
           <input type="hidden" id="newChkUserEmail">
           <div class="suggestions-box" id="chkSuggestionsBox"></div>
@@ -409,7 +441,7 @@
           <label>Bitácora / Nota</label>
           <textarea id="newChkBitacora" class="form-control" placeholder="Notas de la sesión..." style="min-height:50px;"></textarea>
         </div>
-        <button class="btn" onclick="crearCheckinDirectoAdmin()">Registrar Check-in en Base de Datos</button>
+        <button class="btn" onclick="crearCheckinDirectoAdmin()">Registrar Check-in con Validación de Tope</button>
       </div>
 
       <div class="section-card">
@@ -543,7 +575,6 @@
       loadAdminData();
     };
 
-    /* ================= CARGA DE DATOS SEGURA Y AISLADA ================= */
     async function loadAdminData() {
       if (!sb) return;
 
@@ -798,7 +829,7 @@
       document.getElementById('staffDetailModal').style.display = 'flex';
     }
 
-    /* ================= DIRECTORIO DE USUARIOS ================= */
+    /* ================= DIRECTORIO DE USUARIOS MULTIFUENTE (ESTUDIANTE VS STAFF) ================= */
     async function cargarUsuarios() {
       const container = document.getElementById('usersListContainer');
       if (!container) return;
@@ -829,6 +860,8 @@
       }
 
       const hoy = new Date(); hoy.setHours(0,0,0,0);
+      const hace60Dias = new Date(); hace60Dias.setDate(hace60Dias.getDate() - 60);
+      const hace30Dias = new Date(); hace30Dias.setDate(hace30Dias.getDate() - 30);
 
       let filtrados = rawUsersList.filter(u => {
         const rolUsuario = (u.profile_id || u.role || 'estudiante').toLowerCase();
@@ -838,7 +871,7 @@
         const email = (u.email || '').toLowerCase();
         const coincideTexto = !search || name.includes(search) || email.includes(search);
 
-        const esEstudiante = rolUsuario === 'estudiante' || rolUsuario === 'estudiantes';
+        const esEstudiante = rolUsuario.includes('estudiante') || rolUsuario.includes('striker') || (!rolUsuario.includes('coach') && !rolUsuario.includes('admin') && !rolUsuario.includes('supervis') && !rolUsuario.includes('staff') && !rolUsuario.includes('coordinador'));
         let estaActivo = true;
         let sinFecha = false;
 
@@ -866,12 +899,6 @@
         return coincideRol && coincideTexto && coincideEstatus;
       });
 
-      filtrados.sort((a, b) => {
-        const expA = a.subscription_expires_at || a.membership_end ? new Date(a.subscription_expires_at || a.membership_end).getTime() : 0;
-        const expB = b.subscription_expires_at || b.membership_end ? new Date(b.subscription_expires_at || b.membership_end).getTime() : 0;
-        return expB - expA;
-      });
-
       document.getElementById('userCountFilteredBadge').innerText = `${filtrados.length} filtrados`;
 
       if (filtrados.length === 0) {
@@ -882,27 +909,38 @@
       container.innerHTML = '';
 
       filtrados.forEach(u => {
+        const email = (u.email || '').toLowerCase();
         const rolUsuario = (u.profile_id || u.role || 'estudiante').toLowerCase();
-        const esEstudiante = rolUsuario === 'estudiante' || rolUsuario === 'estudiantes';
+        const esEstudiante = rolUsuario.includes('estudiante') || rolUsuario.includes('striker') || (!rolUsuario.includes('coach') && !rolUsuario.includes('admin') && !rolUsuario.includes('supervis') && !rolUsuario.includes('staff') && !rolUsuario.includes('coordinador'));
 
-        let estadoVigenciaHTML = '';
+        const chksUser = globalCheckinsCache.filter(c => (c.user_email || '').toLowerCase() === email && c.status === 'aprobado' && new Date(c.created_at) >= hace60Dias);
+        let ptsStriker = 0;
+        chksUser.forEach(c => ptsStriker += parseFloat(c.rendimiento || 0));
+
+        let ptsCoach = 0;
+        let ptsSupervisor = 0;
+        let ptsAdjustments = 0;
+
         if (!esEstudiante) {
-          estadoVigenciaHTML = `<span style="color: var(--status-ok); font-weight: 800;">Permanente / Staff</span>`;
-        } else {
-          const fechaExpStr = u.subscription_expires_at || u.membership_end;
-          if (fechaExpStr) {
-            const expDate = new Date(fechaExpStr.includes('T') ? fechaExpStr : fechaExpStr + 'T00:00:00');
-            const diffMs = expDate - hoy;
-            const diasRestantes = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-            if (diasRestantes >= 0 && u.subscription_status !== 'vencido' && u.is_active !== false) {
-              estadoVigenciaHTML = `<span style="color: var(--status-ok); font-weight: 800;">${diasRestantes} días restantes</span>`;
-            } else {
-              estadoVigenciaHTML = `<span style="color: var(--accent); font-weight: 800;">Vencido / Inactivo</span>`;
-            }
-          } else {
-            estadoVigenciaHTML = `<span style="color: var(--text-muted); font-weight: 800;">Sin fecha asignada</span>`;
-          }
+          const cSups = globalSupervisionsCache.filter(cs => (cs.coach_email || '').toLowerCase() === email && cs.coordinator_status !== 'pendiente_revision' && new Date(cs.session_date || cs.created_at) >= hace30Dias);
+          cSups.forEach(cs => ptsCoach += parseFloat(cs.coach_points || 0));
+
+          const sups = globalSupervisionsCache.filter(s => (s.supervisor_email || '').toLowerCase() === email && s.coordinator_status !== 'pendiente_revision' && new Date(s.session_date || s.created_at) >= hace30Dias);
+          sups.forEach(s => ptsSupervisor += parseFloat(s.supervisor_points || 0));
+
+          const adjs = globalCoordinatorAdjustmentsCache.filter(a => (a.user_email || '').toLowerCase() === email && new Date(a.created_at) >= hace30Dias);
+          adjs.forEach(a => ptsAdjustments += parseFloat(a.note || 0));
         }
+
+        const ptsTotales = ptsStriker + ptsCoach + ptsSupervisor + ptsAdjustments;
+        const metaUsr = 240;
+        const pctUsr = +Math.max(-100, Math.min(110, (ptsTotales / metaUsr) * 100)).toFixed(1);
+
+        let colorProgreso = '#ffffff';
+        if (pctUsr >= 101) colorProgreso = '#ffd700';
+        else if (pctUsr >= 76) colorProgreso = '#d4af37';
+        else if (pctUsr >= 36) colorProgreso = '#c0c0c0';
+        else if (pctUsr >= 11) colorProgreso = '#cd7f32';
 
         let opcionesRolesHTML = '';
         dbProfiles.forEach(p => {
@@ -916,26 +954,70 @@
           avatarHtml = `<img src="${avatarUrl}" class="avatar-mini" alt="Avatar">`;
         }
 
+        let barraProgresoHTML = '';
+        if (esEstudiante) {
+          barraProgresoHTML = `
+            <div style="width:100%; background:#050507; padding:6px 8px; border-radius:6px; border:1px solid var(--border);">
+              <div style="display:flex; justify-content:space-between; font-size:0.6rem; font-weight:800; text-transform:uppercase; margin-bottom:3px; color:#fff;">
+                <span>Progreso: ${ptsTotales.toFixed(1)} / ${metaUsr} PTS</span>
+                <span style="color:${colorProgreso};">${pctUsr}%</span>
+              </div>
+              <div style="width:100%; height:5px; background:#121216; border-radius:3px; overflow:hidden; border:1px solid var(--border);">
+                <div style="height:100%; width:${Math.max(0, pctUsr)}%; background:${colorProgreso}; border-radius:3px;"></div>
+              </div>
+            </div>
+          `;
+        } else {
+          const absTotal = Math.max(1, Math.abs(ptsStriker) + Math.abs(ptsCoach) + Math.abs(ptsSupervisor) + Math.abs(ptsAdjustments));
+          const pCk = Math.max(0, (Math.abs(ptsStriker) / absTotal) * Math.max(0, pctUsr));
+          const pCo = Math.max(0, (Math.abs(ptsCoach) / absTotal) * Math.max(0, pctUsr));
+          const pSu = Math.max(0, (Math.abs(ptsSupervisor) / absTotal) * Math.max(0, pctUsr));
+          const pAd = Math.max(0, (Math.abs(ptsAdjustments) / absTotal) * Math.max(0, pctUsr));
+
+          barraProgresoHTML = `
+            <div style="width:100%; display:grid; grid-template-columns: repeat(4, 1fr); gap:3px; background:#050507; padding:4px; border-radius:4px; border:1px solid var(--border); text-align:center; font-size:0.5rem; text-transform:uppercase; margin-bottom:4px;">
+              <div>Check: <b>${ptsStriker.toFixed(0)}</b></div>
+              <div>Coach: <b>${ptsCoach.toFixed(0)}</b></div>
+              <div>Superv: <b>${ptsSupervisor.toFixed(0)}</b></div>
+              <div>Adj: <b>${ptsAdjustments.toFixed(0)}</b></div>
+            </div>
+            <div style="width:100%; background:#050507; padding:6px 8px; border-radius:6px; border:1px solid var(--border);">
+              <div style="display:flex; justify-content:space-between; font-size:0.6rem; font-weight:800; text-transform:uppercase; margin-bottom:3px; color:#fff;">
+                <span>Global Staff: ${ptsTotales.toFixed(1)} / ${metaUsr} PTS</span>
+                <span style="color:${colorProgreso};">${pctUsr}%</span>
+              </div>
+              <div style="width:100%; height:5px; background:#121216; border-radius:3px; overflow:hidden; border:1px solid var(--border); display:flex;">
+                <div class="progress-segment seg-checkins" style="width: ${pCk}%"></div>
+                <div class="progress-segment seg-coach" style="width: ${pCo}%"></div>
+                <div class="progress-segment seg-supervision" style="width: ${pSu}%"></div>
+                <div class="progress-segment seg-adjustments" style="width: ${pAd}%"></div>
+              </div>
+            </div>
+          `;
+        }
+
         const itemDiv = document.createElement('div');
         itemDiv.className = 'list-item';
-        itemDiv.style.cursor = 'pointer';
+        itemDiv.style.cssText = 'flex-direction:column; align-items:flex-start; gap:6px; cursor:pointer;';
         itemDiv.onclick = () => abrirDetalleUsuarioDirectorio(u);
 
         itemDiv.innerHTML = `
-          <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
-            ${avatarHtml}
-            <div style="min-width:0;">
-              <strong style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block;">${u.name || 'Sin nombre'}</strong>
-              <span style="color: var(--text-muted); font-size: 0.72rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block;">${u.email || 'Sin correo'}</span>
-              <div style="margin-top: 2px; font-size: 0.68rem;">Estado: ${estadoVigenciaHTML}</div>
+          <div style="width:100%; display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; align-items:center; gap:10px;">
+              ${avatarHtml}
+              <div>
+                <strong style="color:#fff;">${u.name || 'Sin nombre'}</strong>
+                <span style="color: var(--text-muted); font-size: 0.68rem; display:block;">${u.email} · <span style="color:var(--accent);">${rolUsuario.toUpperCase()}</span></span>
+              </div>
+            </div>
+            <div style="display:flex; gap:4px; align-items:center;" onclick="event.stopPropagation();">
+              <select class="form-control" style="padding: 4px 6px; font-size: 0.68rem; width:auto;" onchange="actualizarRolUsuario('${u.id}', this.value)">
+                ${opcionesRolesHTML}
+              </select>
+              <button class="btn-pw" title="Restablecer Contraseña" onclick="abrirModalPassword('${u.id}', '${u.email || ''}', '${u.name || ''}')">🔑</button>
             </div>
           </div>
-          <div style="display:flex; align-items:center; gap: 4px; flex-shrink:0;" onclick="event.stopPropagation();">
-            <select class="form-control" style="padding: 4px 6px; font-size: 0.72rem; width:auto;" onchange="actualizarRolUsuario('${u.id}', this.value)">
-              ${opcionesRolesHTML}
-            </select>
-            <button class="btn-pw" title="Restablecer Contraseña" onclick="abrirModalPassword('${u.id}', '${u.email || ''}', '${u.name || ''}')">🔑</button>
-          </div>
+          ${barraProgresoHTML}
         `;
         container.appendChild(itemDiv);
       });
@@ -946,8 +1028,9 @@
       const hace60Dias = new Date(); hace60Dias.setDate(hace60Dias.getDate() - 60);
 
       const chksUser = globalCheckinsCache.filter(c => (c.user_email || '').toLowerCase() === email && new Date(c.created_at) >= hace60Dias);
-      const coachSupUser = globalSupervisionsCache.filter(cs => (cs.coach_email || '').toLowerCase() === email && cs.coordinator_status !== 'pendiente_revision' && new Date(cs.session_date) >= hace60Dias);
-      const supervUser = globalSupervisionsCache.filter(s => (s.supervisor_email || '').toLowerCase() === email && s.coordinator_status !== 'pendiente_revision' && new Date(s.session_date) >= hace60Dias);
+      const coachSupUser = globalSupervisionsCache.filter(cs => (cs.coach_email || '').toLowerCase() === email && cs.coordinator_status !== 'pendiente_revision' && new Date(cs.session_date || cs.created_at) >= hace60Dias);
+      const supervUser = globalSupervisionsCache.filter(s => (s.supervisor_email || '').toLowerCase() === email && s.coordinator_status !== 'pendiente_revision' && new Date(s.session_date || s.created_at) >= hace60Dias);
+      const adjUser = globalCoordinatorAdjustmentsCache.filter(a => (a.user_email || '').toLowerCase() === email && new Date(a.created_at) >= hace60Dias);
 
       let html = `
         <div style="margin-bottom: 12px; display:flex; align-items:center; gap:10px;">
@@ -970,22 +1053,30 @@
       }
 
       if (coachSupUser.length > 0) {
-        html += `<div style="margin-bottom:8px; font-size:0.72rem; font-weight:800; color:#eab308; margin-top:8px;">Supervisiones como Coach (${coachSupUser.length}):</div>`;
+        html += `<div style="margin-bottom:8px; font-size:0.72rem; font-weight:800; color:#3b82f6; margin-top:8px;">Supervisiones como Coach (${coachSupUser.length}):</div>`;
         coachSupUser.forEach(cs => {
-          const f = new Date(cs.session_date).toLocaleDateString();
-          html += `<div style="font-size:0.68rem; color:#ccc; margin-left:8px; margin-bottom:4px; border-left:2px solid #eab308; padding-left:6px;">📅 ${f} · <strong>${cs.coach_points >= 0 ? '+' : ''}${cs.coach_points} pts</strong> (${cs.class_time})<br><span style="color:#888;">Supervisor: ${cs.supervisor_email}</span></div>`;
+          const f = new Date(cs.session_date || cs.created_at).toLocaleDateString();
+          html += `<div style="font-size:0.68rem; color:#ccc; margin-left:8px; margin-bottom:4px; border-left:2px solid #3b82f6; padding-left:6px;">📅 ${f} · <strong>${cs.coach_points >= 0 ? '+' : ''}${cs.coach_points} pts</strong> (${cs.class_time || 'General'})<br><span style="color:#888;">Supervisor: ${cs.supervisor_email}</span></div>`;
         });
       }
 
       if (supervUser.length > 0) {
-        html += `<div style="margin-bottom:8px; font-size:0.72rem; font-weight:800; color:#38bdf8; margin-top:8px;">Auditorías como Supervisor (${supervUser.length}):</div>`;
+        html += `<div style="margin-bottom:8px; font-size:0.72rem; font-weight:800; color:#a855f7; margin-top:8px;">Auditorías como Supervisor (${supervUser.length}):</div>`;
         supervUser.forEach(s => {
-          const f = new Date(s.session_date).toLocaleDateString();
-          html += `<div style="font-size:0.68rem; color:#ccc; margin-left:8px; margin-bottom:4px; border-left:2px solid #38bdf8; padding-left:6px;">📅 ${f} · <strong>${s.supervisor_points >= 0 ? '+' : ''}${s.supervisor_points} pts</strong> (Coach: ${s.coach_email})<br><span style="color:#888;">Estado: ${s.coordinator_status.toUpperCase()}</span></div>`;
+          const f = new Date(s.session_date || s.created_at).toLocaleDateString();
+          html += `<div style="font-size:0.68rem; color:#ccc; margin-left:8px; margin-bottom:4px; border-left:2px solid #a855f7; padding-left:6px;">📅 ${f} · <strong>${s.supervisor_points >= 0 ? '+' : ''}${s.supervisor_points} pts</strong> (Coach: ${s.coach_email})<br><span style="color:#888;">Estado: ${s.coordinator_status.toUpperCase()}</span></div>`;
         });
       }
 
-      if (chksUser.length === 0 && coachSupUser.length === 0 && supervUser.length === 0) {
+      if (adjUser.length > 0) {
+        html += `<div style="margin-bottom:8px; font-size:0.72rem; font-weight:800; color:#eab308; margin-top:8px;">Ajustes de Coordinación (${adjUser.length}):</div>`;
+        adjUser.forEach(a => {
+          const f = new Date(a.created_at).toLocaleDateString();
+          html += `<div style="font-size:0.68rem; color:#ccc; margin-left:8px; margin-bottom:4px; border-left:2px solid #eab308; padding-left:6px;">📅 ${f} · <strong>${a.note >= 0 ? '+' : ''}${a.note} pts</strong></div>`;
+        });
+      }
+
+      if (chksUser.length === 0 && coachSupUser.length === 0 && supervUser.length === 0 && adjUser.length === 0) {
         html += `<span style="font-size:0.7rem; color:var(--text-muted);">No registra actividad en los últimos 60 días.</span>`;
       }
 
@@ -994,7 +1085,7 @@
       document.getElementById('staffDetailModal').style.display = 'flex';
     }
 
-    /* ================= BUSCADORES INTELIGENTES ================= */
+    /* ================= BUSCADORES INTELIGENTES CON ESTATUS Y AVATAR ================= */
     function buscarStrikersInteligente(query) {
       const q = (query || '').trim().toLowerCase();
       const box = document.getElementById('chkSuggestionsBox');
@@ -1028,10 +1119,15 @@
           avatarHtml = `<img src="${avatarUrl}" class="avatar-mini" alt="Avatar">`;
         }
 
+        const activo = user.is_active !== false && user.subscription_status !== 'vencido';
+        const estatusBadge = activo 
+          ? '<span style="color:var(--status-ok); font-weight:800;">[ACTIVO]</span>' 
+          : '<span style="color:var(--accent); font-weight:800;">[INACTIVO]</span>';
+
         item.innerHTML = `
           ${avatarHtml}
           <div>
-            <strong style="color:#fff;">${displayName}</strong><br>
+            <strong style="color:#fff;">${displayName}</strong> ${estatusBadge}<br>
             <span style="color:var(--text-muted); font-size:0.7rem;">${user.email}</span>
           </div>
         `;
@@ -1051,22 +1147,24 @@
       box.style.display = 'block';
     }
 
-    /* ================= MÓDULO: STAFF CON DESGLOSE INDEPENDIENTE EXACTO Y CORRECCIÓN DE COLUMNAS ================= */
+    /* ================= MÓDULO: STAFF CON DESGLOSE MULTIFUENTE EXACTO ================= */
     async function cargarStaffAdmin() {
       const container = document.getElementById('staffListContainer');
       if (!container) return;
       container.innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;padding:8px;display:block;">Calculando métricas del staff...</span>';
 
       try {
-        const [usersRes, checkinsRes, supervisionsRes] = await Promise.all([
+        const [usersRes, checkinsRes, supervisionsRes, adjustmentsRes] = await Promise.all([
           sb.from('apex_users').select('*'),
           sb.from('apex_checkins').select('*'),
-          sb.from('apex_coach_supervisions').select('*')
+          sb.from('apex_coach_supervisions').select('*'),
+          sb.from('apex_coordinator_adjustments').select('*')
         ]);
 
         const users = usersRes.data || [];
         const checkins = checkinsRes.data || [];
         const supervisions = supervisionsRes.data || [];
+        const adjustments = adjustmentsRes.data || [];
 
         const staffList = users.filter(u => {
           const rol = (u.profile_id || u.role || '').toLowerCase();
@@ -1082,28 +1180,33 @@
         hace60Dias.setDate(hace60Dias.getDate() - 60);
         hace60Dias.setHours(0,0,0,0);
 
+        const hace30Dias = new Date();
+        hace30Dias.setDate(hace30Dias.getDate() - 30);
+        hace30Dias.setHours(0,0,0,0);
+
         container.innerHTML = '';
         staffList.forEach(stf => {
           const email = (stf.email || '').toLowerCase();
 
-          // 1. PUNTOS STRIKER (Check-ins aprobados al usuario)
           const chksStf = checkins.filter(c => (c.user_email || '').toLowerCase() === email && c.status === 'aprobado' && new Date(c.created_at) >= hace60Dias);
           let ptsStriker = 0;
           chksStf.forEach(c => ptsStriker += parseFloat(c.rendimiento || 0));
 
-          // 2. PUNTOS COACH (Puntos obtenidos cuando es supervisado en apex_coach_supervisions)
-          const coachSupStf = supervisions.filter(cs => (cs.coach_email || '').toLowerCase() === email && cs.coordinator_status !== 'pendiente_revision' && new Date(cs.session_date) >= hace60Dias);
+          const coachSupStf = supervisions.filter(cs => (cs.coach_email || '').toLowerCase() === email && cs.coordinator_status !== 'pendiente_revision' && new Date(cs.session_date || cs.created_at) >= hace30Dias);
           let ptsCoach = 0;
           coachSupStf.forEach(cs => ptsCoach += parseFloat(cs.coach_points || 0));
 
-          // 3. PUNTOS SUPERVISIÓN (Puntos obtenidos por realizar supervisiones como supervisor)
-          const supervStf = supervisions.filter(s => (s.supervisor_email || '').toLowerCase() === email && s.coordinator_status !== 'pendiente_revision' && new Date(s.session_date) >= hace60Dias);
+          const supervStf = supervisions.filter(s => (s.supervisor_email || '').toLowerCase() === email && s.coordinator_status !== 'pendiente_revision' && new Date(s.session_date || s.created_at) >= hace30Dias);
           let ptsSupervisor = 0;
           supervStf.forEach(s => ptsSupervisor += parseFloat(s.supervisor_points || 0));
 
-          const ptsTotales = ptsStriker + ptsCoach + ptsSupervisor;
+          const adjStf = adjustments.filter(a => (a.user_email || '').toLowerCase() === email && new Date(a.created_at) >= hace30Dias);
+          let ptsAdjustments = 0;
+          adjStf.forEach(a => ptsAdjustments += parseFloat(a.note || 0));
+
+          const ptsTotales = ptsStriker + ptsCoach + ptsSupervisor + ptsAdjustments;
           const meta = 240;
-          const progGlobalPct = Math.min(100, Math.round((ptsTotales / meta) * 100));
+          const progGlobalPct = Math.min(100, Math.max(-100, Math.round((ptsTotales / meta) * 100)));
 
           let colorProgreso = '#ffffff';
           if (progGlobalPct >= 100) colorProgreso = '#ffd700';
@@ -1121,7 +1224,7 @@
           const cardDiv = document.createElement('div');
           cardDiv.className = 'list-item';
           cardDiv.style.cssText = 'flex-direction:column; align-items:flex-start; gap:8px; cursor:pointer;';
-          cardDiv.onclick = () => abrirDetalleStaffAnidado(stf, chksStf, coachSupStf, supervStf, ptsTotales);
+          cardDiv.onclick = () => abrirDetalleStaffAnidado(stf, chksStf, coachSupStf, supervStf, adjStf, ptsTotales);
 
           cardDiv.innerHTML = `
             <div style="width:100%; display:flex; justify-content:space-between; align-items:center;">
@@ -1131,18 +1234,22 @@
               </div>
               <div>${badgeEstado}</div>
             </div>
-            <div style="width:100%; display:grid; grid-template-columns: repeat(3, 1fr); gap:6px; background:#050507; padding:8px; border-radius:6px; border:1px solid var(--border); text-align:center;">
+            <div style="width:100%; display:grid; grid-template-columns: repeat(4, 1fr); gap:4px; background:#050507; padding:6px; border-radius:6px; border:1px solid var(--border); text-align:center;">
               <div onclick="event.stopPropagation(); abrirDetalleRolEspecifico('${stf.email}', 'striker')" style="cursor:pointer;">
-                <div style="font-size:0.55rem; color:var(--text-muted); text-transform:uppercase;">Striker</div>
-                <div style="font-size:0.75rem; font-weight:900; color:#22c55e;">${ptsStriker.toFixed(1)} pts</div>
+                <div style="font-size:0.5rem; color:var(--text-muted); text-transform:uppercase;">Check-ins</div>
+                <div style="font-size:0.7rem; font-weight:900; color:#22c55e;">${ptsStriker.toFixed(1)}</div>
               </div>
               <div onclick="event.stopPropagation(); abrirDetalleRolEspecifico('${stf.email}', 'coach')" style="cursor:pointer;">
-                <div style="font-size:0.55rem; color:var(--text-muted); text-transform:uppercase;">Coach</div>
-                <div style="font-size:0.75rem; font-weight:900; color:#eab308;">${ptsCoach.toFixed(1)} pts</div>
+                <div style="font-size:0.5rem; color:var(--text-muted); text-transform:uppercase;">Coach</div>
+                <div style="font-size:0.7rem; font-weight:900; color:#3b82f6;">${ptsCoach.toFixed(1)}</div>
               </div>
               <div onclick="event.stopPropagation(); abrirDetalleRolEspecifico('${stf.email}', 'supervisor')" style="cursor:pointer;">
-                <div style="font-size:0.55rem; color:var(--text-muted); text-transform:uppercase;">Supervisión</div>
-                <div style="font-size:0.75rem; font-weight:900; color:#38bdf8;">${ptsSupervisor.toFixed(1)} pts</div>
+                <div style="font-size:0.5rem; color:var(--text-muted); text-transform:uppercase;">Superv</div>
+                <div style="font-size:0.7rem; font-weight:900; color:#a855f7;">${ptsSupervisor.toFixed(1)}</div>
+              </div>
+              <div onclick="event.stopPropagation(); abrirDetalleRolEspecifico('${stf.email}', 'adjustments')" style="cursor:pointer;">
+                <div style="font-size:0.5rem; color:var(--text-muted); text-transform:uppercase;">Ajustes</div>
+                <div style="font-size:0.7rem; font-weight:900; color:#eab308;">${ptsAdjustments.toFixed(1)}</div>
               </div>
             </div>
             <div style="width:100%; background:#050507; padding:8px; border-radius:6px; border:1px solid var(--border);">
@@ -1151,7 +1258,7 @@
                 <span style="color:${colorProgreso};">${progGlobalPct}%</span>
               </div>
               <div style="width:100%; height:6px; background:#121216; border-radius:3px; overflow:hidden; border:1px solid var(--border);">
-                <div style="height:100%; width:${progGlobalPct}%; background:${colorProgreso}; border-radius:3px; transition:width 0.5s ease;"></div>
+                <div style="height:100%; width:${Math.max(0, progGlobalPct)}%; background:${colorProgreso}; border-radius:3px;"></div>
               </div>
             </div>
           `;
@@ -1163,7 +1270,7 @@
       }
     }
 
-    function abrirDetalleStaffAnidado(stf, chks, coachSups, supers, totalPts) {
+    function abrirDetalleStaffAnidado(stf, chks, coachSups, supers, adjs, totalPts) {
       let html = `
         <div style="margin-bottom: 12px;">
           <strong style="font-size: 0.95rem; color: #fff; display:block;">${stf.name || 'Sin Nombre'}</strong>
@@ -1181,23 +1288,31 @@
       }
 
       if (coachSups.length > 0) {
-        html += `<div style="margin-bottom: 8px; margin-top: 10px;"><strong style="font-size:0.75rem; color:#eab308;">📋 Evaluaciones como Coach (${coachSups.length}):</strong></div>`;
+        html += `<div style="margin-bottom: 8px; margin-top: 10px;"><strong style="font-size:0.75rem; color:#3b82f6;">📋 Evaluaciones como Coach (${coachSups.length}):</strong></div>`;
         coachSups.forEach(cs => {
-          const f = new Date(cs.session_date).toLocaleDateString();
-          html += `<div style="font-size:0.68rem; color:#ccc; margin-left:8px; margin-bottom:4px; border-left:2px solid #eab308; padding-left:6px;">📅 ${f} · <strong>${cs.coach_points >= 0 ? '+' : ''}${cs.coach_points} pts</strong> (${cs.class_time})<br><span style="color:#888;">Supervisor: ${cs.supervisor_email}</span></div>`;
+          const f = new Date(cs.session_date || cs.created_at).toLocaleDateString();
+          html += `<div style="font-size:0.68rem; color:#ccc; margin-left:8px; margin-bottom:4px; border-left:2px solid #3b82f6; padding-left:6px;">📅 ${f} · <strong>${cs.coach_points >= 0 ? '+' : ''}${cs.coach_points} pts</strong> (${cs.class_time || 'General'})<br><span style="color:#888;">Supervisor: ${cs.supervisor_email}</span></div>`;
         });
       }
 
       if (supers.length > 0) {
-        html += `<div style="margin-bottom: 8px; margin-top: 10px;"><strong style="font-size:0.75rem; color:#38bdf8;">👁️ Supervisiones Realizadas (${supers.length}):</strong></div>`;
+        html += `<div style="margin-bottom: 8px; margin-top: 10px;"><strong style="font-size:0.75rem; color:#a855f7;">👁️ Supervisiones Realizadas (${supers.length}):</strong></div>`;
         supers.forEach(s => {
-          const f = new Date(s.session_date).toLocaleDateString();
-          html += `<div style="font-size:0.68rem; color:#ccc; margin-left:8px; margin-bottom:4px; border-left:2px solid #38bdf8; padding-left:6px;">📅 ${f} · <strong>${s.supervisor_points >= 0 ? '+' : ''}${s.supervisor_points} pts</strong> (Coach evaluado: ${s.coach_email})</div>`;
+          const f = new Date(s.session_date || s.created_at).toLocaleDateString();
+          html += `<div style="font-size:0.68rem; color:#ccc; margin-left:8px; margin-bottom:4px; border-left:2px solid #a855f7; padding-left:6px;">📅 ${f} · <strong>${s.supervisor_points >= 0 ? '+' : ''}${s.supervisor_points} pts</strong> (Coach evaluado: ${s.coach_email})</div>`;
         });
       }
 
-      if (chks.length === 0 && coachSups.length === 0 && supers.length === 0) {
-        html += `<span style="font-size:0.7rem; color:var(--text-muted);">No registra puntos en los últimos 60 días.</span>`;
+      if (adjs.length > 0) {
+        html += `<div style="margin-bottom: 8px; margin-top: 10px;"><strong style="font-size:0.75rem; color:#eab308;">🎯 Ajustes de Coordinación (${adjs.length}):</strong></div>`;
+        adjs.forEach(a => {
+          const f = new Date(a.created_at).toLocaleDateString();
+          html += `<div style="font-size:0.68rem; color:#ccc; margin-left:8px; margin-bottom:4px; border-left:2px solid #eab308; padding-left:6px;">📅 ${f} · <strong>${a.note >= 0 ? '+' : ''}${a.note} pts</strong></div>`;
+        });
+      }
+
+      if (chks.length === 0 && coachSups.length === 0 && supers.length === 0 && adjs.length === 0) {
+        html += `<span style="font-size:0.7rem; color:var(--text-muted);">No registra puntos en los últimos periodos.</span>`;
       }
 
       html += `</div>`;
@@ -1207,6 +1322,7 @@
 
     function abrirDetalleRolEspecifico(emailUser, rolTipo) {
       const hace60Dias = new Date(); hace60Dias.setDate(hace60Dias.getDate() - 60);
+      const hace30Dias = new Date(); hace30Dias.setDate(hace30Dias.getDate() - 30);
       let html = `<div style="margin-bottom:10px;"><strong style="color:var(--accent);">Desglose Específico: ${rolTipo.toUpperCase()} (${emailUser})</strong></div>`;
 
       if (rolTipo === 'striker') {
@@ -1218,19 +1334,26 @@
         });
         if (misChks.length === 0) html += `<span style="color:var(--text-muted);">Sin registros como striker en 60 días.</span>`;
       } else if (rolTipo === 'coach') {
-        const misCoaches = globalSupervisionsCache.filter(cs => (cs.coach_email || '').toLowerCase() === emailUser.toLowerCase() && cs.coordinator_status !== 'pendiente_revision' && new Date(cs.session_date) >= hace60Dias);
+        const misCoaches = globalSupervisionsCache.filter(cs => (cs.coach_email || '').toLowerCase() === emailUser.toLowerCase() && cs.coordinator_status !== 'pendiente_revision' && new Date(cs.session_date || cs.created_at) >= hace30Dias);
         misCoaches.forEach(cs => {
-          const f = new Date(cs.session_date).toLocaleDateString();
-          html += `<div style="background:#050507; padding:8px; border-radius:4px; border:1px solid var(--border); margin-bottom:6px; font-size:0.72rem;">📅 ${f} · <strong>${cs.coach_points >= 0 ? '+' : ''}${cs.coach_points} Pts</strong> (${cs.class_time})<br><span style="color:var(--text-muted);">Supervisor: ${cs.supervisor_email}</span></div>`;
+          const f = new Date(cs.session_date || cs.created_at).toLocaleDateString();
+          html += `<div style="background:#050507; padding:8px; border-radius:4px; border:1px solid var(--border); margin-bottom:6px; font-size:0.72rem;">📅 ${f} · <strong>${cs.coach_points >= 0 ? '+' : ''}${cs.coach_points} Pts</strong> (${cs.class_time || 'General'})<br><span style="color:var(--text-muted);">Supervisor: ${cs.supervisor_email}</span></div>`;
         });
-        if (misCoaches.length === 0) html += `<span style="color:var(--text-muted);">Sin supervisiones como coach en 60 días.</span>`;
+        if (misCoaches.length === 0) html += `<span style="color:var(--text-muted);">Sin supervisiones como coach en 30 días.</span>`;
       } else if (rolTipo === 'supervisor') {
-        const misSup = globalSupervisionsCache.filter(s => (s.supervisor_email || '').toLowerCase() === emailUser.toLowerCase() && s.coordinator_status !== 'pendiente_revision' && new Date(s.session_date) >= hace60Dias);
+        const misSup = globalSupervisionsCache.filter(s => (s.supervisor_email || '').toLowerCase() === emailUser.toLowerCase() && s.coordinator_status !== 'pendiente_revision' && new Date(s.session_date || s.created_at) >= hace30Dias);
         misSup.forEach(s => {
-          const f = new Date(s.session_date).toLocaleDateString();
+          const f = new Date(s.session_date || s.created_at).toLocaleDateString();
           html += `<div style="background:#050507; padding:8px; border-radius:4px; border:1px solid var(--border); margin-bottom:6px; font-size:0.72rem;">📅 ${f} · <strong>${s.supervisor_points >= 0 ? '+' : ''}${s.supervisor_points} Pts</strong> (Coach: ${s.coach_email})<br><span style="color:var(--text-muted);">Estado: ${s.coordinator_status.toUpperCase()}</span></div>`;
         });
-        if (misSup.length === 0) html += `<span style="color:var(--text-muted);">Sin supervisiones en 60 días.</span>`;
+        if (misSup.length === 0) html += `<span style="color:var(--text-muted);">Sin supervisiones realizadas en 30 días.</span>`;
+      } else if (rolTipo === 'adjustments') {
+        const misAdjs = globalCoordinatorAdjustmentsCache.filter(a => (a.user_email || '').toLowerCase() === emailUser.toLowerCase() && new Date(a.created_at) >= hace30Dias);
+        misAdjs.forEach(a => {
+          const f = new Date(a.created_at).toLocaleDateString();
+          html += `<div style="background:#050507; padding:8px; border-radius:4px; border:1px solid var(--border); margin-bottom:6px; font-size:0.72rem;">📅 ${f} · <strong>${a.note >= 0 ? '+' : ''}${a.note} Pts</strong></div>`;
+        });
+        if (misAdjs.length === 0) html += `<span style="color:var(--text-muted);">Sin ajustes de coordinación en 30 días.</span>`;
       }
 
       document.getElementById('staffDetailModalBody').innerHTML = html;
@@ -1241,7 +1364,7 @@
       document.getElementById('staffDetailModal').style.display = 'none';
     }
 
-    /* ================= MÓDULO: CALIFICACIÓN AL COORDINADOR CON PRECARGA ================= */
+    /* ================= MÓDULO: CALIFICACIÓN AL COORDINADOR ================= */
     async function cargarDatosCoordinadorModulo() {
       const selectCoord = document.getElementById('selectCoordinadorDirecto');
       if (selectCoord) {
@@ -1271,7 +1394,10 @@
           catList.innerHTML += `
             <div style="display:flex; justify-content:space-between; align-items:center; background:#050507; padding:6px 10px; border:1px solid var(--border); border-radius:4px; margin-top:4px; font-size:0.72rem; color: #ffffff;">
               <span>${cat}</span>
-              <button class="btn-danger" style="padding:2px 6px; font-size:0.6rem;" onclick="eliminarCategoriaCoord(${idx})">🗑️</button>
+              <div style="display:flex; gap:4px;">
+                <button class="btn-edit" style="padding:2px 6px; font-size:0.6rem;" onclick="editarCategoriaCoord(${idx})">✏️</button>
+                <button class="btn-danger" style="padding:2px 6px; font-size:0.6rem;" onclick="eliminarCategoriaCoord(${idx})">🗑️</button>
+              </div>
             </div>
           `;
         });
@@ -1287,8 +1413,8 @@
 
       const hace60Dias = new Date(); hace60Dias.setDate(hace60Dias.getDate() - 60);
       const chks = globalCheckinsCache.filter(c => (c.user_email || '').toLowerCase() === email.toLowerCase() && c.status === 'aprobado' && new Date(c.created_at) >= hace60Dias);
-      const coaches = globalSupervisionsCache.filter(cs => (cs.coach_email || '').toLowerCase() === email.toLowerCase() && cs.coordinator_status !== 'pendiente_revision' && new Date(cs.session_date) >= hace60Dias);
-      const supers = globalSupervisionsCache.filter(s => (s.supervisor_email || '').toLowerCase() === email.toLowerCase() && s.coordinator_status !== 'pendiente_revision' && new Date(s.session_date) >= hace60Dias);
+      const coaches = globalSupervisionsCache.filter(cs => (cs.coach_email || '').toLowerCase() === email.toLowerCase() && cs.coordinator_status !== 'pendiente_revision' && new Date(cs.session_date || cs.created_at) >= hace60Dias);
+      const supers = globalSupervisionsCache.filter(s => (s.supervisor_email || '').toLowerCase() === email.toLowerCase() && s.coordinator_status !== 'pendiente_revision' && new Date(s.session_date || s.created_at) >= hace60Dias);
       const coords = globalCoordinatorAdjustmentsCache.filter(a => (a.user_email || '').toLowerCase() === email.toLowerCase() && new Date(a.created_at) >= hace60Dias);
 
       let pStriker = 0; chks.forEach(c => pStriker += parseFloat(c.rendimiento || 0));
@@ -1319,6 +1445,15 @@
       cargarDatosCoordinadorModulo();
     }
 
+    function editarCategoriaCoord(idx) {
+      const actual = customCoordCategories[idx];
+      const nuevo = prompt("Modificar nombre de la categoría:", actual);
+      if (nuevo && nuevo.trim() !== '') {
+        customCoordCategories[idx] = nuevo.trim().toUpperCase();
+        cargarDatosCoordinadorModulo();
+      }
+    }
+
     function eliminarCategoriaCoord(idx) {
       if (customCoordCategories.length <= 1) return alert('Debes conservar al menos una categoría.');
       customCoordCategories.splice(idx, 1);
@@ -1331,7 +1466,7 @@
       const dateVal = document.getElementById('coordDateInput')?.value;
 
       if (!email) return alert('Selecciona un coordinador válido.');
-      if (isNaN(note)) return alert('Ingresa una nota válida del 1 al 10.');
+      if (isNaN(note)) return alert('Ingresa una cantidad de puntos válida (-100 a +100).');
 
       let fechaFinalISO = new Date().toISOString();
       if (dateVal) {
@@ -1347,11 +1482,12 @@
       if (error) {
         alert('Error al guardar evaluación: ' + error.message);
       } else {
-        alert('¡Evaluación guardada con éxito!');
+        alert('¡Evaluación de coordinación guardada con éxito!');
         document.getElementById('coordNoteVal').value = '';
         document.getElementById('coordObservation').value = '';
         document.getElementById('coordDateInput').value = '';
-        await cargarHistorialCoordinadorAdmin();
+        await loadAdminData();
+        cargarDatosCoordinadorModulo();
         seleccionarCoordinadorDirecto(email);
       }
     }
@@ -1362,16 +1498,16 @@
       listCont.innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;">Cargando historial...</span>';
 
       try {
-        const hace60dias = new Date();
-        hace60dias.setDate(hace60dias.getDate() - 60);
+        const hace30dias = new Date();
+        hace30dias.setDate(hace30dias.getDate() - 30);
 
         const { data, error } = await sb.from('apex_coordinator_adjustments')
           .select('*')
-          .gte('created_at', hace60dias.toISOString())
+          .gte('created_at', hace30dias.toISOString())
           .order('created_at', { ascending: false });
 
         if (error || !data || data.length === 0) {
-          listCont.innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;padding:6px;display:block;">No hay evaluaciones recientes de coordinación.</span>';
+          listCont.innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;padding:6px;display:block;">No hay evaluaciones recientes de coordinación en el último mes.</span>';
           return;
         }
 
@@ -1379,26 +1515,47 @@
         data.forEach(item => {
           const d = new Date(item.created_at);
           const fechaStr = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
-          listCont.innerHTML += `
-            <div class="list-item">
-              <div>
-                <strong>${item.user_email}</strong><br>
-                <span style="font-size:0.65rem; color:var(--text-muted);">${item.note >= 0 ? '+' + item.note : item.note} pts · ${fechaStr}</span>
-              </div>
+          const itemDiv = document.createElement('div');
+          itemDiv.className = 'list-item';
+          itemDiv.style.cursor = 'pointer';
+          itemDiv.onclick = () => abrirModalDetalleItemCoord(item);
+          itemDiv.innerHTML = `
+            <div>
+              <strong>${item.user_email}</strong><br>
+              <span style="font-size:0.65rem; color:var(--text-muted);">${item.note >= 0 ? '+' + item.note : item.note} pts · ${fechaStr} (Toca para ver detalle)</span>
             </div>
           `;
+          listCont.appendChild(itemDiv);
         });
       } catch(e) {
         listCont.innerHTML = '<span style="color:var(--accent);font-size:0.75rem;">Error al cargar historial.</span>';
       }
     }
 
-    /* ================= HISTORIAL DE CHECK-INS CON CONTADOR ================= */
+    function abrirModalDetalleItemCoord(item) {
+      const d = new Date(item.created_at);
+      const fechaStr = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
+      let html = `
+        <div style="margin-bottom: 10px;">
+          <strong style="color:var(--accent);">Detalle de Evaluación de Coordinación</strong>
+        </div>
+        <div style="background:#050507; padding:10px; border-radius:6px; border:1px solid var(--border); font-size:0.75rem; line-height:1.4;">
+          <div><strong>Coordinador:</strong> ${item.user_email}</div>
+          <div><strong>Puntos Asignados:</strong> <span style="color:${item.note >= 0 ? '#22c55e' : '#e50914'}; font-weight:900;">${item.note >= 0 ? '+' + item.note : item.note} PTS</span></div>
+          <div><strong>Fecha:</strong> ${fechaStr}</div>
+          ${item.id ? `<div style="margin-top:6px; color:var(--text-muted); font-size:0.65rem;">ID Registro: ${item.id}</div>` : ''}
+        </div>
+      `;
+      document.getElementById('staffDetailModalBody').innerHTML = html;
+      document.getElementById('staffDetailModal').style.display = 'flex';
+    }
+
+    /* ================= HISTORIAL DE CHECK-INS CON VALIDACIÓN DE TOPE EN ORIGEN ================= */
     async function crearCheckinDirectoAdmin() {
       const email = document.getElementById('newChkUserEmail')?.value;
       const focus = document.getElementById('newChkFocus')?.value;
       const status = document.getElementById('newChkStatus')?.value;
-      const rendimiento = parseFloat(document.getElementById('newChkRend')?.value);
+      let rendimientoIngresado = parseFloat(document.getElementById('newChkRend')?.value);
       const rpe = parseFloat(document.getElementById('newChkRpe')?.value);
       const soltura = parseFloat(document.getElementById('newChkSolt')?.value);
       const student_tech_score = parseFloat(document.getElementById('newChkTec')?.value);
@@ -1407,23 +1564,50 @@
       const dateVal = document.getElementById('newChkDate')?.value;
       const bitacora = document.getElementById('newChkBitacora')?.value.trim() || null;
 
-      if (!email) return alert('Selecciona un Striker.');
+      if (!email) return alert('Selecciona un usuario válido.');
+
+      const usuarioObj = rawUsersList.find(u => (u.email || '').toLowerCase() === email.toLowerCase());
+      const rolUsr = (usuarioObj?.profile_id || usuarioObj?.role || '').toLowerCase();
+      const esEstudiante = rolUsr.includes('estudiante') || rolUsr.includes('striker') || (!rolUsr.includes('coach') && !rolUsr.includes('admin') && !rolUsr.includes('supervis') && !rolUsr.includes('staff') && !rolUsr.includes('coordinador'));
+      const TOPE_MAXIMO = esEstudiante ? 240 : 264;
+
+      const hace60Dias = new Date(); hace60Dias.setDate(hace60Dias.getDate() - 60);
+      const chksUsr = globalCheckinsCache.filter(c => (c.user_email || '').toLowerCase() === email.toLowerCase() && c.status === 'aprobado' && new Date(c.created_at) >= hace60Dias);
+      let ptsActualesBimestre = 0;
+      chksUsr.forEach(c => ptsActualesBimestre += parseFloat(c.rendimiento || 0));
+
+      if (!esEstudiante) {
+        const hace30Dias = new Date(); hace30Dias.setDate(hace30Dias.getDate() - 30);
+        const cSups = globalSupervisionsCache.filter(cs => (cs.coach_email || '').toLowerCase() === email.toLowerCase() && cs.coordinator_status !== 'pendiente_revision' && new Date(cs.session_date || cs.created_at) >= hace30Dias);
+        cSups.forEach(cs => ptsActualesBimestre += parseFloat(cs.coach_points || 0));
+
+        const sups = globalSupervisionsCache.filter(s => (s.supervisor_email || '').toLowerCase() === email.toLowerCase() && s.coordinator_status !== 'pendiente_revision' && new Date(s.session_date || s.created_at) >= hace30Dias);
+        sups.forEach(s => ptsActualesBimestre += parseFloat(s.supervisor_points || 0));
+
+        const adjs = globalCoordinatorAdjustmentsCache.filter(a => (a.user_email || '').toLowerCase() === email && new Date(a.created_at) >= hace30Dias);
+        adjs.forEach(a => ptsActualesBimestre += parseFloat(a.note || 0));
+      }
+
+      let mensajeNotifExtra = null;
+      if (ptsActualesBimestre >= TOPE_MAXIMO) {
+        rendimientoIngresado = 0;
+        mensajeNotifExtra = "El usuario ha alcanzado el límite máximo de su categoría. Este registro ha sido ingresado en modo de mantenimiento (0 pts).";
+      } else if (ptsActualesBimestre + rendimientoIngresado > TOPE_MAXIMO) {
+        const espacioDisponible = TOPE_MAXIMO - ptsActualesBimestre;
+        rendimientoIngresado = Math.max(0, parseFloat(espacioDisponible.toFixed(1)));
+        mensajeNotifExtra = `Ingreso ajustado a ${rendimientoIngresado} puntos para completar exactamente el tope máximo de ${TOPE_MAXIMO} PTS.`;
+      }
 
       let fechaFinalISO = new Date().toISOString();
       if (dateVal) {
         fechaFinalISO = new Date(dateVal + 'T00:00:00').toISOString();
       }
 
-      let sumaMetricas = rendimiento + rpe + soltura + student_tech_score + ram + divertiste;
-      let finalScore = status === 'aprobado' ? Math.max(0, sumaMetricas) : 0;
-
-      const userObj = rawUsersList.find(u => u.email.toLowerCase() === email.toLowerCase());
-
       const payload = {
-        user_id: userObj ? userObj.id : null,
+        user_id: usuarioObj ? usuarioObj.id : null,
         user_email: email,
         focus,
-        rendimiento,
+        rendimiento: rendimientoIngresado,
         rpe,
         soltura,
         student_tech_score,
@@ -1432,7 +1616,7 @@
         divertiste,
         bitacora,
         status,
-        final_score: finalScore,
+        final_score: status === 'aprobado' ? rendimientoIngresado : 0,
         created_at: fechaFinalISO
       };
 
@@ -1440,13 +1624,20 @@
       if (error) {
         alert('Error al crear check-in: ' + error.message);
       } else {
-        alert('¡Check-in creado con éxito!');
+        if (mensajeNotifExtra) {
+          await sb.from('apex_notifications').insert([{
+            user_email: email,
+            title: '🏆 Tope Táctico Alcanzado',
+            message: mensajeNotifExtra
+          }]);
+        }
+        alert(mensajeNotifExtra ? `¡Check-in creado con ajuste de tope!\n\n${mensajeNotifExtra}` : '¡Check-in creado con éxito!');
         document.getElementById('newChkBitacora').value = '';
         document.getElementById('newChkDate').value = '';
         document.getElementById('chkSearchInput').value = '';
         document.getElementById('newChkUserEmail').value = '';
         document.getElementById('chkSelectedAvatar').innerHTML = '';
-        await cargarCheckinsAdmin();
+        await loadAdminData();
       }
     }
 
@@ -1582,7 +1773,7 @@
 
     async function guardarEdicionCheckinAdmin() {
       const id = document.getElementById('editChkId').value;
-      const rendimiento = parseFloat(document.getElementById('editChkRend').value);
+      let rendimientoIngresado = parseFloat(document.getElementById('editChkRend').value);
       const rpe = parseFloat(document.getElementById('editChkRpe').value);
       const soltura = parseFloat(document.getElementById('editChkSolt').value);
       const student_tech_score = parseFloat(document.getElementById('editChkTec').value);
@@ -1591,8 +1782,40 @@
       const status = document.getElementById('editChkStatus').value;
       const bitacora = document.getElementById('editChkBitacora').value.trim() || null;
 
+      const recordActual = rawCheckinsList.find(c => c.id === id);
+      if (recordActual && recordActual.user_email) {
+        const email = recordActual.user_email;
+        const usuarioObj = rawUsersList.find(u => (u.email || '').toLowerCase() === email.toLowerCase());
+        const rolUsr = (usuarioObj?.profile_id || usuarioObj?.role || '').toLowerCase();
+        const esEstudiante = rolUsr.includes('estudiante') || rolUsr.includes('striker') || (!rolUsr.includes('coach') && !rolUsr.includes('admin') && !rolUsr.includes('supervis') && !rolUsr.includes('staff') && !rolUsr.includes('coordinador'));
+        const TOPE_MAXIMO = esEstudiante ? 240 : 264;
+
+        const hace60Dias = new Date(); hace60Dias.setDate(hace60Dias.getDate() - 60);
+        const chksUsr = globalCheckinsCache.filter(c => (c.user_email || '').toLowerCase() === email.toLowerCase() && c.status === 'aprobado' && c.id !== id && new Date(c.created_at) >= hace60Dias);
+        let ptsOtras = 0;
+        chksUsr.forEach(c => ptsOtras += parseFloat(c.rendimiento || 0));
+
+        if (!esEstudiante) {
+          const hace30Dias = new Date(); hace30Dias.setDate(hace30Dias.getDate() - 30);
+          const cSups = globalSupervisionsCache.filter(cs => (cs.coach_email || '').toLowerCase() === email.toLowerCase() && cs.coordinator_status !== 'pendiente_revision' && new Date(cs.session_date || cs.created_at) >= hace30Dias);
+          cSups.forEach(cs => ptsOtras += parseFloat(cs.coach_points || 0));
+
+          const sups = globalSupervisionsCache.filter(s => (s.supervisor_email || '').toLowerCase() === email.toLowerCase() && s.coordinator_status !== 'pendiente_revision' && new Date(s.session_date || s.created_at) >= hace30Dias);
+          sups.forEach(s => ptsOtras += parseFloat(s.supervisor_points || 0));
+
+          const adjs = globalCoordinatorAdjustmentsCache.filter(a => (a.user_email || '').toLowerCase() === email && new Date(a.created_at) >= hace30Dias);
+          adjs.forEach(a => ptsOtras += parseFloat(a.note || 0));
+        }
+
+        if (ptsOtras + rendimientoIngresado > TOPE_MAXIMO) {
+          const espacioDisponible = TOPE_MAXIMO - ptsOtras;
+          rendimientoIngresado = Math.max(0, parseFloat(espacioDisponible.toFixed(1)));
+          alert(`⚠️ El registro excede el tope de ${TOPE_MAXIMO} PTS. Ha sido recortado automáticamente a ${rendimientoIngresado} puntos.`);
+        }
+      }
+
       const { error } = await sb.from('apex_checkins').update({
-        rendimiento, rpe, soltura, student_tech_score, preguntacoach: student_tech_score, ram, divertiste, status, bitacora
+        rendimiento: rendimientoIngresado, rpe, soltura, student_tech_score, preguntacoach: student_tech_score, ram, divertiste, status, bitacora
       }).eq('id', id);
 
       if (error) {
@@ -1600,7 +1823,7 @@
       } else {
         alert('¡Check-in actualizado correctamente!');
         cerrarModalEdicionCheckin();
-        await cargarCheckinsAdmin();
+        await loadAdminData();
       }
     }
 
@@ -1612,7 +1835,7 @@
         alert('Error al eliminar: ' + error.message);
       } else {
         alert('Check-in eliminado con éxito.');
-        await cargarCheckinsAdmin();
+        await loadAdminData();
       }
     }
 
@@ -1634,7 +1857,6 @@
       }
     }
 
-    /* ================= GESTIÓN DE CONTRASEÑA SOBRESCRITA ================= */
     function abrirModalPassword(userId, email, name) {
       document.getElementById('pwModalUserId').value = userId;
       document.getElementById('pwModalUserDesc').innerText = `Sobrescribir clave para: ${name ? name + ' (' + email + ')' : email}`;
@@ -1694,13 +1916,12 @@
         document.getElementById('nuName').value = '';
         document.getElementById('nuEmail').value = '';
         document.getElementById('nuPassword').value = '';
-        await cargarUsuarios();
+        await loadAdminData();
       } else {
         alert('Fallo: ' + (data ? data.message : 'Error desconocido'));
       }
     }
 
-    /* ================= BLOQUES ================= */
     async function registerBlock() {
       const title = document.getElementById('newBlockTitle').value.trim();
       const url = document.getElementById('newBlockUrl').value.trim();
@@ -1749,7 +1970,7 @@
     async function eliminarBloque(blockId) {
       const rolesAsignados = dbProfileBlocks.filter(pb => pb.block_id === blockId);
       if (rolesAsignados.length > 0) {
-        return alert(`⚠️ No se puede eliminar este bloque porque está asignado a ${rolesAsignados.length} roles. Quítalo de los perfiles primero.`);
+        return alert(`⚠️ No se puede eliminar este bloque porque está asignado a ${rolesAsignados.length} roles.`);
       }
 
       if (!confirm(`¿Eliminar permanentemente el bloque "${blockId}"?`)) return;
@@ -1765,7 +1986,6 @@
       }
     }
 
-    /* ================= ROLES ================= */
     function cargarDatosPerfil(profileId) {
       const btnEliminar = document.getElementById('btnEliminarPerfil');
       if (!profileId) {
@@ -1851,7 +2071,7 @@
         return alert(`⚠️ No se puede eliminar el rol "${profileId}" porque tiene ${usuariosEnRol.length} usuarios asignados.`);
       }
 
-      if (!confirm(`⚠️ ¿Estás completamente seguro de ELIMINAR el rol "${profileId}"? Esta acción no se puede deshacer.`)) return;
+      if (!confirm(`⚠️ ¿Estás completamente seguro de ELIMINAR el rol "${profileId}"?`)) return;
 
       try {
         await sb.from('apex_profile_blocks').delete().eq('profile_id', profileId);
