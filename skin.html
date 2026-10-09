@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#000000">
+  <title>Apex | Gestor Táctico de Medios (Coach)</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --bg: #000000;
+      --card-bg: #0a0a0c;
+      --card-sub: #111114;
+      --border: #1a1a1e;
+      --accent: #e50914;
+      --text-main: #f5f5f7;
+      --text-muted: #73737a;
+      --status-ok: #22c55e;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text-main); padding: 16px; max-width: 600px; margin: 0 auto; min-height: 100vh; padding-bottom: 40px; }
+
+    .header { border-bottom: 2px solid var(--border); padding-bottom: 12px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+    .title { font-size: 1.15rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
+    .title span { color: var(--accent); }
+
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+    .section-title { font-size: 0.82rem; font-weight: 900; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+
+    .form-group { margin-bottom: 14px; position: relative; }
+    label { display: block; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
+    .form-control { width: 100%; padding: 10px; background: #070709; border: 1px solid var(--border); color: #fff; border-radius: 6px; font-weight: 700; outline: none; font-size: 0.85rem; color-scheme: dark; }
+    .form-control:focus { border-color: var(--accent); }
+
+    /* SUGERENCIAS PREDICTIVAS */
+    .suggestions-box {
+      position: absolute; top: calc(100% + 2px); left: 0; right: 0; background: #111114;
+      border: 1px solid var(--border); border-radius: 6px; max-height: 200px; overflow-y: auto;
+      z-index: 50; display: none; box-shadow: 0 8px 24px rgba(0,0,0,0.9);
+    }
+    .suggestion-item { padding: 10px 12px; border-bottom: 1px solid var(--border); cursor: pointer; font-size: 0.78rem; display: flex; align-items: center; gap: 10px; }
+    .suggestion-item:last-child { border-bottom: none; }
+    .suggestion-item:hover { background: #18181c; }
+
+    /* CONTENEDOR DE PREVISUALIZACIÓN EN VIVO */
+    .preview-viewport {
+      position: relative; width: 100%; height: 240px; border-radius: 8px; overflow: hidden;
+      border: 1px solid var(--border); background: #000; display: flex; flex-direction: column;
+      justify-content: space-between; padding: 12px; margin-bottom: 14px;
+    }
+    .preview-media-bg {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1;
+    }
+    .preview-overlay-content { position: relative; z-index: 5; display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.6); padding: 8px 10px; border-radius: 6px; backdrop-filter: blur(4px); }
+    .preview-profile-info { display: flex; align-items: center; gap: 10px; }
+    .preview-avatar { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); background: #141418; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 900; color: #fff; }
+
+    /* BARRA DE PROGRESO CON PORCENTAJE */
+    .progress-container { display: none; margin-bottom: 12px; }
+    .progress-bar-track { width: 100%; height: 8px; background: #121216; border-radius: 4px; overflow: hidden; border: 1px solid var(--border); margin-top: 4px; }
+    .progress-bar-fill { height: 100%; width: 0%; background: var(--status-ok); border-radius: 4px; transition: width 0.2s ease; }
+
+    .btn { background: var(--accent); color: #fff; border: none; padding: 12px; width: 100%; font-weight: 900; text-transform: uppercase; border-radius: 6px; cursor: pointer; font-size: 0.82rem; }
+    .btn:disabled { background: #222; color: #555; cursor: not-allowed; }
+    .btn-danger { background: rgba(229, 9, 20, 0.15); border: 1px solid rgba(229, 9, 20, 0.4); color: var(--accent); margin-top: 8px; }
+
+    .history-item { background: #070709; border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin-top: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="title">Apex <span>Media Manager</span></div>
+    <span style="font-size:0.65rem; color:var(--text-muted); font-weight:800;">CONTROL TÁCTICO DE FONDOS</span>
+  </div>
+
+  <div class="card">
+    <div class="section-title">1. Seleccionar Striker y Auditoría Visual</div>
+    
+    <div class="form-group">
+      <label>Buscador Inteligente (Nombre o Correo)</label>
+      <input type="text" id="coachSearchStriker" class="form-control" placeholder="Escribe para buscar striker..." autocomplete="off" oninput="buscarStrikersInteligente(this.value)">
+      <input type="hidden" id="selectedStrikerEmail">
+      <div class="suggestions-box" id="coachSuggestionsBox"></div>
+    </div>
+
+    <!-- PREVISUALIZACIÓN EN TIEMPO REAL -->
+    <label>Previsualización del Dashboard del Striker</label>
+    <div class="preview-viewport" id="previewViewport">
+      <div id="previewMediaContainer" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:1;">
+        <video id="prevVideo" class="preview-media-bg" playsinline muted loop autoplay style="display:none;"></video>
+        <img id="prevImage" class="preview-media-bg" src="" alt="" style="display:none;">
+        <div id="prevPlaceholder" style="position:absolute; top:0; left:0; width:100%; height:100%; display:flex; justify-content:center; align-items:center; color:var(--text-muted); font-size:0.75rem; text-transform:uppercase; z-index:2; background:#050507;">Selecciona un striker para ver su entorno</div>
+      </div>
+
+      <div class="preview-overlay-content">
+        <div class="preview-profile-info">
+          <div id="previewAvatarBox" class="preview-avatar">ST</div>
+          <div>
+            <strong id="previewName" style="display:block; font-size:0.8rem; color:#fff;">Nombre del Striker</strong>
+            <span id="previewEmail" style="font-size:0.62rem; color:var(--text-muted);">correo@apex.com</span>
+          </div>
+        </div>
+        <span style="font-size:0.58rem; font-weight:900; background:var(--accent); color:#fff; padding:3px 6px; border-radius:4px;">VISTA PREVIA</span>
+      </div>
+    </div>
+
+    <!-- BOTÓN DE BORRAR FONDO (MODERACIÓN) -->
+    <button id="btnBorrarFondo" class="btn btn-danger" style="display:none;" onclick="borrarFondoActual()">🗑️ Eliminar Fondo Actual (Reglamento Apex)</button>
+  </div>
+
+  <div class="card">
+    <div class="section-title">2. Cargar o Actualizar Fondo Táctico</div>
+    
+    <input type="file" id="inputCoachMediaRaw" accept="video/*,image/*" style="display: none;" onchange="procesarArchivoMedia(this.files)">
+
+    <div style="margin-bottom: 14px;">
+      <button class="btn" style="background:#16161a; border:1px solid var(--border); margin-bottom:8px;" onclick="document.getElementById('inputCoachMediaRaw').click();">📁 Seleccionar Nuevo Video o Imagen</button>
+      <span id="selectedFileLabel" style="font-size:0.68rem; color:var(--text-muted); display:block; text-align:center;">Ningún archivo seleccionado</span>
+    </div>
+
+    <div class="progress-container" id="progressContainer">
+      <div style="display:flex; justify-content:space-between; font-size:0.65rem; font-weight:800; color:var(--text-muted);">
+        <span>Progreso de Subida:</span>
+        <span id="progressPercentTxt">0%</span>
+      </div>
+      <div class="progress-bar-track">
+        <div class="progress-bar-fill" id="progressBarFill"></div>
+      </div>
+    </div>
+
+    <button id="btnSubirMediaAsignada" class="btn" disabled onclick="subirYAsignarFondo()">Subir y Asignar al Striker</button>
+  </div>
+
+  <div class="card">
+    <div class="section-title">3. Historial de Asignaciones Recientes</div>
+    <div id="historialAsignacionesList"><span style="font-size:0.7rem; color:var(--text-muted);">Sin registros recientes en esta sesión.</span></div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://fprvbvucmtdpxdihuvrw.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_xAMs8LpCwyMyoql3ohoJUQ_BIRhBQoD';
+    const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+    let allStrikersList = [];
+    let strikerSeleccionadoObj = null;
+    let archivoSeleccionado = null;
+    let historialReciente = [];
+
+    window.onload = async () => {
+      await recargarListaStrikers();
+    };
+
+    async function recargarListaStrikers() {
+      if (!sb) return;
+      try {
+        const { data } = await sb.from('apex_users').select('id, email, name, video_url, photo_url, avatar_url');
+        if (data) allStrikersList = data;
+      } catch (e) {}
+    }
+
+    function buscarStrikersInteligente(query) {
+      const q = (query || '').trim().toLowerCase();
+      const box = document.getElementById('coachSuggestionsBox');
+      if (!box) return;
+      box.innerHTML = '';
+
+      if (q.length < 1) {
+        box.style.display = 'none';
+        return;
+      }
+
+      const matches = allStrikersList.filter(u => {
+        const emailMatch = u.email ? u.email.toLowerCase().includes(q) : false;
+        const nameMatch = u.name ? u.name.toLowerCase().includes(q) : false;
+        return emailMatch || nameMatch;
+      });
+
+      if (matches.length === 0) {
+        box.innerHTML = '<div style="padding:10px; font-size:0.75rem; color:#777;">Sin coincidencias</div>';
+        box.style.display = 'block';
+        return;
+      }
+
+      matches.forEach(user => {
+        const item = document.createElement('div');
+        item.className = 'suggestion-item';
+        const displayName = user.name || 'Sin nombre';
+        item.innerHTML = `
+          <div>
+            <strong style="color:#fff;">${displayName}</strong><br>
+            <span style="color:var(--text-muted); font-size:0.7rem;">${user.email}</span>
+          </div>
+        `;
+        item.onclick = () => {
+          seleccionarStrikerOficial(user);
+          box.style.display = 'none';
+        };
+        box.appendChild(item);
+      });
+      box.style.display = 'block';
+    }
+
+    function seleccionarStrikerOficial(user) {
+      strikerSeleccionadoObj = user;
+      document.getElementById('coachSearchStriker').value = `${user.name || 'Striker'} (${user.email})`;
+      document.getElementById('selectedStrikerEmail').value = user.email;
+
+      document.getElementById('previewName').innerText = user.name || 'Striker';
+      document.getElementById('previewEmail').innerText = user.email;
+
+      // Renderizar foto de perfil (solo visualización)
+      const avatarBox = document.getElementById('previewAvatarBox');
+      const fotoUrl = user.photo_url || user.avatar_url;
+      if (fotoUrl && fotoUrl.startsWith('http')) {
+        avatarBox.outerHTML = `<img id="previewAvatarBox" src="${fotoUrl}" class="preview-avatar" alt="Foto">`;
+      } else {
+        avatarBox.outerHTML = `<div id="previewAvatarBox" class="preview-avatar">${(user.name || 'ST').substring(0,2).toUpperCase()}</div>`;
+      }
+
+      // Renderizar previsualización del fondo actual
+      renderizarPrevisualizacionMedia(user.video_url);
+      validarFormulario();
+    }
+
+    function renderizarPrevisualizacionMedia(url) {
+      const vid = document.getElementById('prevVideo');
+      const img = document.getElementById('prevImage');
+      const placeholder = document.getElementById('prevPlaceholder');
+      const btnBorrar = document.getElementById('btnBorrarFondo');
+
+      if (!url) {
+        vid.style.display = 'none';
+        img.style.display = 'none';
+        placeholder.style.display = 'flex';
+        placeholder.innerText = 'El striker no tiene fondo asignado actualmente';
+        btnBorrar.style.display = 'none';
+        return;
+      }
+
+      placeholder.style.display = 'none';
+      btnBorrar.style.display = 'block';
+
+      const esVideo = url.match(/\.(mp4|webm|ogg|mov)$/i);
+      if (esVideo) {
+        vid.src = url;
+        vid.style.display = 'block';
+        img.style.display = 'none';
+        vid.play().catch(() => {});
+      } else {
+        img.src = url;
+        img.style.display = 'block';
+        vid.style.display = 'none';
+      }
+    }
+
+    function procesarArchivoMedia(files) {
+      if (!files || files.length === 0) return;
+      archivoSeleccionado = files[0];
+      document.getElementById('selectedFileLabel').innerText = archivoSeleccionado.name;
+      validarFormulario();
+    }
+
+    function validarFormulario() {
+      const email = document.getElementById('selectedStrikerEmail').value;
+      const btn = document.getElementById('btnSubirMediaAsignada');
+      if (email && archivoSeleccionado) {
+        btn.disabled = false;
+      } else {
+        btn.disabled = true;
+      }
+    }
+
+    async function subirYAsignarFondo() {
+      const email = document.getElementById('selectedStrikerEmail').value;
+      if (!email || !archivoSeleccionado || !sb || !strikerSeleccionadoObj) return;
+
+      const btn = document.getElementById('btnSubirMediaAsignada');
+      const progressContainer = document.getElementById('progressContainer');
+      const progressBarFill = document.getElementById('progressBarFill');
+      const progressPercentTxt = document.getElementById('progressPercentTxt');
+
+      btn.disabled = true;
+      btn.innerText = 'Procesando...';
+      progressContainer.style.display = 'block';
+      progressBarFill.style.width = '10%';
+      progressPercentTxt.innerText = '10%';
+
+      try {
+        // 1. Purga automática del archivo anterior en Storage si existía
+        if (strikerSeleccionadoObj.video_url) {
+          try {
+            const oldUrl = strikerSeleccionadoObj.video_url;
+            const pathParts = oldUrl.split('/avatars/');
+            if (pathParts.length > 1) {
+              await sb.storage.from('avatars').remove([pathParts[1]]);
+            }
+          } catch (errClean) {}
+        }
+
+        progressBarFill.style.width = '40%';
+        progressPercentTxt.innerText = '40%';
+
+        // 2. Subida del nuevo archivo
+        const ext = archivoSeleccionado.name.split('.').pop() || 'mp4';
+        const filePath = `media/${Date.now()}_${email.replace(/[^a-zA-Z0-9]/g, '_')}.${ext}`;
+        
+        const { error: uploadError } = await sb.storage.from('avatars').upload(filePath, archivoSeleccionado, { upsert: true });
+        if (uploadError) throw uploadError;
+
+        progressBarFill.style.width = '80%';
+        progressPercentTxt.innerText = '80%';
+
+        const { data: urlData } = sb.storage.from('avatars').getPublicUrl(filePath);
+        const mediaUrl = urlData.publicUrl;
+
+        // 3. Actualización en la base de datos
+        const { error: updateError } = await sb.from('apex_users').update({ 
+          video_url: mediaUrl 
+        }).eq('email', email);
+
+        if (updateError) throw updateError;
+
+        progressBarFill.style.width = '100%';
+        progressPercentTxt.innerText = '100%';
+
+        // Actualizar objeto local y previsualización
+        strikerSeleccionadoObj.video_url = mediaUrl;
+        renderizarPrevisualizacionMedia(mediaUrl);
+
+        // Agregar al historial reciente
+        registrarEnHistorial(strikerSeleccionadoObj.name || email, 'Actualización de fondo');
+
+        alert('¡Fondo táctico asignado con éxito y purga anterior completada!');
+        
+        // Limpiar formulario de archivo pero mantener al striker seleccionado para ver el resultado
+        document.getElementById('selectedFileLabel').innerText = 'Ningún archivo seleccionado';
+        archivoSeleccionado = null;
+        validarFormulario();
+        await recargarListaStrikers();
+
+      } catch (err) {
+        alert('Error al asignar fondo: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Subir y Asignar al Striker';
+        setTimeout(() => { progressContainer.style.display = 'none'; }, 2000);
+      }
+    }
+
+    async function borrarFondoActual() {
+      if (!strikerSeleccionadoObj || !strikerSeleccionadoObj.video_url) return;
+      if (!confirm(`⚠️ ¿Estás seguro de eliminar el fondo táctico de ${strikerSeleccionadoObj.name || strikerSeleccionadoObj.email}?`)) return;
+
+      try {
+        const oldUrl = strikerSeleccionadoObj.video_url;
+        const pathParts = oldUrl.split('/avatars/');
+        if (pathParts.length > 1) {
+          await sb.storage.from('avatars').remove([pathParts[1]]);
+        }
+
+        await sb.from('apex_users').update({ video_url: null }).eq('email', strikerSeleccionadoObj.email);
+
+        strikerSeleccionadoObj.video_url = null;
+        renderizarPrevisualizacionMedia(null);
+        registrarEnHistorial(strikerSeleccionadoObj.name || strikerSeleccionadoObj.email, 'Fondo eliminado por moderación');
+
+        alert('Fondo eliminado correctamente del perfil.');
+        await recargarListaStrikers();
+      } catch (err) {
+        alert('Error al borrar el fondo: ' + err.message);
+      }
+    }
+
+    function registrarEnHistorial(nombreStriker, accion) {
+      const container = document.getElementById('historialAsignacionesList');
+      if (historialReciente.length === 0) container.innerHTML = '';
+
+      const horaStr = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      historialReciente.unshift({ nombre: nombreStriker, accion, hora: horaStr });
+
+      if (historialReciente.length > 5) historialReciente.pop();
+
+      container.innerHTML = historialReciente.map(h => `
+        <div class="history-item">
+          <div>
+            <strong style="color:#fff;">${h.nombre}</strong><br>
+            <span style="color:var(--text-muted);">${h.accion}</span>
+          </div>
+          <span style="color:var(--status-ok); font-weight:800;">${h.hora}</span>
+        </div>
+      `).join('');
+    }
+  </script>
+</body>
+</html>
