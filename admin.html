@@ -11,38 +11,29 @@
   <style>
     :root {
       --bg: #000000;
-      --card-bg: #0a0a0c;
-      --card-sub: #111114;
-      --border: #1a1a1e;
+      --card-bg: #000000;
+      --card-sub: #050507;
+      --border: #16161a;
       --accent: #e50914;
       --accent-hover: #b80710;
-      --text-main: #f5f5f7;
-      --text-muted: #73737a;
+      --text-main: #ffffff;
+      --text-muted: #aaaaaa;
       --status-ok: #22c55e;
       --status-warn: #eab308;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background: var(--bg); color: var(--text-main); padding: 16px; max-width: 680px; margin: 0 auto; min-height: 100vh; }
 
-    /* AUTH GATE */
-    #adminAuthGate {
-      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      background: var(--bg); z-index: 9999; display: flex; justify-content: center; align-items: center; padding: 20px;
-    }
-    .auth-card {
-      background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px;
-      padding: 26px; width: 100%; max-width: 360px; box-shadow: 0 10px 30px rgba(0,0,0,0.9);
-    }
-
     /* HEADER & TABS NAVEGABLES */
     .header { border-bottom: 2px solid var(--border); padding-bottom: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
-    .title { font-size: 1.15rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
+    .header-left { display: flex; align-items: center; gap: 10px; }
+    .title { font-size: 1.15rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; color: #ffffff; }
     .title span { color: var(--accent); }
 
     .nav-tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 16px; overflow-x: auto; scrollbar-width: none; }
     .nav-tabs::-webkit-scrollbar { display: none; }
     .tab-btn {
-      background: #0d0d10; border: 1px solid var(--border); color: var(--text-muted);
+      background: #08080a; border: 1px solid var(--border); color: var(--text-muted);
       padding: 8px 10px; border-radius: 6px; font-size: 0.62rem; font-weight: 800; text-transform: uppercase;
       cursor: pointer; white-space: nowrap; transition: 0.2s;
     }
@@ -57,41 +48,39 @@
 
     .form-group { margin-bottom: 12px; position: relative; }
     .form-group label { display: block; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
-    .form-control { width: 100%; padding: 10px; background: #070709; border: 1px solid var(--border); color: #fff; border-radius: 6px; font-weight: 700; outline: none; font-size: 0.85rem; color-scheme: dark; }
+    .form-control { width: 100%; padding: 10px; background: #050507; border: 1px solid var(--border); color: #ffffff; border-radius: 6px; font-weight: 700; outline: none; font-size: 0.85rem; color-scheme: dark; }
     .form-control:focus { border-color: var(--accent); }
-
-    /* SUGERENCIAS PREDICTIVAS */
-    .suggestions-box {
-      position: absolute; top: calc(100% + 2px); left: 0; right: 0; background: #111114;
-      border: 1px solid var(--border); border-radius: 6px; max-height: 200px; overflow-y: auto;
-      z-index: 50; display: none; box-shadow: 0 8px 24px rgba(0,0,0,0.9);
-    }
-    .suggestion-item { padding: 10px 12px; border-bottom: 1px solid var(--border); cursor: pointer; font-size: 0.78rem; display: flex; align-items: center; gap: 10px; }
-    .suggestion-item:last-child { border-bottom: none; }
-    .suggestion-item:hover, .suggestion-item:active { background: #18181c; }
 
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
     .checkbox-list { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; max-height: 200px; overflow-y: auto; }
-    .checkbox-item { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
+    .checkbox-item { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer; color: #ffffff; }
     .checkbox-item input { accent-color: var(--accent); width: 16px; height: 16px; }
 
     .btn { background: var(--accent); color: #fff; border: none; padding: 11px; width: 100%; font-weight: 900; text-transform: uppercase; border-radius: 6px; cursor: pointer; margin-top: 6px; font-size: 0.82rem; }
     .btn:active { background: var(--accent-hover); }
-    .btn-secondary { background: #0d0d10; border: 1px solid var(--border); color: #ccc; margin-top: 6px; padding: 8px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; font-weight: 800; }
+    .btn-secondary { background: #08080a; border: 1px solid var(--border); color: #ffffff; margin-top: 6px; padding: 8px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; font-weight: 800; }
     .btn-danger { background: rgba(229,9,20,0.1); border: 1px solid rgba(229,9,20,0.3); color: var(--accent); padding: 5px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; cursor: pointer; }
-    .btn-edit { background: #111114; border: 1px solid var(--border); color: #fff; padding: 5px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; cursor: pointer; margin-right: 4px; }
-    .btn-pw { background: #0d0d10; border: 1px solid var(--border); color: #a5b4fc; padding: 5px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; cursor: pointer; margin-left: 4px; }
+    .btn-edit { background: #08080a; border: 1px solid var(--border); color: #ffffff; padding: 5px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; cursor: pointer; margin-right: 4px; }
+    .btn-pw { background: #08080a; border: 1px solid var(--border); color: #a5b4fc; padding: 5px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; cursor: pointer; margin-left: 4px; }
 
-    .list-item { background: var(--card-sub); border: 1px solid var(--border); padding: 12px; border-radius: 6px; margin-top: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; gap: 8px; }
-    .badge { font-size: 0.65rem; font-weight: 900; text-transform: uppercase; padding: 3px 6px; border-radius: 4px; background: var(--card-sub); border: 1px solid var(--border); }
+    .list-item { background: var(--card-sub); border: 1px solid var(--border); padding: 12px; border-radius: 6px; margin-top: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; gap: 8px; color: #ffffff; }
+    .badge { font-size: 0.65rem; font-weight: 900; text-transform: uppercase; padding: 3px 6px; border-radius: 4px; background: var(--card-sub); border: 1px solid var(--border); color: #ffffff; }
 
     /* FILTROS USUARIOS Y CHECKINS */
     .filter-bar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
     .filter-bar .form-control { padding: 8px 10px; font-size: 0.78rem; flex: 1; min-width: 130px; }
 
-    /* MODAL FLOTANTE CONTRASEÑA / EDICIÓN */
-    #pwModal, #editCheckinModal {
+    /* AVATAR MINI */
+    .avatar-mini {
+      width: 36px; height: 36px; border-radius: 50%; object-fit: cover; background: #16161a;
+      border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 0.7rem; color: #fff; flex-shrink: 0; overflow: hidden;
+    }
+    .avatar-mini img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* MODALES FLOTANTES */
+    #pwModal, #editCheckinModal, #staffDetailModal {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       background: rgba(0,0,0,0.85); backdrop-filter: blur(4px);
       z-index: 10000; display: none; justify-content: center; align-items: center; padding: 20px;
@@ -99,24 +88,6 @@
   </style>
 </head>
 <body>
-
-  <!-- ACCESO ADMIN -->
-  <div id="adminAuthGate">
-    <div class="auth-card">
-      <div class="title" style="text-align: center; margin-bottom: 6px;">Apex <span>Master Admin</span></div>
-      <div style="font-size: 0.72rem; color: var(--text-muted); text-align: center; margin-bottom: 16px; font-weight: 700;">CONSOLA PRIVADA ROOT</div>
-      
-      <div class="form-group">
-        <label>Usuario</label>
-        <input type="text" id="adminUser" class="form-control" placeholder="Apex">
-      </div>
-      <div class="form-group">
-        <label>Contraseña</label>
-        <input type="password" id="adminPass" class="form-control" placeholder="••••••••">
-      </div>
-      <button class="btn" onclick="verificarAccesoAdmin()">Entrar al Panel</button>
-    </div>
-  </div>
 
   <!-- MODAL CAMBIAR CONTRASEÑA -->
   <div id="pwModal">
@@ -132,6 +103,15 @@
         <button class="btn" style="flex: 1;" onclick="ejecutarCambioPassword()">Guardar</button>
         <button class="btn-secondary" style="flex: 1;" onclick="cerrarModalPassword()">Cancelar</button>
       </div>
+    </div>
+  </div>
+
+  <!-- MODAL DETALLE DE STAFF / USUARIO (VENTANA FLOTANTE ANIDADA) -->
+  <div id="staffDetailModal">
+    <div class="auth-card" style="position: relative; max-width: 440px; max-height: 90vh; overflow-y: auto;">
+      <div class="section-title">⚡ Desglose Detallado</div>
+      <div id="staffDetailModalBody" style="font-size: 0.78rem; color: #ffffff; line-height: 1.5;">Cargando detalles...</div>
+      <button class="btn-secondary" style="width: 100%; margin-top: 14px;" onclick="cerrarModalStaffDetail()">Cerrar</button>
     </div>
   </div>
 
@@ -192,12 +172,14 @@
   </div>
 
   <!-- PANEL PRINCIPAL CON TABS -->
-  <div id="adminMainContent" style="display: none;">
+  <div id="adminMainContent">
     <div class="header">
-      <div class="title">Admin <span>Apex Core</span></div>
+      <div class="header-left">
+        <div id="adminRootAvatarContainer"></div>
+        <div class="title">Administración <span>Apex Core</span></div>
+      </div>
       <div style="display: flex; gap: 8px; align-items: center;">
         <span class="badge" style="border-color: var(--accent); color: var(--accent);">ROOT</span>
-        <button onclick="cerrarConsola()" class="btn-secondary" style="margin: 0; padding: 4px 8px; cursor: pointer;">SALIR</button>
       </div>
     </div>
 
@@ -241,42 +223,75 @@
       <div class="section-card">
         <div class="section-title">
           <span>2. Directorio General de Usuarios</span>
-          <button class="btn-secondary" onclick="cargarUsuarios()" style="margin:0; padding: 4px 8px;">Actualizar</button>
+          <span id="userCountFilteredBadge" style="font-size:0.68rem; color:var(--status-ok);">0 filtrados</span>
         </div>
 
         <div class="filter-bar">
           <select id="userRoleFilter" class="form-control" style="flex: 1;" onchange="filtrarUsuarios()">
             <option value="todos">Todos los Roles</option>
           </select>
-          <input type="text" id="userSearchInput" class="form-control" style="flex: 1.2;" placeholder="Buscar nombre o correo..." oninput="filtrarUsuarios()">
+          <select id="userStatusFilter" class="form-control" style="flex: 1;" onchange="filtrarUsuarios()">
+            <option value="todos">Todos (Activos/Inactivos/Sin Fecha)</option>
+            <option value="activos">Activos / Vigentes</option>
+            <option value="inactivos">Inactivos / Vencidos</option>
+            <option value="sin_fecha">Sin fecha asignada</option>
+          </select>
+        </div>
+
+        <div class="filter-bar" style="margin-bottom: 12px;">
+          <input type="text" id="userSearchInput" class="form-control" style="width: 100%;" placeholder="Buscar por nombre o correo..." oninput="filtrarUsuarios()">
         </div>
 
         <div id="usersListContainer" style="max-height: 420px; overflow-y: auto;">Cargando directorio...</div>
       </div>
     </div>
 
-    <!-- MÓDULO: STAFF & MÉTRICAS MULTIRROL -->
+    <!-- MÓDULO: STAFF CON DESGLOSE INDEPENDIENTE EXACTO -->
     <div id="tabStaff" class="tab-content">
       <div class="section-card">
         <div class="section-title">
           <span>Monitoreo de Staff & Métricas Globales</span>
           <button class="btn-secondary" onclick="cargarStaffAdmin()" style="margin:0; padding: 4px 8px;">Actualizar</button>
         </div>
-        <div style="font-size:0.7rem; color:var(--text-muted); margin-bottom:12px;">Vista de observación de desempeño, total de puntos y barra de progreso global (ventana rodante de 2 meses).</div>
+        <div style="font-size:0.7rem; color:var(--text-muted); margin-bottom:12px;">Vista de desempeño separada por roles (Striker, Coach, Supervisión) con sus respectivos puntajes y nivel bimestral global. Toca cualquier columna para ver el desglose detallado.</div>
         <div id="staffListContainer" style="max-height: 520px; overflow-y: auto;">Cargando fichas de staff...</div>
       </div>
     </div>
 
-    <!-- MÓDULO: CALIFICACIÓN AL COORDINADOR (CON BUSCADOR INTELIGENTE) -->
+    <!-- MÓDULO: CALIFICACIÓN AL COORDINADOR -->
     <div id="tabCoord" class="tab-content">
       <div class="section-card">
         <div class="section-title">Calificar al Coordinador</div>
         
         <div class="form-group">
           <label>Seleccionar Coordinador</label>
-          <input type="text" id="coordSearchInput" class="form-control" placeholder="Escribe nombre o correo del coordinador..." autocomplete="off" oninput="buscarCoordinadoresInteligente(this.value)">
+          <select id="selectCoordinadorDirecto" class="form-control" onchange="seleccionarCoordinadorDirecto(this.value)">
+            <option value="" disabled selected>Cargando coordinadores...</option>
+          </select>
           <input type="hidden" id="coordTargetEmail">
-          <div class="suggestions-box" id="coordSuggestionsBox"></div>
+        </div>
+
+        <!-- PANEL DE DESEMPEÑO EN VIVO -->
+        <div id="coordPerformanceDashboard" style="display:none; background:#050507; border:1px solid var(--border); border-radius:6px; padding:10px; margin-bottom:12px;">
+          <strong style="font-size:0.75rem; color:var(--accent); text-transform:uppercase; display:block; margin-bottom:6px;">Desempeño Operativo del Coordinador</strong>
+          <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:6px; text-align:center; font-size:0.7rem;">
+            <div style="background:#0c0c10; padding:6px; border-radius:4px; border:1px solid var(--border); cursor:pointer;" onclick="abrirDrillCoordMetric('striker')">
+              <div style="font-size:0.55rem; color:var(--text-muted);">STRIKER</div>
+              <strong id="coordMetricStriker" style="color:#fff;">0.0</strong>
+            </div>
+            <div style="background:#0c0c10; padding:6px; border-radius:4px; border:1px solid var(--border); cursor:pointer;" onclick="abrirDrillCoordMetric('coach')">
+              <div style="font-size:0.55rem; color:var(--text-muted);">COACH</div>
+              <strong id="coordMetricCoach" style="color:#fff;">0.0</strong>
+            </div>
+            <div style="background:#0c0c10; padding:6px; border-radius:4px; border:1px solid var(--border); cursor:pointer;" onclick="abrirDrillCoordMetric('supervisor')">
+              <div style="font-size:0.55rem; color:var(--text-muted);">SUPERV</div>
+              <strong id="coordMetricSuperv" style="color:#fff;">0.0</strong>
+            </div>
+            <div style="background:#0c0c10; padding:6px; border-radius:4px; border:1px solid var(--border); cursor:pointer;" onclick="abrirDrillCoordMetric('coord')">
+              <div style="font-size:0.55rem; color:var(--text-muted);">COORD</div>
+              <strong id="coordMetricCoord" style="color:#fff;">0.0</strong>
+            </div>
+          </div>
         </div>
 
         <div class="grid-2">
@@ -305,7 +320,6 @@
         <button class="btn" onclick="guardarCalificacionCoordinador()">Guardar Evaluación</button>
       </div>
 
-      <!-- GESTIÓN DE CATEGORÍAS DEL COORDINADOR -->
       <div class="section-card">
         <div class="section-title">Gestionar Categorías de Coordinación</div>
         <div class="form-group">
@@ -318,22 +332,23 @@
         <div id="coordCategoriesList" style="margin-top:8px;"></div>
       </div>
 
-      <!-- HISTORIAL DE EVALUACIONES AL COORDINADOR -->
       <div class="section-card">
         <div class="section-title">Historial Reciente (Últimos 2 Meses)</div>
         <div id="coordHistoryList" style="max-height: 300px; overflow-y:auto;">Cargando historial...</div>
       </div>
     </div>
 
-    <!-- MÓDULO: HISTORIAL GLOBAL DE CHECK-INS & CREACIÓN DIRECTA (CON BUSCADOR INTELIGENTE) -->
+    <!-- MÓDULO: HISTORIAL GLOBAL DE CHECK-INS CON CONTADOR -->
     <div id="tabCheckins" class="tab-content">
-      <!-- FORMULARIO DE CREACIÓN DIRECTA DE CHECK-IN -->
       <div class="section-card">
         <div class="section-title">Crear Check-in Manual (Admin)</div>
         
         <div class="form-group">
           <label>Striker</label>
-          <input type="text" id="chkSearchInput" class="form-control" placeholder="Escribe nombre o correo del striker..." autocomplete="off" oninput="buscarStrikersInteligente(this.value)">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <div id="chkSelectedAvatar" style="flex-shrink:0;"></div>
+            <input type="text" id="chkSearchInput" class="form-control" placeholder="Escribe nombre o correo del striker..." autocomplete="off" oninput="buscarStrikersInteligente(this.value)">
+          </div>
           <input type="hidden" id="newChkUserEmail">
           <div class="suggestions-box" id="chkSuggestionsBox"></div>
         </div>
@@ -400,7 +415,7 @@
       <div class="section-card">
         <div class="section-title">
           <span>Historial Global de Check-ins (Admin)</span>
-          <button class="btn-secondary" onclick="cargarCheckinsAdmin()" style="margin:0; padding: 4px 8px;">Actualizar</button>
+          <span id="chkCountFilteredBadge" style="font-size:0.68rem; color:var(--status-ok);">0 resultados</span>
         </div>
 
         <div class="filter-bar">
@@ -420,7 +435,7 @@
           </select>
         </div>
 
-        <div id="chkAdminManualBox" style="display:none; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px; background:#070709; padding:8px; border-radius:6px; border:1px solid var(--border);">
+        <div id="chkAdminManualBox" style="display:none; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px; background:#050507; padding:8px; border-radius:6px; border:1px solid var(--border);">
           <div><label class="form-label" style="font-size:0.6rem;">Desde</label><input type="date" id="chkAdminDesde" class="form-control" style="padding:4px; font-size:0.7rem;" onchange="filtrarCheckinsAdmin()"></div>
           <div><label class="form-label" style="font-size:0.6rem;">Hasta</label><input type="date" id="chkAdminHasta" class="form-control" style="padding:4px; font-size:0.7rem;" onchange="filtrarCheckinsAdmin()"></div>
         </div>
@@ -502,25 +517,11 @@
     let rawCheckinsList = [];
     let coachNamesMap = {};
     let customCoordCategories = ['GESTIÓN OPERATIVA', 'LIDERAZGO', 'COMUNICACIÓN', 'CUMPLIMIENTO DE METAS'];
-
-    function verificarAccesoAdmin() {
-      const u = document.getElementById('adminUser').value.trim();
-      const p = document.getElementById('adminPass').value.trim();
-
-      if (u === 'Apex' && p === 'Apex 2026') {
-        sessionStorage.setItem('apex_admin_auth', 'true');
-        document.getElementById('adminAuthGate').style.display = 'none';
-        document.getElementById('adminMainContent').style.display = 'block';
-        loadAdminData();
-      } else {
-        alert('Credenciales incorrectas.');
-      }
-    }
-
-    function cerrarConsola() {
-      sessionStorage.removeItem('apex_admin_auth');
-      location.reload();
-    }
+    let globalAdminUser = null;
+    let globalCheckinsCache = [];
+    let globalSupervisionsCache = [];
+    let globalCoordinatorAdjustmentsCache = [];
+    let globalStaffPointsCache = [];
 
     function switchAdminTab(tabId, btn) {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -538,16 +539,37 @@
     }
 
     window.onload = () => {
-      if (sessionStorage.getItem('apex_admin_auth') === 'true') {
-        document.getElementById('adminAuthGate').style.display = 'none';
-        document.getElementById('adminMainContent').style.display = 'block';
-        loadAdminData();
-      }
+      document.getElementById('adminMainContent').style.display = 'block';
+      loadAdminData();
     };
 
     /* ================= CARGA DE DATOS SEGURA Y AISLADA ================= */
     async function loadAdminData() {
       if (!sb) return;
+
+      try {
+        if (sb.auth) {
+          const { data: { session } } = await sb.auth.getSession();
+          if (session && session.user) {
+            const { data: adminProfile } = await sb.from('apex_users').select('*').eq('id', session.user.id).single();
+            if (adminProfile) {
+              globalAdminUser = adminProfile;
+              renderAdminRootAvatar(adminProfile);
+            }
+          }
+        }
+      } catch (e) {}
+
+      if (!globalAdminUser) {
+        const cachedEmail = localStorage.getItem('apex_user_email');
+        if (cachedEmail) {
+          const { data: adminProfile } = await sb.from('apex_users').select('*').eq('email', cachedEmail).maybeSingle();
+          if (adminProfile) {
+            globalAdminUser = adminProfile;
+            renderAdminRootAvatar(adminProfile);
+          }
+        }
+      }
 
       try {
         const resBlocks = await sb.from('apex_blocks').select('*').order('title', { ascending: true });
@@ -565,8 +587,9 @@
       } catch(e) { dbProfileBlocks = []; }
 
       try {
-        const resUsers = await sb.from('apex_users').select('id, email, name');
+        const resUsers = await sb.from('apex_users').select('*');
         if (resUsers.data) {
+          rawUsersList = resUsers.data;
           resUsers.data.forEach(u => {
             if (u.id) coachNamesMap[u.id] = u.name || u.email;
             if (u.email) coachNamesMap[u.email] = u.name || u.email;
@@ -574,9 +597,40 @@
         }
       } catch(e) {}
 
+      try {
+        const resChk = await sb.from('apex_checkins').select('*');
+        globalCheckinsCache = resChk.data || [];
+      } catch(e) { globalCheckinsCache = []; }
+
+      try {
+        const resSup = await sb.from('apex_coach_supervisions').select('*');
+        globalSupervisionsCache = resSup.data || [];
+      } catch(e) { globalSupervisionsCache = []; }
+
+      try {
+        const resCoordAdj = await sb.from('apex_coordinator_adjustments').select('*');
+        globalCoordinatorAdjustmentsCache = resCoordAdj.data || [];
+      } catch(e) { globalCoordinatorAdjustmentsCache = []; }
+
+      try {
+        const resStaffPts = await sb.from('apex_staff_points').select('*');
+        globalStaffPointsCache = resStaffPts.data || [];
+      } catch(e) { globalStaffPointsCache = []; }
+
       renderUI();
       actualizarSelectorRoles();
       await cargarUsuarios();
+    }
+
+    function renderAdminRootAvatar(user) {
+      const container = document.getElementById('adminRootAvatarContainer');
+      if (!container) return;
+      const avatarUrl = user.photo_url || user.avatar_url;
+      if (avatarUrl && typeof avatarUrl === 'string' && avatarUrl.startsWith('http')) {
+        container.innerHTML = `<img src="${avatarUrl}" class="avatar-mini" alt="Admin">`;
+      } else {
+        container.innerHTML = `<div class="avatar-mini">${(user.name || 'AD').substring(0,2).toUpperCase()}</div>`;
+      }
     }
 
     function actualizarSelectorRoles() {
@@ -621,16 +675,25 @@
           blkList.innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;">No hay bloques registrados.</span>';
         } else {
           dbBlocks.forEach(b => {
+            const rolesAsignados = dbProfileBlocks.filter(pb => pb.block_id === b.id);
+            const countRoles = rolesAsignados.length;
+            const puedeEliminar = countRoles === 0;
+
+            const btnEliminarHTML = puedeEliminar
+              ? `<button class="btn-danger" onclick="eliminarBloque('${b.id}')">🗑️ Eliminar</button>`
+              : `<span style="font-size:0.65rem; color:var(--text-muted);">Bloque protegido</span>`;
+
             blkList.innerHTML += `
               <div class="list-item">
                 <div>
                   <strong>${b.title}</strong><br>
                   <small style="color:var(--accent); font-weight:800;">ID: ${b.id}</small> · 
-                  <span style="color:var(--text-muted); font-size:0.72rem;">${b.url}</span>
+                  <span style="color:var(--text-muted); font-size:0.72rem;">${b.url}</span><br>
+                  <span style="color:var(--status-ok); font-size:0.65rem; cursor:pointer; text-decoration:underline;" onclick="abrirModalRolesAsignadosBlock('${b.id}')">Asignado a ${countRoles} roles (Ver detalle)</span>
                 </div>
-                <div style="display:flex; align-items:center;">
-                  <button class="btn-edit" onclick="iniciarEdicionBloque('${b.id}')">✏️</button>
-                  <button class="btn-danger" onclick="eliminarBloque('${b.id}')">🗑️</button>
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <button class="btn-edit" onclick="iniciarEdicionBloque('${b.id}')">✏️ Editar</button>
+                  ${btnEliminarHTML}
                 </div>
               </div>
             `;
@@ -652,29 +715,87 @@
       if (listCont) {
         listCont.innerHTML = '';
         dbProfiles.forEach(p => {
-          const assigned = dbProfileBlocks
-            .filter(pb => pb.profile_id === p.id)
-            .map(pb => {
-              const b = dbBlocks.find(item => item.id === pb.block_id);
-              return b ? b.title : pb.block_id;
-            }).join(', ');
+          const assignedBlocks = dbProfileBlocks.filter(pb => pb.profile_id === p.id);
+          const assignedTitles = assignedBlocks.map(pb => {
+            const b = dbBlocks.find(item => item.id === pb.block_id);
+            return b ? b.title : pb.block_id;
+          }).join(', ');
+
+          const usuariosEnRol = rawUsersList.filter(u => {
+            const rolUsr = (u.profile_id || u.role || 'estudiante').toLowerCase();
+            return rolUsr === p.id.toLowerCase();
+          });
 
           const esRaiz = ['admin', 'estudiante', 'coach'].includes(p.id.toLowerCase());
-          const btnEliminarRolHTML = esRaiz 
-            ? `<span style="font-size:0.6rem; color:var(--text-muted);">Protegido</span>` 
+          const btnEliminarRolHTML = (esRaiz || usuariosEnRol.length > 0)
+            ? `<span style="font-size:0.6rem; color:var(--text-muted);">${usuariosEnRol.length > 0 ? 'Tiene usuarios' : 'Protegido'}</span>` 
             : `<button class="btn-danger" onclick="eliminarRolDirecto('${p.id}')">🗑️ Eliminar</button>`;
 
           listCont.innerHTML += `
-            <div class="list-item">
+            <div class="list-item" style="cursor:pointer;" onclick="abrirModalUsuariosEnRol('${p.id}', '${p.name}')">
               <div>
-                <strong>${p.name.toUpperCase()}</strong> <span class="badge" style="color:var(--status-ok);">${p.id}</span><br>
-                <span style="color: var(--text-muted); font-size: 0.72rem;">Bloques: ${assigned || 'Ninguno asignado'}</span>
+                <strong>${p.name.toUpperCase()}</strong> <span class="badge" style="color:var(--status-ok);">${usuariosEnRol.length} usuarios (Ver)</span><br>
+                <span style="color: var(--text-muted); font-size: 0.72rem;">Herramientas (${assignedBlocks.length}): ${assignedTitles || 'Ninguna'}</span>
               </div>
-              <div>${btnEliminarRolHTML}</div>
+              <div onclick="event.stopPropagation();">${btnEliminarRolHTML}</div>
             </div>
           `;
         });
       }
+    }
+
+    function abrirModalRolesAsignadosBlock(blockId) {
+      const b = dbBlocks.find(item => item.id === blockId);
+      const rolesPb = dbProfileBlocks.filter(pb => pb.block_id === blockId);
+      
+      let html = `<div style="margin-bottom:10px;"><strong style="color:var(--accent);">${b ? b.title : blockId}</strong></div>`;
+      if (rolesPb.length === 0) {
+        html += `<span style="color:var(--text-muted); font-size:0.75rem;">Este bloque no está asignado a ningún rol.</span>`;
+      } else {
+        html += `<div style="display:flex; flex-direction:column; gap:6px;">`;
+        rolesPb.forEach(pb => {
+          const rolObj = dbProfiles.find(p => p.id === pb.profile_id);
+          html += `<div style="background:#050507; padding:8px; border-radius:4px; border:1px solid var(--border);"><strong>${rolObj ? rolObj.name.toUpperCase() : pb.profile_id}</strong></div>`;
+        });
+        html += `</div>`;
+      }
+
+      document.getElementById('staffDetailModalBody').innerHTML = html;
+      document.getElementById('staffDetailModal').style.display = 'flex';
+    }
+
+    function abrirModalUsuariosEnRol(profileId, profileName) {
+      const usuariosEnRol = rawUsersList.filter(u => {
+        const rolUsr = (u.profile_id || u.role || 'estudiante').toLowerCase();
+        return rolUsr === profileId.toLowerCase();
+      });
+
+      let html = `<div style="margin-bottom:10px;"><strong style="color:var(--accent);">Usuarios con rol: ${profileName.toUpperCase()} (${usuariosEnRol.length})</strong></div>`;
+      if (usuariosEnRol.length === 0) {
+        html += `<span style="color:var(--text-muted); font-size:0.75rem;">No hay usuarios asignados a este rol.</span>`;
+      } else {
+        html += `<div style="display:flex; flex-direction:column; gap:6px; max-height:300px; overflow-y:auto;">`;
+        usuariosEnRol.forEach(u => {
+          const avatarUrl = u.photo_url || u.avatar_url;
+          let avHtml = `<div class="avatar-mini">${(u.name || 'ST').substring(0,2).toUpperCase()}</div>`;
+          if (avatarUrl && typeof avatarUrl === 'string' && avatarUrl.startsWith('http')) {
+            avHtml = `<img src="${avatarUrl}" class="avatar-mini">`;
+          }
+          html += `
+            <div style="display:flex; align-items:center; gap:8px; background:#050507; padding:6px; border-radius:4px; border:1px solid var(--border);">
+              ${avHtml}
+              <div>
+                <strong style="font-size:0.8rem; color:#fff; display:block;">${u.name || 'Sin nombre'}</strong>
+                <span style="font-size:0.68rem; color:var(--text-muted);">${u.email}</span>
+              </div>
+            </div>
+          `;
+        });
+        html += `</div>`;
+      }
+
+      document.getElementById('staffDetailModalBody').innerHTML = html;
+      document.getElementById('staffDetailModal').style.display = 'flex';
     }
 
     /* ================= DIRECTORIO DE USUARIOS ================= */
@@ -696,14 +817,18 @@
 
     function filtrarUsuarios() {
       const roleFilter = (document.getElementById('userRoleFilter')?.value || 'todos').toLowerCase();
+      const statusFilter = (document.getElementById('userStatusFilter')?.value || 'todos').toLowerCase();
       const search = (document.getElementById('userSearchInput')?.value || '').toLowerCase().trim();
       const container = document.getElementById('usersListContainer');
       if (!container) return;
 
       if (!rawUsersList || rawUsersList.length === 0) {
         container.innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;padding:8px;display:block;">No hay usuarios en la base de datos.</span>';
+        document.getElementById('userCountFilteredBadge').innerText = '0 filtrados';
         return;
       }
+
+      const hoy = new Date(); hoy.setHours(0,0,0,0);
 
       let filtrados = rawUsersList.filter(u => {
         const rolUsuario = (u.profile_id || u.role || 'estudiante').toLowerCase();
@@ -713,8 +838,41 @@
         const email = (u.email || '').toLowerCase();
         const coincideTexto = !search || name.includes(search) || email.includes(search);
 
-        return coincideRol && coincideTexto;
+        const esEstudiante = rolUsuario === 'estudiante' || rolUsuario === 'estudiantes';
+        let estaActivo = true;
+        let sinFecha = false;
+
+        const fechaExpStr = u.subscription_expires_at || u.membership_end;
+        if (!fechaExpStr) {
+          sinFecha = true;
+        }
+
+        if (esEstudiante) {
+          let vencido = false;
+          if (fechaExpStr) {
+            const expDate = new Date(fechaExpStr.includes('T') ? fechaExpStr : fechaExpStr + 'T00:00:00');
+            if (expDate < hoy) vencido = true;
+          }
+          if (u.subscription_status === 'vencido' || u.is_active === false || vencido || sinFecha) {
+            estaActivo = false;
+          }
+        }
+
+        let coincideEstatus = true;
+        if (statusFilter === 'activos') coincideEstatus = estaActivo && !sinFecha;
+        if (statusFilter === 'inactivos') coincideEstatus = !estaActivo && !sinFecha;
+        if (statusFilter === 'sin_fecha') coincideEstatus = sinFecha;
+
+        return coincideRol && coincideTexto && coincideEstatus;
       });
+
+      filtrados.sort((a, b) => {
+        const expA = a.subscription_expires_at || a.membership_end ? new Date(a.subscription_expires_at || a.membership_end).getTime() : 0;
+        const expB = b.subscription_expires_at || b.membership_end ? new Date(b.subscription_expires_at || b.membership_end).getTime() : 0;
+        return expB - expA;
+      });
+
+      document.getElementById('userCountFilteredBadge').innerText = `${filtrados.length} filtrados`;
 
       if (filtrados.length === 0) {
         container.innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;padding:8px;display:block;">No se encontraron usuarios para este criterio.</span>';
@@ -722,7 +880,6 @@
       }
 
       container.innerHTML = '';
-      const hoy = new Date(); hoy.setHours(0,0,0,0);
 
       filtrados.forEach(u => {
         const rolUsuario = (u.profile_id || u.role || 'estudiante').toLowerCase();
@@ -753,25 +910,91 @@
           opcionesRolesHTML += `<option value="${p.id}" ${rolUsuario === pid ? 'selected' : ''}>${p.name.toUpperCase()}</option>`;
         });
 
-        container.innerHTML += `
-          <div class="list-item">
-            <div>
-              <strong>${u.name || 'Sin nombre'}</strong><br>
-              <span style="color: var(--text-muted); font-size: 0.72rem;">${u.email || 'Sin correo'}</span><br>
-              <div style="margin-top: 4px; font-size: 0.68rem;">Estado: ${estadoVigenciaHTML}</div>
-            </div>
-            <div style="display:flex; align-items:center; gap: 4px;">
-              <select class="form-control" style="padding: 4px 6px; font-size: 0.72rem;" onchange="actualizarRolUsuario('${u.id}', this.value)">
-                ${opcionesRolesHTML}
-              </select>
-              <button class="btn-pw" title="Restablecer Contraseña" onclick="abrirModalPassword('${u.id}', '${u.email || ''}', '${u.name || ''}')">🔑</button>
+        const avatarUrl = u.photo_url || u.avatar_url;
+        let avatarHtml = `<div class="avatar-mini">${(u.name || 'ST').substring(0,2).toUpperCase()}</div>`;
+        if (avatarUrl && typeof avatarUrl === 'string' && avatarUrl.startsWith('http')) {
+          avatarHtml = `<img src="${avatarUrl}" class="avatar-mini" alt="Avatar">`;
+        }
+
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'list-item';
+        itemDiv.style.cursor = 'pointer';
+        itemDiv.onclick = () => abrirDetalleUsuarioDirectorio(u);
+
+        itemDiv.innerHTML = `
+          <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
+            ${avatarHtml}
+            <div style="min-width:0;">
+              <strong style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block;">${u.name || 'Sin nombre'}</strong>
+              <span style="color: var(--text-muted); font-size: 0.72rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block;">${u.email || 'Sin correo'}</span>
+              <div style="margin-top: 2px; font-size: 0.68rem;">Estado: ${estadoVigenciaHTML}</div>
             </div>
           </div>
+          <div style="display:flex; align-items:center; gap: 4px; flex-shrink:0;" onclick="event.stopPropagation();">
+            <select class="form-control" style="padding: 4px 6px; font-size: 0.72rem; width:auto;" onchange="actualizarRolUsuario('${u.id}', this.value)">
+              ${opcionesRolesHTML}
+            </select>
+            <button class="btn-pw" title="Restablecer Contraseña" onclick="abrirModalPassword('${u.id}', '${u.email || ''}', '${u.name || ''}')">🔑</button>
+          </div>
         `;
+        container.appendChild(itemDiv);
       });
     }
 
-    /* ================= BUSCADORES INTELIGENTES (PREDICTIVOS) ================= */
+    function abrirDetalleUsuarioDirectorio(user) {
+      const email = (user.email || '').toLowerCase();
+      const hace60Dias = new Date(); hace60Dias.setDate(hace60Dias.getDate() - 60);
+
+      const chksUser = globalCheckinsCache.filter(c => (c.user_email || '').toLowerCase() === email && new Date(c.created_at) >= hace60Dias);
+      const coachSupUser = globalSupervisionsCache.filter(cs => (cs.coach_email || '').toLowerCase() === email && cs.coordinator_status !== 'pendiente_revision' && new Date(cs.session_date) >= hace60Dias);
+      const supervUser = globalSupervisionsCache.filter(s => (s.supervisor_email || '').toLowerCase() === email && s.coordinator_status !== 'pendiente_revision' && new Date(s.session_date) >= hace60Dias);
+
+      let html = `
+        <div style="margin-bottom: 12px; display:flex; align-items:center; gap:10px;">
+          <div>
+            <strong style="font-size: 0.95rem; color: #fff; display:block;">${user.name || 'Sin Nombre'}</strong>
+            <span style="color: var(--text-muted); font-size: 0.7rem;">${user.email} · Rol: ${(user.profile_id || user.role || 'estudiante').toUpperCase()}</span>
+          </div>
+        </div>
+        <div style="background: #050507; padding: 10px; border-radius: 6px; border: 1px solid var(--border); margin-bottom: 10px;">
+          <strong style="font-size:0.75rem; color:var(--accent); text-transform:uppercase; display:block; margin-bottom:6px;">Desglose Cronológico Bimestral (60d)</strong>
+      `;
+
+      if (chksUser.length > 0) {
+        html += `<div style="margin-bottom:8px; font-size:0.72rem; font-weight:800; color:#22c55e;">Check-ins como Striker (${chksUser.length}):</div>`;
+        chksUser.forEach(c => {
+          const f = new Date(c.created_at).toLocaleDateString();
+          const coachNombre = coachNamesMap[c.coach_id] || c.coach_id || 'Coach Apex';
+          html += `<div style="font-size:0.68rem; color:#ccc; margin-left:8px; margin-bottom:4px; border-left:2px solid #22c55e; padding-left:6px;">📅 ${f} · <strong>+${c.rendimiento || 0} pts</strong> (${c.focus})<br><span style="color:#888;">Aprobó: ${coachNombre}</span></div>`;
+        });
+      }
+
+      if (coachSupUser.length > 0) {
+        html += `<div style="margin-bottom:8px; font-size:0.72rem; font-weight:800; color:#eab308; margin-top:8px;">Supervisiones como Coach (${coachSupUser.length}):</div>`;
+        coachSupUser.forEach(cs => {
+          const f = new Date(cs.session_date).toLocaleDateString();
+          html += `<div style="font-size:0.68rem; color:#ccc; margin-left:8px; margin-bottom:4px; border-left:2px solid #eab308; padding-left:6px;">📅 ${f} · <strong>${cs.coach_points >= 0 ? '+' : ''}${cs.coach_points} pts</strong> (${cs.class_time})<br><span style="color:#888;">Supervisor: ${cs.supervisor_email}</span></div>`;
+        });
+      }
+
+      if (supervUser.length > 0) {
+        html += `<div style="margin-bottom:8px; font-size:0.72rem; font-weight:800; color:#38bdf8; margin-top:8px;">Auditorías como Supervisor (${supervUser.length}):</div>`;
+        supervUser.forEach(s => {
+          const f = new Date(s.session_date).toLocaleDateString();
+          html += `<div style="font-size:0.68rem; color:#ccc; margin-left:8px; margin-bottom:4px; border-left:2px solid #38bdf8; padding-left:6px;">📅 ${f} · <strong>${s.supervisor_points >= 0 ? '+' : ''}${s.supervisor_points} pts</strong> (Coach: ${s.coach_email})<br><span style="color:#888;">Estado: ${s.coordinator_status.toUpperCase()}</span></div>`;
+        });
+      }
+
+      if (chksUser.length === 0 && coachSupUser.length === 0 && supervUser.length === 0) {
+        html += `<span style="font-size:0.7rem; color:var(--text-muted);">No registra actividad en los últimos 60 días.</span>`;
+      }
+
+      html += `</div>`;
+      document.getElementById('staffDetailModalBody').innerHTML = html;
+      document.getElementById('staffDetailModal').style.display = 'flex';
+    }
+
+    /* ================= BUSCADORES INTELIGENTES ================= */
     function buscarStrikersInteligente(query) {
       const q = (query || '').trim().toLowerCase();
       const box = document.getElementById('chkSuggestionsBox');
@@ -799,7 +1022,14 @@
         const item = document.createElement('div');
         item.className = 'suggestion-item';
         const displayName = user.name || 'Sin nombre';
+        const avatarUrl = user.photo_url || user.avatar_url;
+        let avatarHtml = `<div class="avatar-mini">${displayName.substring(0,2).toUpperCase()}</div>`;
+        if (avatarUrl && typeof avatarUrl === 'string' && avatarUrl.startsWith('http')) {
+          avatarHtml = `<img src="${avatarUrl}" class="avatar-mini" alt="Avatar">`;
+        }
+
         item.innerHTML = `
+          ${avatarHtml}
           <div>
             <strong style="color:#fff;">${displayName}</strong><br>
             <span style="color:var(--text-muted); font-size:0.7rem;">${user.email}</span>
@@ -808,6 +1038,12 @@
         item.onclick = () => {
           document.getElementById('chkSearchInput').value = `${displayName} (${user.email})`;
           document.getElementById('newChkUserEmail').value = user.email;
+          
+          const avContainer = document.getElementById('chkSelectedAvatar');
+          if (avContainer) {
+            avContainer.innerHTML = avatarHtml;
+          }
+
           box.style.display = 'none';
         };
         box.appendChild(item);
@@ -815,70 +1051,22 @@
       box.style.display = 'block';
     }
 
-    function buscarCoordinadoresInteligente(query) {
-      const q = (query || '').trim().toLowerCase();
-      const box = document.getElementById('coordSuggestionsBox');
-      if (!box) return;
-      box.innerHTML = '';
-
-      if (q.length < 1) {
-        box.style.display = 'none';
-        return;
-      }
-
-      const matches = rawUsersList.filter(u => {
-        const rol = (u.profile_id || u.role || '').toLowerCase();
-        if (!rol.includes('coordinador')) return false;
-
-        const emailMatch = u.email ? u.email.toLowerCase().includes(q) : false;
-        const nameMatch = u.name ? u.name.toLowerCase().includes(q) : false;
-        return emailMatch || nameMatch;
-      });
-
-      if (matches.length === 0) {
-        box.innerHTML = '<div style="padding:10px; font-size:0.75rem; color:#777;">No hay coordinadores con ese criterio</div>';
-        box.style.display = 'block';
-        return;
-      }
-
-      matches.forEach(user => {
-        const item = document.createElement('div');
-        item.className = 'suggestion-item';
-        const displayName = user.name || 'Sin nombre';
-        item.innerHTML = `
-          <div>
-            <strong style="color:#fff;">${displayName}</strong><br>
-            <span style="color:var(--text-muted); font-size:0.7rem;">${user.email} (Coordinador)</span>
-          </div>
-        `;
-        item.onclick = () => {
-          document.getElementById('coordSearchInput').value = `${displayName} (${user.email})`;
-          document.getElementById('coordTargetEmail').value = user.email;
-          box.style.display = 'none';
-        };
-        box.appendChild(item);
-      });
-      box.style.display = 'block';
-    }
-
-    /* ================= MÓDULO: STAFF & MÉTRICAS CORREGIDAS ================= */
+    /* ================= MÓDULO: STAFF CON DESGLOSE INDEPENDIENTE EXACTO Y CORRECCIÓN DE COLUMNAS ================= */
     async function cargarStaffAdmin() {
       const container = document.getElementById('staffListContainer');
       if (!container) return;
       container.innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;padding:8px;display:block;">Calculando métricas del staff...</span>';
 
       try {
-        const [usersRes, checkinsRes, coachRatingsRes, supervisorRes] = await Promise.all([
+        const [usersRes, checkinsRes, supervisionsRes] = await Promise.all([
           sb.from('apex_users').select('*'),
-          sb.from('apex_checkins').select('user_email, rendimiento, status, created_at'),
-          sb.from('apex_coach_ratings').select('user_email, note, created_at'),
-          sb.from('apex_supervisor_ratings').select('user_email, score, created_at')
+          sb.from('apex_checkins').select('*'),
+          sb.from('apex_coach_supervisions').select('*')
         ]);
 
         const users = usersRes.data || [];
         const checkins = checkinsRes.data || [];
-        const coachRatings = coachRatingsRes.data || [];
-        const supervisorRatings = supervisorRes.data || [];
+        const supervisions = supervisionsRes.data || [];
 
         const staffList = users.filter(u => {
           const rol = (u.profile_id || u.role || '').toLowerCase();
@@ -897,24 +1085,25 @@
         container.innerHTML = '';
         staffList.forEach(stf => {
           const email = (stf.email || '').toLowerCase();
-          
+
+          // 1. PUNTOS STRIKER (Check-ins aprobados al usuario)
+          const chksStf = checkins.filter(c => (c.user_email || '').toLowerCase() === email && c.status === 'aprobado' && new Date(c.created_at) >= hace60Dias);
           let ptsStriker = 0;
-          checkins.filter(c => (c.user_email || '').toLowerCase() === email && c.status === 'aprobado' && new Date(c.created_at) >= hace60Dias)
-            .forEach(c => ptsStriker += parseFloat(c.rendimiento || 0));
-          const pctStriker = Math.min(100, Math.round((ptsStriker / 240) * 100));
+          chksStf.forEach(c => ptsStriker += parseFloat(c.rendimiento || 0));
 
+          // 2. PUNTOS COACH (Puntos obtenidos cuando es supervisado en apex_coach_supervisions)
+          const coachSupStf = supervisions.filter(cs => (cs.coach_email || '').toLowerCase() === email && cs.coordinator_status !== 'pendiente_revision' && new Date(cs.session_date) >= hace60Dias);
           let ptsCoach = 0;
-          coachRatings.filter(r => (r.user_email || '').toLowerCase() === email && new Date(r.created_at) >= hace60Dias)
-            .forEach(r => ptsCoach += parseFloat(r.note || 0));
-          const pctCoach = Math.min(100, Math.round((ptsCoach / 240) * 100));
+          coachSupStf.forEach(cs => ptsCoach += parseFloat(cs.coach_points || 0));
 
+          // 3. PUNTOS SUPERVISIÓN (Puntos obtenidos por realizar supervisiones como supervisor)
+          const supervStf = supervisions.filter(s => (s.supervisor_email || '').toLowerCase() === email && s.coordinator_status !== 'pendiente_revision' && new Date(s.session_date) >= hace60Dias);
           let ptsSupervisor = 0;
-          supervisorRatings.filter(s => (s.user_email || '').toLowerCase() === email && new Date(s.created_at) >= hace60Dias)
-            .forEach(s => ptsSupervisor += parseFloat(s.score || 0));
-          const pctSupervisor = Math.min(100, Math.round((ptsSupervisor / 240) * 100));
+          supervStf.forEach(s => ptsSupervisor += parseFloat(s.supervisor_points || 0));
 
-          const totalPtsGlobal = ptsStriker + ptsCoach + ptsSupervisor;
-          const progGlobalPct = Math.min(100, Math.round((totalPtsGlobal / 240) * 100));
+          const ptsTotales = ptsStriker + ptsCoach + ptsSupervisor;
+          const meta = 240;
+          const progGlobalPct = Math.min(100, Math.round((ptsTotales / meta) * 100));
 
           let colorProgreso = '#ffffff';
           if (progGlobalPct >= 100) colorProgreso = '#ffd700';
@@ -929,40 +1118,44 @@
 
           const rolNombre = (stf.profile_id || stf.role || 'Staff').toUpperCase();
 
-          container.innerHTML += `
-            <div class="list-item" style="flex-direction:column; align-items:flex-start; gap:8px;">
-              <div style="width:100%; display:flex; justify-content:space-between; align-items:center;">
-                <div>
-                  <strong style="font-size:0.85rem; color:#fff;">${stf.name || 'Sin nombre'}</strong> <span class="badge" style="color:var(--accent);">${rolNombre}</span><br>
-                  <span style="font-size:0.68rem; color:var(--text-muted);">${stf.email}</span>
-                </div>
-                <div>${badgeEstado}</div>
+          const cardDiv = document.createElement('div');
+          cardDiv.className = 'list-item';
+          cardDiv.style.cssText = 'flex-direction:column; align-items:flex-start; gap:8px; cursor:pointer;';
+          cardDiv.onclick = () => abrirDetalleStaffAnidado(stf, chksStf, coachSupStf, supervStf, ptsTotales);
+
+          cardDiv.innerHTML = `
+            <div style="width:100%; display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <strong style="font-size:0.85rem; color:#fff;">${stf.name || 'Sin nombre'}</strong> <span class="badge" style="color:var(--accent);">${rolNombre}</span><br>
+                <span style="font-size:0.68rem; color:var(--text-muted);">${stf.email}</span>
               </div>
-              <div style="width:100%; display:grid; grid-template-columns: repeat(3, 1fr); gap:6px; background:#070709; padding:8px; border-radius:6px; border:1px solid var(--border); text-align:center;">
-                <div>
-                  <div style="font-size:0.55rem; color:var(--text-muted); text-transform:uppercase;">Striker</div>
-                  <div style="font-size:0.75rem; font-weight:900; color:#fff;">${pctStriker}%</div>
-                </div>
-                <div>
-                  <div style="font-size:0.55rem; color:var(--text-muted); text-transform:uppercase;">Coach</div>
-                  <div style="font-size:0.75rem; font-weight:900; color:#fff;">${pctCoach}%</div>
-                </div>
-                <div>
-                  <div style="font-size:0.55rem; color:var(--text-muted); text-transform:uppercase;">Supervisión</div>
-                  <div style="font-size:0.75rem; font-weight:900; color:#fff;">${pctSupervisor}%</div>
-                </div>
+              <div>${badgeEstado}</div>
+            </div>
+            <div style="width:100%; display:grid; grid-template-columns: repeat(3, 1fr); gap:6px; background:#050507; padding:8px; border-radius:6px; border:1px solid var(--border); text-align:center;">
+              <div onclick="event.stopPropagation(); abrirDetalleRolEspecifico('${stf.email}', 'striker')" style="cursor:pointer;">
+                <div style="font-size:0.55rem; color:var(--text-muted); text-transform:uppercase;">Striker</div>
+                <div style="font-size:0.75rem; font-weight:900; color:#22c55e;">${ptsStriker.toFixed(1)} pts</div>
               </div>
-              <div style="width:100%; background:#070709; padding:8px; border-radius:6px; border:1px solid var(--border);">
-                <div style="display:flex; justify-content:space-between; font-size:0.62rem; font-weight:800; text-transform:uppercase; margin-bottom:4px; color:#fff;">
-                  <span>Progreso Global (${totalPtsGlobal.toFixed(1)} / 240 PTS)</span>
-                  <span style="color:${colorProgreso};">${progGlobalPct}%</span>
-                </div>
-                <div style="width:100%; height:6px; background:#121216; border-radius:3px; overflow:hidden; border:1px solid var(--border);">
-                  <div style="height:100%; width:${progGlobalPct}%; background:${colorProgreso}; border-radius:3px; transition:width 0.5s ease;"></div>
-                </div>
+              <div onclick="event.stopPropagation(); abrirDetalleRolEspecifico('${stf.email}', 'coach')" style="cursor:pointer;">
+                <div style="font-size:0.55rem; color:var(--text-muted); text-transform:uppercase;">Coach</div>
+                <div style="font-size:0.75rem; font-weight:900; color:#eab308;">${ptsCoach.toFixed(1)} pts</div>
+              </div>
+              <div onclick="event.stopPropagation(); abrirDetalleRolEspecifico('${stf.email}', 'supervisor')" style="cursor:pointer;">
+                <div style="font-size:0.55rem; color:var(--text-muted); text-transform:uppercase;">Supervisión</div>
+                <div style="font-size:0.75rem; font-weight:900; color:#38bdf8;">${ptsSupervisor.toFixed(1)} pts</div>
+              </div>
+            </div>
+            <div style="width:100%; background:#050507; padding:8px; border-radius:6px; border:1px solid var(--border);">
+              <div style="display:flex; justify-content:space-between; font-size:0.62rem; font-weight:800; text-transform:uppercase; margin-bottom:4px; color:#fff;">
+                <span>Nivel Bimestral Global (${ptsTotales.toFixed(1)} / 240 PTS)</span>
+                <span style="color:${colorProgreso};">${progGlobalPct}%</span>
+              </div>
+              <div style="width:100%; height:6px; background:#121216; border-radius:3px; overflow:hidden; border:1px solid var(--border);">
+                <div style="height:100%; width:${progGlobalPct}%; background:${colorProgreso}; border-radius:3px; transition:width 0.5s ease;"></div>
               </div>
             </div>
           `;
+          container.appendChild(cardDiv);
         });
 
       } catch (err) {
@@ -970,8 +1163,99 @@
       }
     }
 
-    /* ================= MÓDULO: CALIFICACIÓN AL COORDINADOR ================= */
+    function abrirDetalleStaffAnidado(stf, chks, coachSups, supers, totalPts) {
+      let html = `
+        <div style="margin-bottom: 12px;">
+          <strong style="font-size: 0.95rem; color: #fff; display:block;">${stf.name || 'Sin Nombre'}</strong>
+          <span style="color: var(--text-muted); font-size: 0.7rem;">${stf.email} · Total Bimestral: <strong style="color:var(--accent);">${totalPts.toFixed(1)} / 240 PTS</strong></span>
+        </div>
+        <div style="background: #050507; padding: 10px; border-radius: 6px; border: 1px solid var(--border); margin-bottom: 10px;">
+      `;
+
+      if (chks.length > 0) {
+        html += `<div style="margin-bottom: 8px;"><strong style="font-size:0.75rem; color:#22c55e;">🥊 Check-ins Aprobados (${chks.length}):</strong></div>`;
+        chks.forEach(c => {
+          const f = new Date(c.created_at).toLocaleDateString();
+          html += `<div style="font-size:0.68rem; color:#ccc; margin-left:8px; margin-bottom:4px; border-left:2px solid #22c55e; padding-left:6px;">📅 ${f} · <strong>+${c.rendimiento || 0} pts</strong> (${c.focus})</div>`;
+        });
+      }
+
+      if (coachSups.length > 0) {
+        html += `<div style="margin-bottom: 8px; margin-top: 10px;"><strong style="font-size:0.75rem; color:#eab308;">📋 Evaluaciones como Coach (${coachSups.length}):</strong></div>`;
+        coachSups.forEach(cs => {
+          const f = new Date(cs.session_date).toLocaleDateString();
+          html += `<div style="font-size:0.68rem; color:#ccc; margin-left:8px; margin-bottom:4px; border-left:2px solid #eab308; padding-left:6px;">📅 ${f} · <strong>${cs.coach_points >= 0 ? '+' : ''}${cs.coach_points} pts</strong> (${cs.class_time})<br><span style="color:#888;">Supervisor: ${cs.supervisor_email}</span></div>`;
+        });
+      }
+
+      if (supers.length > 0) {
+        html += `<div style="margin-bottom: 8px; margin-top: 10px;"><strong style="font-size:0.75rem; color:#38bdf8;">👁️ Supervisiones Realizadas (${supers.length}):</strong></div>`;
+        supers.forEach(s => {
+          const f = new Date(s.session_date).toLocaleDateString();
+          html += `<div style="font-size:0.68rem; color:#ccc; margin-left:8px; margin-bottom:4px; border-left:2px solid #38bdf8; padding-left:6px;">📅 ${f} · <strong>${s.supervisor_points >= 0 ? '+' : ''}${s.supervisor_points} pts</strong> (Coach evaluado: ${s.coach_email})</div>`;
+        });
+      }
+
+      if (chks.length === 0 && coachSups.length === 0 && supers.length === 0) {
+        html += `<span style="font-size:0.7rem; color:var(--text-muted);">No registra puntos en los últimos 60 días.</span>`;
+      }
+
+      html += `</div>`;
+      document.getElementById('staffDetailModalBody').innerHTML = html;
+      document.getElementById('staffDetailModal').style.display = 'flex';
+    }
+
+    function abrirDetalleRolEspecifico(emailUser, rolTipo) {
+      const hace60Dias = new Date(); hace60Dias.setDate(hace60Dias.getDate() - 60);
+      let html = `<div style="margin-bottom:10px;"><strong style="color:var(--accent);">Desglose Específico: ${rolTipo.toUpperCase()} (${emailUser})</strong></div>`;
+
+      if (rolTipo === 'striker') {
+        const misChks = globalCheckinsCache.filter(c => (c.user_email || '').toLowerCase() === emailUser.toLowerCase() && c.status === 'aprobado' && new Date(c.created_at) >= hace60Dias);
+        misChks.forEach(c => {
+          const f = new Date(c.created_at).toLocaleDateString();
+          const coachNom = coachNamesMap[c.coach_id] || 'Coach';
+          html += `<div style="background:#050507; padding:8px; border-radius:4px; border:1px solid var(--border); margin-bottom:6px; font-size:0.72rem;">📅 ${f} · <strong>+${c.rendimiento} Pts</strong> (${c.focus})<br><span style="color:var(--text-muted);">Coach: ${coachNom}</span></div>`;
+        });
+        if (misChks.length === 0) html += `<span style="color:var(--text-muted);">Sin registros como striker en 60 días.</span>`;
+      } else if (rolTipo === 'coach') {
+        const misCoaches = globalSupervisionsCache.filter(cs => (cs.coach_email || '').toLowerCase() === emailUser.toLowerCase() && cs.coordinator_status !== 'pendiente_revision' && new Date(cs.session_date) >= hace60Dias);
+        misCoaches.forEach(cs => {
+          const f = new Date(cs.session_date).toLocaleDateString();
+          html += `<div style="background:#050507; padding:8px; border-radius:4px; border:1px solid var(--border); margin-bottom:6px; font-size:0.72rem;">📅 ${f} · <strong>${cs.coach_points >= 0 ? '+' : ''}${cs.coach_points} Pts</strong> (${cs.class_time})<br><span style="color:var(--text-muted);">Supervisor: ${cs.supervisor_email}</span></div>`;
+        });
+        if (misCoaches.length === 0) html += `<span style="color:var(--text-muted);">Sin supervisiones como coach en 60 días.</span>`;
+      } else if (rolTipo === 'supervisor') {
+        const misSup = globalSupervisionsCache.filter(s => (s.supervisor_email || '').toLowerCase() === emailUser.toLowerCase() && s.coordinator_status !== 'pendiente_revision' && new Date(s.session_date) >= hace60Dias);
+        misSup.forEach(s => {
+          const f = new Date(s.session_date).toLocaleDateString();
+          html += `<div style="background:#050507; padding:8px; border-radius:4px; border:1px solid var(--border); margin-bottom:6px; font-size:0.72rem;">📅 ${f} · <strong>${s.supervisor_points >= 0 ? '+' : ''}${s.supervisor_points} Pts</strong> (Coach: ${s.coach_email})<br><span style="color:var(--text-muted);">Estado: ${s.coordinator_status.toUpperCase()}</span></div>`;
+        });
+        if (misSup.length === 0) html += `<span style="color:var(--text-muted);">Sin supervisiones en 60 días.</span>`;
+      }
+
+      document.getElementById('staffDetailModalBody').innerHTML = html;
+      document.getElementById('staffDetailModal').style.display = 'flex';
+    }
+
+    function cerrarModalStaffDetail() {
+      document.getElementById('staffDetailModal').style.display = 'none';
+    }
+
+    /* ================= MÓDULO: CALIFICACIÓN AL COORDINADOR CON PRECARGA ================= */
     async function cargarDatosCoordinadorModulo() {
+      const selectCoord = document.getElementById('selectCoordinadorDirecto');
+      if (selectCoord) {
+        selectCoord.innerHTML = '<option value="" disabled selected>Selecciona un coordinador</option>';
+        const coordinadores = rawUsersList.filter(u => {
+          const rol = (u.profile_id || u.role || '').toLowerCase();
+          return rol.includes('coordinador');
+        });
+
+        coordinadores.forEach(c => {
+          selectCoord.innerHTML += `<option value="${c.email}">${c.name || c.email} (${c.email})</option>`;
+        });
+      }
+
       const selectCat = document.getElementById('coordCategory');
       if (selectCat) {
         selectCat.innerHTML = '';
@@ -985,7 +1269,7 @@
         catList.innerHTML = '';
         customCoordCategories.forEach((cat, idx) => {
           catList.innerHTML += `
-            <div style="display:flex; justify-content:space-between; align-items:center; background:#070709; padding:6px 10px; border:1px solid var(--border); border-radius:4px; margin-top:4px; font-size:0.72rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#050507; padding:6px 10px; border:1px solid var(--border); border-radius:4px; margin-top:4px; font-size:0.72rem; color: #ffffff;">
               <span>${cat}</span>
               <button class="btn-danger" style="padding:2px 6px; font-size:0.6rem;" onclick="eliminarCategoriaCoord(${idx})">🗑️</button>
             </div>
@@ -994,6 +1278,34 @@
       }
 
       await cargarHistorialCoordinadorAdmin();
+    }
+
+    function seleccionarCoordinadorDirecto(email) {
+      document.getElementById('coordTargetEmail').value = email;
+      const dash = document.getElementById('coordPerformanceDashboard');
+      dash.style.display = 'block';
+
+      const hace60Dias = new Date(); hace60Dias.setDate(hace60Dias.getDate() - 60);
+      const chks = globalCheckinsCache.filter(c => (c.user_email || '').toLowerCase() === email.toLowerCase() && c.status === 'aprobado' && new Date(c.created_at) >= hace60Dias);
+      const coaches = globalSupervisionsCache.filter(cs => (cs.coach_email || '').toLowerCase() === email.toLowerCase() && cs.coordinator_status !== 'pendiente_revision' && new Date(cs.session_date) >= hace60Dias);
+      const supers = globalSupervisionsCache.filter(s => (s.supervisor_email || '').toLowerCase() === email.toLowerCase() && s.coordinator_status !== 'pendiente_revision' && new Date(s.session_date) >= hace60Dias);
+      const coords = globalCoordinatorAdjustmentsCache.filter(a => (a.user_email || '').toLowerCase() === email.toLowerCase() && new Date(a.created_at) >= hace60Dias);
+
+      let pStriker = 0; chks.forEach(c => pStriker += parseFloat(c.rendimiento || 0));
+      let pCoach = 0; coaches.forEach(cs => pCoach += parseFloat(cs.coach_points || 0));
+      let pSuperv = 0; supers.forEach(s => pSuperv += parseFloat(s.supervisor_points || 0));
+      let pCoord = 0; coords.forEach(a => pCoord += parseFloat(a.note || 0));
+
+      document.getElementById('coordMetricStriker').innerText = pStriker.toFixed(1);
+      document.getElementById('coordMetricCoach').innerText = pCoach.toFixed(1);
+      document.getElementById('coordMetricSuperv').innerText = pSuperv.toFixed(1);
+      document.getElementById('coordMetricCoord').innerText = pCoord.toFixed(1);
+    }
+
+    function abrirDrillCoordMetric(tipo) {
+      const email = document.getElementById('coordTargetEmail').value;
+      if (!email) return;
+      abrirDetalleRolEspecifico(email, tipo === 'coord' ? 'supervisor' : tipo);
     }
 
     function agregarCategoriaCoord() {
@@ -1015,10 +1327,8 @@
 
     async function guardarCalificacionCoordinador() {
       const email = document.getElementById('coordTargetEmail')?.value;
-      const category = document.getElementById('coordCategory')?.value;
       const note = parseFloat(document.getElementById('coordNoteVal')?.value);
       const dateVal = document.getElementById('coordDateInput')?.value;
-      const observation = document.getElementById('coordObservation')?.value.trim();
 
       if (!email) return alert('Selecciona un coordinador válido.');
       if (isNaN(note)) return alert('Ingresa una nota válida del 1 al 10.');
@@ -1041,9 +1351,8 @@
         document.getElementById('coordNoteVal').value = '';
         document.getElementById('coordObservation').value = '';
         document.getElementById('coordDateInput').value = '';
-        document.getElementById('coordSearchInput').value = '';
-        document.getElementById('coordTargetEmail').value = '';
         await cargarHistorialCoordinadorAdmin();
+        seleccionarCoordinadorDirecto(email);
       }
     }
 
@@ -1084,7 +1393,7 @@
       }
     }
 
-    /* ================= HISTORIAL DE CHECK-INS & CREACIÓN DIRECTA ================= */
+    /* ================= HISTORIAL DE CHECK-INS CON CONTADOR ================= */
     async function crearCheckinDirectoAdmin() {
       const email = document.getElementById('newChkUserEmail')?.value;
       const focus = document.getElementById('newChkFocus')?.value;
@@ -1136,6 +1445,7 @@
         document.getElementById('newChkDate').value = '';
         document.getElementById('chkSearchInput').value = '';
         document.getElementById('newChkUserEmail').value = '';
+        document.getElementById('chkSelectedAvatar').innerHTML = '';
         await cargarCheckinsAdmin();
       }
     }
@@ -1212,6 +1522,8 @@
         }
         return true;
       });
+
+      document.getElementById('chkCountFilteredBadge').innerText = `${filtrados.length} resultados`;
 
       if (filtrados.length === 0) {
         container.innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;padding:8px;display:block;">No hay check-ins con estos filtros.</span>';
@@ -1435,10 +1747,14 @@
     }
 
     async function eliminarBloque(blockId) {
-      if (!confirm(`¿Eliminar permanentemente el bloque "${blockId}"? Se quitará de todos los perfiles asignados.`)) return;
+      const rolesAsignados = dbProfileBlocks.filter(pb => pb.block_id === blockId);
+      if (rolesAsignados.length > 0) {
+        return alert(`⚠️ No se puede eliminar este bloque porque está asignado a ${rolesAsignados.length} roles. Quítalo de los perfiles primero.`);
+      }
+
+      if (!confirm(`¿Eliminar permanentemente el bloque "${blockId}"?`)) return;
 
       try {
-        await sb.from('apex_profile_blocks').delete().eq('block_id', blockId);
         const { error } = await sb.from('apex_blocks').delete().eq('id', blockId);
         if (error) throw error;
 
@@ -1463,7 +1779,12 @@
 
       document.getElementById('profileName').value = perfil.name;
       if (btnEliminar) {
-        btnEliminar.style.display = (['admin', 'estudiante', 'coach'].includes(profileId.toLowerCase())) ? 'none' : 'block';
+        const usuariosEnRol = rawUsersList.filter(u => {
+          const rolUsr = (u.profile_id || u.role || 'estudiante').toLowerCase();
+          return rolUsr === profileId.toLowerCase();
+        });
+        const esRaiz = ['admin', 'estudiante', 'coach'].includes(profileId.toLowerCase());
+        btnEliminar.style.display = (esRaiz || usuariosEnRol.length > 0) ? 'none' : 'block';
       }
 
       const assigned = dbProfileBlocks.filter(pb => pb.profile_id === profileId).map(pb => pb.block_id);
@@ -1519,6 +1840,15 @@
     async function eliminarRolDirecto(profileId) {
       if (['admin', 'estudiante', 'coach'].includes(profileId.toLowerCase())) {
         return alert('Los roles raíz (admin, estudiante, coach) no pueden ser eliminados.');
+      }
+
+      const usuariosEnRol = rawUsersList.filter(u => {
+        const rolUsr = (u.profile_id || u.role || 'estudiante').toLowerCase();
+        return rolUsr === profileId.toLowerCase();
+      });
+
+      if (usuariosEnRol.length > 0) {
+        return alert(`⚠️ No se puede eliminar el rol "${profileId}" porque tiene ${usuariosEnRol.length} usuarios asignados.`);
       }
 
       if (!confirm(`⚠️ ¿Estás completamente seguro de ELIMINAR el rol "${profileId}"? Esta acción no se puede deshacer.`)) return;
