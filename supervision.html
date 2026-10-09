@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#0c0c0c">
+  <meta name="theme-color" content="#000000">
   <title>Apex | Panel Supervisor</title>
 
   <!-- Supabase JS -->
@@ -11,12 +11,12 @@
 
   <style>
     :root {
-      --bg: #0c0c0c;
-      --card-bg: #141414;
-      --border: #222222;
+      --bg: #000000;
+      --card-bg: #0a0a0c;
+      --border: #1a1a1e;
       --accent: #e50914;
-      --text-main: #ffffff;
-      --text-muted: #888888;
+      --text-main: #f5f5f7;
+      --text-muted: #73737a;
       --status-ok: #22c55e;
       --status-warn: #eab308;
       --tier-color: #ffffff;
@@ -41,7 +41,7 @@
     .avatar-wrapper { position: relative; flex-shrink: 0; }
     .avatar-circle {
       width: 48px; height: 48px; border-radius: 50%; object-fit: cover;
-      background: #1c1c1c; border: 2px solid var(--border);
+      background: #141418; border: 2px solid var(--border);
       display: flex; align-items: center; justify-content: center;
       font-size: 0.9rem; font-weight: 900; color: #fff;
     }
@@ -49,10 +49,10 @@
     .profile-text span { font-size: 0.7rem; color: var(--text-muted); }
     .role-pill {
       font-size: 0.65rem; font-weight: 800; padding: 4px 8px; border-radius: 4px;
-      text-transform: uppercase; background: #1c1c1c; border: 1px solid var(--border); color: var(--accent);
+      text-transform: uppercase; background: #141418; border: 1px solid var(--border); color: var(--accent);
     }
 
-    /* BARRA DE PROGRESO DE NIVEL GLOBAL */
+    /* BARRA DE PROGRESO DE NIVEL GLOBAL CON SEGMENTOS MULTIFUENTE */
     .progress-card {
       background: var(--card-bg); border: 1px solid var(--border);
       border-radius: 8px; padding: 14px; margin-bottom: 14px;
@@ -62,20 +62,28 @@
     .progress-percent-val { font-size: 1.1rem; font-weight: 900; color: var(--tier-color); }
 
     .progress-bar-track {
-      width: 100%; height: 10px; background: #1c1c1c; border-radius: 5px;
-      overflow: hidden; border: 1px solid #282828; margin-bottom: 8px;
+      width: 100%; height: 10px; background: #121216; border-radius: 5px;
+      overflow: hidden; border: 1px solid var(--border); margin-bottom: 8px; display: flex;
     }
     .progress-bar-fill {
       height: 100%; width: 0%; background: var(--tier-color);
       border-radius: 5px; transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
       box-shadow: 0 0 10px var(--tier-color);
     }
+    .progress-segment { height: 100%; transition: width 0.6s ease; }
+    .seg-checkins { background: #22c55e; }
+    .seg-coach { background: #3b82f6; }
+    .seg-supervision { background: #a855f7; }
+    .seg-adjustments { background: #eab308; }
+
     .progress-meta-grid { display: flex; justify-content: space-between; font-size: 0.68rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
+    .staff-subgrid { display: none; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 8px; border-top: 1px solid var(--border); padding-top: 6px; font-size: 0.58rem; text-transform: uppercase; text-align: center; }
+    .staff-subgrid div { background: #050507; padding: 4px; border-radius: 4px; border: 1px solid var(--border); }
 
     /* BANDEJA DE SANCIONES / NOTIFICACIONES DE COORDINACIÓN */
     .notif-container { display: none; flex-direction: column; gap: 8px; margin-bottom: 14px; }
     .notif-card {
-      background: #18181a; border-left: 3px solid var(--accent); border-top: 1px solid var(--border);
+      background: rgba(15, 15, 18, 0.95); border-left: 3px solid var(--accent); border-top: 1px solid var(--border);
       border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
       border-radius: 6px; padding: 12px;
     }
@@ -90,7 +98,7 @@
     /* NAVEGACIÓN EN CUATRO PESTAÑAS */
     .sub-nav { display: flex; gap: 4px; margin-bottom: 14px; overflow-x: auto; padding-bottom: 4px; }
     .nav-btn {
-      flex: 1; min-width: 80px; padding: 9px 4px; background: #161616; border: 1px solid var(--border);
+      flex: 1; min-width: 80px; padding: 9px 4px; background: #0a0a0c; border: 1px solid var(--border);
       color: var(--text-muted); font-size: 0.68rem; font-weight: 800; text-transform: uppercase;
       border-radius: 6px; cursor: pointer; text-align: center; transition: 0.2s; white-space: nowrap;
     }
@@ -105,43 +113,43 @@
 
     .form-group { margin-bottom: 12px; }
     label { display: block; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted); margin-bottom: 5px; }
-    .form-control { width: 100%; padding: 11px; background: #1c1c1c; border: 1px solid #333; color: #fff; border-radius: 6px; font-weight: 600; outline: none; font-size: 0.82rem; color-scheme: dark; }
+    .form-control { width: 100%; padding: 11px; background: var(--bg); border: 1px solid var(--border); color: #fff; border-radius: 6px; font-weight: 600; outline: none; font-size: 0.82rem; color-scheme: dark; }
     .form-control:focus { border-color: var(--accent); }
 
     /* BLOQUE DE CONFIGURACIÓN DE NOMBRE */
     .config-box { display: flex; gap: 8px; margin-top: 10px; }
     .config-box input { flex: 1; }
-    .btn-small { padding: 0 14px; background: #262626; border: 1px solid #383838; color: #fff; font-size: 0.72rem; font-weight: 800; border-radius: 6px; cursor: pointer; text-transform: uppercase; }
-    .btn-small:hover { background: #333; }
+    .btn-small { padding: 0 14px; background: #16161a; border: 1px solid var(--border); color: #fff; font-size: 0.72rem; font-weight: 800; border-radius: 6px; cursor: pointer; text-transform: uppercase; }
+    .btn-small:hover { background: #222; }
 
     /* FILTROS TEMPORALES */
     .time-filter-wrap {
-      background: #101012; border: 1px solid var(--border); border-radius: 6px;
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px;
       padding: 10px; margin-bottom: 14px;
     }
     .filter-btn-group { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
     .filter-btn {
-      flex: 1; min-width: 65px; padding: 7px 4px; background: #18181a; border: 1px solid var(--border);
+      flex: 1; min-width: 65px; padding: 7px 4px; background: #111114; border: 1px solid var(--border);
       color: var(--text-muted); border-radius: 4px; font-size: 0.65rem; font-weight: 800;
       text-transform: uppercase; cursor: pointer; text-align: center; transition: 0.2s;
     }
     .filter-btn.active { background: #fff; color: #000; border-color: #fff; }
     .custom-range-inputs {
       display: none; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px;
-      border-top: 1px solid #202024; padding-top: 8px;
+      border-top: 1px solid var(--border); padding-top: 8px;
     }
     .custom-range-inputs input {
-      background: #09090b; border: 1px solid var(--border); color: #fff;
+      background: var(--bg); border: 1px solid var(--border); color: #fff;
       padding: 6px 8px; font-size: 0.72rem; border-radius: 4px; outline: none; color-scheme: dark;
     }
 
     /* CHECKLIST TÁCTICO APEX */
     .checklist-container { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
     .check-item {
-      display: flex; align-items: flex-start; gap: 10px; background: #18181a;
-      border: 1px solid #26262a; padding: 10px 12px; border-radius: 6px; cursor: pointer; user-select: none; transition: 0.15s;
+      display: flex; align-items: flex-start; gap: 10px; background: #050507;
+      border: 1px solid var(--border); padding: 10px 12px; border-radius: 6px; cursor: pointer; user-select: none; transition: 0.15s;
     }
-    .check-item.active { background: #121f15; border-color: #22c55e66; }
+    .check-item.active { background: #061a0e; border-color: rgba(34, 197, 94, 0.4); }
     .check-item input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--status-ok); cursor: pointer; margin-top: 2px; flex-shrink: 0; }
     .check-desc { font-size: 0.74rem; font-weight: 600; color: #ddd; line-height: 1.35; }
     .check-num { font-weight: 900; color: var(--text-muted); font-size: 0.75rem; min-width: 18px; }
@@ -150,25 +158,26 @@
     /* VISUALIZADOR DE PUNTOS EN VIVO */
     .points-bar {
       position: sticky; top: 10px; z-index: 10;
-      background: #111; border: 1px solid var(--border); border-radius: 6px;
+      background: rgba(10, 10, 12, 0.95); backdrop-filter: blur(8px);
+      border: 1px solid var(--border); border-radius: 6px;
       padding: 12px 16px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.8);
     }
     .score-badge { font-size: 1.3rem; font-weight: 900; }
 
     .btn { background: var(--accent); color: #fff; border: none; padding: 13px; width: 100%; font-weight: 900; text-transform: uppercase; border-radius: 6px; cursor: pointer; font-size: 0.85rem; letter-spacing: 0.5px; margin-top: 10px; transition: 0.2s; }
-    .btn:disabled { background: #333; color: #777; cursor: not-allowed; }
+    .btn:disabled { background: #222; color: #555; cursor: not-allowed; }
     .btn:active { filter: brightness(0.85); }
 
     /* KPIS & TARJETAS DE RESUMEN */
     .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
-    .summary-box { background: #181818; border: 1px solid var(--border); border-radius: 6px; padding: 12px; text-align: center; }
+    .summary-box { background: #050507; border: 1px solid var(--border); border-radius: 6px; padding: 12px; text-align: center; }
     .summary-num { font-size: 1.6rem; font-weight: 900; color: #fff; }
     .summary-txt { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800; margin-top: 2px; }
 
-    .history-card { background: #18181a; border: 1px solid #282828; border-radius: 6px; padding: 10px 12px; margin-top: 8px; font-size: 0.75rem; }
+    .history-card { background: #050507; border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; margin-top: 8px; font-size: 0.75rem; }
     .history-header { display: flex; justify-content: space-between; font-weight: 800; margin-bottom: 4px; }
-    .audit-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 6px; background: #111; padding: 8px; border-radius: 4px; font-size: 0.68rem; text-align: center; }
+    .audit-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 6px; background: #000000; padding: 8px; border-radius: 4px; font-size: 0.68rem; text-align: center; border: 1px solid var(--border); }
   </style>
 </head>
 <body>
@@ -192,7 +201,7 @@
     <div class="role-pill">SUPERVISOR</div>
   </div>
 
-  <!-- TARJETA REACTIVA DE NIVEL & PROGRESO GLOBAL APEX -->
+  <!-- TARJETA REACTIVA DE NIVEL & PROGRESO GLOBAL APEX CON SEGMENTOS -->
   <div class="progress-card">
     <div class="progress-header">
       <div>
@@ -201,12 +210,22 @@
       </div>
       <div class="progress-percent-val" id="supTierPercent">0%</div>
     </div>
-    <div class="progress-bar-track">
+    
+    <div class="progress-bar-track" id="supProgressBarTrack">
       <div class="progress-bar-fill" id="supTierBarFill"></div>
     </div>
+
     <div class="progress-meta-grid">
       <span id="supPtsTxt">0 / 240 PTS</span>
       <span id="supMetaTxt">Escala Global Apex</span>
+    </div>
+
+    <!-- DESGLOSE MINIMALISTA MULTIFUENTE -->
+    <div class="staff-subgrid" id="supStaffSubgrid" style="display:none;">
+      <div>Check-ins: <b id="supSubPtsCheckins">0</b></div>
+      <div>Coach: <b id="supSubPtsCoach">0</b></div>
+      <div>Sup: <b id="supSubPtsSupervision">0</b></div>
+      <div>Ajustes: <b id="supSubPtsAdjustments">0</b></div>
     </div>
   </div>
 
@@ -451,6 +470,8 @@
 
     let cachedSupervisiones = [];
     let cachedStrikersCheckins = [];
+    let puntajeActualBimestreSupervisor = 0;
+    let supervisorEsRolEstudiante = false;
 
     function switchTab(tabId, btn) {
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -563,6 +584,9 @@
           document.getElementById('displayNombreSup').innerText = data.name || 'Supervisor Apex';
           document.getElementById('inputEditNombre').value = data.name || '';
 
+          const rolUsuario = (data.profile_id || data.role || data.tipo || data.membership_type || '').toLowerCase();
+          supervisorEsRolEstudiante = rolUsuario.includes('estudiante') || rolUsuario.includes('striker') || (!rolUsuario.includes('coach') && !rolUsuario.includes('admin') && !rolUsuario.includes('supervis') && !rolUsuario.includes('staff') && !rolUsuario.includes('coordinador'));
+
           const avatarUrl = data.photo_url || data.avatar_url || localStorage.getItem('apex_user_avatar');
           renderAvatarVisual(avatarUrl, data.name || data.email || 'SP');
         }
@@ -654,13 +678,22 @@
       e.preventDefault();
       const btn = document.getElementById('btnEnviar');
       btn.disabled = true;
-      btn.innerText = 'Enviando Calificación...';
+      btn.innerText = 'Verificando Topes y Enviando...';
 
       const selectCoach = document.getElementById('supCoachSelect');
       const coachEmail = selectCoach.value;
       const coachId = selectCoach.options[selectCoach.selectedIndex]?.dataset?.id || null;
       const fecha = document.getElementById('supFecha').value;
       const clase = document.getElementById('supClase').value;
+
+      // FILTRO DE TOPE MÁXIMO EN EVALUAR (CON LÓGICA DE MANTENIMIENTO)
+      const TOPE_MAXIMO = supervisorEsRolEstudiante ? 240 : 264;
+      let puntosSupervisorIngresados = 0; // Las evaluaciones de supervisor cargan 0 puntos directos hasta aprobación de coordinación, pero aplicamos la regla si aplica puntaje o supervisor multifuente
+
+      let mensajeNotifExtra = null;
+      if (puntajeActualBimestreSupervisor >= TOPE_MAXIMO) {
+        mensajeNotifExtra = "Has alcanzado el límite máximo de tu categoría. Este registro ha sido ingresado en modo de mantenimiento para conservar tu posición.";
+      }
 
       const payload = {
         session_date: fecha,
@@ -679,7 +712,7 @@
         c9_orden_limpieza: document.getElementById('c9').checked,
         c10_progresiones_nuevos: document.getElementById('c10').checked,
         coach_points: totalPointsCoach,
-        supervisor_points: 0,
+        supervisor_points: puntosSupervisorIngresados,
         coordinator_status: 'pendiente_revision'
       };
 
@@ -688,7 +721,14 @@
         if (error) {
           alert('Error al guardar: ' + error.message);
         } else {
-          alert(`¡Supervisión enviada a coordinación! Puntos preliminares para coach: ${totalPointsCoach > 0 ? '+' : ''}${totalPointsCoach}`);
+          if (mensajeNotifExtra && sb) {
+            await sb.from('apex_notifications').insert([{
+              user_email: currentSupervisorEmail,
+              title: '🏆 Tope Táctico Alcanzado',
+              message: mensajeNotifExtra
+            }]);
+          }
+          alert(mensajeNotifExtra ? `¡Supervisión enviada con ajuste de tope!\n\n${mensajeNotifExtra}` : `¡Supervisión enviada a coordinación! Puntos preliminares para coach: ${totalPointsCoach > 0 ? '+' : ''}${totalPointsCoach}`);
           document.getElementById('formSupervision').reset();
           document.getElementById('supFecha').value = new Date().toISOString().split('T')[0];
           document.getElementById('supSupervisorEmail').value = currentSupervisorEmail;
@@ -725,30 +765,102 @@
       }
     }
 
-    /* ACTUALIZACIÓN CON RPC GLOBAL APEX */
+    /* ACTUALIZACIÓN CON RPC GLOBAL APEX Y MÉTRICAS MULTIFUENTE */
     async function actualizarNivelGlobalSupervisor() {
       if (!sb || !currentSupervisorEmail) return;
 
       try {
-        const { data: res, error } = await sb.rpc('obtener_puntos_globales_apex', { p_email: currentSupervisorEmail });
-        if (error || !res) return;
+        const hace60Dias = new Date();
+        hace60Dias.setDate(hace60Dias.getDate() - 60);
+        hace60Dias.setHours(0,0,0,0);
 
-        const ptsTotales = parseFloat(res.pts_totales) || 0;
-        const porcentaje = parseInt(res.porcentaje) || 0;
-        const nivel = res.nivel || 'INICIADO';
-        const color = res.color || '#ffffff';
+        const hace30Dias = new Date();
+        hace30Dias.setDate(hace30Dias.getDate() - 30);
+        hace30Dias.setHours(0,0,0,0);
+
+        const [checkinsRes, supervisionsRes, adjustmentsRes] = await Promise.all([
+          sb.from('apex_checkins').select('rendimiento, created_at, status').eq('user_email', currentSupervisorEmail).ilike('status', 'aprobado'),
+          sb.from('apex_coach_supervisions').select('*'),
+          sb.from('apex_coordinator_adjustments').select('note, created_at').eq('user_email', currentSupervisorEmail)
+        ]);
+
+        let ptsCheckins = 0;
+        if (checkinsRes.data) {
+          checkinsRes.data.forEach(c => { if (new Date(c.created_at) >= hace60Dias) ptsCheckins += parseFloat(c.rendimiento || 0); });
+        }
+
+        let ptsCoach = 0;
+        let ptsSupervision = 0;
+        let ptsAdjustments = 0;
+
+        if (!supervisorEsRolEstudiante) {
+          if (supervisionsRes.data) {
+            supervisionsRes.data.forEach(s => {
+              if (s.coordinator_status !== 'pendiente_revision') {
+                const fechaSesion = new Date(s.session_date || s.created_at);
+                if (fechaSesion >= hace30Dias) {
+                  if ((s.coach_email || '').toLowerCase() === currentSupervisorEmail.toLowerCase()) {
+                    ptsCoach += parseFloat(s.coach_points || 0);
+                  }
+                  if ((s.supervisor_email || '').toLowerCase() === currentSupervisorEmail.toLowerCase()) {
+                    ptsSupervision += parseFloat(s.supervisor_points || 0);
+                  }
+                }
+              }
+            });
+          }
+
+          if (adjustmentsRes.data) {
+            adjustmentsRes.data.forEach(a => { if (new Date(a.created_at) >= hace30Dias) ptsAdjustments += parseFloat(a.note || 0); });
+          }
+        }
+
+        let ptsTotales = ptsCheckins + ptsCoach + ptsSupervision + ptsAdjustments;
+        puntajeActualBimestreSupervisor = ptsTotales;
+
+        const meta = 240;
+        const porcentaje = +Math.max(-100, Math.min(110, (ptsTotales / meta) * 100)).toFixed(1);
+
+        let nivel = 'INICIADO';
+        let color = '#ffffff';
+        if (porcentaje >= 101) { nivel = 'APEX+'; color = '#ffd700'; }
+        else if (porcentaje >= 76) { nivel = 'APEX'; color = '#d4af37'; }
+        else if (porcentaje >= 36) { nivel = 'AVANZADO'; color = '#c0c0c0'; }
+        else if (porcentaje >= 11) { nivel = 'INTERMEDIO'; color = '#cd7f32'; }
 
         document.getElementById('supPtsTxt').innerText = `${ptsTotales.toFixed(1)} / 240 PTS`;
         document.getElementById('supTierPercent').innerText = `${porcentaje}%`;
         document.getElementById('supTierLabel').innerText = nivel;
         document.documentElement.style.setProperty('--tier-color', color);
 
-        const fill = document.getElementById('supTierBarFill');
-        fill.style.width = `${Math.min(100, porcentaje)}%`;
-        fill.style.background = color;
-        fill.style.boxShadow = `0 0 10px ${color}66`;
+        const track = document.getElementById('supProgressBarTrack');
+        const subgrid = document.getElementById('supStaffSubgrid');
+
+        if (!supervisorEsRolEstudiante && (ptsCoach !== 0 || ptsSupervision !== 0 || ptsAdjustments !== 0 || ptsCheckins !== 0)) {
+          subgrid.style.display = 'grid';
+          document.getElementById('supSubPtsCheckins').innerText = ptsCheckins.toFixed(0);
+          document.getElementById('supSubPtsCoach').innerText = ptsCoach.toFixed(0);
+          document.getElementById('supSubPtsSupervision').innerText = ptsSupervision.toFixed(0);
+          document.getElementById('supSubPtsAdjustments').innerText = ptsAdjustments.toFixed(0);
+
+          const absTotal = Math.max(1, Math.abs(ptsCheckins) + Math.abs(ptsCoach) + Math.abs(ptsSupervision) + Math.abs(ptsAdjustments));
+          const pCk = Math.max(0, (Math.abs(ptsCheckins) / absTotal) * Math.max(0, porcentaje));
+          const pCo = Math.max(0, (Math.abs(ptsCoach) / absTotal) * Math.max(0, porcentaje));
+          const pSu = Math.max(0, (Math.abs(ptsSupervision) / absTotal) * Math.max(0, porcentaje));
+          const pAd = Math.max(0, (Math.abs(ptsAdjustments) / absTotal) * Math.max(0, porcentaje));
+
+          track.innerHTML = `
+            <div class="progress-segment seg-checkins" style="width: ${pCk}%" title="Check-ins: ${ptsCheckins}pts"></div>
+            <div class="progress-segment seg-coach" style="width: ${pCo}%" title="Coach: ${ptsCoach}pts"></div>
+            <div class="progress-segment seg-supervision" style="width: ${pSu}%" title="Supervisión: ${ptsSupervision}pts"></div>
+            <div class="progress-segment seg-adjustments" style="width: ${pAd}%" title="Ajustes: ${ptsAdjustments}pts"></div>
+          `;
+        } else {
+          subgrid.style.display = 'none';
+          track.innerHTML = `<div class="progress-bar-fill" id="supTierBarFill" style="width: ${Math.max(0, Math.min(100, porcentaje))}%; background: ${color}; box-shadow: 0 0 10px ${color}66;"></div>`;
+        }
       } catch (err) {
-        console.warn("Error en RPC de puntos globales:", err);
+        console.warn("Error calculando métricas supervisor:", err);
       }
     }
 
