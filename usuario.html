@@ -56,16 +56,25 @@
     .progress-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
     .progress-tier-title { font-size: 0.75rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; color: var(--tier-color); text-shadow: 0 2px 6px rgba(0,0,0,0.9); }
     .progress-percent-val { font-size: 1rem; font-weight: 900; color: var(--tier-color); text-shadow: 0 2px 6px rgba(0,0,0,0.9); }
+    
     .progress-bar-track {
       width: 100%; height: 8px; background: #121216; border-radius: 4px;
-      overflow: hidden; border: 1px solid var(--border-color); margin-bottom: 6px;
+      overflow: hidden; border: 1px solid var(--border-color); margin-bottom: 6px; display: flex;
     }
     .progress-bar-fill {
       height: 100%; width: 0%; background: var(--tier-color);
       border-radius: 4px; transition: width 0.6s ease;
       box-shadow: 0 0 10px var(--tier-color);
     }
+    .progress-segment { height: 100%; transition: width 0.6s ease; }
+    .seg-checkins { background: #22c55e; }
+    .seg-coach { background: #3b82f6; }
+    .seg-supervision { background: #a855f7; }
+    .seg-adjustments { background: #eab308; }
+
     .progress-meta-grid { display: flex; justify-content: space-between; font-size: 0.65rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
+    .staff-subgrid { display: none; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 6px; border-top: 1px solid var(--border-color); padding-top: 6px; font-size: 0.55rem; text-transform: uppercase; text-align: center; }
+    .staff-subgrid div { background: #050507; padding: 3px; border-radius: 4px; border: 1px solid var(--border-color); }
 
     .time-filter-wrap {
       background: #0a0a0c; border: 1px solid var(--border-color); border-radius: 6px;
@@ -106,7 +115,7 @@
     .module-nav { display: flex; gap: 4px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 14px; }
     .nav-btn {
       flex: 1; padding: 8px 2px; background: #0a0a0c; border: 1px solid var(--border-color); color: var(--text-muted);
-      border-radius: 6px; font-size: 0.52rem; font-weight: 800; text-transform: uppercase; cursor: pointer; text-align: center; transition: 0.2s;
+      border-radius: 6px; font-size: 0.58rem; font-weight: 800; text-transform: uppercase; cursor: pointer; text-align: center; transition: 0.2s;
     }
     .nav-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
@@ -203,9 +212,23 @@
     }
     .btn-submit:disabled { background: #222; color: #555; cursor: not-allowed; }
 
+    /* TAMBOR HORIZONTAL TÁCTICO PARA MÉTRICAS */
+    .metric-carousel-drum {
+      display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory;
+      scroll-behavior: smooth; padding: 4px 2px 14px 2px; scrollbar-width: none; margin-bottom: 12px;
+    }
+    .metric-carousel-drum::-webkit-scrollbar { display: none; }
+    .metric-drum-item {
+      min-width: 100%; width: 100%; scroll-snap-align: center; flex-shrink: 0;
+      background: #050507; border: 1px solid var(--border-color); border-radius: 8px; padding: 14px;
+    }
+    .metric-drum-dots { display: flex; gap: 4px; justify-content: center; margin-bottom: 10px; }
+    .drum-dot { width: 6px; height: 6px; border-radius: 50%; background: #333; transition: background 0.2s; cursor: pointer; }
+    .drum-dot.active { background: var(--accent); width: 16px; border-radius: 3px; }
+
     .chart-container { background: #050507; border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; margin-bottom: 12px; }
     .chart-title { font-size: 0.72rem; text-transform: uppercase; font-weight: 800; color: #fff; margin-bottom: 6px; }
-    .canvas-wrap { height: 150px; position: relative; }
+    .canvas-wrap { height: 165px; position: relative; }
 
     #bitacoraPopupModal {
       position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
@@ -215,10 +238,12 @@
     }
     @keyframes fadeInUp { from { opacity: 0; transform: translate(-50%, 15px); } to { opacity: 1; transform: translate(-50%, 0); } }
 
-    .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
-    .summary-box { background: #0a0a0c; border: 1px solid var(--border-color); border-radius: 6px; padding: 10px; text-align: center; }
+    .summary-grid { display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 14px; }
+    .summary-box { background: #0a0a0c; border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; text-align: center; cursor: pointer; transition: 0.2s; }
+    .summary-box:hover { border-color: #fff; }
     .summary-num { font-size: 1.5rem; font-weight: 900; color: #fff; }
     .summary-txt { font-size: 0.62rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800; }
+    
     .history-card { background: #0a0a0c; border: 1px solid var(--border-color); border-radius: 4px; padding: 8px 10px; margin-top: 6px; font-size: 0.72rem; }
 
     .history-dropdown-header {
@@ -242,33 +267,6 @@
     }
     .plan-section-title { font-size: 0.75rem; font-weight: 900; color: #fff; text-transform: uppercase; margin-bottom: 4px; border-bottom: 1px solid #1a1a1e; padding-bottom: 4px; }
     .plan-section-content { font-size: 0.7rem; color: #ccc; line-height: 1.4; margin-bottom: 10px; }
-
-    /* ESTILOS PANEL LATERAL DESPLEGABLE (SIN MARCOS Y REUBICADO ABAJO) */
-    .sim-drawer {
-      position: absolute; top: 155px; left: 0; width: 210px; max-height: 52vh; overflow-y: auto;
-      background: transparent; padding: 6px 8px; z-index: 25;
-      transform: translateX(-105%); transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-      scrollbar-width: none;
-    }
-    .sim-drawer.open { transform: translateX(0); }
-    .sim-drawer::-webkit-scrollbar { display: none; }
-
-    .sim-drawer-trigger {
-      position: absolute; top: 155px; left: 0; z-index: 26;
-      background: #00f0ff; border: 1px solid #00f0ff; border-left: none;
-      border-top-right-radius: 6px; border-bottom-right-radius: 6px;
-      color: #000000; font-size: 0.58rem; font-weight: 900; text-transform: uppercase; padding: 10px 6px;
-      cursor: pointer; writing-mode: vertical-lr; letter-spacing: 1px; transition: background 0.3s ease, color 0.3s ease;
-      box-shadow: 4px 0 15px rgba(0,240,255,0.4);
-    }
-    .sim-drawer-trigger.active-dim {
-      background: rgba(40, 40, 48, 0.75); color: #888892; border-color: rgba(255,255,255,0.15); box-shadow: none;
-    }
-
-    .sim-slider-wrap { margin-bottom: 8px; text-shadow: 0 2px 4px rgba(0,0,0,0.9); }
-    .sim-slider-header { display: flex; justify-content: space-between; font-size: 0.52rem; font-weight: 800; text-transform: uppercase; color: #00f0ff; margin-bottom: 2px; text-shadow: 0 2px 4px rgba(0,0,0,0.9); }
-    .sim-slider-compact { width: 100% !important; opacity: 0.25; transition: opacity 0.3s ease; accent-color: #00f0ff; cursor: pointer; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.9)); }
-    .sim-slider-compact:hover, .sim-slider-compact:active { opacity: 0.95; }
 
     #mediaModal {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -337,14 +335,25 @@
         <span style="font-size: 0.58rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800;">Nivel Bimestral Global</span>
         <div class="progress-tier-title" id="tierLabel">INICIADO</div>
       </div>
-      <div class="progress-percent-val" id="tierPercent">0%</div>
+      <div class="progress-percent-val" id="tierPercent">0.0%</div>
     </div>
-    <div class="progress-bar-track">
+    
+    <!-- BARRA MULTIFUENTE / ESTÁNDAR -->
+    <div class="progress-bar-track" id="progressBarTrack">
       <div class="progress-bar-fill" id="tierBarFill"></div>
     </div>
+
     <div class="progress-meta-grid">
-      <span id="ptsBimestreTxt">0 / 240 PTS</span>
+      <span id="ptsBimestreTxt">0.0 / 240 PTS</span>
       <span id="totalSesionesTxt">0 Clases Totales</span>
+    </div>
+
+    <!-- DESGLOSE MINIMALISTA EXCLUSIVO PARA STAFF -->
+    <div class="staff-subgrid" id="staffSubgrid">
+      <div>Check-ins: <b id="subPtsCheckins">0</b></div>
+      <div>Coach: <b id="subPtsCoach">0</b></div>
+      <div>Supervisión: <b id="subPtsSupervision">0</b></div>
+      <div>Ajustes: <b id="subPtsAdjustments">0</b></div>
     </div>
   </div>
 
@@ -369,7 +378,6 @@
     <button class="nav-btn" onclick="switchFichaTab('viewDash', this)">📊 Métricas</button>
     <button class="nav-btn" onclick="switchFichaTab('viewForm', this)">📝 Check-in</button>
     <button class="nav-btn" onclick="switchFichaTab('viewPlan', this)">🎯 Plan</button>
-    <button class="nav-btn" onclick="switchFichaTab('viewSim', this)">🚀 Simulador</button>
   </nav>
 
   <!-- PERFIL -->
@@ -442,27 +450,50 @@
       </div>
 
       <div class="summary-grid">
-        <div class="summary-box">
+        <div class="summary-box" onclick="toggleSesionesRegistradasDespliegue()">
           <div class="summary-num" id="statSesiones">0</div>
-          <div class="summary-txt">Sesiones Registradas</div>
-        </div>
-        <div class="summary-box">
-          <div class="summary-num" id="statRendProm">0.0</div>
-          <div class="summary-txt">Promedio Rendimiento</div>
+          <div class="summary-txt">Sesiones Registradas (Toca para ver detalle)</div>
         </div>
       </div>
 
-      <div class="chart-container"><div class="chart-title">Índice de Eficiencia (Proyección Próximas 3 Clases)</div><div class="canvas-wrap"><canvas id="chartEficiencia"></canvas></div></div>
-      <div class="chart-container"><div class="chart-title">Índice de Fluidez Real (Proyección Próximas 3 Clases)</div><div class="canvas-wrap"><canvas id="chartFluidezReal"></canvas></div></div>
-      <div class="chart-container"><div class="chart-title">Rendimiento (Proyección Próximas 3 Clases)</div><div class="canvas-wrap"><canvas id="chartRendimiento"></canvas></div></div>
-      <div class="chart-container"><div class="chart-title">RPE - Esfuerzo (Proyección Próximas 3 Clases)</div><div class="canvas-wrap"><canvas id="chartRpe"></canvas></div></div>
-      <div class="chart-container"><div class="chart-title">Soltura y Flexibilidad (Proyección Próximas 3 Clases)</div><div class="canvas-wrap"><canvas id="chartSoltura"></canvas></div></div>
-      <div class="chart-container"><div class="chart-title">Fluidez Técnica (Proyección Próximas 3 Clases)</div><div class="canvas-wrap"><canvas id="chartFluidez"></canvas></div></div>
-      <div class="chart-container"><div class="chart-title">Nivel de Diversión (Proyección Próximas 3 Clases)</div><div class="canvas-wrap"><canvas id="chartDiversion"></canvas></div></div>
+      <div id="sesionesRegistradasPanel" style="display:none; margin-bottom:14px; background:#050507; border:1px solid var(--border-color); border-radius:6px; padding:10px;">
+        <div style="font-size:0.7rem; font-weight:900; color:#fff; text-transform:uppercase; margin-bottom:6px;">Historial Completo de Sesiones</div>
+        <div id="listaSesionesRegistradasDetalle" style="max-height:220px; overflow-y:auto;">Cargando sesiones...</div>
+      </div>
 
-      <div style="margin-top: 14px;">
-        <label>Sesiones del Periodo</label>
-        <div id="historyContainer"><span style="color:var(--text-muted);font-size:0.7rem;">Cargando sesiones...</span></div>
+      <!-- TAMBOR HORIZONTAL TÁCTICO -->
+      <div class="metric-drum-dots" id="drumDots">
+        <div class="drum-dot active" onclick="saltarAMetricaDrum(0)"></div>
+        <div class="drum-dot" onclick="saltarAMetricaDrum(1)"></div>
+        <div class="drum-dot" onclick="saltarAMetricaDrum(2)"></div>
+        <div class="drum-dot" onclick="saltarAMetricaDrum(3)"></div>
+        <div class="drum-dot" onclick="saltarAMetricaDrum(4)"></div>
+        <div class="drum-dot" onclick="saltarAMetricaDrum(5)"></div>
+        <div class="drum-dot" onclick="saltarAMetricaDrum(6)"></div>
+      </div>
+
+      <div class="metric-carousel-drum" id="metricDrumContainer" onscroll="actualizarIndicadorDrum(this)">
+        <div class="metric-drum-item">
+          <div class="chart-container" style="margin-bottom:0;"><div class="chart-title">Índice de Eficiencia (Corto Plazo)</div><div class="canvas-wrap"><canvas id="chartEficiencia"></canvas></div></div>
+        </div>
+        <div class="metric-drum-item">
+          <div class="chart-container" style="margin-bottom:0;"><div class="chart-title">Índice de Fluidez Real (Corto Plazo)</div><div class="canvas-wrap"><canvas id="chartFluidezReal"></canvas></div></div>
+        </div>
+        <div class="metric-drum-item">
+          <div class="chart-container" style="margin-bottom:0;"><div class="chart-title">Rendimiento (Corto Plazo)</div><div class="canvas-wrap"><canvas id="chartRendimiento"></canvas></div></div>
+        </div>
+        <div class="metric-drum-item">
+          <div class="chart-container" style="margin-bottom:0;"><div class="chart-title">RPE - Esfuerzo (Corto Plazo)</div><div class="canvas-wrap"><canvas id="chartRpe"></canvas></div></div>
+        </div>
+        <div class="metric-drum-item">
+          <div class="chart-container" style="margin-bottom:0;"><div class="chart-title">Soltura y Flexibilidad (Corto Plazo)</div><div class="canvas-wrap"><canvas id="chartSoltura"></canvas></div></div>
+        </div>
+        <div class="metric-drum-item">
+          <div class="chart-container" style="margin-bottom:0;"><div class="chart-title">Fluidez Técnica (Corto Plazo)</div><div class="canvas-wrap"><canvas id="chartFluidez"></canvas></div></div>
+        </div>
+        <div class="metric-drum-item">
+          <div class="chart-container" style="margin-bottom:0;"><div class="chart-title">Nivel de Diversión (Corto Plazo)</div><div class="canvas-wrap"><canvas id="chartDiversion"></canvas></div></div>
+        </div>
       </div>
     </div>
   </div>
@@ -564,91 +595,6 @@
     </div>
   </div>
 
-  <!-- SIMULADOR TÁCTICO -->
-  <div id="viewSim" class="view-section">
-    <div class="dossier-viewport" id="simDossierViewport">
-      <div id="simDossierMediaContainer" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:1;">
-        <video id="simNativeVideo" class="dossier-media-bg" playsinline muted loop autoplay crossorigin="anonymous" style="display:none;"></video>
-        <img id="simNativeImage" class="dossier-media-bg" src="" alt="" style="display:none; object-fit:cover;">
-      </div>
-
-      <button class="sim-drawer-trigger" id="simDrawerTrigger" onclick="toggleSimDrawer()">⚡ Configurar Metas</button>
-
-      <div class="sim-drawer" id="simDrawer">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; border-bottom:1px solid rgba(255,255,255,0.15); padding-bottom:4px;">
-          <span style="font-size:0.58rem; font-weight:900; text-transform:uppercase; color:#00f0ff; text-shadow:0 2px 4px rgba(0,0,0,0.9);">Paneles de Control</span>
-          <button onclick="toggleSimDrawer()" style="background:none; border:none; color:#fff; font-size:0.85rem; cursor:pointer;">✕</button>
-        </div>
-
-        <div class="sim-slider-wrap">
-          <div class="sim-slider-header"><span>Clases: <b id="simClasesVal" style="color:#fff;">12</b></span></div>
-          <input type="range" id="simSliderClases" min="1" max="24" value="12" class="sim-slider-compact" oninput="SimuladorTactico.calcular()">
-        </div>
-        <div class="sim-slider-wrap">
-          <div class="sim-slider-header"><span>Rendimiento: <b id="simRendVal" style="color:#fff;">7.0</b></span></div>
-          <input type="range" id="simSliderRend" min="1" max="10" step="0.5" value="7" class="sim-slider-compact" oninput="SimuladorTactico.calcular()">
-        </div>
-        <div class="sim-slider-wrap">
-          <div class="sim-slider-header"><span>RPE: <b id="simRpeVal" style="color:#fff;">7.0</b></span></div>
-          <input type="range" id="simSliderRpe" min="1" max="10" step="0.5" value="7" class="sim-slider-compact" oninput="SimuladorTactico.calcular()">
-        </div>
-        <div class="sim-slider-wrap">
-          <div class="sim-slider-header"><span>Soltura: <b id="simSoltVal" style="color:#fff;">7.0</b></span></div>
-          <input type="range" id="simSliderSolt" min="1" max="10" step="0.5" value="7" class="sim-slider-compact" oninput="SimuladorTactico.calcular()">
-        </div>
-        <div class="sim-slider-wrap">
-          <div class="sim-slider-header"><span>Técnica: <b id="simTecVal" style="color:#fff;">7.0</b></span></div>
-          <input type="range" id="simSliderTec" min="1" max="10" step="0.5" value="7" class="sim-slider-compact" oninput="SimuladorTactico.calcular()">
-        </div>
-        <div class="sim-slider-wrap">
-          <div class="sim-slider-header"><span>RAM: <b id="simRamVal" style="color:#fff;">7.0</b></span></div>
-          <input type="range" id="simSliderRam" min="1" max="10" step="0.5" value="7" class="sim-slider-compact" oninput="SimuladorTactico.calcular()">
-        </div>
-        <div class="sim-slider-wrap" style="margin-bottom:0;">
-          <div class="sim-slider-header"><span>Disfrute: <b id="simDivVal" style="color:#fff;">7.0</b></span></div>
-          <input type="range" id="simSliderDiv" min="1" max="10" step="0.5" value="7" class="sim-slider-compact" oninput="SimuladorTactico.calcular()">
-        </div>
-      </div>
-
-      <div class="dossier-branding">
-        <div>
-          <div class="brand-title">APEX <span>SIMULADOR</span></div>
-          <div class="brand-sub">Proyección Táctica Bimestral</div>
-        </div>
-      </div>
-
-      <div class="dossier-top-meta">
-        <div class="dossier-header-title" id="simResRangoHeader">INTERMEDIO</div>
-        <div class="dossier-header-sub">
-          <span id="simResPts">0 PTS</span>
-          <span style="color:#00f0ff;">HASTA 24 CLASES</span>
-        </div>
-      </div>
-
-      <div class="floating-stats-row">
-        <div class="floating-stat-item">
-          <div class="floating-stat-num" id="simDiscVal">0%</div>
-          <div class="floating-stat-label">Disciplina Sim.</div>
-          <div class="floating-stat-sub" id="simMetaRatio">0 / 24 Meta</div>
-        </div>
-        <div class="floating-stat-item">
-          <div class="floating-stat-num" id="simHistVal">0</div>
-          <div class="floating-stat-label">Historial Sim.</div>
-          <div class="floating-stat-sub">Clases Proyectadas</div>
-        </div>
-      </div>
-
-      <div class="radar-floating-wrap pulse-mesh">
-        <canvas id="chartSimRadar"></canvas>
-      </div>
-
-      <div class="radar-floating-footer">
-        <span style="color:#fff; text-shadow:0 2px 6px rgba(0,0,0,0.9);">Proyección Activa</span>
-        <button onclick="SimuladorTactico.guardarMeta()" style="background:#fff; color:#000; border:none; padding:4px 8px; font-size:0.58rem; font-weight:900; border-radius:4px; cursor:pointer; text-transform:uppercase;">Guardar Meta</button>
-      </div>
-    </div>
-  </div>
-
   <script>
     const SUPABASE_URL = 'https://fprvbvucmtdpxdihuvrw.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_xAMs8LpCwyMyoql3ohoJUQ_BIRhBQoD';
@@ -666,6 +612,8 @@
     let filtroHistorialActual = 'todos';
     let sliderTimeout = null;
     let cacheCoachNames = {};
+    let puntajeActualBimestre = 0;
+    let esRolEstudiante = true;
 
     function toggleGearMenu(e) {
       if (e) e.stopPropagation();
@@ -678,30 +626,64 @@
       document.getElementById('downloadSubmenu').classList.toggle('show');
     }
 
-    function toggleSimDrawer() {
-      const drawer = document.getElementById('simDrawer');
-      const trigger = document.getElementById('simDrawerTrigger');
-      drawer.classList.toggle('open');
-      trigger.classList.toggle('active-dim');
-    }
-
     window.addEventListener('click', (e) => {
       document.getElementById('gearDropdown')?.classList.remove('show');
       document.getElementById('downloadSubmenu')?.classList.remove('show');
-
-      const drawer = document.getElementById('simDrawer');
-      const trigger = document.getElementById('simDrawerTrigger');
-      if (drawer && drawer.classList.contains('open')) {
-        if (!drawer.contains(e.target) && !trigger.contains(e.target)) {
-          drawer.classList.remove('open');
-          trigger.classList.remove('active-dim');
-        }
-      }
     });
 
     function toggleHistorialDesplegable() {
       document.getElementById('historyCollapsibleBody').classList.toggle('show');
       document.getElementById('historyChevron').classList.toggle('open');
+    }
+
+    function toggleSesionesRegistradasDespliegue() {
+      const panel = document.getElementById('sesionesRegistradasPanel');
+      panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+      if (panel.style.display === 'block') renderizarListaSesionesRegistradasDetalle();
+    }
+
+    function renderizarListaSesionesRegistradasDetalle() {
+      const container = document.getElementById('listaSesionesRegistradasDetalle');
+      if (!container) return;
+      const recordsAprobados = cachedRecords.filter(r => r.status && r.status.toLowerCase() === 'aprobado');
+      if (recordsAprobados.length === 0) {
+        container.innerHTML = '<span style="font-size:0.68rem; color:var(--text-muted);">No hay sesiones aprobadas registradas.</span>';
+        return;
+      }
+      container.innerHTML = recordsAprobados.slice().reverse().map(r => {
+        const d = new Date(r.created_at);
+        const fechaStr = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
+        return `
+          <div style="background:#0a0a0c; border:1px solid var(--border-color); border-radius:4px; padding:8px; margin-bottom:6px; font-size:0.68rem;">
+            <div style="display:flex; justify-content:space-between; font-weight:800; color:#fff; margin-bottom:2px;">
+              <span>📅 ${fechaStr} — ${r.focus}</span>
+              <span style="color:var(--status-ok);">+${r.rendimiento || 0} Pts</span>
+            </div>
+            <div style="color:var(--text-muted); font-size:0.62rem;">RPE: ${r.rpe} | Soltura: ${r.soltura} | Técnica: ${r.preguntacoach || r.student_tech_score} | Flow: ${r.divertiste}</div>
+            ${r.bitacora ? `<div style="margin-top:2px; font-style:italic; color:#ccc;">"${r.bitacora}"</div>` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function saltarAMetricaDrum(index) {
+      const container = document.getElementById('metricDrumContainer');
+      const items = container.querySelectorAll('.metric-drum-item');
+      if (items[index]) {
+        container.scrollTo({ left: items[index].offsetLeft, behavior: 'smooth' });
+      }
+    }
+
+    function actualizarIndicadorDrum(container) {
+      const items = container.querySelectorAll('.metric-drum-item');
+      const dots = document.querySelectorAll('.drum-dot');
+      const scrollPos = container.scrollLeft + container.clientWidth / 2;
+      items.forEach((item, idx) => {
+        if (item.offsetLeft <= scrollPos && (item.offsetLeft + item.clientWidth) >= scrollPos) {
+          dots.forEach(d => d.classList.remove('active'));
+          if (dots[idx]) dots[idx].classList.add('active');
+        }
+      });
     }
 
     function iniciarRelojTiempoReal() {
@@ -806,91 +788,6 @@
       }
     };
 
-    const SimuladorTactico = {
-      calcular: function() {
-        const clases = parseInt(document.getElementById('simSliderClases').value);
-        const rendimiento = parseFloat(document.getElementById('simSliderRend').value);
-        const rpe = parseFloat(document.getElementById('simSliderRpe').value);
-        const solt = parseFloat(document.getElementById('simSliderSolt').value);
-        const tec = parseFloat(document.getElementById('simSliderTec').value);
-        const ram = parseFloat(document.getElementById('simSliderRam').value);
-        const div = parseFloat(document.getElementById('simSliderDiv').value);
-
-        document.getElementById('simClasesVal').innerText = clases;
-        document.getElementById('simRendVal').innerText = rendimiento.toFixed(1);
-        document.getElementById('simRpeVal').innerText = rpe.toFixed(1);
-        document.getElementById('simSoltVal').innerText = solt.toFixed(1);
-        document.getElementById('simTecVal').innerText = tec.toFixed(1);
-        document.getElementById('simRamVal').innerText = ram.toFixed(1);
-        document.getElementById('simDivVal').innerText = div.toFixed(1);
-
-        const historialSim = (cachedRecords.length > 0 ? cachedRecords.length : 0) + clases;
-        const discSim = Math.min(100, Math.round((clases / 24) * 100));
-
-        document.getElementById('simHistVal').innerText = historialSim;
-        document.getElementById('simDiscVal').innerText = `${discSim}%`;
-        document.getElementById('simMetaRatio').innerText = `${clases} / 24 Meta`;
-
-        const basePtsActual = clases * rendimiento;
-        const ptsEstimados = Math.min(240, basePtsActual * 1.25);
-        const porcentaje = Math.min(100, Math.round((ptsEstimados / 240) * 100));
-        const escala = determinarEscalaOficial(porcentaje);
-
-        document.getElementById('simResRangoHeader').innerText = escala.nombre;
-        document.getElementById('simResPts').innerText = `${ptsEstimados.toFixed(1)} PTS`;
-
-        const simAverages = [rendimiento, rpe, solt, tec, ram, div];
-        renderSimRadarChart(simAverages);
-      },
-      guardarMeta: async function() {
-        const clases = document.getElementById('simSliderClases').value;
-        const rendimiento = document.getElementById('simSliderRend').value;
-        const rango = document.getElementById('simResRangoHeader').innerText;
-        const pts = document.getElementById('simResPts').innerText;
-        
-        if (sb && userProfile?.email) {
-          await sb.from('apex_users').update({
-            meta_proyectada: { clases, rendimiento, rango, pts, fecha: new Date().toISOString() }
-          }).eq('email', userProfile.email);
-        }
-        alert('¡Meta proyectada guardada con éxito!');
-      }
-    };
-
-    function renderSimRadarChart(dataPoints) {
-      if (chartInstances['chartSimRadar']) chartInstances['chartSimRadar'].destroy();
-      const canvasEl = document.getElementById('chartSimRadar');
-      if (!canvasEl) return;
-
-      chartInstances['chartSimRadar'] = new Chart(canvasEl.getContext('2d'), {
-        type: 'radar',
-        data: {
-          labels: ['Rendimiento', 'RPE', 'Soltura', 'Técnica', 'RAM', 'Disfrute'],
-          datasets: [{
-            data: dataPoints,
-            borderColor: '#00f0ff',
-            backgroundColor: 'rgba(0, 240, 255, 0.2)',
-            borderWidth: 2,
-            pointRadius: 4,
-            pointBackgroundColor: '#00f0ff'
-          }]
-        },
-        options: {
-          responsive: true, maintainAspectRatio: false,
-          animation: { duration: 400 },
-          plugins: { legend: { display: false } },
-          scales: {
-            r: {
-              min: 0, max: 10, ticks: { display: false, stepSize: 2 },
-              angleLines: { color: 'rgba(255, 255, 255, 0.3)' },
-              grid: { color: 'rgba(255, 255, 255, 0.2)' },
-              pointLabels: { color: '#00f0ff', font: { size: 9, weight: '800' } }
-            }
-          }
-        }
-      });
-    }
-
     function switchFichaTab(tabId, btn) {
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
@@ -900,16 +797,8 @@
       if (tabId === 'viewDash' || tabId === 'viewProfile') { 
         ApexFiltros.recalcularVistas(); 
         if (tabId === 'viewProfile') {
-          setTimeout(() => {
-            requestAnimationFrame(() => ApexFiltros.recalcularVistas());
-          }, 50);
+          setTimeout(() => { requestAnimationFrame(() => ApexFiltros.recalcularVistas()); }, 50);
         }
-      }
-      else if (tabId === 'viewSim') { 
-        SimuladorTactico.calcular(); 
-        setTimeout(() => {
-          requestAnimationFrame(() => SimuladorTactico.calcular());
-        }, 50);
       }
       else if (tabId === 'viewPlan') { cargarPlanEntrenamiento(); }
     }
@@ -998,7 +887,6 @@
         }
 
         aplicarVisualizacionMedia(mediaUrl);
-        aplicarVisualizacionSimuladorMedia(mediaUrl);
         alert('¡Configuración aplicada con éxito!'); cerrarModalMedia();
       } catch (err) { alert('Error: ' + err.message); } finally { btn.disabled = false; btn.innerText = 'Aplicar Configuración'; }
     }
@@ -1006,19 +894,6 @@
     function aplicarVisualizacionMedia(url) {
       const vid = document.getElementById('nativeProfileVideo');
       const img = document.getElementById('nativeProfileImage');
-      if (!url) { vid.style.display = 'none'; img.style.display = 'none'; return; }
-      const esVideo = url.match(/\.(mp4|webm|ogg|mov)$/i);
-      if (esVideo) {
-        vid.src = url; vid.style.display = 'block'; img.style.display = 'none';
-        vid.play().catch(() => {});
-      } else {
-        img.src = url; img.style.display = 'block'; vid.style.display = 'none';
-      }
-    }
-
-    function aplicarVisualizacionSimuladorMedia(url) {
-      const vid = document.getElementById('simNativeVideo');
-      const img = document.getElementById('simNativeImage');
       if (!url) { vid.style.display = 'none'; img.style.display = 'none'; return; }
       const esVideo = url.match(/\.(mp4|webm|ogg|mov)$/i);
       if (esVideo) {
@@ -1055,16 +930,13 @@
 
       const emailInput = document.getElementById('ciEmail');
       emailInput.value = email;
-      if (currentUser) { emailInput.setAttribute('readonly', 'true'); emailInput.style.opacity = '0.7'; }
 
       await precargarNombresCoaches();
       await cargarDatosPerfil(email);
       await cargarRegistrosBD(email);
       await gestionarNotificacionesInteligentes(email);
 
-      setTimeout(() => {
-        requestAnimationFrame(() => ApexFiltros.recalcularVistas());
-      }, 100);
+      setTimeout(() => { requestAnimationFrame(() => ApexFiltros.recalcularVistas()); }, 100);
 
       sb.channel('usuario-ficha-realtime')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_checkins', filter: `user_email=eq.${email}` }, payload => { cargarRegistrosBD(email); })
@@ -1105,11 +977,14 @@
           userProfile = data;
           document.getElementById('displayNombre').innerText = data.name || 'Striker';
           document.getElementById('displayEmail').innerText = data.email;
+          
+          const rolUsuario = (data.profile_id || data.role || data.tipo || data.membership_type || '').toLowerCase();
+          esRolEstudiante = rolUsuario.includes('estudiante') || rolUsuario.includes('striker') || (!rolUsuario.includes('coach') && !rolUsuario.includes('admin') && !rolUsuario.includes('supervis') && !rolUsuario.includes('staff') && !rolUsuario.includes('coordinador'));
+
           const avatarUrl = data.photo_url || data.avatar_url || localStorage.getItem('apex_user_avatar');
           renderAvatarVisual(avatarUrl, data.name || data.email || 'ST');
           if (data.aura_color) { selectedPulseColor = data.aura_color; document.documentElement.style.setProperty('--pulse-color', data.aura_color); }
           aplicarVisualizacionMedia(data.video_url);
-          aplicarVisualizacionSimuladorMedia(data.video_url);
 
           const hoy = new Date(); hoy.setHours(0,0,0,0);
           const fechaExpStr = data.subscription_expires_at || data.membership_end;
@@ -1128,7 +1003,6 @@
     async function cargarRegistrosBD(email) {
       if (!sb || !email) return;
       try {
-        // Obtenemos todos los check-ins para reflejar estados aprobados, rechazados y pendientes
         const { data, error } = await sb.from('apex_checkins').select('*').eq('user_email', email).order('created_at', { ascending: true });
         if (error || !data) return;
         cachedRecords = data;
@@ -1145,29 +1019,52 @@
         hace60Dias.setDate(hace60Dias.getDate() - 60);
         hace60Dias.setHours(0,0,0,0);
 
-        const [checkinsRes, ratingsRes, supervisionsRes, adjustmentsRes] = await Promise.all([
+        const hace30Dias = new Date();
+        hace30Dias.setDate(hace30Dias.getDate() - 30);
+        hace30Dias.setHours(0,0,0,0);
+
+        const [checkinsRes, supervisionsRes, adjustmentsRes] = await Promise.all([
           sb.from('apex_checkins').select('rendimiento, created_at, status').eq('user_email', email).ilike('status', 'aprobado'),
-          sb.from('apex_coach_ratings').select('note, created_at').eq('user_email', email),
-          sb.from('apex_supervisor_ratings').select('score, created_at').eq('user_email', email),
+          sb.from('apex_coach_supervisions').select('*'),
           sb.from('apex_coordinator_adjustments').select('note, created_at').eq('user_email', email)
         ]);
 
-        let ptsTotales = 0;
+        let ptsCheckins = 0;
         if (checkinsRes.data) {
-          checkinsRes.data.forEach(c => { if (new Date(c.created_at) >= hace60Dias) ptsTotales += parseFloat(c.rendimiento || 0); });
-        }
-        if (ratingsRes.data) {
-          ratingsRes.data.forEach(r => { if (new Date(r.created_at) >= hace60Dias) ptsTotales += parseFloat(r.note || 0); });
-        }
-        if (supervisionsRes.data) {
-          supervisionsRes.data.forEach(s => { if (new Date(s.created_at) >= hace60Dias) ptsTotales += parseFloat(s.score || 0); });
-        }
-        if (adjustmentsRes.data) {
-          adjustmentsRes.data.forEach(a => { if (new Date(a.created_at) >= hace60Dias) ptsTotales += parseFloat(a.note || 0); });
+          checkinsRes.data.forEach(c => { if (new Date(c.created_at) >= hace60Dias) ptsCheckins += parseFloat(c.rendimiento || 0); });
         }
 
+        let ptsCoach = 0;
+        let ptsSupervision = 0;
+        let ptsAdjustments = 0;
+
+        if (!esRolEstudiante) {
+          if (supervisionsRes.data) {
+            supervisionsRes.data.forEach(s => {
+              if (s.coordinator_status !== 'pendiente_revision') {
+                const fechaSesion = new Date(s.session_date || s.created_at);
+                if (fechaSesion >= hace30Dias) {
+                  if ((s.coach_email || '').toLowerCase() === email.toLowerCase()) {
+                    ptsCoach += parseFloat(s.coach_points || 0);
+                  }
+                  if ((s.supervisor_email || '').toLowerCase() === email.toLowerCase()) {
+                    ptsSupervision += parseFloat(s.supervisor_points || 0);
+                  }
+                }
+              }
+            });
+          }
+
+          if (adjustmentsRes.data) {
+            adjustmentsRes.data.forEach(a => { if (new Date(a.created_at) >= hace30Dias) ptsAdjustments += parseFloat(a.note || 0); });
+          }
+        }
+
+        let ptsTotales = ptsCheckins + ptsCoach + ptsSupervision + ptsAdjustments;
+        puntajeActualBimestre = ptsTotales;
+
         const meta = 240;
-        const porcentaje = Math.min(100, Math.round((ptsTotales / meta) * 100));
+        const porcentaje = +Math.max(-100, Math.min(110, (ptsTotales / meta) * 100)).toFixed(1);
 
         let nivel = 'INICIADO';
         let color = '#ffffff';
@@ -1182,19 +1079,35 @@
         document.getElementById('tierPercent').innerText = `${porcentaje}%`;
         document.getElementById('tierLabel').innerText = nivel;
         document.documentElement.style.setProperty('--tier-color', color);
-        const barFill = document.getElementById('tierBarFill');
-        barFill.style.width = `${Math.min(100, porcentaje)}%`;
-        barFill.style.background = color;
-        barFill.style.boxShadow = `0 0 10px ${color}66`;
-      } catch (e) { document.getElementById('planNivelBadge').innerText = userNivelOficial; }
-    }
 
-    function determinarEscalaOficial(porcentaje) {
-      if (porcentaje >= 101) return { nombre: "APEX+", color: "#ffd700", estado: "Equilibrio Apex+" };
-      if (porcentaje >= 76) return { nombre: "APEX", color: "#d4af37", estado: "Equilibrio Apex" };
-      if (porcentaje >= 36) return { nombre: "AVANZADO", color: "#c0c0c0", estado: "Equilibrio Capaz / Sólido" };
-      if (porcentaje >= 11) return { nombre: "INTERMEDIO", color: "#cd7f32", estado: "En Calibración" };
-      return { nombre: "INICIADO", color: "#ffffff", estado: "En Desarrollo" };
+        const track = document.getElementById('progressBarTrack');
+        const subgrid = document.getElementById('staffSubgrid');
+
+        if (!esRolEstudiante && (ptsCoach !== 0 || ptsSupervision !== 0 || ptsAdjustments !== 0 || ptsCheckins !== 0)) {
+          subgrid.style.display = 'grid';
+          document.getElementById('subPtsCheckins').innerText = ptsCheckins.toFixed(0);
+          document.getElementById('subPtsCoach').innerText = ptsCoach.toFixed(0);
+          document.getElementById('subPtsSupervision').innerText = ptsSupervision.toFixed(0);
+          document.getElementById('subPtsAdjustments').innerText = ptsAdjustments.toFixed(0);
+
+          const absTotal = Math.max(1, Math.abs(ptsCheckins) + Math.abs(ptsCoach) + Math.abs(ptsSupervision) + Math.abs(ptsAdjustments));
+          const pCk = Math.max(0, (Math.abs(ptsCheckins) / absTotal) * Math.max(0, porcentaje));
+          const pCo = Math.max(0, (Math.abs(ptsCoach) / absTotal) * Math.max(0, porcentaje));
+          const pSu = Math.max(0, (Math.abs(ptsSupervision) / absTotal) * Math.max(0, porcentaje));
+          const pAd = Math.max(0, (Math.abs(ptsAdjustments) / absTotal) * Math.max(0, porcentaje));
+
+          track.innerHTML = `
+            <div class="progress-segment seg-checkins" style="width: ${pCk}%" title="Check-ins: ${ptsCheckins}pts"></div>
+            <div class="progress-segment seg-coach" style="width: ${pCo}%" title="Coach: ${ptsCoach}pts"></div>
+            <div class="progress-segment seg-supervision" style="width: ${pSu}%" title="Supervisión: ${ptsSupervision}pts"></div>
+            <div class="progress-segment seg-adjustments" style="width: ${pAd}%" title="Ajustes: ${ptsAdjustments}pts"></div>
+          `;
+        } else {
+          subgrid.style.display = 'none';
+          track.innerHTML = `<div class="progress-bar-fill" id="tierBarFill" style="width: ${Math.max(0, Math.min(100, porcentaje))}%; background: ${color}; box-shadow: 0 0 10px ${color}66;"></div>`;
+        }
+
+      } catch (e) { document.getElementById('planNivelBadge').innerText = userNivelOficial; }
     }
 
     function getColorDinamico(val) {
@@ -1208,14 +1121,9 @@
       const recordsAprobados = records.filter(r => r.status && r.status.toLowerCase() === 'aprobado');
       if (!recordsAprobados || recordsAprobados.length < 2) {
         const ultimaFecha = recordsAprobados.length > 0 ? new Date(recordsAprobados[recordsAprobados.length - 1].created_at) : new Date();
-        const proyecciones = [];
+        ultimaFecha.setDate(ultimaFecha.getDate() + 3);
         let promRend = recordsAprobados.length > 0 ? recordsAprobados.reduce((a,b)=>a+parseFloat(b.rendimiento||0),0)/recordsAprobados.length : 7;
-        for (let i = 1; i <= 3; i++) {
-          ultimaFecha.setDate(ultimaFecha.getDate() + 3);
-          const fluctuacion = (Math.random() * 1.6 - 0.8);
-          proyecciones.push({ fecha: new Date(ultimaFecha), valor: Math.min(10, Math.max(1, +(promRend + fluctuacion).toFixed(1))) });
-        }
-        return proyecciones;
+        return [{ fecha: new Date(ultimaFecha), valor: Math.min(10, Math.max(1, +promRend.toFixed(1))) }];
       }
 
       let diferencias = [];
@@ -1227,25 +1135,17 @@
       const promedioIntervaloDays = Math.max(1, Math.round(diferencias.reduce((a,b)=>a+b, 0) / diferencias.length));
       
       const ultimaFecha = new Date(recordsAprobados[recordsAprobados.length - 1].created_at);
-      const proyecciones = [];
+      ultimaFecha.setDate(ultimaFecha.getDate() + promedioIntervaloDays);
       let promRend = recordsAprobados.reduce((a,b)=>a+parseFloat(b.rendimiento||0),0)/recordsAprobados.length;
+      const valProyectado = Math.min(10, Math.max(1, +promRend.toFixed(1)));
 
-      for (let i = 1; i <= 3; i++) {
-        ultimaFecha.setDate(ultimaFecha.getDate() + promedioIntervaloDays);
-        const variacion = (Math.random() * 2.2 - 1.1);
-        const valProyectado = Math.min(10, Math.max(1, +(promRend + variacion).toFixed(1)));
-        proyecciones.push({ fecha: new Date(ultimaFecha), valor: valProyectado });
-      }
-      return proyecciones;
+      return [{ fecha: new Date(ultimaFecha), valor: valProyectado }];
     }
 
     function actualizarDashboardConDatos(records) {
       const recordsAprobados = records.filter(r => r.status && r.status.toLowerCase() === 'aprobado');
-      const container = document.getElementById('historyContainer');
       if (!recordsAprobados || recordsAprobados.length === 0) {
         document.getElementById('statSesiones').innerText = '0';
-        document.getElementById('statRendProm').innerText = '0.0';
-        container.innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;">Sin registros aprobados en este periodo.</span>';
         ['chartEficiencia', 'chartFluidezReal', 'chartRendimiento', 'chartRpe', 'chartSoltura', 'chartFluidez', 'chartDiversion'].forEach(id => {
           if (chartInstances[id]) chartInstances[id].destroy();
         });
@@ -1253,8 +1153,6 @@
       }
 
       document.getElementById('statSesiones').innerText = recordsAprobados.length;
-      const sumRend = recordsAprobados.reduce((acc, cur) => acc + (parseFloat(cur.rendimiento) || 0), 0);
-      document.getElementById('statRendProm').innerText = (sumRend / recordsAprobados.length).toFixed(1);
 
       const labelsHistoricas = recordsAprobados.map(r => {
         const d = new Date(r.created_at);
@@ -1262,7 +1160,7 @@
       });
 
       const proyeccionesAsistencia = calcularProyeccionAsistencia(recordsAprobados);
-      const labelsProyeccion = proyeccionesAsistencia.map(p => `${p.fecha.getDate()}/${p.fecha.getMonth() + 1} (Proj)`);
+      const labelsProyeccion = proyeccionesAsistencia.map(p => `${p.fecha.getDate()}/${p.fecha.getMonth() + 1} (Próxima)`);
       const labelsCompletas = [...labelsHistoricas, ...labelsProyeccion];
 
       const construirDatasetMetrica = (extractorFn) => {
@@ -1320,7 +1218,7 @@
               pointBackgroundColor: '#ffffff'
             },
             {
-              label: 'Proyección (Próximas 3 Clases)',
+              label: 'Proyección Corto Plazo',
               data: dataProj,
               borderColor: '#00f0ff',
               backgroundColor: 'rgba(0, 240, 255, 0.05)',
@@ -1328,7 +1226,7 @@
               borderDash: [4, 4],
               tension: 0.3,
               fill: false,
-              pointRadius: 3,
+              pointRadius: 4,
               pointBackgroundColor: '#00f0ff'
             }
           ]
@@ -1364,9 +1262,6 @@
       renderizarHistorialCheckins(cachedRecords);
     }
 
-    /* ==========================================================================
-       HISTORIAL DE CHECK-INS CON LÓGICA DE ESTADO Y COACH REVISOR
-       ========================================================================== */
     function renderizarHistorialCheckins(records) {
       const container = document.getElementById('checkinHistoryList');
       if (!container) return;
@@ -1435,8 +1330,6 @@
       if (totalValEl) totalValEl.innerText = totalClasesCarrera;
 
       if (recordsAprobados.length === 0) {
-        const statusLabel = document.getElementById('radarStatusLabel');
-        if (statusLabel) statusLabel.innerText = "Sin datos aprobados en el periodo";
         if (chartInstances['chartRadar']) chartInstances['chartRadar'].destroy();
         return;
       }
@@ -1461,13 +1354,6 @@
         +(sum.diversion / count).toFixed(1)
       ];
 
-      const globalAvg = averages.reduce((a, b) => a + b, 0) / 6;
-      const globalPct = Math.round((globalAvg / 10) * 100);
-      const escala = determinarEscalaOficial(globalPct);
-
-      const statusLabel = document.getElementById('radarStatusLabel');
-      if (statusLabel) statusLabel.innerText = `${escala.estado} (${globalPct}%)`;
-      
       renderRadarChart(averages);
     }
 
@@ -1627,11 +1513,24 @@
         if (userLookup) resolvedUserId = userLookup.id;
       }
 
+      const TOPE_MAXIMO = esRolEstudiante ? 240 : 264;
+      let rendimientoIngresado = parseFloat(document.getElementById('ciRendimiento').value);
+      let mensajeNotifExtra = null;
+
+      if (puntajeActualBimestre >= TOPE_MAXIMO) {
+        rendimientoIngresado = 0;
+        mensajeNotifExtra = "Has alcanzado el límite máximo de tu categoría. Este registro ha sido ingresado en modo de mantenimiento (0 pts) para conservar tu posición.";
+      } else if (puntajeActualBimestre + rendimientoIngresado > TOPE_MAXIMO) {
+        const espacioDisponible = TOPE_MAXIMO - puntajeActualBimestre;
+        rendimientoIngresado = Math.max(0, parseFloat(espacioDisponible.toFixed(1)));
+        mensajeNotifExtra = `¡Felicidades por tu constancia! Tu ingreso ha sido ajustado a ${rendimientoIngresado} puntos para completar exactamente el tope máximo de tu categoría.`;
+      }
+
       const payload = {
         user_id: resolvedUserId,
         user_email: emailInput,
         focus: document.getElementById('ciEnfoque').value,
-        rendimiento: parseFloat(document.getElementById('ciRendimiento').value),
+        rendimiento: rendimientoIngresado,
         rpe: parseFloat(document.getElementById('ciRpe').value),
         soltura: parseFloat(document.getElementById('ciSoltura').value),
         preguntacoach: parseFloat(document.getElementById('ciPreguntaCoach').value),
@@ -1643,8 +1542,21 @@
       };
 
       const { error } = await sb.from('apex_checkins').insert([payload]);
-      if (error) { alert('Error: ' + error.message); }
-      else { alert('¡Check-in registrado con éxito!'); document.getElementById('checkinForm').reset(); document.getElementById('ciEmail').value = emailInput; await cargarRegistrosBD(emailInput); }
+      if (error) { 
+        alert('Error: ' + error.message); 
+      } else { 
+        if (mensajeNotifExtra && sb) {
+          await sb.from('apex_notifications').insert([{
+            user_email: emailInput,
+            title: '🏆 Tope Táctico Alcanzado',
+            message: mensajeNotifExtra
+          }]);
+        }
+        alert(mensajeNotifExtra ? `¡Check-in registrado con ajuste de tope!\n\n${mensajeNotifExtra}` : '¡Check-in registrado con éxito! Esperando aprobación del coach.'); 
+        document.getElementById('checkinForm').reset(); 
+        document.getElementById('ciEmail').value = emailInput; 
+        await cargarRegistrosBD(emailInput); 
+      }
       btn.disabled = false; btn.innerText = 'Enviar Registro';
     }
 
