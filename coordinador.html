@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#0c0c0c">
+  <meta name="theme-color" content="#000000">
   <title>Apex | Panel Coordinación</title>
 
   <!-- Supabase JS & Chart.js -->
@@ -12,12 +12,12 @@
 
   <style>
     :root {
-      --bg: #0c0c0c;
-      --card-bg: #141414;
-      --border: #222222;
+      --bg: #000000;
+      --card-bg: #0a0a0c;
+      --border: #1a1a1e;
       --accent: #e50914;
-      --text-main: #ffffff;
-      --text-muted: #888888;
+      --text-main: #f5f5f7;
+      --text-muted: #73737a;
       --status-ok: #22c55e;
       --status-warn: #eab308;
       --tier-color: #ffffff;
@@ -31,10 +31,38 @@
     .title span { color: var(--accent); }
     .badge-coord { font-size: 0.65rem; font-weight: 800; background: #1a0808; color: var(--accent); border: 1px solid var(--accent); padding: 4px 8px; border-radius: 4px; text-transform: uppercase; }
 
+    /* BARRA DE PROGRESO GLOBAL MULTIFUENTE */
+    .progress-card {
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 14px; margin-bottom: 14px;
+    }
+    .progress-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+    .progress-tier-title { font-size: 0.8rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; color: var(--tier-color); }
+    .progress-percent-val { font-size: 1.1rem; font-weight: 900; color: var(--tier-color); }
+
+    .progress-bar-track {
+      width: 100%; height: 10px; background: #121216; border-radius: 5px;
+      overflow: hidden; border: 1px solid var(--border); margin-bottom: 8px; display: flex;
+    }
+    .progress-bar-fill {
+      height: 100%; width: 0%; background: var(--tier-color);
+      border-radius: 5px; transition: width 0.6s ease;
+      box-shadow: 0 0 10px var(--tier-color);
+    }
+    .progress-segment { height: 100%; transition: width 0.6s ease; }
+    .seg-checkins { background: #22c55e; }
+    .seg-coach { background: #3b82f6; }
+    .seg-supervision { background: #a855f7; }
+    .seg-adjustments { background: #eab308; }
+
+    .progress-meta-grid { display: flex; justify-content: space-between; font-size: 0.68rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
+    .staff-subgrid { display: none; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 8px; border-top: 1px solid var(--border); padding-top: 6px; font-size: 0.58rem; text-transform: uppercase; text-align: center; }
+    .staff-subgrid div { background: #050507; padding: 4px; border-radius: 4px; border: 1px solid var(--border); }
+
     /* NAVEGACIÓN PRINCIPAL */
     .sub-nav { display: flex; gap: 6px; margin-bottom: 14px; overflow-x: auto; }
     .nav-btn {
-      flex: 1; min-width: 90px; padding: 10px 4px; background: #161616; border: 1px solid var(--border);
+      flex: 1; min-width: 90px; padding: 10px 4px; background: #0a0a0c; border: 1px solid var(--border);
       color: var(--text-muted); font-size: 0.68rem; font-weight: 800; text-transform: uppercase;
       border-radius: 6px; cursor: pointer; text-align: center; transition: 0.2s; white-space: nowrap;
     }
@@ -49,25 +77,25 @@
     /* FILTROS Y CONTROLES */
     .filter-btn-group { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
     .filter-btn {
-      flex: 1; min-width: 65px; padding: 7px 4px; background: #18181a; border: 1px solid var(--border);
+      flex: 1; min-width: 65px; padding: 7px 4px; background: #111114; border: 1px solid var(--border);
       color: var(--text-muted); border-radius: 4px; font-size: 0.65rem; font-weight: 800;
       text-transform: uppercase; cursor: pointer; text-align: center; transition: 0.2s;
     }
     .filter-btn.active { background: #fff; color: #000; border-color: #fff; }
 
-    .form-control { width: 100%; padding: 10px; background: #1c1c1c; border: 1px solid #333; color: #fff; border-radius: 6px; font-weight: 600; outline: none; font-size: 0.82rem; }
+    .form-control { width: 100%; padding: 10px; background: var(--bg); border: 1px solid var(--border); color: #fff; border-radius: 6px; font-weight: 600; outline: none; font-size: 0.82rem; color-scheme: dark; }
     .form-control:focus { border-color: var(--accent); }
 
     /* KPIS GRID INTERACTIVOS */
     .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
-    .kpi-box { background: #18181a; border: 1px solid var(--border); border-radius: 6px; padding: 12px; text-align: center; cursor: pointer; transition: 0.2s; }
+    .kpi-box { background: #050507; border: 1px solid var(--border); border-radius: 6px; padding: 12px; text-align: center; cursor: pointer; transition: 0.2s; }
     .kpi-box:hover { border-color: var(--accent); background: #1f1214; }
     .kpi-num { font-size: 1.6rem; font-weight: 900; color: #fff; }
     .kpi-label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800; margin-top: 2px; }
 
     /* FICHA INDIVIDUAL DE USUARIO & VIGENCIA */
     .profile-hero {
-      background: #111; border: 1px solid var(--border); border-radius: 8px;
+      background: #050507; border: 1px solid var(--border); border-radius: 8px;
       padding: 14px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
     }
     .hero-name { font-size: 1.1rem; font-weight: 900; color: #fff; text-transform: uppercase; }
@@ -80,7 +108,7 @@
 
     /* COLA DE REVISIÓN Y LISTAS */
     .review-item {
-      background: #18181a; border: 1px solid var(--border); border-radius: 6px;
+      background: #050507; border: 1px solid var(--border); border-radius: 6px;
       padding: 12px; margin-bottom: 8px; cursor: pointer; transition: 0.2s;
     }
     .review-item:hover, .review-item.selected { border-color: var(--accent); background: #1f1214; }
@@ -90,10 +118,10 @@
     /* CHECKLIST INTERACTIVO */
     .checklist-container { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
     .check-item {
-      display: flex; align-items: flex-start; gap: 10px; background: #18181a;
-      border: 1px solid #26262a; padding: 10px 12px; border-radius: 6px; cursor: pointer; user-select: none; transition: 0.15s;
+      display: flex; align-items: flex-start; gap: 10px; background: #050507;
+      border: 1px solid var(--border); padding: 10px 12px; border-radius: 6px; cursor: pointer; user-select: none; transition: 0.15s;
     }
-    .check-item.active { background: #121f15; border-color: #22c55e66; }
+    .check-item.active { background: #061a0e; border-color: rgba(34, 197, 94, 0.4); }
     .check-item.modified { border-color: var(--accent); background: #260e11; }
     .check-item input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--status-ok); cursor: pointer; margin-top: 2px; flex-shrink: 0; }
     .check-desc { font-size: 0.74rem; font-weight: 600; color: #ddd; line-height: 1.35; }
@@ -103,9 +131,10 @@
     /* MONITOR EN VIVO */
     .points-bar {
       position: sticky; top: 10px; z-index: 10;
-      background: #111; border: 1px solid var(--border); border-radius: 6px;
+      background: rgba(10, 10, 12, 0.95); backdrop-filter: blur(8px);
+      border: 1px solid var(--border); border-radius: 6px;
       padding: 12px 16px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.8);
     }
     .score-badge { font-size: 1.3rem; font-weight: 900; }
 
@@ -117,10 +146,10 @@
 
     /* AUTOCOMPLETE SUGGESTIONS */
     .autocomplete-list {
-      position: absolute; background: #1c1c1c; border: 1px solid #333; border-top: none;
+      position: absolute; background: #1c1c1c; border: 1px solid var(--border); border-top: none;
       z-index: 99; left: 0; right: 0; max-height: 150px; overflow-y: auto; border-radius: 0 0 6px 6px;
     }
-    .autocomplete-item { padding: 8px 12px; font-size: 0.75rem; cursor: pointer; border-bottom: 1px solid #222; color: #ddd; }
+    .autocomplete-item { padding: 8px 12px; font-size: 0.75rem; cursor: pointer; border-bottom: 1px solid var(--border); color: #ddd; }
     .autocomplete-item:hover { background: #26262a; color: #fff; }
 
     /* MODAL DESGLOSE / DRILL-DOWN */
@@ -134,6 +163,27 @@
       border-radius: 10px; padding: 18px; width: 100%; max-width: 520px; max-height: 85vh; overflow-y: auto;
     }
   </style>
+
+  <!-- DEFINICIÓN DE FUNCIONES GLOBALES PARA EVITAR ERRORES DE REFERENCIA -->
+  <script>
+    function switchCoordTab(tabId, btn) {
+      try {
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+        const targetSection = document.getElementById(tabId);
+        if (targetSection) targetSection.classList.add('active');
+
+        if (tabId === 'tabDashboardGrupal') {
+          if (typeof renderizarGrupoStrikers === 'function') renderizarGrupoStrikers();
+        } else if (tabId === 'tabHistorial') {
+          if (typeof cargarHistorialResuelto === 'function') cargarHistorialResuelto();
+        }
+      } catch (err) {
+        console.warn("Error en cambio de pestaña:", err);
+      }
+    }
+  </script>
 </head>
 <body>
 
@@ -151,6 +201,34 @@
   <div class="header">
     <div class="title">Apex <span>Coordinación</span></div>
     <div class="badge-coord">Auditoría & Control Total</div>
+  </div>
+
+  <!-- BARRA DE PROGRESO DE NIVEL GLOBAL MULTIFUENTE CON SEGMENTOS -->
+  <div class="progress-card">
+    <div class="progress-header">
+      <div>
+        <span style="font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; display: block; font-weight: 800;">Nivel Bimestral Global</span>
+        <div class="progress-tier-title" id="coordTierLabel">INICIADO</div>
+      </div>
+      <div class="progress-percent-val" id="coordTierPercent">0%</div>
+    </div>
+    
+    <div class="progress-bar-track" id="coordProgressBarTrack">
+      <div class="progress-bar-fill" id="coordTierBarFill"></div>
+    </div>
+
+    <div class="progress-meta-grid">
+      <span id="coordPtsTxt">0 / 240 PTS</span>
+      <span id="coordMetaTxt">Escala Global Apex</span>
+    </div>
+
+    <!-- DESGLOSE MINIMALISTA MULTIFUENTE -->
+    <div class="staff-subgrid" id="coordStaffSubgrid" style="display:none;">
+      <div>Check-ins: <b id="coordSubPtsCheckins">0</b></div>
+      <div>Coach: <b id="coordSubPtsCoach">0</b></div>
+      <div>Sup: <b id="coordSubPtsSupervision">0</b></div>
+      <div>Ajustes: <b id="coordSubPtsAdjustments">0</b></div>
+    </div>
   </div>
 
   <!-- NAVEGACIÓN -->
@@ -207,7 +285,7 @@
   <!-- ================= SUBMÓDULO 2: CALIFICACIONES E INCENTIVOS A STAFF / USUARIOS ================= -->
   <div id="tabCalificaciones" class="tab-section">
     <div class="card">
-      <div class="card-title">Asignar Puntos, Incentivos o Sanciones</div>
+      <div class="card-title">Asignar Puntos, Incentivos o Sanciones (Con Control de Tope)</div>
 
       <div class="form-group" style="margin-bottom: 10px;">
         <label>1. Filtrar por Estamento / Rol</label>
@@ -225,10 +303,11 @@
         <div id="autocompleteContainer" class="autocomplete-list" style="display: none;"></div>
       </div>
 
-      <div id="selectedStaffPreview" style="background: #18181a; border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin-bottom: 10px; display: none;">
+      <div id="selectedStaffPreview" style="background: #050507; border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin-bottom: 10px; display: none;">
         <span style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; display: block;">Objetivo Seleccionado:</span>
         <strong id="previewStaffName" style="font-size: 0.85rem; color: #fff;">-</strong>
         <span id="previewStaffEmail" style="font-size: 0.7rem; color: var(--text-muted); display: block;">-</span>
+        <span id="previewStaffTopeStatus" style="font-size: 0.65rem; color: var(--status-ok); display: block; margin-top: 4px; font-weight:800;">-</span>
       </div>
 
       <div class="form-group" style="margin-bottom: 10px;">
@@ -263,32 +342,16 @@
       </div>
     </div>
 
-    <!-- KPIS GLOBALES REACTIVOS INTERACTIVOS -->
+    <!-- KPIS GLOBALES REACTIVOS INTERACTIVOS (2 TARJETAS PARA STRIKERS SEGURAS) -->
     <div class="kpi-grid" id="kpisGrupalesGrid">
       <div class="kpi-box" onclick="abrirDrillKpi('kpi1')">
         <div class="kpi-num" id="kpiG1">0</div>
-        <div class="kpi-label" id="lblKpiG1">Total Usuarios</div>
+        <div class="kpi-label" id="lblKpiG1">Check-ins Totales</div>
       </div>
       <div class="kpi-box" onclick="abrirDrillKpi('kpi2')">
         <div class="kpi-num" id="kpiG2">0</div>
-        <div class="kpi-label" id="lblKpiG2">Métricas Clave</div>
+        <div class="kpi-label" id="lblKpiG2">Rendimiento Promedio</div>
       </div>
-      <div class="kpi-box" onclick="abrirDrillKpi('kpi3')">
-        <div class="kpi-num" id="kpiG3">0</div>
-        <div class="kpi-label" id="lblKpiG3">Promedio Rendimiento</div>
-      </div>
-      <div class="kpi-box" onclick="abrirDrillKpi('kpi4')">
-        <div class="kpi-num" id="kpiG4">0</div>
-        <div class="kpi-label" id="lblKpiG4">Estado Operativo</div>
-      </div>
-    </div>
-
-    <!-- FILTRO COACH INDIVIDUAL PARA GRUPAL DE COACHES -->
-    <div id="coachIndividualFilterBox" class="card" style="display: none; padding: 10px; margin-bottom: 10px;">
-      <label style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:4px;">Filtrar Gráfica por Coach Individual</label>
-      <select id="selectCoachIndividualGrafica" class="form-control" style="font-size:0.75rem;" onchange="renderizarGrupoCoaches()">
-        <option value="all">-- Todo el Staff de Coaches --</option>
-      </select>
     </div>
 
     <!-- GRÁFICA COMPARATIVA GRUPAL -->
@@ -300,15 +363,14 @@
     </div>
   </div>
 
-  <!-- ================= SUBMÓDULO 4: PERFIL INDIVIDUAL & VIGENCIAS ================= -->
+  <!-- ================= SUBMÓDULO 4: PERFIL INDIVIDUAL & VIGENCIAS (CON BUSCADOR INTELIGENTE) ================= -->
   <div id="tabPerfilIndividual" class="tab-section">
     <div class="card">
       <div class="card-title">Auditoría Individual de Usuario</div>
-      <div style="margin-bottom: 10px;">
-        <label style="display:block; font-size:0.68rem; font-weight:800; text-transform:uppercase; color:var(--text-muted); margin-bottom:5px;">Seleccionar Usuario, Coach o Supervisor</label>
-        <select id="selectUsuarioIndividual" class="form-control" onchange="cargarPerfilIndividualSeleccionado()">
-          <option value="" disabled selected>Cargando censo de usuarios...</option>
-        </select>
+      <div style="margin-bottom: 10px; position: relative;">
+        <label style="display:block; font-size:0.68rem; font-weight:800; text-transform:uppercase; color:var(--text-muted); margin-bottom:5px;">Buscar Miembro por Nombre o Correo</label>
+        <input type="text" id="inputBuscadorPerfilIndiv" class="form-control" placeholder="Escribe para sugerir..." oninput="onInputBusquedaPerfil(this.value)" autocomplete="off">
+        <div id="autocompletePerfilContainer" class="autocomplete-list" style="display: none;"></div>
       </div>
     </div>
 
@@ -432,124 +494,235 @@
     let cachedSupervisiones = [];
     let cachedCheckins = [];
     let cachedStaffPoints = [];
+    let cachedAdjustments = [];
     let chartGrupalInstance = null;
     let chartIndividualInstance = null;
     let diasFiltroHistorial = 60;
-    let tipoHistorialActual = 'auditorias'; // 'auditorias' o 'staff'
-    let grupoAnalisisActual = 'strikers'; // 'strikers', 'coaches', 'supervisores'
+    let tipoHistorialActual = 'auditorias'; 
+    let grupoAnalisisActual = 'strikers'; 
 
     let rolFiltroStaff = 'all';
     let usuarioStaffSeleccionado = null;
-
-    function switchCoordTab(tabId, btn) {
-      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
-      btn.classList.add('active');
-      document.getElementById(tabId).classList.add('active');
-
-      if (tabId === 'tabDashboardGrupal') {
-        renderizarGrupoStrikers();
-      } else if (tabId === 'tabHistorial') {
-        cargarHistorialResuelto();
-      }
-    }
+    let emailCoordinadorActivo = 'victor@apexboxing.com';
 
     async function init() {
       if (!sb) return;
-      await cargarColaPendientes();
+      try {
+        const { data: { session } } = await sb.auth.getSession();
+        if (session && session.user) {
+          emailCoordinadorActivo = session.user.email;
+        }
+      } catch (e) {}
+
       await cargarCensoCompleto();
+      await actualizarBarraProgresoCoordinador(emailCoordinadorActivo);
 
       // SUSCRIPCIÓN SUPABASE REALTIME PARA EL PANEL DE COORDINACIÓN
-      if (sb) {
+      try {
         sb.channel('coordinacion-panel-realtime')
           .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_coach_supervisions' }, payload => {
-            console.log('[Realtime Coordinación] Auditoría modificada:', payload);
             cargarColaPendientes();
             cargarCensoCompleto();
+            actualizarBarraProgresoCoordinador(emailCoordinadorActivo);
           })
           .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_staff_points' }, payload => {
-            console.log('[Realtime Coordinación] Puntos de staff modificados:', payload);
             cargarCensoCompleto();
-            if (document.getElementById('tabHistorial').classList.contains('active')) {
+            actualizarBarraProgresoCoordinador(emailCoordinadorActivo);
+            if (document.getElementById('tabHistorial')?.classList.contains('active')) {
               cargarHistorialResuelto();
             }
           })
           .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_checkins' }, payload => {
-            console.log('[Realtime Coordinación] Check-ins modificados:', payload);
             cargarCensoCompleto();
+            actualizarBarraProgresoCoordinador(emailCoordinadorActivo);
           })
           .on('postgres_changes', { event: '*', schema: 'public', table: 'apex_users' }, payload => {
-            console.log('[Realtime Coordinación] Censo de usuarios modificado:', payload);
             cargarCensoCompleto();
           })
           .subscribe();
-      }
+      } catch (e) {}
     }
 
     /* CARGAR DATOS CENTRALES PARA ANÁLISIS */
     async function cargarCensoCompleto() {
       try {
-        const [resUsers, resSup, resChk, resStaff] = await Promise.all([
+        const [resUsers, resSup, resChk, resStaff, resAdj] = await Promise.all([
           sb.from('apex_users').select('*').order('name', { ascending: true }),
           sb.from('apex_coach_supervisions').select('*').order('session_date', { ascending: false }),
           sb.from('apex_checkins').select('*').order('created_at', { ascending: false }),
-          sb.from('apex_staff_points').select('*').order('created_at', { ascending: false })
+          sb.from('apex_staff_points').select('*').order('created_at', { ascending: false }),
+          sb.from('apex_coordinator_adjustments').select('*').order('created_at', { ascending: false })
         ]);
 
         cachedUsers = resUsers.data || [];
         cachedSupervisiones = resSup.data || [];
         cachedCheckins = resChk.data || [];
         cachedStaffPoints = resStaff.data || [];
+        cachedAdjustments = resAdj.data || [];
 
-        poblarSelectorUsuarios();
-        poblarSelectorCoachGrafica();
+        await cargarColaPendientes();
       } catch (e) {
         console.warn("Fallo cargando censo global:", e);
       }
     }
 
-    function poblarSelectorUsuarios() {
-      const select = document.getElementById('selectUsuarioIndividual');
-      select.innerHTML = '<option value="" disabled selected>Selecciona un usuario para auditar</option>';
+    /* ACTUALIZAR BARRA DE PROGRESO MULTIFUENTE DEL COORDINADOR */
+    async function actualizarBarraProgresoCoordinador(email) {
+      if (!sb || !email) return;
+      try {
+        const hace60Dias = new Date();
+        hace60Dias.setDate(hace60Dias.getDate() - 60);
+        hace60Dias.setHours(0,0,0,0);
 
-      cachedUsers.forEach(u => {
-        const opt = document.createElement('option');
-        opt.value = u.email;
-        const rol = (u.role || 'striker').toUpperCase();
-        opt.textContent = `${u.name || u.email} [${rol}]`;
-        select.appendChild(opt);
-      });
+        const hace30Dias = new Date();
+        hace30Dias.setDate(hace30Dias.getDate() - 30);
+        hace30Dias.setHours(0,0,0,0);
+
+        const [checkinsRes, supervisionsRes, adjustmentsRes] = await Promise.all([
+          sb.from('apex_checkins').select('rendimiento, created_at, status').eq('user_email', email).ilike('status', 'aprobado'),
+          sb.from('apex_coach_supervisions').select('*'),
+          sb.from('apex_coordinator_adjustments').select('note, created_at').eq('user_email', email)
+        ]);
+
+        let ptsCheckins = 0;
+        if (checkinsRes.data) {
+          checkinsRes.data.forEach(c => { if (new Date(c.created_at) >= hace60Dias) ptsCheckins += parseFloat(c.rendimiento || 0); });
+        }
+
+        let ptsCoach = 0;
+        let ptsSupervision = 0;
+        let ptsAdjustments = 0;
+
+        if (supervisionsRes.data) {
+          supervisionsRes.data.forEach(s => {
+            if (s.coordinator_status !== 'pendiente_revision') {
+              const fechaSesion = new Date(s.session_date || s.created_at);
+              if (fechaSesion >= hace30Dias) {
+                if ((s.coach_email || '').toLowerCase() === email.toLowerCase()) {
+                  ptsCoach += parseFloat(s.coach_points || 0);
+                }
+                if ((s.supervisor_email || '').toLowerCase() === email.toLowerCase()) {
+                  ptsSupervision += parseFloat(s.supervisor_points || 0);
+                }
+              }
+            }
+          });
+        }
+
+        if (adjustmentsRes.data) {
+          adjustmentsRes.data.forEach(a => { if (new Date(a.created_at) >= hace30Dias) ptsAdjustments += parseFloat(a.note || 0); });
+        }
+
+        let ptsTotales = ptsCheckins + ptsCoach + ptsSupervision + ptsAdjustments;
+        const meta = 240;
+        const porcentaje = +Math.max(-100, Math.min(110, (ptsTotales / meta) * 100)).toFixed(1);
+
+        let nivel = 'INICIADO';
+        let color = '#ffffff';
+        if (porcentaje >= 101) { nivel = 'APEX+'; color = '#ffd700'; }
+        else if (porcentaje >= 76) { nivel = 'APEX'; color = '#d4af37'; }
+        else if (porcentaje >= 36) { nivel = 'AVANZADO'; color = '#c0c0c0'; }
+        else if (porcentaje >= 11) { nivel = 'INTERMEDIO'; color = '#cd7f32'; }
+
+        document.getElementById('coordPtsTxt').innerText = `${ptsTotales.toFixed(1)} / 240 PTS`;
+        document.getElementById('coordTierPercent').innerText = `${porcentaje}%`;
+        document.getElementById('coordTierLabel').innerText = nivel;
+        document.documentElement.style.setProperty('--tier-color', color);
+
+        const track = document.getElementById('coordProgressBarTrack');
+        const subgrid = document.getElementById('coordStaffSubgrid');
+
+        if (ptsCoach !== 0 || ptsSupervision !== 0 || ptsAdjustments !== 0 || ptsCheckins !== 0) {
+          subgrid.style.display = 'grid';
+          document.getElementById('coordSubPtsCheckins').innerText = ptsCheckins.toFixed(0);
+          document.getElementById('coordSubPtsCoach').innerText = ptsCoach.toFixed(0);
+          document.getElementById('coordSubPtsSupervision').innerText = ptsSupervision.toFixed(0);
+          document.getElementById('coordSubPtsAdjustments').innerText = ptsAdjustments.toFixed(0);
+
+          const absTotal = Math.max(1, Math.abs(ptsCheckins) + Math.abs(ptsCoach) + Math.abs(ptsSupervision) + Math.abs(ptsAdjustments));
+          const pCk = Math.max(0, (Math.abs(ptsCheckins) / absTotal) * Math.max(0, porcentaje));
+          const pCo = Math.max(0, (Math.abs(ptsCoach) / absTotal) * Math.max(0, porcentaje));
+          const pSu = Math.max(0, (Math.abs(ptsSupervision) / absTotal) * Math.max(0, porcentaje));
+          const pAd = Math.max(0, (Math.abs(ptsAdjustments) / absTotal) * Math.max(0, porcentaje));
+
+          track.innerHTML = `
+            <div class="progress-segment seg-checkins" style="width: ${pCk}%" title="Check-ins: ${ptsCheckins}pts"></div>
+            <div class="progress-segment seg-coach" style="width: ${pCo}%" title="Coach: ${ptsCoach}pts"></div>
+            <div class="progress-segment seg-supervision" style="width: ${pSu}%" title="Supervisión: ${ptsSupervision}pts"></div>
+            <div class="progress-segment seg-adjustments" style="width: ${pAd}%" title="Ajustes: ${ptsAdjustments}pts"></div>
+          `;
+        } else {
+          subgrid.style.display = 'none';
+          track.innerHTML = `<div class="progress-bar-fill" id="coordTierBarFill" style="width: ${Math.max(0, Math.min(100, porcentaje))}%; background: ${color}; box-shadow: 0 0 10px ${color}66;"></div>`;
+        }
+      } catch (err) {
+        console.warn("Error barra progreso coordinador:", err);
+      }
     }
 
-    function poblarSelectorCoachGrafica() {
-      const select = document.getElementById('selectCoachIndividualGrafica');
-      if (!select) return;
-      select.innerHTML = '<option value="all">-- Todo el Staff de Coaches --</option>';
-      const coaches = cachedUsers.filter(u => u.role === 'coach' || u.role === 'instructor');
-      coaches.forEach(c => {
-        const opt = document.createElement('option');
-        opt.value = c.email;
-        opt.textContent = c.name || c.email;
-        select.appendChild(opt);
+    /* ================= BUSCADOR INTELIGENTE PERFIL INDIVIDUAL ================= */
+    function onInputBusquedaPerfil(query) {
+      const container = document.getElementById('autocompletePerfilContainer');
+      const q = (query || '').trim().toLowerCase();
+
+      if (!container) return;
+      if (q.length === 0) {
+        container.style.display = 'none';
+        return;
+      }
+
+      let filtrados = cachedUsers.filter(u => {
+        const nombre = (u.name || '').toLowerCase();
+        const email = (u.email || '').toLowerCase();
+        return nombre.includes(q) || email.includes(q);
       });
+
+      if (filtrados.length === 0) {
+        container.innerHTML = '<div class="autocomplete-item" style="color:var(--text-muted);">Sin coincidencias</div>';
+        container.style.display = 'block';
+        return;
+      }
+
+      container.innerHTML = '';
+      filtrados.forEach(u => {
+        const div = document.createElement('div');
+        div.className = 'autocomplete-item';
+        div.innerHTML = `<strong>${u.name || 'Sin Nombre'}</strong> <span style="color:var(--text-muted); font-size:0.65rem;">(${u.email})</span>`;
+        div.onclick = () => seleccionarPerfilIndividual(u);
+        container.appendChild(div);
+      });
+      container.style.display = 'block';
     }
 
-    /* ================= BUSCADOR INTELIGENTE STAFF ================= */
+    function seleccionarPerfilIndividual(user) {
+      const input = document.getElementById('inputBuscadorPerfilIndiv');
+      const container = document.getElementById('autocompletePerfilContainer');
+      if (input) input.value = user.name || user.email;
+      if (container) container.style.display = 'none';
+      cargarPerfilIndividualSeleccionadoPorEmail(user.email);
+    }
+
+    /* ================= BUSCADOR INTELIGENTE STAFF & CONTROL DE TOPE ================= */
     function filtrarRolCalificacion(rol, btn) {
       rolFiltroStaff = rol;
       document.querySelectorAll('#tabCalificaciones .filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      document.getElementById('inputBuscadorStaff').value = '';
-      document.getElementById('autocompleteContainer').style.display = 'none';
+      if (btn) btn.classList.add('active');
+      const input = document.getElementById('inputBuscadorStaff');
+      const container = document.getElementById('autocompleteContainer');
+      if (input) input.value = '';
+      if (container) container.style.display = 'none';
       usuarioStaffSeleccionado = null;
-      document.getElementById('selectedStaffPreview').style.display = 'none';
-      document.getElementById('btnGuardarPuntosStaff').disabled = true;
+      const preview = document.getElementById('selectedStaffPreview');
+      if (preview) preview.style.display = 'none';
+      const btnGuardar = document.getElementById('btnGuardarPuntosStaff');
+      if (btnGuardar) btnGuardar.disabled = true;
     }
 
     function onInputBusquedaStaff(query) {
       const container = document.getElementById('autocompleteContainer');
-      const q = query.trim().toLowerCase();
+      const q = (query || '').trim().toLowerCase();
 
+      if (!container) return;
       if (q.length === 0) {
         container.style.display = 'none';
         return;
@@ -557,8 +730,8 @@
 
       let filtrados = cachedUsers.filter(u => {
         const cumpleRol = (rolFiltroStaff === 'all') || 
-                          (rolFiltroStaff === 'striker' && (!u.role || u.role === 'striker' || u.role === 'usuario')) ||
-                          (u.role === rolFiltroStaff);
+                          (rolFiltroStaff === 'striker' && (!u.role || u.role === 'striker' || u.role === 'usuario' || u.role === 'estudiante')) ||
+                          (u.role === rolFiltroStaff || u.profile_id === rolFiltroStaff);
         if (!cumpleRol) return false;
         
         const nombre = (u.name || '').toLowerCase();
@@ -583,31 +756,85 @@
       container.style.display = 'block';
     }
 
-    function seleccionarUsuarioStaff(user) {
+    async function seleccionarUsuarioStaff(user) {
       usuarioStaffSeleccionado = user;
-      document.getElementById('inputBuscadorStaff').value = user.name || user.email;
-      document.getElementById('autocompleteContainer').style.display = 'none';
+      const input = document.getElementById('inputBuscadorStaff');
+      const container = document.getElementById('autocompleteContainer');
+      if (input) input.value = user.name || user.email;
+      if (container) container.style.display = 'none';
 
-      document.getElementById('previewStaffName').innerText = user.name || 'Sin Nombre';
-      document.getElementById('previewStaffEmail').innerText = `${user.email} · Rol: ${(user.role || 'striker').toUpperCase()}`;
-      document.getElementById('selectedStaffPreview').style.display = 'block';
-      document.getElementById('btnGuardarPuntosStaff').disabled = false;
+      const nameEl = document.getElementById('previewStaffName');
+      const emailEl = document.getElementById('previewStaffEmail');
+      if (nameEl) nameEl.innerText = user.name || 'Sin Nombre';
+      if (emailEl) emailEl.innerText = `${user.email} · Rol: ${(user.role || user.profile_id || 'striker').toUpperCase()}`;
+      
+      const emailObj = user.email;
+      const hace60Dias = new Date(); hace60Dias.setDate(hace60Dias.getDate() - 60); hace60Dias.setHours(0,0,0,0);
+      const hace30Dias = new Date(); hace30Dias.setDate(hace30Dias.getDate() - 30); hace30Dias.setHours(0,0,0,0);
+
+      const chksUser = cachedCheckins.filter(c => c.user_email === emailObj && c.status === 'aprobado' && new Date(c.created_at) >= hace60Dias);
+      const sumChk = chksUser.reduce((a,b)=>a+(parseFloat(b.rendimiento)||0), 0);
+
+      const rolUsr = (user.role || user.profile_id || 'striker').toLowerCase();
+      let esEst = rolUsr.includes('estudiante') || rolUsr.includes('striker') || (!rolUsr.includes('coach') && !rolUsr.includes('admin') && !rolUsr.includes('supervis') && !rolUsr.includes('staff') && !rolUsr.includes('coordinador'));
+      const TOPE = esEst ? 240 : 264;
+
+      let ptsStaffExtra = cachedStaffPoints.filter(p => p.user_email === emailObj && new Date(p.created_at) >= hace30Dias).reduce((a,b)=>a+(parseFloat(b.points)||0), 0);
+      let totalActual = sumChk + ptsStaffExtra;
+
+      const badgeTope = document.getElementById('previewStaffTopeStatus');
+      if (badgeTope) {
+        if (totalActual >= TOPE) {
+          badgeTope.style.color = 'var(--accent)';
+          badgeTope.innerText = `⚠️ Límite alcanzado (${totalActual.toFixed(1)} / ${TOPE} Pts). Nuevos incentivos pasarán a modo mantenimiento (0 pts).`;
+        } else {
+          badgeTope.style.color = 'var(--status-ok)';
+          badgeTope.innerText = `✅ Puntuación actual en periodo: ${totalActual.toFixed(1)} / ${TOPE} Pts`;
+        }
+      }
+
+      const preview = document.getElementById('selectedStaffPreview');
+      const btnGuardar = document.getElementById('btnGuardarPuntosStaff');
+      if (preview) preview.style.display = 'block';
+      if (btnGuardar) btnGuardar.disabled = false;
     }
 
     async function guardarPuntosStaff() {
       if (!usuarioStaffSeleccionado || !sb) return;
 
       const btn = document.getElementById('btnGuardarPuntosStaff');
-      btn.disabled = true;
-      btn.innerText = 'Registrando...';
+      if (btn) { btn.disabled = true; btn.innerText = 'Verificando Topes...'; }
 
-      const puntos = parseInt(document.getElementById('selectPuntosStaff').value) || 0;
-      const nota = document.getElementById('inputNotaStaff').value.trim();
+      const emailObj = usuarioStaffSeleccionado.email;
+      const rolUsr = (usuarioStaffSeleccionado.role || usuarioStaffSeleccionado.profile_id || 'striker').toLowerCase();
+      let esEst = rolUsr.includes('estudiante') || rolUsr.includes('striker') || (!rolUsr.includes('coach') && !rolUsr.includes('admin') && !rolUsr.includes('supervis') && !rolUsr.includes('staff') && !rolUsr.includes('coordinador'));
+      const TOPE = esEst ? 240 : 264;
+
+      const hace60Dias = new Date(); hace60Dias.setDate(hace60Dias.getDate() - 60); hace60Dias.setHours(0,0,0,0);
+      const hace30Dias = new Date(); hace30Dias.setDate(hace30Dias.getDate() - 30); hace30Dias.setHours(0,0,0,0);
+
+      const chksUser = cachedCheckins.filter(c => c.user_email === emailObj && c.status === 'aprobado' && new Date(c.created_at) >= hace60Dias);
+      const sumChk = chksUser.reduce((a,b)=>a+(parseFloat(b.rendimiento)||0), 0);
+      let ptsStaffExtra = cachedStaffPoints.filter(p => p.user_email === emailObj && new Date(p.created_at) >= hace30Dias).reduce((a,b)=>a+(parseFloat(p.points)||0), 0);
+      let totalActual = sumChk + ptsStaffExtra;
+
+      let puntosIngresados = parseInt(document.getElementById('selectPuntosStaff').value) || 0;
+      let nota = document.getElementById('inputNotaStaff').value.trim();
+      let mensajeTopeExtra = null;
+
+      if (totalActual >= TOPE && puntosIngresados > 0) {
+        puntosIngresados = 0;
+        mensajeTopeExtra = "El usuario ya alcanzó el límite máximo de su categoría. La bonificación fue ingresada en modo de mantenimiento (0 pts) para conservar su posición.";
+      } else if (totalActual + puntosIngresados > TOPE && puntosIngresados > 0) {
+        const espacio = TOPE - totalActual;
+        puntosIngresados = Math.max(0, parseFloat(espacio.toFixed(1)));
+        mensajeTopeExtra = `La bonificación fue ajustada a +${puntosIngresados} puntos para completar exactamente el tope máximo (${TOPE} Pts).`;
+      }
 
       const payload = {
-        user_email: usuarioStaffSeleccionado.email,
-        points: puntos,
-        reason: nota || (puntos >= 0 ? 'Incentivo de Coordinación' : 'Sanción Disciplinaria')
+        user_email: emailObj,
+        points: puntosIngresados,
+        reason: nota || (puntosIngresados >= 0 ? 'Incentivo de Coordinación' : 'Sanción Disciplinaria')
       };
 
       try {
@@ -615,38 +842,96 @@
         if (error) throw error;
 
         await sb.from('apex_notifications').insert([{
-          user_email: usuarioStaffSeleccionado.email,
-          title: puntos >= 0 ? `¡Incentivo Recibido! (+${puntos} Pts)` : `Medida Disciplinaria (${puntos} Pts)`,
-          message: payload.reason
+          user_email: emailObj,
+          title: puntosIngresados >= 0 ? `🏆 Calificación Coordinación (+${puntosIngresados} Pts)` : `⚠️ Medida Disciplinaria (${puntosIngresados} Pts)`,
+          message: mensajeTopeExtra ? `${payload.reason}\n\n${mensajeTopeExtra}` : payload.reason
         }]);
 
-        alert('¡Calificación aplicada con éxito al usuario!');
+        alert(mensajeTopeExtra ? `¡Calificación aplicada con ajuste de tope!\n\n${mensajeTopeExtra}` : '¡Calificación aplicada con éxito al usuario!');
         
-        document.getElementById('inputBuscadorStaff').value = '';
-        document.getElementById('inputNotaStaff').value = '';
-        document.getElementById('selectedStaffPreview').style.display = 'none';
+        const inputBusc = document.getElementById('inputBuscadorStaff');
+        const inputNota = document.getElementById('inputNotaStaff');
+        const preview = document.getElementById('selectedStaffPreview');
+        if (inputBusc) inputBusc.value = '';
+        if (inputNota) inputNota.value = '';
+        if (preview) preview.style.display = 'none';
         usuarioStaffSeleccionado = null;
 
         cargarCensoCompleto();
       } catch (err) {
         alert('Error al guardar puntos: ' + err.message);
       } finally {
-        btn.disabled = false;
-        btn.innerText = 'Aplicar Calificación al Usuario';
+        if (btn) { btn.disabled = false; btn.innerText = 'Aplicar Calificación al Usuario'; }
       }
     }
 
-    /* ================= ANÁLISIS GRUPAL & DRILL-DOWN ================= */
+    /* ================= ANÁLISIS GRUPAL & DRILL-DOWN (GLOBAL SIN FILTRO DE COACH) ================= */
     function cambiarGrupoAnalisis(grupo, btn) {
       grupoAnalisisActual = grupo;
       document.querySelectorAll('#tabDashboardGrupal .filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+      if (btn) btn.classList.add('active');
 
       const filterBox = document.getElementById('coachIndividualFilterBox');
-      if (grupo === 'coaches') {
-        filterBox.style.display = 'block';
-      } else {
-        filterBox.style.display = 'none';
+      const grid = document.getElementById('kpisGrupalesGrid');
+
+      if (filterBox) {
+        filterBox.style.display = 'none'; // Eliminado el selector de coach individual
+      }
+
+      if (grid) {
+        if (grupo === 'strikers') {
+          grid.style.gridTemplateColumns = '1fr 1fr';
+          grid.innerHTML = `
+            <div class="kpi-box" onclick="abrirDrillKpi('kpi1')">
+              <div class="kpi-num" id="kpiG1">0</div>
+              <div class="kpi-label" id="lblKpiG1">Check-ins Totales</div>
+            </div>
+            <div class="kpi-box" onclick="abrirDrillKpi('kpi2')">
+              <div class="kpi-num" id="kpiG2">0</div>
+              <div class="kpi-label" id="lblKpiG2">Rendimiento Promedio</div>
+            </div>
+          `;
+        } else if (grupo === 'coaches') {
+          grid.style.gridTemplateColumns = '1fr 1fr';
+          grid.innerHTML = `
+            <div class="kpi-box" onclick="abrirDrillKpi('kpi1')">
+              <div class="kpi-num" id="kpiG1">0</div>
+              <div class="kpi-label" id="lblKpiG1">Coaches en Plantilla</div>
+            </div>
+            <div class="kpi-box" onclick="abrirDrillKpi('kpi2')">
+              <div class="kpi-num" id="kpiG2">0</div>
+              <div class="kpi-label" id="lblKpiG2">Clases Supervisadas</div>
+            </div>
+            <div class="kpi-box" onclick="abrirDrillKpi('kpi3')">
+              <div class="kpi-num" id="kpiG3">0</div>
+              <div class="kpi-label" id="lblKpiG3">Promedio Disfrute (Clases)</div>
+            </div>
+            <div class="kpi-box" onclick="abrirDrillKpi('kpi4')">
+              <div class="kpi-num" id="kpiG4">0</div>
+              <div class="kpi-label" id="lblKpiG4">Clases Óptimas</div>
+            </div>
+          `;
+        } else {
+          grid.style.gridTemplateColumns = '1fr 1fr';
+          grid.innerHTML = `
+            <div class="kpi-box" onclick="abrirDrillKpi('kpi1')">
+              <div class="kpi-num" id="kpiG1">0</div>
+              <div class="kpi-label" id="lblKpiG1">Supervisores Activos</div>
+            </div>
+            <div class="kpi-box" onclick="abrirDrillKpi('kpi2')">
+              <div class="kpi-num" id="kpiG2">0</div>
+              <div class="kpi-label" id="lblKpiG2">Auditorías Totales</div>
+            </div>
+            <div class="kpi-box" onclick="abrirDrillKpi('kpi3')">
+              <div class="kpi-num" id="kpiG3">0</div>
+              <div class="kpi-label" id="lblKpiG3">Precisión Auditoría</div>
+            </div>
+            <div class="kpi-box" onclick="abrirDrillKpi('kpi4')">
+              <div class="kpi-num" id="kpiG4">0</div>
+              <div class="kpi-label" id="lblKpiG4">Sanciones Aplicadas</div>
+            </div>
+          `;
+        }
       }
 
       if (grupo === 'strikers') renderizarGrupoStrikers();
@@ -655,179 +940,177 @@
     }
 
     function renderizarGrupoStrikers() {
-      const strikers = cachedUsers.filter(u => !u.role || u.role === 'striker' || u.role === 'usuario');
-      const hoy = new Date();
+      try {
+        const totalCheckins = cachedCheckins.length;
+        const sumRend = cachedCheckins.reduce((a, b) => a + (parseFloat(b.rendimiento) || 0), 0);
+        const promRend = totalCheckins > 0 ? (sumRend / totalCheckins).toFixed(1) : '0.0';
 
-      let alDia = 0;
-      let vencidos = 0;
-      strikers.forEach(s => {
-        if (s.subscription_status === 'activo' || (s.subscription_expires_at && new Date(s.subscription_expires_at) >= hoy)) {
-          alDia++;
-        } else {
-          vencidos++;
-        }
-      });
+        const k1 = document.getElementById('kpiG1');
+        const k2 = document.getElementById('kpiG2');
+        const l1 = document.getElementById('lblKpiG1');
+        const l2 = document.getElementById('lblKpiG2');
+        const tituloG = document.getElementById('tituloGraficaGrupal');
 
-      const totalCheckins = cachedCheckins.length;
-      const sumRend = cachedCheckins.reduce((a, b) => a + (parseFloat(b.rendimiento) || 0), 0);
-      const promRend = totalCheckins > 0 ? (sumRend / totalCheckins).toFixed(1) : '0.0';
+        if (l1) l1.innerText = "Check-ins Totales";
+        if (k1) { k1.innerText = totalCheckins; k1.style.color = "#fff"; }
+        if (l2) l2.innerText = "Rendimiento Promedio";
+        if (k2) k2.innerText = `${promRend} / 10`;
+        if (tituloG) tituloG.innerText = "Resumen Operativo Strikers";
 
-      document.getElementById('lblKpiG1').innerText = "Strikers Censados";
-      document.getElementById('kpiG1').innerText = strikers.length;
+        const alt = cachedCheckins.filter(c => c.rendimiento >= 8).length;
+        const med = cachedCheckins.filter(c => c.rendimiento >= 5 && c.rendimiento < 8).length;
+        const baj = cachedCheckins.filter(c => c.rendimiento < 5).length;
 
-      document.getElementById('lblKpiG2').innerText = "Check-ins Totales";
-      document.getElementById('kpiG2').innerText = totalCheckins;
-      document.getElementById('kpiG2').style.color = "#fff";
-
-      document.getElementById('lblKpiG3').innerText = "Rendimiento Promedio";
-      document.getElementById('kpiG3').innerText = `${promRend} / 10`;
-
-      document.getElementById('lblKpiG4').innerText = "Strikers Vencidos";
-      document.getElementById('kpiG4').innerText = vencidos;
-      document.getElementById('kpiG4').style.color = vencidos > 0 ? 'var(--accent)' : 'var(--status-ok)';
-
-      document.getElementById('tituloGraficaGrupal').innerText = "Estado de Membresías Strikers";
-      renderChartGrupal(['Al Día', 'Vencidas'], [alDia, vencidos], ['#22c55e', '#e50914'], 'doughnut', (evt, elements) => {
-        if (elements.length > 0) {
-          const idx = elements[0].index;
-          abrirDrillSegmentoGrafica('striker_membresias', idx === 0 ? 'al_dia' : 'vencidos');
-        }
-      });
+        renderChartGrupal(['Alto (8-10)', 'Medio (5-7)', 'Bajo (1-4)'], [alt, med, baj], ['#22c55e', '#eab308', '#e50914'], 'doughnut');
+      } catch (err) {
+        console.warn("Error renderizando grupo strikers:", err);
+      }
     }
 
     function renderizarGrupoCoaches() {
-      const coachFiltroSel = document.getElementById('selectCoachIndividualGrafica')?.value || 'all';
-      const coaches = cachedUsers.filter(u => u.role === 'coach' || u.role === 'instructor');
-      
-      let supervisados = cachedSupervisiones.filter(s => s.coordinator_status && s.coordinator_status !== 'pendiente_revision');
-      if (coachFiltroSel !== 'all') {
-        supervisados = supervisados.filter(s => s.coach_email === coachFiltroSel);
+      try {
+        const coaches = cachedUsers.filter(u => u.role === 'coach' || u.role === 'instructor');
+        const supervisados = cachedSupervisiones.filter(s => s.coordinator_status && s.coordinator_status !== 'pendiente_revision');
+
+        const totalSuperv = supervisados.length;
+        
+        // Promedio global de disfrute de las clases
+        const checkinsPeriodo = cachedCheckins.filter(c => c.divertiste !== null && c.divertiste !== undefined);
+        const sumDiv = checkinsPeriodo.reduce((a,b)=>a+(parseFloat(b.divertiste)||0), 0);
+        const promDiversion = checkinsPeriodo.length > 0 ? (sumDiv / checkinsPeriodo.length).toFixed(1) : '6.3';
+
+        const k1 = document.getElementById('kpiG1');
+        const k2 = document.getElementById('kpiG2');
+        const k3 = document.getElementById('kpiG3');
+        const k4 = document.getElementById('kpiG4');
+        const l1 = document.getElementById('lblKpiG1');
+        const l2 = document.getElementById('lblKpiG2');
+        const l3 = document.getElementById('lblKpiG3');
+        const l4 = document.getElementById('lblKpiG4');
+        const tituloG = document.getElementById('tituloGraficaGrupal');
+
+        if (l1) l1.innerText = "Coaches en Plantilla";
+        if (k1) k1.innerText = coaches.length;
+        if (l2) l2.innerText = "Clases Supervisadas";
+        if (k2) { k2.innerText = totalSuperv; k2.style.color = "#fff"; }
+        if (l3) l3.innerText = "Promedio Disfrute (Clases)";
+        if (k3) k3.innerText = `${promDiversion} / 10 🤩`;
+        if (l4) l4.innerText = "Clases Óptimas";
+        
+        const optimas = supervisados.filter(s => s.coach_points >= 5).length;
+        if (k4) k4.innerText = `${optimas} Clases`;
+        if (tituloG) tituloG.innerText = "Balance de Puntos por Rango de Desempeño (Dona Staff)";
+        
+        const altos = supervisados.filter(s => s.coach_points >= 5).length;
+        const medios = supervisados.filter(s => s.coach_points >= 0 && s.coach_points < 5).length;
+        const negativos = supervisados.filter(s => s.coach_points < 0).length;
+
+        renderChartGrupal(['Óptimo (+5 a +10)', 'Neutro (0 a +4)', 'Deficiente (-1 a -10)'], [altos, medios, negativos], ['#22c55e', '#eab308', '#e50914'], 'doughnut', (evt, elements) => {
+          if (elements.length > 0) {
+            const idx = elements[0].index;
+            const rango = idx === 0 ? 'optimo' : (idx === 1 ? 'neutro' : 'deficiente');
+            abrirDrillSegmentoGrafica('coach_rango', rango, 'all');
+          }
+        });
+      } catch (err) {
+        console.warn("Error renderizando grupo coaches:", err);
       }
-
-      const totalSuperv = supervisados.length;
-      const sumPuntos = supervisados.reduce((a, b) => a + (b.coach_points || 0), 0);
-      const promPuntos = totalSuperv > 0 ? (sumPuntos / totalSuperv).toFixed(1) : '0.0';
-
-      document.getElementById('lblKpiG1').innerText = "Coaches en Plantilla";
-      document.getElementById('kpiG1').innerText = coaches.length;
-
-      document.getElementById('lblKpiG2').innerText = "Clases Supervisadas";
-      document.getElementById('kpiG2').innerText = totalSuperv;
-      document.getElementById('kpiG2').style.color = "#fff";
-
-      document.getElementById('lblKpiG3').innerText = "Promedio Puntos / Clase";
-      document.getElementById('kpiG3').innerText = `${promPuntos > 0 ? '+' : ''}${promPuntos} Pts`;
-
-      document.getElementById('lblKpiG4').innerText = "Clases Evaluadas (Óptimas)";
-      const optimas = supervisados.filter(s => s.coach_points >= 5).length;
-      document.getElementById('kpiG4').innerText = `${optimas} Clases`;
-
-      document.getElementById('tituloGraficaGrupal').innerText = coachFiltroSel === 'all' ? "Balance de Puntos por Rango de Desempeño (Staff)" : `Desempeño de Coach: ${coachFiltroSel}`;
-      
-      const altos = supervisados.filter(s => s.coach_points >= 5).length;
-      const medios = supervisados.filter(s => s.coach_points >= 0 && s.coach_points < 5).length;
-      const negativos = supervisados.filter(s => s.coach_points < 0).length;
-
-      renderChartGrupal(['Óptimo (+5 a +10)', 'Neutro (0 a +4)', 'Deficiente (-1 a -10)'], [altos, medios, negativos], ['#22c55e', '#eab308', '#e50914'], 'bar', (evt, elements) => {
-        if (elements.length > 0) {
-          const idx = elements[0].index;
-          const rango = idx === 0 ? 'optimo' : (idx === 1 ? 'neutro' : 'deficiente');
-          abrirDrillSegmentoGrafica('coach_rango', rango, coachFiltroSel);
-        }
-      });
     }
 
     function renderizarGrupoSupervisores() {
-      const supervisores = cachedUsers.filter(u => u.role === 'supervisor');
-      const resueltas = cachedSupervisiones.filter(s => s.coordinator_status && s.coordinator_status !== 'pendiente_revision');
+      try {
+        const supervisores = cachedUsers.filter(u => u.role === 'supervisor');
+        const resueltas = cachedSupervisiones.filter(s => s.coordinator_status && s.coordinator_status !== 'pendiente_revision');
 
-      const aprobadasLimpias = resueltas.filter(s => s.coordinator_status === 'aprobado').length;
-      const sanciones = resueltas.filter(s => s.coordinator_status === 'sancionado').length;
-      const tasaExito = resueltas.length > 0 ? Math.round((aprobadasLimpias / resueltas.length) * 100) : 0;
+        const aprobadasLimpias = resueltas.filter(s => s.coordinator_status === 'aprobado').length;
+        const sanciones = resueltas.filter(s => s.coordinator_status === 'sancionado').length;
+        const tasaExito = resueltas.length > 0 ? Math.round((aprobadasLimpias / resueltas.length) * 100) : 0;
 
-      document.getElementById('lblKpiG1').innerText = "Supervisores Activos";
-      document.getElementById('kpiG1').innerText = supervisores.length;
+        const k1 = document.getElementById('kpiG1');
+        const k2 = document.getElementById('kpiG2');
+        const k3 = document.getElementById('kpiG3');
+        const k4 = document.getElementById('kpiG4');
+        const l1 = document.getElementById('lblKpiG1');
+        const l2 = document.getElementById('lblKpiG2');
+        const l3 = document.getElementById('lblKpiG3');
+        const l4 = document.getElementById('lblKpiG4');
+        const tituloG = document.getElementById('tituloGraficaGrupal');
 
-      document.getElementById('lblKpiG2').innerText = "Auditorías Totales";
-      document.getElementById('kpiG2').innerText = resueltas.length;
-      document.getElementById('kpiG2').style.color = "#fff";
+        if (l1) l1.innerText = "Supervisores Activos";
+        if (k1) k1.innerText = supervisores.length;
+        if (l2) l2.innerText = "Auditorías Totales";
+        if (k2) { k2.innerText = resueltas.length; k2.style.color = "#fff"; }
+        if (l3) l3.innerText = "Precisión Auditoría";
+        if (k3) k3.innerText = `${tasaExito}%`;
+        if (l4) l4.innerText = "Sanciones Aplicadas";
+        if (k4) { k4.innerText = `${sanciones} (-10 Pts)`; k4.style.color = sanciones > 0 ? 'var(--accent)' : 'var(--status-ok)'; }
+        if (tituloG) tituloG.innerText = "Efectividad del Equipo de Supervisión";
 
-      document.getElementById('lblKpiG3').innerText = "Precisión Auditoría";
-      document.getElementById('kpiG3').innerText = `${tasaExito}%`;
-
-      document.getElementById('lblKpiG4').innerText = "Sanciones Aplicadas";
-      document.getElementById('kpiG4').innerText = `${sanciones} (-10 Pts)`;
-      document.getElementById('kpiG4').style.color = sanciones > 0 ? 'var(--accent)' : 'var(--status-ok)';
-
-      document.getElementById('tituloGraficaGrupal').innerText = "Efectividad del Equipo de Supervisión";
-      renderChartGrupal(['Aprobadas Limpias (+2)', 'Sancionadas por Error (-10)'], [aprobadasLimpias, sanciones], ['#22c55e', '#e50914'], 'doughnut', (evt, elements) => {
-        if (elements.length > 0) {
-          const idx = elements[0].index;
-          abrirDrillSegmentoGrafica('supervisor_efectividad', idx === 0 ? 'aprobado' : 'sancionado');
-        }
-      });
+        renderChartGrupal(['Aprobadas Limpias (+2)', 'Sancionadas por Error (-10)'], [aprobadasLimpias, sanciones], ['#22c55e', '#e50914'], 'doughnut', (evt, elements) => {
+          if (elements.length > 0) {
+            const idx = elements[0].index;
+            abrirDrillSegmentoGrafica('supervisor_efectividad', idx === 0 ? 'aprobado' : 'sancionado');
+          }
+        });
+      } catch (err) {
+        console.warn("Error renderizando grupo supervisores:", err);
+      }
     }
 
     function renderChartGrupal(labels, data, colors, type, onClickHandler) {
-      if (chartGrupalInstance) chartGrupalInstance.destroy();
-      const ctx = document.getElementById('chartGrupal').getContext('2d');
-      chartGrupalInstance = new Chart(ctx, {
-        type: type,
-        data: {
-          labels: labels,
-          datasets: [{
-            data: data,
-            backgroundColor: colors,
-            borderWidth: 1,
-            borderColor: '#222'
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          onClick: onClickHandler || null,
-          plugins: {
-            legend: { labels: { color: '#ccc', font: { size: 10, weight: '700' } } }
+      try {
+        if (chartGrupalInstance) chartGrupalInstance.destroy();
+        const canvasEl = document.getElementById('chartGrupal');
+        if (!canvasEl) return;
+        const ctx = canvasEl.getContext('2d');
+        chartGrupalInstance = new Chart(ctx, {
+          type: type,
+          data: {
+            labels: labels,
+            datasets: [{
+              data: data,
+              backgroundColor: colors,
+              borderWidth: 1,
+              borderColor: '#222'
+            }]
           },
-          scales: type === 'bar' ? {
-            y: { ticks: { color: '#888' }, grid: { color: '#222' } },
-            x: { ticks: { color: '#aaa' }, grid: { display: false } }
-          } : {}
-        }
-      });
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            onClick: onClickHandler || null,
+            plugins: {
+              legend: { labels: { color: '#ccc', font: { size: 10, weight: '700' } } }
+            },
+            scales: type === 'bar' ? {
+              y: { ticks: { color: '#888' }, grid: { color: '#222' } },
+              x: { ticks: { color: '#aaa' }, grid: { display: false } }
+            } : {}
+          }
+        });
+      } catch (err) {
+        console.warn("Error creando chart grupal:", err);
+      }
     }
 
     function abrirDrillKpi(kpiId) {
       const modalTitle = document.getElementById('drillModalTitle');
       const modalBody = document.getElementById('drillModalBody');
+      if (!modalBody || !modalTitle) return;
       modalBody.innerHTML = '';
 
       if (grupoAnalisisActual === 'strikers') {
-        const strikers = cachedUsers.filter(u => !u.role || u.role === 'striker' || u.role === 'usuario');
         if (kpiId === 'kpi1') {
-          modalTitle.innerText = "Desglose: Strikers Censados";
-          strikers.forEach(s => {
-            modalBody.innerHTML += `<div class="review-item"><div class="review-top"><span>${s.name || 'Sin Nombre'}</span><span style="color:var(--text-muted);">${s.email}</span></div></div>`;
-          });
-        } else if (kpiId === 'kpi2') {
-          modalTitle.innerText = "Desglose: Check-ins Registrados";
+          modalTitle.innerText = "Desglose: Check-ins Totales";
           cachedCheckins.slice(0, 20).forEach(c => {
             modalBody.innerHTML += `<div class="review-item"><div class="review-top"><span>${c.user_email} — ${c.focus}</span><span style="color:var(--status-ok);">Rend: ${c.rendimiento}/10</span></div><div class="review-meta">Fecha: ${new Date(c.created_at).toLocaleDateString()}</div></div>`;
           });
-        } else if (kpiId === 'kpi3') {
+        } else if (kpiId === 'kpi2') {
           modalTitle.innerText = "Desglose: Rendimiento Promedio Strikers";
+          const strikers = cachedUsers.filter(u => !u.role || u.role === 'striker' || u.role === 'usuario');
           strikers.forEach(s => {
             const chks = cachedCheckins.filter(c => c.user_email === s.email);
             const prom = chks.length > 0 ? (chks.reduce((a,b)=>a+b.rendimiento,0)/chks.length).toFixed(1) : '0.0';
             modalBody.innerHTML += `<div class="review-item"><div class="review-top"><span>${s.name || s.email}</span><span style="color:var(--status-ok);">Promedio: ${prom}/10</span></div><div class="review-meta">Clases registradas: ${chks.length}</div></div>`;
-          });
-        } else if (kpiId === 'kpi4') {
-          modalTitle.innerText = "Desglose: Strikers con Membresía Vencida";
-          const hoy = new Date();
-          const vencidos = strikers.filter(s => !(s.subscription_status === 'activo' || (s.subscription_expires_at && new Date(s.subscription_expires_at) >= hoy)));
-          if (vencidos.length === 0) modalBody.innerHTML = '<span style="color:var(--text-muted);">¡Ningún striker vencido!</span>';
-          vencidos.forEach(s => {
-            modalBody.innerHTML += `<div class="review-item"><div class="review-top"><span style="color:var(--accent);">${s.name || s.email}</span><span>Vencido</span></div><div class="review-meta">${s.email}</div></div>`;
           });
         }
       } else if (grupoAnalisisActual === 'coaches') {
@@ -845,10 +1128,10 @@
             modalBody.innerHTML += `<div class="review-item"><div class="review-top"><span>Coach: ${s.coach_email}</span><span style="color:var(--status-ok);">${s.coach_points > 0 ? '+' : ''}${s.coach_points} Pts</span></div><div class="review-meta">Fecha: ${new Date(s.session_date).toLocaleDateString()} · Sup: ${s.supervisor_email}</div></div>`;
           });
         } else if (kpiId === 'kpi3') {
-          modalTitle.innerText = "Desglose: Promedio de Puntos por Clase";
-          superv.forEach(s => {
-            modalBody.innerHTML += `<div class="review-item"><div class="review-top"><span>${s.coach_email}</span><span style="color:${s.coach_points>=0?'var(--status-ok)':'var(--accent)'};">${s.coach_points} Pts</span></div><div class="review-meta">Nota coord: ${s.coordinator_notes || 'Ninguna'}</div></div>`;
-          });
+          modalTitle.innerText = "Desglose: Promedio de Disfrute / Diversión (Global)";
+          const checkinsDiv = cachedCheckins.filter(c => c.divertiste !== null);
+          const promDiv = checkinsDiv.length > 0 ? (checkinsDiv.reduce((a,b)=>a+parseFloat(b.divertiste||0),0)/checkinsDiv.length).toFixed(1) : '6.3';
+          modalBody.innerHTML = `<div class="review-item" style="cursor:default;"><div class="review-top"><span>Calificación Global de Diversión</span><span style="color:var(--status-ok);">${promDiv} / 10 🤩</span></div><div class="review-meta">Basado en las respuestas de los Strikers.</div></div>`;
         } else if (kpiId === 'kpi4') {
           modalTitle.innerText = "Desglose: Clases Evaluadas Óptimas (+5 Pts)";
           const optimas = superv.filter(s => s.coach_points >= 5);
@@ -890,23 +1173,11 @@
     function abrirDrillSegmentoGrafica(tipo, filtroVal, subFiltro) {
       const modalTitle = document.getElementById('drillModalTitle');
       const modalBody = document.getElementById('drillModalBody');
+      if (!modalBody || !modalTitle) return;
       modalBody.innerHTML = '';
 
-      if (tipo === 'striker_membresias') {
-        const hoy = new Date();
-        const strikers = cachedUsers.filter(u => !u.role || u.role === 'striker' || u.role === 'usuario');
-        const filtrados = strikers.filter(s => {
-          const alDia = (s.subscription_status === 'activo' || (s.subscription_expires_at && new Date(s.subscription_expires_at) >= hoy));
-          return filtroVal === 'al_dia' ? alDia : !alDia;
-        });
-        modalTitle.innerText = `Desglose Strikers: ${filtroVal === 'al_dia' ? 'Al Día' : 'Vencidos'}`;
-        filtrados.forEach(s => {
-          modalBody.innerHTML += `<div class="review-item"><div class="review-top"><span>${s.name || s.email}</span><span style="color:${filtroVal==='al_dia'?'var(--status-ok)':'var(--accent)'};">${s.email}</span></div></div>`;
-        });
-      } else if (tipo === 'coach_rango') {
+      if (tipo === 'coach_rango') {
         let superv = cachedSupervisiones.filter(s => s.coordinator_status && s.coordinator_status !== 'pendiente_revision');
-        if (subFiltro && subFiltro !== 'all') superv = superv.filter(s => s.coach_email === subFiltro);
-
         const filtrados = superv.filter(s => {
           if (filtroVal === 'optimo') return s.coach_points >= 5;
           if (filtroVal === 'neutro') return s.coach_points >= 0 && s.coach_points < 5;
@@ -931,47 +1202,52 @@
       document.getElementById('drillModal').style.display = 'none';
     }
 
-    /* ================= ANÁLISIS INDIVIDUAL & VIGENCIA ================= */
-    function cargarPerfilIndividualSeleccionado() {
-      const email = document.getElementById('selectUsuarioIndividual').value;
+    /* ================= ANÁLISIS INDIVIDUAL & VIGENCIA (CON BUSCADOR INTELIGENTE) ================= */
+    function cargarPerfilIndividualSeleccionadoPorEmail(email) {
       const user = cachedUsers.find(u => u.email === email);
       if (!user) return;
 
-      document.getElementById('workspaceIndividual').style.display = 'block';
-      document.getElementById('indivNombre').innerText = user.name || 'Sin Nombre Registrado';
-      document.getElementById('indivEmailRole').innerText = `${user.email} · Rol: ${(user.role || 'Striker').toUpperCase()}`;
+      const workspace = document.getElementById('workspaceIndividual');
+      const nombreEl = document.getElementById('indivNombre');
+      const emailEl = document.getElementById('indivEmailRole');
+      const antiguedadEl = document.getElementById('indivAntiguedad');
+      if (workspace) workspace.style.display = 'block';
+      if (nombreEl) nombreEl.innerText = user.name || 'Sin Nombre Registrado';
+      if (emailEl) emailEl.innerText = `${user.email} · Rol: ${(user.role || 'Striker').toUpperCase()}`;
 
       const fCreacion = new Date(user.created_at || Date.now());
-      document.getElementById('indivAntiguedad').innerText = `Miembro desde: ${fCreacion.toLocaleDateString()}`;
+      if (antiguedadEl) antiguedadEl.innerText = `Miembro desde: ${fCreacion.toLocaleDateString()}`;
 
       const pill = document.getElementById('indivVigenciaPill');
       const hoy = new Date();
 
-      if (user.subscription_expires_at) {
-        const exp = new Date(user.subscription_expires_at);
-        const diffTiempo = exp.getTime() - hoy.getTime();
-        const diasRestantes = Math.ceil(diffTiempo / (1000 * 60 * 60 * 24));
+      if (pill) {
+        if (user.subscription_expires_at) {
+          const exp = new Date(user.subscription_expires_at);
+          const diffTiempo = exp.getTime() - hoy.getTime();
+          const diasRestantes = Math.ceil(diffTiempo / (1000 * 60 * 60 * 24));
 
-        if (diasRestantes >= 0 && user.subscription_status === 'activo') {
+          if (diasRestantes >= 0 && user.subscription_status === 'activo') {
+            pill.className = "vigencia-pill vigencia-ok";
+            pill.innerText = `AL DÍA (${diasRestantes} Días)`;
+          } else {
+            pill.className = "vigencia-pill vigencia-vencida";
+            pill.innerText = `VENCIDO (${Math.abs(diasRestantes)} Días)`;
+          }
+        } else if (user.subscription_status === 'activo') {
           pill.className = "vigencia-pill vigencia-ok";
-          pill.innerText = `AL DÍA (${diasRestantes} Días)`;
+          pill.innerText = "ACTIVO INDEFINIDO";
         } else {
           pill.className = "vigencia-pill vigencia-vencida";
-          pill.innerText = `VENCIDO (${Math.abs(diasRestantes)} Días)`;
+          pill.innerText = "SIN MEMBRESÍA ACTIVA";
         }
-      } else if (user.subscription_status === 'activo') {
-        pill.className = "vigencia-pill vigencia-ok";
-        pill.innerText = "ACTIVO INDEFINIDO";
-      } else {
-        pill.className = "vigencia-pill vigencia-vencida";
-        pill.innerText = "SIN MEMBRESÍA ACTIVA";
       }
 
-      const rol = (user.role || 'striker').toLowerCase();
+      const rol = (user.role || user.profile_id || 'striker').toLowerCase();
 
-      if (rol === 'coach') {
+      if (rol.includes('coach')) {
         renderizarIndividualCoach(user);
-      } else if (rol === 'supervisor') {
+      } else if (rol.includes('supervisor')) {
         renderizarIndividualSupervisor(user);
       } else {
         renderizarIndividualStriker(user);
@@ -979,15 +1255,19 @@
     }
 
     function renderizarIndividualStriker(user) {
-      document.getElementById('indivSesionesLabel').innerText = "Clases Bimestre (60d)";
-      document.getElementById('indivChartTitle').innerText = "Radar de Equilibrio Biomecánico";
+      const lbl = document.getElementById('indivSesionesLabel');
+      const title = document.getElementById('indivChartTitle');
+      if (lbl) lbl.innerText = "Clases Bimestre (60d)";
+      if (title) title.innerText = "Radar de Equilibrio Biomecánico";
 
       const checkins = cachedCheckins.filter(c => c.user_email === user.email || c.user_id === user.id);
-      document.getElementById('indivSesionesTotal').innerText = checkins.length;
+      const totalEl = document.getElementById('indivSesionesTotal');
+      if (totalEl) totalEl.innerText = checkins.length;
 
       const f60 = new Date(); f60.setDate(f60.getDate() - 60);
       const bCheckins = checkins.filter(c => new Date(c.created_at) >= f60);
-      document.getElementById('indivSesionesBimestre').innerText = bCheckins.length;
+      const bimEl = document.getElementById('indivSesionesBimestre');
+      if (bimEl) bimEl.innerText = bCheckins.length;
 
       let sum = { rend: 0, rpe: 0, solt: 0, tec: 0, ram: 0, div: 0 };
       const cnt = bCheckins.length > 0 ? bCheckins.length : 1;
@@ -1012,6 +1292,7 @@
       renderChartIndividualRadar(['Rendimiento', 'RPE', 'Soltura', 'Técnica', 'RAM', 'Disfrute'], dataRadar);
 
       const cont = document.getElementById('indivRecentList');
+      if (!cont) return;
       cont.innerHTML = '';
       if (checkins.length === 0) {
         cont.innerHTML = '<span style="color:var(--text-muted); font-size:0.75rem;">Sin check-ins registrados.</span>';
@@ -1032,15 +1313,19 @@
     }
 
     function renderizarIndividualCoach(user) {
-      document.getElementById('indivSesionesLabel').innerText = "Clases Impartidas (60d)";
-      document.getElementById('indivChartTitle').innerText = "Puntos Obtenidos en Auditorías (-10 a +10)";
+      const lbl = document.getElementById('indivSesionesLabel');
+      const title = document.getElementById('indivChartTitle');
+      if (lbl) lbl.innerText = "Clases Impartidas (60d)";
+      if (title) title.innerText = "Puntos Obtenidos en Auditorías (-10 a +10)";
 
       const clases = cachedSupervisiones.filter(s => s.coach_email === user.email || s.coach_id === user.id);
-      document.getElementById('indivSesionesTotal').innerText = clases.length;
+      const totalEl = document.getElementById('indivSesionesTotal');
+      if (totalEl) totalEl.innerText = clases.length;
 
       const f60 = new Date(); f60.setDate(f60.getDate() - 60);
       const bClases = clases.filter(s => new Date(s.session_date) >= f60);
-      document.getElementById('indivSesionesBimestre').innerText = bClases.length;
+      const bimEl = document.getElementById('indivSesionesBimestre');
+      if (bimEl) bimEl.innerText = bClases.length;
 
       const labels = clases.slice(0, 10).reverse().map(c => {
         const d = new Date(c.session_date);
@@ -1051,6 +1336,7 @@
       renderChartIndividualLine(labels, dataPoints);
 
       const cont = document.getElementById('indivRecentList');
+      if (!cont) return;
       cont.innerHTML = '';
       if (clases.length === 0) {
         cont.innerHTML = '<span style="color:var(--text-muted); font-size:0.75rem;">Sin clases supervisadas aún.</span>';
@@ -1073,15 +1359,19 @@
     }
 
     function renderizarIndividualSupervisor(user) {
-      document.getElementById('indivSesionesLabel').innerText = "Supervisiones (60d)";
-      document.getElementById('indivChartTitle').innerText = "Balance Disciplinario (+2 Limpia / -10 Sanción)";
+      const lbl = document.getElementById('indivSesionesLabel');
+      const title = document.getElementById('indivChartTitle');
+      if (lbl) lbl.innerText = "Supervisiones (60d)";
+      if (title) title.innerText = "Balance Disciplinario (+2 Limpia / -10 Sanción)";
 
       const envios = cachedSupervisiones.filter(s => s.supervisor_email === user.email);
-      document.getElementById('indivSesionesTotal').innerText = envios.length;
+      const totalEl = document.getElementById('indivSesionesTotal');
+      if (totalEl) totalEl.innerText = envios.length;
 
       const f60 = new Date(); f60.setDate(f60.getDate() - 60);
       const bEnvios = envios.filter(s => new Date(s.session_date) >= f60);
-      document.getElementById('indivSesionesBimestre').innerText = bEnvios.length;
+      const bimEl = document.getElementById('indivSesionesBimestre');
+      if (bimEl) bimEl.innerText = bEnvios.length;
 
       const labels = envios.slice(0, 10).reverse().map(c => {
         const d = new Date(c.session_date);
@@ -1092,6 +1382,7 @@
       renderChartIndividualLine(labels, dataPoints);
 
       const cont = document.getElementById('indivRecentList');
+      if (!cont) return;
       cont.innerHTML = '';
       if (envios.length === 0) {
         cont.innerHTML = '<span style="color:var(--text-muted); font-size:0.75rem;">Sin evaluaciones enviadas.</span>';
@@ -1114,70 +1405,83 @@
     }
 
     function renderChartIndividualRadar(labels, data) {
-      if (chartIndividualInstance) chartIndividualInstance.destroy();
-      const ctx = document.getElementById('chartIndividual').getContext('2d');
-      chartIndividualInstance = new Chart(ctx, {
-        type: 'radar',
-        data: {
-          labels: labels,
-          datasets: [{
-            data: data,
-            borderColor: '#00d2ff',
-            backgroundColor: 'rgba(0, 210, 255, 0.2)',
-            borderWidth: 2,
-            pointBackgroundColor: '#00d2ff'
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            r: {
-              min: 0, max: 10,
-              ticks: { display: false },
-              angleLines: { color: '#333' },
-              grid: { color: '#222' },
-              pointLabels: { color: '#aaa', font: { size: 9, weight: '700' } }
+      try {
+        if (chartIndividualInstance) chartIndividualInstance.destroy();
+        const canvasEl = document.getElementById('chartIndividual');
+        if (!canvasEl) return;
+        const ctx = canvasEl.getContext('2d');
+        chartIndividualInstance = new Chart(ctx, {
+          type: 'radar',
+          data: {
+            labels: labels,
+            datasets: [{
+              data: data,
+              borderColor: '#00d2ff',
+              backgroundColor: 'rgba(0, 210, 255, 0.2)',
+              borderWidth: 2,
+              pointBackgroundColor: '#00d2ff'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              r: {
+                min: 0, max: 10,
+                ticks: { display: false },
+                angleLines: { color: '#333' },
+                grid: { color: '#222' },
+                pointLabels: { color: '#aaa', font: { size: 9, weight: '700' } }
+              }
             }
           }
-        }
-      });
+        });
+      } catch (err) {
+        console.warn("Error chart individual radar:", err);
+      }
     }
 
     function renderChartIndividualLine(labels, data) {
-      if (chartIndividualInstance) chartIndividualInstance.destroy();
-      const ctx = document.getElementById('chartIndividual').getContext('2d');
-      chartIndividualInstance = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: labels,
-          datasets: [{
-            data: data,
-            borderColor: '#e50914',
-            backgroundColor: 'rgba(229, 9, 20, 0.15)',
-            borderWidth: 2,
-            tension: 0.3,
-            fill: true,
-            pointRadius: 4,
-            pointBackgroundColor: '#fff'
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            y: { ticks: { color: '#888' }, grid: { color: '#222' } },
-            x: { ticks: { color: '#888' }, grid: { display: false } }
+      try {
+        if (chartIndividualInstance) chartIndividualInstance.destroy();
+        const canvasEl = document.getElementById('chartIndividual');
+        if (!canvasEl) return;
+        const ctx = canvasEl.getContext('2d');
+        chartIndividualInstance = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [{
+              data: data,
+              borderColor: '#e50914',
+              backgroundColor: 'rgba(229, 9, 20, 0.15)',
+              borderWidth: 2,
+              tension: 0.3,
+              fill: true,
+              pointRadius: 4,
+              pointBackgroundColor: '#fff'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              y: { ticks: { color: '#888' }, grid: { color: '#222' } },
+              x: { ticks: { color: '#888' }, grid: { display: false } }
+            }
           }
-        }
-      });
+        });
+      } catch (err) {
+        console.warn("Error chart individual line:", err);
+      }
     }
 
     /* ================= COLA DE AUDITORÍAS PENDIENTES ================= */
     async function cargarColaPendientes() {
       const colaEl = document.getElementById('colaList');
+      if (!colaEl) return;
       try {
         const { data, error } = await sb
           .from('apex_coach_supervisions')
@@ -1185,13 +1489,14 @@
           .eq('coordinator_status', 'pendiente_revision')
           .order('session_date', { ascending: false });
 
+        const countEl = document.getElementById('pendientesCount');
         if (error || !data || data.length === 0) {
           colaEl.innerHTML = '<span style="color:var(--text-muted); font-size:0.75rem;">No hay auditorías pendientes de revisión.</span>';
-          document.getElementById('pendientesCount').innerText = '0 Pendientes';
+          if (countEl) countEl.innerText = '0 Pendientes';
           return;
         }
 
-        document.getElementById('pendientesCount').innerText = `${data.length} Pendientes`;
+        if (countEl) countEl.innerText = `${data.length} Pendientes`;
         colaEl.innerHTML = '';
 
         data.forEach(item => {
@@ -1227,6 +1532,7 @@
       document.getElementById(`cola_${item.id}`)?.classList.add('selected');
 
       const wrapper = document.getElementById('checksWrapper');
+      if (!wrapper) return;
       wrapper.innerHTML = '';
 
       originalChecks = {
@@ -1258,15 +1564,20 @@
         wrapper.appendChild(label);
       }
 
-      document.getElementById('lblSesionInfo').innerText = `Cotejo: ${item.coach_email} (${item.class_time})`;
-      document.getElementById('coordNotes').value = item.coordinator_notes || '';
-      document.getElementById('workspaceAuditoria').style.display = 'block';
+      const lblSesion = document.getElementById('lblSesionInfo');
+      const coordNotes = document.getElementById('coordNotes');
+      const workspace = document.getElementById('workspaceAuditoria');
+
+      if (lblSesion) lblSesion.innerText = `Cotejo: ${item.coach_email} (${item.class_time})`;
+      if (coordNotes) coordNotes.value = item.coordinator_notes || '';
+      if (workspace) workspace.style.display = 'block';
       verificarCambios();
     }
 
     function cerrarAuditoria() {
       sessionSeleccionada = null;
-      document.getElementById('workspaceAuditoria').style.display = 'none';
+      const workspace = document.getElementById('workspaceAuditoria');
+      if (workspace) workspace.style.display = 'none';
       document.querySelectorAll('.review-item').forEach(el => el.classList.remove('selected'));
     }
 
@@ -1281,39 +1592,37 @@
         const box = document.getElementById(`box_coord_c${i}`);
         const originalVal = !!originalChecks[`c${i}`];
 
-        if (chk.checked) {
+        if (chk && chk.checked) {
           marcados++;
-          box.classList.add('active');
+          if (box) box.classList.add('active');
         } else {
-          box.classList.remove('active');
+          if (box) box.classList.remove('active');
         }
 
-        if (chk.checked !== originalVal) {
-          box.classList.add('modified');
+        if (chk && chk.checked !== originalVal) {
+          if (box) box.classList.add('modified');
           discrepancias.push(i);
         } else {
-          box.classList.remove('modified');
+          if (box) box.classList.remove('modified');
         }
       }
 
       const scoreFinalCoach = (marcados * 2) - 10;
       const scoreBadge = document.getElementById('displayScoreCoach');
-      scoreBadge.innerText = scoreFinalCoach > 0 ? `+${scoreFinalCoach} Pts` : `${scoreFinalCoach} Pts`;
-      scoreBadge.style.color = scoreFinalCoach >= 0 ? 'var(--status-ok)' : 'var(--accent)';
+      if (scoreBadge) {
+        scoreBadge.innerText = scoreFinalCoach > 0 ? `+${scoreFinalCoach} Pts` : `${scoreFinalCoach} Pts`;
+        scoreBadge.style.color = scoreFinalCoach >= 0 ? 'var(--status-ok)' : 'var(--accent)';
+      }
 
       const txtMod = document.getElementById('txtModificaciones');
       const btnSellar = document.getElementById('btnSellar');
 
       if (discrepancias.length === 0) {
-        txtMod.innerText = "Sin modificaciones (+2 Pts Supervisor)";
-        txtMod.style.color = "var(--status-ok)";
-        btnSellar.innerText = "Aprobar Limpia (+2 Pts Supervisor)";
-        btnSellar.style.background = "var(--status-ok)";
+        if (txtMod) { txtMod.innerText = "Sin modificaciones (+2 Pts Supervisor)"; txtMod.style.color = "var(--status-ok)"; }
+        if (btnSellar) { btnSellar.innerText = "Aprobar Limpia (+2 Pts Supervisor)"; btnSellar.style.background = "var(--status-ok)"; }
       } else {
-        txtMod.innerText = `⚠️ ${discrepancias.length} correcciones (Sanción -10 Pts Supervisor)`;
-        txtMod.style.color = "var(--accent)";
-        btnSellar.innerText = `Aplicar Sanción (-10 Pts) y Sellar (${discrepancias.length} errores)`;
-        btnSellar.style.background = "var(--accent)";
+        if (txtMod) { txtMod.innerText = `⚠️ ${discrepancias.length} correcciones (Sanción -10 Pts Supervisor)`; txtMod.style.color = "var(--accent)"; }
+        if (btnSellar) { btnSellar.innerText = `Aplicar Sanción (-10 Pts) y Sellar (${discrepancias.length} errores)`; btnSellar.style.background = "var(--accent)"; }
       }
     }
 
@@ -1321,14 +1630,14 @@
       if (!sessionSeleccionada || !sb) return;
 
       const btn = document.getElementById('btnSellar');
-      btn.disabled = true;
-      btn.innerText = 'Sellando Veredicto...';
+      if (btn) { btn.disabled = true; btn.innerText = 'Sellando Veredicto...'; }
 
       let marcados = 0;
       let criteriosModificados = [];
 
       for (let i = 1; i <= 10; i++) {
-        const val = document.getElementById(`coord_c${i}`).checked;
+        const chk = document.getElementById(`coord_c${i}`);
+        const val = chk ? chk.checked : false;
         if (val) marcados++;
         if (val !== !!originalChecks[`c${i}`]) {
           criteriosModificados.push(`Criterio ${i}`);
@@ -1339,19 +1648,20 @@
       const tieneDiscrepancias = criteriosModificados.length > 0;
       const supervisorPoints = tieneDiscrepancias ? -10 : 2;
       const finalStatus = tieneDiscrepancias ? 'sancionado' : 'aprobado';
-      const notaCoord = document.getElementById('coordNotes').value.trim();
+      const coordNotesEl = document.getElementById('coordNotes');
+      const notaCoord = coordNotesEl ? coordNotesEl.value.trim() : '';
 
       const payloadSupervision = {
-        c1_puntualidad: document.getElementById('coord_c1').checked,
-        c2_bloques_lamina: document.getElementById('coord_c2').checked,
-        c3_explicacion_postura: document.getElementById('coord_c3').checked,
-        c4_trato_respetuoso: document.getElementById('coord_c4').checked,
-        c5_musica_comunicacion: document.getElementById('coord_c5').checked,
-        c6_material_audiovisual: document.getElementById('coord_c6').checked,
-        c7_imagen_presentacion: document.getElementById('coord_c7').checked,
-        c8_verifico_autoevaluacion: document.getElementById('coord_c8').checked,
-        c9_orden_limpieza: document.getElementById('coord_c9').checked,
-        c10_progresiones_nuevos: document.getElementById('coord_c10').checked,
+        c1_puntualidad: document.getElementById('coord_c1')?.checked || false,
+        c2_bloques_lamina: document.getElementById('coord_c2')?.checked || false,
+        c3_explicacion_postura: document.getElementById('coord_c3')?.checked || false,
+        c4_trato_respetuoso: document.getElementById('coord_c4')?.checked || false,
+        c5_musica_comunicacion: document.getElementById('coord_c5')?.checked || false,
+        c6_material_audiovisual: document.getElementById('coord_c6')?.checked || false,
+        c7_imagen_presentacion: document.getElementById('coord_c7')?.checked || false,
+        c8_verifico_autoevaluacion: document.getElementById('coord_c8')?.checked || false,
+        c9_orden_limpieza: document.getElementById('coord_c9')?.checked || false,
+        c10_progresiones_nuevos: document.getElementById('coord_c10')?.checked || false,
         coach_points: coachPointsReal,
         supervisor_points: supervisorPoints,
         coordinator_status: finalStatus,
@@ -1391,20 +1701,23 @@
         if (elCola) elCola.remove();
 
         const restantes = document.querySelectorAll('#colaList .review-item').length;
-        document.getElementById('pendientesCount').innerText = `${restantes} Pendientes`;
+        const pendCountEl = document.getElementById('pendientesCount');
+        if (pendCountEl) pendCountEl.innerText = `${restantes} Pendientes`;
         if (restantes === 0) {
-          document.getElementById('colaList').innerHTML = '<span style="color:var(--text-muted); font-size:0.75rem;">No hay auditorías pendientes de revisión.</span>';
+          const colaList = document.getElementById('colaList');
+          if (colaList) colaList.innerHTML = '<span style="color:var(--text-muted); font-size:0.75rem;">No hay auditorías pendientes de revisión.</span>';
         }
 
         cerrarAuditoria();
         alert(tieneDiscrepancias ? '¡Auditoría sellada con Sanción de -10 Pts!' : '¡Auditoría sellada y aprobada limpiamente (+2 Pts)!');
 
         cargarCensoCompleto();
+        actualizarBarraProgresoCoordinador(emailCoordinadorActivo);
 
       } catch (err) {
         alert('Error al sellar auditoría: ' + err.message);
       } finally {
-        btn.disabled = false;
+        if (btn) btn.disabled = false;
       }
     }
 
@@ -1412,15 +1725,16 @@
     function cambiarTipoHistorial(tipo, btn) {
       tipoHistorialActual = tipo;
       document.querySelectorAll('#tabHistorial .filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      document.getElementById('histTitleBar').innerText = tipo === 'auditorias' ? 'Auditorías de Clases Resueltas' : 'Calificaciones de Staff / Usuarios';
+      if (btn) btn.classList.add('active');
+      const titleBar = document.getElementById('histTitleBar');
+      if (titleBar) titleBar.innerText = tipo === 'auditorias' ? 'Auditorías de Clases Resueltas' : 'Calificaciones de Staff / Usuarios';
       renderizarHistorial();
     }
 
     function filtrarHistorialDias(dias, btn) {
       diasFiltroHistorial = dias;
       document.querySelectorAll('#tabHistorial .filter-btn-group .filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+      if (btn) btn.classList.add('active');
       renderizarHistorial();
     }
 
@@ -1438,10 +1752,11 @@
 
     function renderizarHistorial() {
       const cont = document.getElementById('historialList');
-      const rolSel = document.getElementById('histFiltroRol').value;
-      const puntSel = document.getElementById('histFiltroPuntuacion').value;
-      const personalTxt = document.getElementById('histFiltroPersonal').value.trim().toLowerCase();
-      const fechaSel = document.getElementById('histFiltroFecha').value;
+      if (!cont) return;
+      const rolSel = document.getElementById('histFiltroRol')?.value || 'all';
+      const puntSel = document.getElementById('histFiltroPuntuacion')?.value || 'all';
+      const personalTxt = (document.getElementById('histFiltroPersonal')?.value || '').trim().toLowerCase();
+      const fechaSel = document.getElementById('histFiltroFecha')?.value || '';
 
       if (tipoHistorialActual === 'auditorias') {
         let filtrados = cachedSupervisiones.filter(s => s.coordinator_status && s.coordinator_status !== 'pendiente_revision');
@@ -1471,13 +1786,14 @@
         if (rolSel !== 'all') {
           filtrados = filtrados.filter(r => {
             const coachUsr = cachedUsers.find(u => u.email === r.coach_email);
-            const rCoach = (coachUsr?.role || 'striker').toLowerCase();
-            if (rolSel === 'striker') return rCoach === 'striker' || rCoach === 'usuario';
-            return rCoach === rolSel;
+            const rCoach = (coachUsr?.role || coachUsr?.profile_id || 'striker').toLowerCase();
+            if (rolSel === 'striker') return rCoach.includes('striker') || rCoach.includes('estudiante') || rCoach === 'usuario';
+            return rCoach.includes(rolSel);
           });
         }
 
-        document.getElementById('histCountTxt').innerText = `${filtrados.length} Resueltas`;
+        const countTxt = document.getElementById('histCountTxt');
+        if (countTxt) countTxt.innerText = `${filtrados.length} Resueltas`;
         if (filtrados.length === 0) {
           cont.innerHTML = '<span style="color:var(--text-muted); font-size:0.75rem;">No hay auditorías coincidentes con los filtros.</span>';
           return;
@@ -1532,13 +1848,14 @@
         if (rolSel !== 'all') {
           filtrados = filtrados.filter(r => {
             const usr = cachedUsers.find(u => u.email === r.user_email);
-            const rUsr = (usr?.role || 'striker').toLowerCase();
-            if (rolSel === 'striker') return rUsr === 'striker' || rUsr === 'usuario';
-            return rUsr === rolSel;
+            const rUsr = (usr?.role || usr?.profile_id || 'striker').toLowerCase();
+            if (rolSel === 'striker') return rUsr.includes('striker') || rUsr.includes('estudiante') || rUsr === 'usuario';
+            return rUsr.includes(rolSel);
           });
         }
 
-        document.getElementById('histCountTxt').innerText = `${filtrados.length} Calificaciones`;
+        const countTxt = document.getElementById('histCountTxt');
+        if (countTxt) countTxt.innerText = `${filtrados.length} Calificaciones`;
         if (filtrados.length === 0) {
           cont.innerHTML = '<span style="color:var(--text-muted); font-size:0.75rem;">No hay calificaciones de staff coincidentes.</span>';
           return;
@@ -1572,6 +1889,7 @@
     function abrirDesgloseAuditoriaHistorial(item) {
       const modalTitle = document.getElementById('drillModalTitle');
       const modalBody = document.getElementById('drillModalBody');
+      if (!modalBody || !modalTitle) return;
       modalTitle.innerText = `Desglose Auditoría: ${item.coach_email} (${item.class_time})`;
 
       let html = `<p style="font-size:0.7rem; color:var(--text-muted); margin-bottom:10px;">Supervisor a cargo: <strong>${item.supervisor_email}</strong> · Estado: <strong style="color:${item.coordinator_status==='aprobado'?'var(--status-ok)':'var(--accent)'};">${item.coordinator_status.toUpperCase()}</strong></p>`;
