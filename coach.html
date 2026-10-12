@@ -71,24 +71,33 @@
       text-transform: uppercase; background: #141414; border: 1px solid var(--border); color: var(--accent);
     }
 
-    /* BARRA DE PROGRESO GLOBAL APEX */
+    /* BARRA DE PROGRESO DE NIVEL GLOBAL APEX (EXACTAMENTE IGUAL A USUARIO.HTML) */
     .progress-card {
-      background: var(--card-bg); border: 1px solid var(--border);
+      background: rgba(10, 10, 12, 0.9); border: 1px solid var(--border);
       border-radius: 8px; padding: 12px 14px; margin-bottom: 14px;
     }
     .progress-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
-    .progress-tier-title { font-size: 0.75rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; color: var(--tier-color); }
-    .progress-percent-val { font-size: 1rem; font-weight: 900; color: var(--tier-color); }
+    .progress-tier-title { font-size: 0.75rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; color: var(--tier-color); text-shadow: 0 2px 6px rgba(0,0,0,0.9); }
+    .progress-percent-val { font-size: 1rem; font-weight: 900; color: var(--tier-color); text-shadow: 0 2px 6px rgba(0,0,0,0.9); }
+    
     .progress-bar-track {
       width: 100%; height: 8px; background: #121216; border-radius: 4px;
-      overflow: hidden; border: 1px solid var(--border); margin-bottom: 6px;
+      overflow: hidden; border: 1px solid var(--border); margin-bottom: 6px; display: flex;
     }
     .progress-bar-fill {
       height: 100%; width: 0%; background: var(--tier-color);
       border-radius: 4px; transition: width 0.6s ease;
       box-shadow: 0 0 10px var(--tier-color);
     }
+    .progress-segment { height: 100%; transition: width 0.6s ease; }
+    .seg-checkins { background: #22c55e; }
+    .seg-coach { background: #3b82f6; }
+    .seg-supervision { background: #a855f7; }
+    .seg-adjustments { background: #eab308; }
+
     .progress-meta-grid { display: flex; justify-content: space-between; font-size: 0.65rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
+    .staff-subgrid { display: none; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 6px; border-top: 1px solid var(--border); padding-top: 6px; font-size: 0.55rem; text-transform: uppercase; text-align: center; }
+    .staff-subgrid div { background: #050507; padding: 3px; border-radius: 4px; border: 1px solid var(--border); }
 
     .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 14px; }
     .card-title { font-size: 0.74rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #fff; margin-bottom: 4px; }
@@ -247,7 +256,7 @@
       <div class="role-pill">COACH</div>
     </div>
 
-    <!-- TARJETA DE NIVEL GLOBAL UNIFICADA -->
+    <!-- TARJETA DE NIVEL GLOBAL UNIFICADA (EXACTAMENTE IGUAL A USUARIO.HTML) -->
     <div class="progress-card">
       <div class="progress-header">
         <div>
@@ -256,12 +265,21 @@
         </div>
         <div class="progress-percent-val" id="coachTierPercent">0%</div>
       </div>
-      <div class="progress-bar-track">
+      
+      <div class="progress-bar-track" id="coachProgressBarTrack">
         <div class="progress-bar-fill" id="coachTierBarFill"></div>
       </div>
+
       <div class="progress-meta-grid">
         <span id="coachPtsTxt">0 / 240 PTS</span>
         <span id="coachMetaTxt">Escala Global Apex</span>
+      </div>
+
+      <div class="staff-subgrid" id="coachStaffSubgrid" style="display:none;">
+        <div>Check-ins: <b id="coachSubPtsCheckins">0</b></div>
+        <div>Coach: <b id="coachSubPtsCoach">0</b></div>
+        <div>Supervisión: <b id="coachSubPtsSupervision">0</b></div>
+        <div>Ajustes: <b id="coachSubPtsAdjustments">0</b></div>
       </div>
     </div>
     
@@ -615,6 +633,7 @@
     let supabaseClient = null;
     let currentCoachEmail = 'coach@apexboxing.com';
     let currentCoachUuid = null;
+    let coachEsRolEstudiante = false;
 
     function initSupabase() {
       let url = CONFIG_SUPABASE_URL;
@@ -703,6 +722,10 @@
         if (data) {
           currentCoachUuid = data.id;
           document.getElementById('displayNombreCoach').innerText = data.name || 'Coach Apex';
+          
+          const rolUsuario = (data.profile_id || data.role || data.tipo || data.membership_type || '').toLowerCase();
+          coachEsRolEstudiante = rolUsuario.includes('estudiante') || rolUsuario.includes('striker') || (!rolUsuario.includes('coach') && !rolUsuario.includes('admin') && !rolUsuario.includes('supervis') && !rolUsuario.includes('staff') && !rolUsuario.includes('coordinador'));
+
           const avatarUrl = data.photo_url || data.avatar_url || localStorage.getItem('apex_user_avatar');
           renderAvatarVisualCoach(avatarUrl, data.name || data.email || 'CO');
         }
@@ -717,33 +740,54 @@
         hace60Dias.setDate(hace60Dias.getDate() - 60);
         hace60Dias.setHours(0,0,0,0);
 
-        const [checkinsRes, ratingsRes, supervisionsRes, adjustmentsRes] = await Promise.all([
+        const hace30Dias = new Date();
+        hace30Dias.setDate(hace30Dias.getDate() - 30);
+        hace30Dias.setHours(0,0,0,0);
+
+        const [checkinsRes, supervisionsRes, adjustmentsRes] = await Promise.all([
           supabaseClient.from('apex_checkins').select('rendimiento, created_at, status').eq('user_email', currentCoachEmail).ilike('status', 'aprobado'),
-          supabaseClient.from('apex_coach_ratings').select('note, created_at').eq('user_email', currentCoachEmail),
-          supabaseClient.from('apex_supervisor_ratings').select('score, created_at').eq('user_email', currentCoachEmail),
+          supabaseClient.from('apex_coach_supervisions').select('*'),
           supabaseClient.from('apex_coordinator_adjustments').select('note, created_at').eq('user_email', currentCoachEmail)
         ]);
 
-        let ptsTotales = 0;
+        let ptsCheckins = 0;
         if (checkinsRes.data) {
-          checkinsRes.data.forEach(c => { if (new Date(c.created_at) >= hace60Dias) ptsTotales += parseFloat(c.rendimiento || 0); });
-        }
-        if (ratingsRes.data) {
-          ratingsRes.data.forEach(r => { if (new Date(r.created_at) >= hace60Dias) ptsTotales += parseFloat(r.note || 0); });
-        }
-        if (supervisionsRes.data) {
-          supervisionsRes.data.forEach(s => { if (new Date(s.created_at) >= hace60Dias) ptsTotales += parseFloat(s.score || 0); });
-        }
-        if (adjustmentsRes.data) {
-          adjustmentsRes.data.forEach(a => { if (new Date(a.created_at) >= hace60Dias) ptsTotales += parseFloat(a.note || 0); });
+          checkinsRes.data.forEach(c => { if (new Date(c.created_at) >= hace60Dias) ptsCheckins += parseFloat(c.rendimiento || 0); });
         }
 
+        let ptsCoach = 0;
+        let ptsSupervision = 0;
+        let ptsAdjustments = 0;
+
+        if (!coachEsRolEstudiante) {
+          if (supervisionsRes.data) {
+            supervisionsRes.data.forEach(s => {
+              if (s.coordinator_status !== 'pendiente_revision') {
+                const fechaSesion = new Date(s.session_date || s.created_at);
+                if (fechaSesion >= hace30Dias) {
+                  if ((s.coach_email || '').toLowerCase() === currentCoachEmail.toLowerCase()) {
+                    ptsCoach += parseFloat(s.coach_points || 0);
+                  }
+                  if ((s.supervisor_email || '').toLowerCase() === currentCoachEmail.toLowerCase()) {
+                    ptsSupervision += parseFloat(s.supervisor_points || 0);
+                  }
+                }
+              }
+            });
+          }
+
+          if (adjustmentsRes.data) {
+            adjustmentsRes.data.forEach(a => { if (new Date(a.created_at) >= hace30Dias) ptsAdjustments += parseFloat(a.note || 0); });
+          }
+        }
+
+        let ptsTotales = ptsCheckins + ptsCoach + ptsSupervision + ptsAdjustments;
         const meta = 240;
-        const porcentaje = Math.min(100, Math.round((ptsTotales / meta) * 100));
+        const porcentaje = +Math.max(-100, Math.min(110, (ptsTotales / meta) * 100)).toFixed(1);
 
         let nivel = 'INICIADO';
         let color = '#ffffff';
-        if (porcentaje >= 100) { nivel = 'APEX+'; color = '#ffd700'; }
+        if (porcentaje >= 101) { nivel = 'APEX+'; color = '#ffd700'; }
         else if (porcentaje >= 76) { nivel = 'APEX'; color = '#d4af37'; }
         else if (porcentaje >= 36) { nivel = 'AVANZADO'; color = '#c0c0c0'; }
         else if (porcentaje >= 11) { nivel = 'INTERMEDIO'; color = '#cd7f32'; }
@@ -753,10 +797,32 @@
         document.getElementById('coachTierLabel').innerText = nivel;
         document.documentElement.style.setProperty('--tier-color', color);
 
-        const fill = document.getElementById('coachTierBarFill');
-        fill.style.width = `${porcentaje}%`;
-        fill.style.background = color;
-        fill.style.boxShadow = `0 0 10px ${color}66`;
+        const track = document.getElementById('coachProgressBarTrack');
+        const subgrid = document.getElementById('coachStaffSubgrid');
+
+        if (!coachEsRolEstudiante && (ptsCoach !== 0 || ptsSupervision !== 0 || ptsAdjustments !== 0 || ptsCheckins !== 0)) {
+          subgrid.style.display = 'grid';
+          document.getElementById('coachSubPtsCheckins').innerText = ptsCheckins.toFixed(0);
+          document.getElementById('coachSubPtsCoach').innerText = ptsCoach.toFixed(0);
+          document.getElementById('coachSubPtsSupervision').innerText = ptsSupervision.toFixed(0);
+          document.getElementById('coachSubPtsAdjustments').innerText = ptsAdjustments.toFixed(0);
+
+          const absTotal = Math.max(1, Math.abs(ptsCheckins) + Math.abs(ptsCoach) + Math.abs(ptsSupervision) + Math.abs(ptsAdjustments));
+          const pCk = Math.max(0, (Math.abs(ptsCheckins) / absTotal) * Math.max(0, porcentaje));
+          const pCo = Math.max(0, (Math.abs(ptsCoach) / absTotal) * Math.max(0, porcentaje));
+          const pSu = Math.max(0, (Math.abs(ptsSupervision) / absTotal) * Math.max(0, porcentaje));
+          const pAd = Math.max(0, (Math.abs(ptsAdjustments) / absTotal) * Math.max(0, porcentaje));
+
+          track.innerHTML = `
+            <div class="progress-segment seg-checkins" style="width: ${pCk}%" title="Check-ins: ${ptsCheckins}pts"></div>
+            <div class="progress-segment seg-coach" style="width: ${pCo}%" title="Coach: ${ptsCoach}pts"></div>
+            <div class="progress-segment seg-supervision" style="width: ${pSu}%" title="Supervisión: ${ptsSupervision}pts"></div>
+            <div class="progress-segment seg-adjustments" style="width: ${pAd}%" title="Ajustes: ${ptsAdjustments}pts"></div>
+          `;
+        } else {
+          subgrid.style.display = 'none';
+          track.innerHTML = `<div class="progress-bar-fill" id="coachTierBarFill" style="width: ${Math.max(0, Math.min(100, porcentaje))}%; background: ${color}; box-shadow: 0 0 10px ${color}66;"></div>`;
+        }
       } catch (err) {}
     }
 
@@ -1154,7 +1220,7 @@
         } else if (periodoFiltro === 'mes') {
           fechaInicio = new Date();
           fechaInicio.setMonth(ahora.getMonth() - 1);
-        } else if (periodoFritro === 'manual') {
+        } else if (periodoFiltro === 'manual') {
           const dDesde = document.getElementById('hCoachDesde').value;
           const dHasta = document.getElementById('hCoachHasta').value;
           if (dDesde) fechaInicio = new Date(dDesde + 'T00:00:00');
@@ -1275,7 +1341,6 @@
           haceSesentaDias.setDate(haceSesentaDias.getDate() - 60);
           haceSesentaDias.setHours(0, 0, 0, 0);
 
-          // Filtrar Strikers Activos para las Métricas Generales
           const activeUsers = globalTeamUsers.filter(user => this.esStrikerActivo(user, hoy));
           const activeEmails = new Set(activeUsers.map(u => (u.email || '').toLowerCase()));
 
@@ -1344,7 +1409,6 @@
           } else if (currentTeamFilter === 'inactivos') {
             return !esActivo && diasInactivo <= 30;
           } else {
-            // Todos: vigentes o con inactividad de hasta 30 días
             return diasInactivo <= 30;
           }
         });
@@ -1855,7 +1919,7 @@
       seleccionar: function(user) {
         selectedRatingStriker = user;
         document.getElementById('ratingStudentSearch').value = user.email;
-        document.getElementById('suggestionsBox').style.display = 'none';
+        document.getElementById('ratingSuggestionsBox').style.display = 'none';
         document.getElementById('ratingSelectedName').textContent = user.name || 'Striker';
         document.getElementById('ratingSelectedEmail').textContent = user.email;
         document.getElementById('btnSubmitRating').disabled = false;
