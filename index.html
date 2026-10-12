@@ -324,6 +324,7 @@
 
     let currentSessionUser = null;
     let deferredPrompt = null;
+    let intervalVigenciaId = null;
 
     /* ==========================================================================
         GESTOR DE RED Y NOTIFICACIÓN PROFESIONAL OFFLINE
@@ -413,6 +414,53 @@
     });
 
     /* ==========================================================================
+        VALIDACIÓN DIARIA DE VIGENCIA EN TIEMPO REAL
+        ========================================================================== */
+    async function verificarVigenciaAutomatica(userId) {
+      if (!navigator.onLine || !sb || !userId) return;
+      try {
+        const { data: userCheck, error } = await sb.from('apex_users').select('*').eq('id', userId).maybeSingle();
+        if (error || !userCheck) return;
+
+        const rolActual = (userCheck.role || '').toLowerCase();
+        const perfilActual = (userCheck.profile_id || '').toLowerCase();
+        const esStaff = ['admin', 'administrador', 'coach', 'supervisor', 'coordinador'].includes(rolActual) || 
+                        ['admin', 'administrador', 'coach', 'supervisor', 'coordinador'].includes(perfilActual);
+
+        if (!esStaff) {
+          const hoy = new Date(); 
+          hoy.setHours(0, 0, 0, 0);
+          const fechaExpStr = userCheck.subscription_expires_at || userCheck.membership_end;
+          let vencido = false;
+
+          if (fechaExpStr) {
+            const expDate = new Date(fechaExpStr.includes('T') ? fechaExpStr : fechaExpStr + 'T00:00:00');
+            if (expDate < hoy) vencido = true;
+          }
+
+          if (userCheck.subscription_status === 'vencido' || userCheck.is_active === false || vencido) {
+            if (intervalVigenciaId) clearInterval(intervalVigenciaId);
+            alert("⚠️ Tu membresía ha expirado. La sesión se cerrará automáticamente.");
+            await sb.auth.signOut();
+            currentSessionUser = null;
+            localStorage.clear();
+            window.location.reload();
+          }
+        }
+      } catch (e) {
+        console.warn("Error en verificación periódica de vigencia:", e);
+      }
+    }
+
+    function iniciarControlVigenciaDiaria(userId) {
+      if (intervalVigenciaId) clearInterval(intervalVigenciaId);
+      // Comprobación periódica cada 5 minutos
+      intervalVigenciaId = setInterval(() => {
+        verificarVigenciaAutomatica(userId);
+      }, 5 * 60 * 1000);
+    }
+
+    /* ==========================================================================
         FUNCIÓN MEJORADA: PURGA DE CACHÉ Y RECARGA FORZADA (ÁMBITO LOCAL)
         ========================================================================== */
     async function forzarActualizacionTotal() {
@@ -496,6 +544,7 @@
         if (navigator.onLine && sb) {
           const { data: { session } } = await sb.auth.getSession();
           if (session) {
+            await verificarVigenciaAutomatica(session.user.id);
             await cargarDatosUsuario(session.user.id);
             return;
           }
@@ -537,6 +586,7 @@
       }
 
       currentSessionUser = profileData;
+      iniciarControlVigenciaDiaria(profileData.id);
       
       let userModules = JSON.parse(localStorage.getItem('apex_user_modules') || '[]');
       if (userModules.length === 0) {
@@ -620,12 +670,6 @@
         return;
       }
 
-      const { data, error } = await sb.auth.signInWithPassword({ email, password });
-      if (error) {
-        mostrarMensajeLogin('La contraseña es incorrecta. Por favor, vuelve a intentarlo.', 'error');
-        return;
-      }
-
       const rolActual = (userCheck.role || '').toLowerCase();
       const perfilActual = (userCheck.profile_id || '').toLowerCase();
       const esStaff = ['admin', 'administrador', 'coach', 'supervisor', 'coordinador'].includes(rolActual) || 
@@ -643,9 +687,14 @@
 
         if (userCheck.subscription_status === 'vencido' || userCheck.is_active === false || vencido) {
           mostrarMensajeLogin('Tu membresía se encuentra inactiva o ha expirado. Consulta con tu coach o administración para gestionar tu renovación y reactivar el acceso.', 'error');
-          await sb.auth.signOut();
           return;
         }
+      }
+
+      const { data, error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) {
+        mostrarMensajeLogin('La contraseña es incorrecta. Por favor, vuelve a intentarlo.', 'error');
+        return;
       }
 
       mostrarMensajeLogin('¡Acceso autorizado! Cargando entorno Apex...', 'success');
@@ -677,6 +726,7 @@
       }
 
       currentSessionUser = profileData;
+      iniciarControlVigenciaDiaria(profileData.id);
 
       localStorage.setItem('apex_session_user', JSON.stringify(profileData));
       localStorage.setItem('apex_user_email', profileData.email || '');
@@ -750,6 +800,7 @@
 
     async function cerrarSesion() {
       if (confirm("¿Estás seguro de que deseas cerrar sesión?")) {
+        if (intervalVigenciaId) clearInterval(intervalVigenciaId);
         if (navigator.onLine && sb) await sb.auth.signOut();
         currentSessionUser = null;
         localStorage.clear();
