@@ -77,8 +77,8 @@
     /* FILTROS Y CONTROLES */
     .filter-btn-group { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
     .filter-btn {
-      flex: 1; min-width: 65px; padding: 7px 4px; background: #111114; border: 1px solid var(--border);
-      color: var(--text-muted); border-radius: 4px; font-size: 0.65rem; font-weight: 800;
+      flex: 1; min-width: 60px; padding: 7px 4px; background: #111114; border: 1px solid var(--border);
+      color: var(--text-muted); border-radius: 4px; font-size: 0.6rem; font-weight: 800;
       text-transform: uppercase; cursor: pointer; text-align: center; transition: 0.2s;
     }
     .filter-btn.active { background: #fff; color: #000; border-color: #fff; }
@@ -257,7 +257,6 @@
 
   <!-- ================= SUBMÓDULO 1: REVISIÓN ACTIVA DE AUDITORÍAS ================= -->
   <div id="tabPendientes" class="tab-section active">
-    <!-- BOTÓN PARA CREAR NUEVA SUPERVISIÓN DIRECTAMENTE DESDE REVISIONES -->
     <div style="margin-bottom: 12px; display: flex; justify-content: flex-end;">
       <button class="btn btn-small" onclick="abrirModalCrearSupervision()" style="background: var(--status-ok); color:#000; font-weight:900;">＋ Crear Nueva Supervisión</button>
     </div>
@@ -393,7 +392,7 @@
     </div>
   </div>
 
-  <!-- ================= SUBMÓDULO 4: PERFIL INDIVIDUAL & BARRA DE PROGRESO (4 FUENTES) ================= -->
+  <!-- ================= SUBMÓDULO 4: PERFIL INDIVIDUAL & VIGENCIAS (SIN BARRA DE NIVEL) ================= -->
   <div id="tabPerfilIndividual" class="tab-section">
     <div class="card">
       <div class="card-title">Auditoría Individual de Usuario</div>
@@ -404,7 +403,7 @@
       </div>
     </div>
 
-    <!-- FICHA Y VIGENCIA INDIVIDUAL CON BARRA DE PROGRESO DE 4 FUENTES -->
+    <!-- FICHA Y VIGENCIA INDIVIDUAL -->
     <div id="workspaceIndividual" style="display: none;">
       <div class="profile-hero">
         <div>
@@ -413,34 +412,6 @@
           <div class="hero-meta" id="indivAntiguedad">Antigüedad: -</div>
         </div>
         <div id="indivVigenciaPill" class="vigencia-pill">-</div>
-      </div>
-
-      <!-- BARRA DE PROGRESO DE 4 FUENTES PARA EL USUARIO -->
-      <div class="progress-card" style="margin-bottom: 14px;">
-        <div class="progress-header">
-          <div>
-            <span style="font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; display: block; font-weight: 800;">Nivel Bimestral del Usuario</span>
-            <div class="progress-tier-title" id="indivTierLabel">INICIADO</div>
-          </div>
-          <div class="progress-percent-val" id="indivTierPercent">0%</div>
-        </div>
-        
-        <div class="progress-bar-track" id="indivProgressBarTrack">
-          <div class="progress-bar-fill" id="indivTierBarFill"></div>
-        </div>
-
-        <div class="progress-meta-grid">
-          <span id="indivPtsTxt">0 / 240 PTS</span>
-          <span>Escala Global Apex</span>
-        </div>
-
-        <!-- DESGLOSE DE LAS 4 FUENTES PARA EL USUARIO -->
-        <div class="staff-subgrid" id="indivStaffSubgrid">
-          <div>Check-ins: <b id="indivSubPtsCheckins">0</b></div>
-          <div>Coach: <b id="indivSubPtsCoach">0</b></div>
-          <div>Sup: <b id="indivSubPtsSupervision">0</b></div>
-          <div>Ajustes: <b id="indivSubPtsAdjustments">0</b></div>
-        </div>
       </div>
 
       <div class="kpi-grid">
@@ -470,7 +441,7 @@
     </div>
   </div>
 
-  <!-- ================= SUBMÓDULO 5: HISTORIAL TRIPLE (AUDITORÍAS, STAFF Y CHECK-INS) ================= -->
+  <!-- ================= SUBMÓDULO 5: HISTORIAL CON 4 PESTAÑAS (AUDITORÍAS, COACHES, STAFF, CHECK-INS) ================= -->
   <div id="tabHistorial" class="tab-section">
     <div class="card" style="padding:10px;">
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
@@ -513,10 +484,11 @@
       </div>
     </div>
 
-    <!-- Pestañas internas para Historial de Auditorías vs Calificaciones Staff vs Check-ins -->
+    <!-- 4 PESTAÑAS INTERNAS DE HISTORIAL (AUDITORÍAS, COACHES, STAFF, CHECK-INS) -->
     <div class="filter-btn-group" style="margin-bottom: 12px;">
       <button class="filter-btn active" id="btn_tipo_hist_aud" onclick="cambiarTipoHistorial('auditorias', this)">Auditorías</button>
-      <button class="filter-btn" id="btn_tipo_hist_staff" onclick="cambiarTipoHistorial('staff', this)">Staff</button>
+      <button class="filter-btn" id="btn_tipo_hist_coach" onclick="cambiarTipoHistorial('coaches', this)">Coaches</button>
+      <button class="filter-btn" id="btn_tipo_hist_staff" onclick="cambiarTipoHistorial('staff', this)">Staff / Ajustes</button>
       <button class="filter-btn" id="btn_tipo_hist_checkins" onclick="cambiarTipoHistorial('checkins', this)">Check-ins</button>
     </div>
 
@@ -637,7 +609,7 @@
       } catch (e) {}
     }
 
-    /* BARRA DE PROGRESO MULTIFUENTE GENERAL (4 FUENTES UNIFICADAS) */
+    /* BARRA DE PROGRESO MULTIFUENTE GENERAL (4 FUENTES) */
     async function actualizarBarraProgresoCoordinador(email) {
       if (!sb || !email) return;
       try {
@@ -650,7 +622,7 @@
 
         let ptsCoach = 0;
         let ptsSupervision = 0;
-        let ptsAdjustments = cachedStaffPoints.filter(p => p.user_email === email && new Date(p.created_at) >= hace60Dias).reduce((a,b)=>a+(parseFloat(b.points)||0), 0);
+        let ptsAdjustments = cachedStaffPoints.filter(p => p.user_email === email).reduce((a,b)=>a+(parseFloat(b.points)||0), 0);
 
         cachedSupervisiones.forEach(s => {
           if (s.coordinator_status !== 'pendiente_revision') {
@@ -716,7 +688,7 @@
       if (modal) modal.style.display = 'none';
     }
 
-    /* ================= BUSCADOR INTELIGENTE PERFIL INDIVIDUAL & BARRA DINÁMICA (4 FUENTES) ================= */
+    /* ================= BUSCADOR INTELIGENTE PERFIL INDIVIDUAL ================= */
     function onInputBusquedaPerfil(query) {
       const container = document.getElementById('autocompletePerfilContainer');
       const q = (query || '').trim().toLowerCase();
@@ -797,65 +769,6 @@
           pill.innerText = "SIN MEMBRESÍA ACTIVA";
         }
       }
-
-      // CALCULAR BARRA DE PROGRESO DE 4 FUENTES PARA EL USUARIO SELECCIONADO
-      try {
-        const hace60 = new Date(); hace60.setDate(hace60.getDate() - 60); hace60.setHours(0,0,0,0);
-        
-        const chksUsr = cachedCheckins.filter(c => c.user_email === email && c.status === 'aprobado' && new Date(c.created_at) >= hace60);
-        let ptsCheckins = chksUsr.reduce((a,b)=>a+(parseFloat(b.rendimiento)||0), 0);
-
-        let ptsCoach = 0;
-        let ptsSupervision = 0;
-        let ptsAdjustments = cachedStaffPoints.filter(p => p.user_email === email && new Date(p.created_at) >= hace60).reduce((a,b)=>a+(parseFloat(b.points)||0), 0);
-
-        cachedSupervisiones.forEach(s => {
-          if (s.coordinator_status !== 'pendiente_revision') {
-            const fechaSesion = new Date(s.session_date || s.created_at);
-            if (fechaSesion >= hace60) {
-              if ((s.coach_email || '').toLowerCase() === email.toLowerCase()) {
-                ptsCoach += parseFloat(s.coach_points || 0);
-              }
-              if ((s.supervisor_email || '').toLowerCase() === email.toLowerCase()) {
-                ptsSupervision += parseFloat(s.supervisor_points || 0);
-              }
-            }
-          }
-        });
-
-        let totalUsrPts = ptsCheckins + ptsCoach + ptsSupervision + ptsAdjustments;
-        const pctUsr = +Math.max(-100, Math.min(110, (totalUsrPts / 240) * 100)).toFixed(1);
-
-        let nxtLabel = 'INICIADO';
-        let nxtColor = '#ffffff';
-        if (pctUsr >= 101) { nxtLabel = 'APEX+'; nxtColor = '#ffd700'; }
-        else if (pctUsr >= 76) { nxtLabel = 'APEX'; nxtColor = '#d4af37'; }
-        else if (pctUsr >= 36) { nxtLabel = 'AVANZADO'; nxtColor = '#c0c0c0'; }
-        else if (pctUsr >= 11) { nxtLabel = 'INTERMEDIO'; nxtColor = '#cd7f32'; }
-
-        document.getElementById('indivPtsTxt').innerText = `${totalUsrPts.toFixed(1)} / 240 PTS`;
-        document.getElementById('indivTierPercent').innerText = `${pctUsr}%`;
-        document.getElementById('indivTierLabel').innerText = nxtLabel;
-
-        document.getElementById('indivSubPtsCheckins').innerText = ptsCheckins.toFixed(0);
-        document.getElementById('indivSubPtsCoach').innerText = ptsCoach.toFixed(0);
-        document.getElementById('indivSubPtsSupervision').innerText = ptsSupervision.toFixed(0);
-        document.getElementById('indivSubPtsAdjustments').innerText = ptsAdjustments.toFixed(0);
-
-        const absTotal = Math.max(1, Math.abs(ptsCheckins) + Math.abs(ptsCoach) + Math.abs(ptsSupervision) + Math.abs(ptsAdjustments));
-        const pCk = Math.max(0, (Math.abs(ptsCheckins) / absTotal) * Math.max(0, pctUsr));
-        const pCo = Math.max(0, (Math.abs(ptsCoach) / absTotal) * Math.max(0, pctUsr));
-        const pSu = Math.max(0, (Math.abs(ptsSupervision) / absTotal) * Math.max(0, pctUsr));
-        const pAd = Math.max(0, (Math.abs(ptsAdjustments) / absTotal) * Math.max(0, pctUsr));
-
-        const indivTrack = document.getElementById('indivProgressBarTrack');
-        indivTrack.innerHTML = `
-          <div class="progress-segment seg-checkins" style="width: ${pCk}%" title="Check-ins: ${ptsCheckins}pts"></div>
-          <div class="progress-segment seg-coach" style="width: ${pCo}%" title="Coach: ${ptsCoach}pts"></div>
-          <div class="progress-segment seg-supervision" style="width: ${pSu}%" title="Supervisión: ${ptsSupervision}pts"></div>
-          <div class="progress-segment seg-adjustments" style="width: ${pAd}%" title="Ajustes: ${ptsAdjustments}pts"></div>
-        `;
-      } catch (e) {}
 
       const rol = (user.role || user.profile_id || 'striker').toLowerCase();
       if (rol.includes('coach')) {
@@ -1715,15 +1628,16 @@
       }
     }
 
-    /* ================= HISTORIAL TRIPLE (AUDITORÍAS, STAFF Y CHECK-INS) ================= */
+    /* ================= HISTORIAL CON 4 PESTAÑAS (AUDITORÍAS, COACHES, STAFF, CHECK-INS) ================= */
     function cambiarTipoHistorial(tipo, btn) {
       tipoHistorialActual = tipo;
       document.querySelectorAll('#tabHistorial .filter-btn').forEach(b => b.classList.remove('active'));
       if (btn) btn.classList.add('active');
       const titleBar = document.getElementById('histTitleBar');
       if (titleBar) {
-        if (tipo === 'auditorias') titleBar.innerText = 'Auditorías de Clases Resueltas';
-        else if (tipo === 'staff') titleBar.innerText = 'Calificaciones de Staff / Usuarios';
+        if (tipo === 'auditorias') titleBar.innerText = 'Auditorías de Clases (Supervisión)';
+        else if (tipo === 'coaches') titleBar.innerText = 'Historial de Puntos de Coaches';
+        else if (tipo === 'staff') titleBar.innerText = 'Calificaciones de Staff / Ajustes';
         else titleBar.innerText = 'Historial de Check-ins (Strikers)';
       }
       renderizarHistorial();
@@ -1787,19 +1701,10 @@
         if (puntSel === 'positivo') filtrados = filtrados.filter(r => r.coach_points >= 0);
         if (puntSel === 'negativo') filtrados = filtrados.filter(r => r.coach_points < 0);
 
-        if (rolSel !== 'all') {
-          filtrados = filtrados.filter(r => {
-            const coachUsr = cachedUsers.find(u => u.email === r.coach_email);
-            const rCoach = (coachUsr?.role || coachUsr?.profile_id || 'striker').toLowerCase();
-            if (rolSel === 'striker') return rCoach.includes('striker') || rCoach.includes('estudiante') || rCoach === 'usuario';
-            return rCoach.includes(rolSel);
-          });
-        }
-
         const countTxt = document.getElementById('histCountTxt');
         if (countTxt) countTxt.innerText = `${filtrados.length} Resueltas`;
         if (filtrados.length === 0) {
-          cont.innerHTML = '<span style="color:var(--text-muted); font-size:0.75rem;">No hay auditorías coincidentes con los filtros.</span>';
+          cont.innerHTML = '<span style="color:var(--text-muted); font-size:0.75rem;">No hay auditorías coincidentes.</span>';
           return;
         }
 
@@ -1817,13 +1722,62 @@
 
           div.innerHTML = `
             <div class="review-top">
-              <span>📅 ${fechaStr} · ${item.class_time} (Tocar para ver desglose)</span>
+              <span>📅 ${fechaStr} · ${item.class_time} (Ver Detalle)</span>
               <span style="color:${colorEstado}; font-weight:900;">${item.coordinator_status.toUpperCase()} (${badgeSup})</span>
             </div>
             <div class="review-meta">
-              Coach: <strong style="color:#eee;">${item.coach_email}</strong> (${item.coach_points > 0 ? '+' : ''}${item.coach_points} Pts Reales)<br>
+              Coach: <strong style="color:#eee;">${item.coach_email}</strong><br>
               Supervisor: <span style="color:#aaa;">${item.supervisor_email}</span>
-              ${item.coordinator_notes ? `<br><em style="color:#ddd;">"${item.coordinator_notes}"</em>` : ''}
+            </div>
+          `;
+          cont.appendChild(div);
+        });
+
+      } else if (tipoHistorialActual === 'coaches') {
+        // PESTAÑA 4ª FUENTE: HISTORIAL DE COACHES (SUPERVISIONES DE CLASE)
+        let filtrados = cachedSupervisiones.filter(s => s.coordinator_status && s.coordinator_status !== 'pendiente_revision');
+
+        if (diasFiltroHistorial !== 'all') {
+          const fLim = new Date();
+          fLim.setDate(fLim.getDate() - parseInt(diasFiltroHistorial));
+          filtrados = filtrados.filter(r => new Date(r.session_date) >= fLim);
+        }
+
+        if (fechaSel) {
+          filtrados = filtrados.filter(r => r.session_date && r.session_date.startsWith(fechaSel));
+        }
+
+        if (personalTxt) {
+          filtrados = filtrados.filter(r => (r.coach_email || '').toLowerCase().includes(personalTxt));
+        }
+
+        const countTxt = document.getElementById('histCountTxt');
+        if (countTxt) countTxt.innerText = `${filtrados.length} Clases Evaluadas`;
+        if (filtrados.length === 0) {
+          cont.innerHTML = '<span style="color:var(--text-muted); font-size:0.75rem;">No hay registros de coaches coincidentes.</span>';
+          return;
+        }
+
+        cont.innerHTML = '';
+        filtrados.forEach(item => {
+          const div = document.createElement('div');
+          div.className = 'review-item';
+          div.style.cursor = 'default';
+
+          const d = new Date(item.session_date);
+          const fechaStr = `${d.getUTCDate()}/${d.getUTCMonth() + 1}/${d.getUTCFullYear()}`;
+          const pCoach = item.coach_points || 0;
+          const colCoach = pCoach >= 0 ? 'var(--status-ok)' : 'var(--accent)';
+
+          div.innerHTML = `
+            <div class="review-top">
+              <span>📋 Coach: ${item.coach_email}</span>
+              <span style="color:${colCoach}; font-weight:900;">${pCoach > 0 ? '+' : ''}${pCoach} Pts Coach</span>
+            </div>
+            <div class="review-meta">
+              Fecha: ${fechaStr} · Horario: ${item.class_time} · Evaluado por: ${item.supervisor_email}<br>
+              Estado: <span style="text-transform:uppercase; color:#fff;">${item.coordinator_status}</span>
+              ${item.coordinator_notes ? `<br><em>"${item.coordinator_notes}"</em>` : ''}
             </div>
           `;
           cont.appendChild(div);
@@ -1846,22 +1800,10 @@
           filtrados = filtrados.filter(r => (r.user_email || '').toLowerCase().includes(personalTxt));
         }
 
-        if (puntSel === 'positivo') filtrados = filtrados.filter(r => r.points > 0);
-        if (puntSel === 'negativo') filtrados = filtrados.filter(r => r.points < 0);
-
-        if (rolSel !== 'all') {
-          filtrados = filtrados.filter(r => {
-            const usr = cachedUsers.find(u => u.email === r.user_email);
-            const rUsr = (usr?.role || usr?.profile_id || 'striker').toLowerCase();
-            if (rolSel === 'striker') return rUsr.includes('striker') || rUsr.includes('estudiante') || rUsr === 'usuario';
-            return rUsr.includes(rolSel);
-          });
-        }
-
         const countTxt = document.getElementById('histCountTxt');
-        if (countTxt) countTxt.innerText = `${filtrados.length} Calificaciones`;
+        if (countTxt) countTxt.innerText = `${filtrados.length} Ajustes`;
         if (filtrados.length === 0) {
-          cont.innerHTML = '<span style="color:var(--text-muted); font-size:0.75rem;">No hay calificaciones de staff coincidentes.</span>';
+          cont.innerHTML = '<span style="color:var(--text-muted); font-size:0.75rem;">No hay ajustes de staff coincidentes.</span>';
           return;
         }
 
@@ -1928,8 +1870,7 @@
               <span style="color:var(--status-ok); font-weight:900;">Rend: ${item.rendimiento}/10</span>
             </div>
             <div class="review-meta">
-              Fecha: ${fechaStr} · Enfoque: <strong style="color:#ddd;">${item.focus}</strong> · Estado: <span style="text-transform:uppercase;">${item.status}</span><br>
-              RPE: ${item.rpe} | Soltura: ${item.soltura} | Técnica: ${item.preguntacoach || item.student_tech_score || '-'}
+              Fecha: ${fechaStr} · Enfoque: <strong style="color:#ddd;">${item.focus}</strong> · Estado: <span style="text-transform:uppercase;">${item.status}</span>
             </div>
           `;
           cont.appendChild(div);
