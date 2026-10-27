@@ -31,7 +31,7 @@
     .title span { color: var(--accent); }
     .badge-coord { font-size: 0.65rem; font-weight: 800; background: #1a0808; color: var(--accent); border: 1px solid var(--accent); padding: 4px 8px; border-radius: 4px; text-transform: uppercase; }
 
-    /* BARRA DE PROGRESO GLOBAL MULTIFUENTE */
+    /* BARRA DE PROGRESO GLOBAL MULTIFUENTE (4 FUENTES) */
     .progress-card {
       background: var(--card-bg); border: 1px solid var(--border);
       border-radius: 8px; padding: 14px; margin-bottom: 14px;
@@ -56,7 +56,7 @@
     .seg-adjustments { background: #eab308; }
 
     .progress-meta-grid { display: flex; justify-content: space-between; font-size: 0.68rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
-    .staff-subgrid { display: none; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 8px; border-top: 1px solid var(--border); padding-top: 6px; font-size: 0.58rem; text-transform: uppercase; text-align: center; }
+    .staff-subgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 8px; border-top: 1px solid var(--border); padding-top: 6px; font-size: 0.58rem; text-transform: uppercase; text-align: center; }
     .staff-subgrid div { background: #050507; padding: 4px; border-radius: 4px; border: 1px solid var(--border); }
 
     /* NAVEGACIÓN PRINCIPAL */
@@ -141,8 +141,8 @@
     .btn { background: var(--accent); color: #fff; border: none; padding: 13px; width: 100%; font-weight: 900; text-transform: uppercase; border-radius: 6px; cursor: pointer; font-size: 0.85rem; letter-spacing: 0.5px; margin-top: 10px; transition: 0.2s; }
     .btn:disabled { background: #333; color: #777; cursor: not-allowed; }
     .btn:active { filter: brightness(0.85); }
-    .btn-secondary { background: #222; color: #fff; }
-    .btn-danger { background: var(--accent); }
+    .btn-secondary { background: #16161a; border: 1px solid var(--border); color: #fff; }
+    .btn-danger { background: #1a0808; border: 1px solid var(--accent); color: var(--accent); }
     .btn-small { padding: 6px 10px; font-size: 0.65rem; width: auto; margin-top: 0; display: inline-block; }
 
     .chart-box { height: 260px; position: relative; margin-top: 10px; }
@@ -218,7 +218,7 @@
     <div class="badge-coord">Auditoría & Control Total</div>
   </div>
 
-  <!-- BARRA DE PROGRESO DE NIVEL GLOBAL MULTIFUENTE CON SEGMENTOS -->
+  <!-- BARRA DE PROGRESO DE NIVEL GLOBAL MULTIFUENTE (4 FUENTES) -->
   <div class="progress-card">
     <div class="progress-header">
       <div>
@@ -237,8 +237,8 @@
       <span id="coordMetaTxt">Escala Global Apex</span>
     </div>
 
-    <!-- DESGLOSE MINIMALISTA MULTIFUENTE -->
-    <div class="staff-subgrid" id="coordStaffSubgrid" style="display:none;">
+    <!-- DESGLOSE DE LAS 4 FUENTES -->
+    <div class="staff-subgrid" id="coordStaffSubgrid">
       <div>Check-ins: <b id="coordSubPtsCheckins">0</b></div>
       <div>Coach: <b id="coordSubPtsCoach">0</b></div>
       <div>Sup: <b id="coordSubPtsSupervision">0</b></div>
@@ -284,8 +284,8 @@
         <div class="card-title">
           <span id="lblSesionInfo">Cotejo de Sesión</span>
           <div style="display: flex; gap: 8px; align-items: center;">
-            <button onclick="abrirModalEditarSupervision()" class="btn-small" style="background:#3b82f6; border:none; color:#fff; border-radius:4px; cursor:pointer;">✏️ Editar</button>
-            <button onclick="eliminarSupervisionActual()" class="btn-small" style="background:var(--accent); border:none; color:#fff; border-radius:4px; cursor:pointer;">🗑️ Eliminar</button>
+            <button onclick="abrirModalEditarSupervision()" class="btn-small btn-secondary" style="border-radius:4px; cursor:pointer;">✏️ Editar</button>
+            <button onclick="eliminarSupervisionActual()" class="btn-small btn-danger" style="border-radius:4px; cursor:pointer;">🗑️ Eliminar</button>
             <button onclick="cerrarAuditoria()" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:0.75rem; font-weight:800;">✕ CERRAR</button>
           </div>
         </div>
@@ -336,14 +336,20 @@
 
       <div class="form-group" style="margin-bottom: 10px;">
         <label>3. Puntuación (Positiva o Negativa)</label>
-        <select id="selectPuntosStaff" class="form-control">
+        <select id="selectPuntosStaff" class="form-control" onchange="togglePuntosManual(this.value)">
           <option value="5">🌟 Incentivo Leve (+5 Pts)</option>
           <option value="10" selected>🏆 Premio Destacado (+10 Pts)</option>
           <option value="20">⭐ Bono Extraordinario (+20 Pts)</option>
           <option value="-5">⚠️ Advertencia Leve (-5 Pts)</option>
           <option value="-10">❌ Sanción Moderada (-10 Pts)</option>
           <option value="-20">🚨 Sanción Grave (-20 Pts)</option>
+          <option value="manual">✍️ Manual (Personalizado)</option>
         </select>
+      </div>
+
+      <div class="form-group" id="manualPuntosBox" style="margin-bottom: 10px; display: none;">
+        <label>Puntuación Manual (Ej: 15 o -8)</label>
+        <input type="number" id="inputPuntosManualVal" class="form-control" placeholder="Ingresa los puntos...">
       </div>
 
       <div class="form-group" style="margin-bottom: 14px;">
@@ -387,7 +393,7 @@
     </div>
   </div>
 
-  <!-- ================= SUBMÓDULO 4: PERFIL INDIVIDUAL & VIGENCIAS ================= -->
+  <!-- ================= SUBMÓDULO 4: PERFIL INDIVIDUAL & BARRA DE PROGRESO (4 FUENTES) ================= -->
   <div id="tabPerfilIndividual" class="tab-section">
     <div class="card">
       <div class="card-title">Auditoría Individual de Usuario</div>
@@ -398,7 +404,7 @@
       </div>
     </div>
 
-    <!-- FICHA Y VIGENCIA INDIVIDUAL -->
+    <!-- FICHA Y VIGENCIA INDIVIDUAL CON BARRA DE PROGRESO DE 4 FUENTES -->
     <div id="workspaceIndividual" style="display: none;">
       <div class="profile-hero">
         <div>
@@ -407,6 +413,34 @@
           <div class="hero-meta" id="indivAntiguedad">Antigüedad: -</div>
         </div>
         <div id="indivVigenciaPill" class="vigencia-pill">-</div>
+      </div>
+
+      <!-- BARRA DE PROGRESO DE 4 FUENTES PARA EL USUARIO -->
+      <div class="progress-card" style="margin-bottom: 14px;">
+        <div class="progress-header">
+          <div>
+            <span style="font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; display: block; font-weight: 800;">Nivel Bimestral del Usuario</span>
+            <div class="progress-tier-title" id="indivTierLabel">INICIADO</div>
+          </div>
+          <div class="progress-percent-val" id="indivTierPercent">0%</div>
+        </div>
+        
+        <div class="progress-bar-track" id="indivProgressBarTrack">
+          <div class="progress-bar-fill" id="indivTierBarFill"></div>
+        </div>
+
+        <div class="progress-meta-grid">
+          <span id="indivPtsTxt">0 / 240 PTS</span>
+          <span>Escala Global Apex</span>
+        </div>
+
+        <!-- DESGLOSE DE LAS 4 FUENTES PARA EL USUARIO -->
+        <div class="staff-subgrid" id="indivStaffSubgrid">
+          <div>Check-ins: <b id="indivSubPtsCheckins">0</b></div>
+          <div>Coach: <b id="indivSubPtsCoach">0</b></div>
+          <div>Sup: <b id="indivSubPtsSupervision">0</b></div>
+          <div>Ajustes: <b id="indivSubPtsAdjustments">0</b></div>
+        </div>
       </div>
 
       <div class="kpi-grid">
@@ -436,7 +470,7 @@
     </div>
   </div>
 
-  <!-- ================= SUBMÓDULO 5: HISTORIAL DE DECISIONES ================= -->
+  <!-- ================= SUBMÓDULO 5: HISTORIAL TRIPLE (AUDITORÍAS, STAFF Y CHECK-INS) ================= -->
   <div id="tabHistorial" class="tab-section">
     <div class="card" style="padding:10px;">
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
@@ -463,7 +497,7 @@
 
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
         <div>
-          <label style="font-size:0.6rem; color:var(--text-muted); text-transform:uppercase;">Buscador Personal (Supervisor / Coord)</label>
+          <label style="font-size:0.6rem; color:var(--text-muted); text-transform:uppercase;">Buscador Personal (Usuario / Personal)</label>
           <input type="text" id="histFiltroPersonal" class="form-control" style="font-size:0.75rem; padding:8px;" placeholder="Nombre o correo..." oninput="renderizarHistorial()">
         </div>
         <div>
@@ -479,10 +513,11 @@
       </div>
     </div>
 
-    <!-- Pestañas internas para Historial de Auditorías vs Calificaciones Staff -->
+    <!-- Pestañas internas para Historial de Auditorías vs Calificaciones Staff vs Check-ins -->
     <div class="filter-btn-group" style="margin-bottom: 12px;">
-      <button class="filter-btn active" id="btn_tipo_hist_aud" onclick="cambiarTipoHistorial('auditorias', this)">Auditorías de Clases</button>
-      <button class="filter-btn" id="btn_tipo_hist_staff" onclick="cambiarTipoHistorial('staff', this)">Calificaciones Staff</button>
+      <button class="filter-btn active" id="btn_tipo_hist_aud" onclick="cambiarTipoHistorial('auditorias', this)">Auditorías</button>
+      <button class="filter-btn" id="btn_tipo_hist_staff" onclick="cambiarTipoHistorial('staff', this)">Staff</button>
+      <button class="filter-btn" id="btn_tipo_hist_checkins" onclick="cambiarTipoHistorial('checkins', this)">Check-ins</button>
     </div>
 
     <div class="card">
@@ -535,6 +570,9 @@
         const { data: { session } } = await sb.auth.getSession();
         if (session && session.user) {
           emailCoordinadorActivo = session.user.email;
+        } else {
+          const localEmail = localStorage.getItem('apex_user_email');
+          if (localEmail) emailCoordinadorActivo = localEmail;
         }
       } catch (e) {}
 
@@ -567,30 +605,39 @@
       } catch (e) {}
     }
 
-    /* CARGAR DATOS CENTRALES PARA ANÁLISIS */
+    /* CARGAR DATOS CENTRALES CON PROTECCIÓN AISLADA */
     async function cargarCensoCompleto() {
       try {
-        const [resUsers, resSup, resChk, resStaff, resAdj] = await Promise.all([
-          sb.from('apex_users').select('*').order('name', { ascending: true }),
-          sb.from('apex_coach_supervisions').select('*').order('session_date', { ascending: false }),
-          sb.from('apex_checkins').select('*').order('created_at', { ascending: false }),
-          sb.from('apex_staff_points').select('*').order('created_at', { ascending: false }),
-          sb.from('apex_coordinator_adjustments').select('*').order('created_at', { ascending: false })
-        ]);
-
+        const resUsers = await sb.from('apex_users').select('*').order('name', { ascending: true });
         cachedUsers = resUsers.data || [];
-        cachedSupervisiones = resSup.data || [];
-        cachedCheckins = resChk.data || [];
-        cachedStaffPoints = resStaff.data || [];
-        cachedAdjustments = resAdj.data || [];
+      } catch (e) { cachedUsers = []; }
 
+      try {
+        const resSup = await sb.from('apex_coach_supervisions').select('*').order('session_date', { ascending: false });
+        cachedSupervisiones = resSup.data || [];
+      } catch (e) { cachedSupervisiones = []; }
+
+      try {
+        const resChk = await sb.from('apex_checkins').select('*').order('created_at', { ascending: false });
+        cachedCheckins = resChk.data || [];
+      } catch (e) { cachedCheckins = []; }
+
+      try {
+        const resStaff = await sb.from('apex_staff_points').select('*').order('created_at', { ascending: false });
+        cachedStaffPoints = resStaff.data || [];
+      } catch (e) { cachedStaffPoints = []; }
+
+      try {
+        const resAdj = await sb.from('apex_coordinator_adjustments').select('*').order('created_at', { ascending: false });
+        cachedAdjustments = resAdj.data || [];
+      } catch (e) { cachedAdjustments = []; }
+
+      try {
         await cargarColaPendientes();
-      } catch (e) {
-        console.warn("Fallo cargando censo global:", e);
-      }
+      } catch (e) {}
     }
 
-    /* ACTUALIZAR BARRA DE PROGRESO MULTIFUENTE DEL COORDINADOR */
+    /* BARRA DE PROGRESO MULTIFUENTE GENERAL (4 FUENTES UNIFICADAS) */
     async function actualizarBarraProgresoCoordinador(email) {
       if (!sb || !email) return;
       try {
@@ -598,44 +645,26 @@
         hace60Dias.setDate(hace60Dias.getDate() - 60);
         hace60Dias.setHours(0,0,0,0);
 
-        const hace30Dias = new Date();
-        hace30Dias.setDate(hace30Dias.getDate() - 30);
-        hace30Dias.setHours(0,0,0,0);
-
-        const [checkinsRes, supervisionsRes, adjustmentsRes] = await Promise.all([
-          sb.from('apex_checkins').select('rendimiento, created_at, status').eq('user_email', email).ilike('status', 'aprobado'),
-          sb.from('apex_coach_supervisions').select('*'),
-          sb.from('apex_coordinator_adjustments').select('note, created_at').eq('user_email', email)
-        ]);
-
-        let ptsCheckins = 0;
-        if (checkinsRes.data) {
-          checkinsRes.data.forEach(c => { if (new Date(c.created_at) >= hace60Dias) ptsCheckins += parseFloat(c.rendimiento || 0); });
-        }
+        const checkinsUsr = cachedCheckins.filter(c => c.user_email === email && c.status === 'aprobado' && new Date(c.created_at) >= hace60Dias);
+        let ptsCheckins = checkinsUsr.reduce((a,b)=>a+(parseFloat(b.rendimiento)||0), 0);
 
         let ptsCoach = 0;
         let ptsSupervision = 0;
-        let ptsAdjustments = 0;
+        let ptsAdjustments = cachedStaffPoints.filter(p => p.user_email === email && new Date(p.created_at) >= hace60Dias).reduce((a,b)=>a+(parseFloat(b.points)||0), 0);
 
-        if (supervisionsRes.data) {
-          supervisionsRes.data.forEach(s => {
-            if (s.coordinator_status !== 'pendiente_revision') {
-              const fechaSesion = new Date(s.session_date || s.created_at);
-              if (fechaSesion >= hace30Dias) {
-                if ((s.coach_email || '').toLowerCase() === email.toLowerCase()) {
-                  ptsCoach += parseFloat(s.coach_points || 0);
-                }
-                if ((s.supervisor_email || '').toLowerCase() === email.toLowerCase()) {
-                  ptsSupervision += parseFloat(s.supervisor_points || 0);
-                }
+        cachedSupervisiones.forEach(s => {
+          if (s.coordinator_status !== 'pendiente_revision') {
+            const fechaSesion = new Date(s.session_date || s.created_at);
+            if (fechaSesion >= hace60Dias) {
+              if ((s.coach_email || '').toLowerCase() === email.toLowerCase()) {
+                ptsCoach += parseFloat(s.coach_points || 0);
+              }
+              if ((s.supervisor_email || '').toLowerCase() === email.toLowerCase()) {
+                ptsSupervision += parseFloat(s.supervisor_points || 0);
               }
             }
-          });
-        }
-
-        if (adjustmentsRes.data) {
-          adjustmentsRes.data.forEach(a => { if (new Date(a.created_at) >= hace30Dias) ptsAdjustments += parseFloat(a.note || 0); });
-        }
+          }
+        });
 
         let ptsTotales = ptsCheckins + ptsCoach + ptsSupervision + ptsAdjustments;
         const meta = 240;
@@ -653,38 +682,41 @@
         document.getElementById('coordTierLabel').innerText = nivel;
         document.documentElement.style.setProperty('--tier-color', color);
 
+        document.getElementById('coordSubPtsCheckins').innerText = ptsCheckins.toFixed(0);
+        document.getElementById('coordSubPtsCoach').innerText = ptsCoach.toFixed(0);
+        document.getElementById('coordSubPtsSupervision').innerText = ptsSupervision.toFixed(0);
+        document.getElementById('coordSubPtsAdjustments').innerText = ptsAdjustments.toFixed(0);
+
+        const absTotal = Math.max(1, Math.abs(ptsCheckins) + Math.abs(ptsCoach) + Math.abs(ptsSupervision) + Math.abs(ptsAdjustments));
+        const pCk = Math.max(0, (Math.abs(ptsCheckins) / absTotal) * Math.max(0, porcentaje));
+        const pCo = Math.max(0, (Math.abs(ptsCoach) / absTotal) * Math.max(0, porcentaje));
+        const pSu = Math.max(0, (Math.abs(ptsSupervision) / absTotal) * Math.max(0, porcentaje));
+        const pAd = Math.max(0, (Math.abs(ptsAdjustments) / absTotal) * Math.max(0, porcentaje));
+
         const track = document.getElementById('coordProgressBarTrack');
-        const subgrid = document.getElementById('coordStaffSubgrid');
-
-        if (ptsCoach !== 0 || ptsSupervision !== 0 || ptsAdjustments !== 0 || ptsCheckins !== 0) {
-          subgrid.style.display = 'grid';
-          document.getElementById('coordSubPtsCheckins').innerText = ptsCheckins.toFixed(0);
-          document.getElementById('coordSubPtsCoach').innerText = ptsCoach.toFixed(0);
-          document.getElementById('coordSubPtsSupervision').innerText = ptsSupervision.toFixed(0);
-          document.getElementById('coordSubPtsAdjustments').innerText = ptsAdjustments.toFixed(0);
-
-          const absTotal = Math.max(1, Math.abs(ptsCheckins) + Math.abs(ptsCoach) + Math.abs(ptsSupervision) + Math.abs(ptsAdjustments));
-          const pCk = Math.max(0, (Math.abs(ptsCheckins) / absTotal) * Math.max(0, porcentaje));
-          const pCo = Math.max(0, (Math.abs(ptsCoach) / absTotal) * Math.max(0, porcentaje));
-          const pSu = Math.max(0, (Math.abs(ptsSupervision) / absTotal) * Math.max(0, porcentaje));
-          const pAd = Math.max(0, (Math.abs(ptsAdjustments) / absTotal) * Math.max(0, porcentaje));
-
-          track.innerHTML = `
-            <div class="progress-segment seg-checkins" style="width: ${pCk}%" title="Check-ins: ${ptsCheckins}pts"></div>
-            <div class="progress-segment seg-coach" style="width: ${pCo}%" title="Coach: ${ptsCoach}pts"></div>
-            <div class="progress-segment seg-supervision" style="width: ${pSu}%" title="Supervisión: ${ptsSupervision}pts"></div>
-            <div class="progress-segment seg-adjustments" style="width: ${pAd}%" title="Ajustes: ${ptsAdjustments}pts"></div>
-          `;
-        } else {
-          subgrid.style.display = 'none';
-          track.innerHTML = `<div class="progress-bar-fill" id="coordTierBarFill" style="width: ${Math.max(0, Math.min(100, porcentaje))}%; background: ${color}; box-shadow: 0 0 10px ${color}66;"></div>`;
-        }
+        track.innerHTML = `
+          <div class="progress-segment seg-checkins" style="width: ${pCk}%" title="Check-ins: ${ptsCheckins}pts"></div>
+          <div class="progress-segment seg-coach" style="width: ${pCo}%" title="Coach: ${ptsCoach}pts"></div>
+          <div class="progress-segment seg-supervision" style="width: ${pSu}%" title="Supervisión: ${ptsSupervision}pts"></div>
+          <div class="progress-segment seg-adjustments" style="width: ${pAd}%" title="Ajustes: ${ptsAdjustments}pts"></div>
+        `;
       } catch (err) {
         console.warn("Error barra progreso coordinador:", err);
       }
     }
 
-    /* ================= BUSCADOR INTELIGENTE PERFIL INDIVIDUAL ================= */
+    /* ================= GESTIÓN DE MODALES Y CIERRE ("X") ================= */
+    function cerrarModalDrill() {
+      const modal = document.getElementById('drillModal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function cerrarModalConfirm(result) {
+      const modal = document.getElementById('customConfirmModal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    /* ================= BUSCADOR INTELIGENTE PERFIL INDIVIDUAL & BARRA DINÁMICA (4 FUENTES) ================= */
     function onInputBusquedaPerfil(query) {
       const container = document.getElementById('autocompletePerfilContainer');
       const q = (query || '').trim().toLowerCase();
@@ -718,508 +750,15 @@
       container.style.display = 'block';
     }
 
-    function seleccionarPerfilIndividual(user) {
+    async function seleccionarPerfilIndividual(user) {
       const input = document.getElementById('inputBuscadorPerfilIndiv');
       const container = document.getElementById('autocompletePerfilContainer');
       if (input) input.value = user.name || user.email;
       if (container) container.style.display = 'none';
-      cargarPerfilIndividualSeleccionadoPorEmail(user.email);
+      await cargarPerfilIndividualSeleccionadoPorEmail(user.email);
     }
 
-    /* ================= BUSCADOR INTELIGENTE STAFF & CONTROL DE TOPE ================= */
-    function filtrarRolCalificacion(rol, btn) {
-      rolFiltroStaff = rol;
-      document.querySelectorAll('#tabCalificaciones .filter-btn').forEach(b => b.classList.remove('active'));
-      if (btn) btn.classList.add('active');
-      const input = document.getElementById('inputBuscadorStaff');
-      const container = document.getElementById('autocompleteContainer');
-      if (input) input.value = '';
-      if (container) container.style.display = 'none';
-      usuarioStaffSeleccionado = null;
-      const preview = document.getElementById('selectedStaffPreview');
-      if (preview) preview.style.display = 'none';
-      const btnGuardar = document.getElementById('btnGuardarPuntosStaff');
-      if (btnGuardar) btnGuardar.disabled = true;
-    }
-
-    function onInputBusquedaStaff(query) {
-      const container = document.getElementById('autocompleteContainer');
-      const q = (query || '').trim().toLowerCase();
-
-      if (!container) return;
-      if (q.length === 0) {
-        container.style.display = 'none';
-        return;
-      }
-
-      let filtrados = cachedUsers.filter(u => {
-        const cumpleRol = (rolFiltroStaff === 'all') || 
-                          (rolFiltroStaff === 'striker' && (!u.role || u.role === 'striker' || u.role === 'usuario' || u.role === 'estudiante')) ||
-                          (u.role === rolFiltroStaff || u.profile_id === rolFiltroStaff);
-        if (!cumpleRol) return false;
-        
-        const nombre = (u.name || '').toLowerCase();
-        const email = (u.email || '').toLowerCase();
-        return nombre.includes(q) || email.includes(q);
-      });
-
-      if (filtrados.length === 0) {
-        container.innerHTML = '<div class="autocomplete-item" style="color:var(--text-muted);">Sin coincidencias</div>';
-        container.style.display = 'block';
-        return;
-      }
-
-      container.innerHTML = '';
-      filtrados.forEach(u => {
-        const div = document.createElement('div');
-        div.className = 'autocomplete-item';
-        div.innerHTML = `<strong>${u.name || 'Sin Nombre'}</strong> <span style="color:var(--text-muted); font-size:0.65rem;">(${u.email})</span>`;
-        div.onclick = () => seleccionarUsuarioStaff(u);
-        container.appendChild(div);
-      });
-      container.style.display = 'block';
-    }
-
-    async function seleccionarUsuarioStaff(user) {
-      usuarioStaffSeleccionado = user;
-      const input = document.getElementById('inputBuscadorStaff');
-      const container = document.getElementById('autocompleteContainer');
-      if (input) input.value = user.name || user.email;
-      if (container) container.style.display = 'none';
-
-      const nameEl = document.getElementById('previewStaffName');
-      const emailEl = document.getElementById('previewStaffEmail');
-      if (nameEl) nameEl.innerText = user.name || 'Sin Nombre';
-      if (emailEl) emailEl.innerText = `${user.email} · Rol: ${(user.role || user.profile_id || 'striker').toUpperCase()}`;
-      
-      const emailObj = user.email;
-      const hace60Dias = new Date(); hace60Dias.setDate(hace60Dias.getDate() - 60); hace60Dias.setHours(0,0,0,0);
-      const hace30Dias = new Date(); hace30Dias.setDate(hace30Dias.getDate() - 30); hace30Dias.setHours(0,0,0,0);
-
-      const chksUser = cachedCheckins.filter(c => c.user_email === emailObj && c.status === 'aprobado' && new Date(c.created_at) >= hace60Dias);
-      const sumChk = chksUser.reduce((a,b)=>a+(parseFloat(b.rendimiento)||0), 0);
-
-      const rolUsr = (user.role || user.profile_id || 'striker').toLowerCase();
-      let esEst = rolUsr.includes('estudiante') || rolUsr.includes('striker') || (!rolUsr.includes('coach') && !rolUsr.includes('admin') && !rolUsr.includes('supervis') && !rolUsr.includes('staff') && !rolUsr.includes('coordinador'));
-      const TOPE = esEst ? 240 : 264;
-
-      let ptsStaffExtra = cachedStaffPoints.filter(p => p.user_email === emailObj && new Date(p.created_at) >= hace30Dias).reduce((a,b)=>a+(parseFloat(b.points)||0), 0);
-      let totalActual = sumChk + ptsStaffExtra;
-
-      const badgeTope = document.getElementById('previewStaffTopeStatus');
-      if (badgeTope) {
-        if (totalActual >= TOPE) {
-          badgeTope.style.color = 'var(--accent)';
-          badgeTope.innerText = `⚠️ Límite alcanzado (${totalActual.toFixed(1)} / ${TOPE} Pts). Nuevos incentivos pasarán a modo mantenimiento (0 pts).`;
-        } else {
-          badgeTope.style.color = 'var(--status-ok)';
-          badgeTope.innerText = `✅ Puntuación actual en periodo: ${totalActual.toFixed(1)} / ${TOPE} Pts`;
-        }
-      }
-
-      const preview = document.getElementById('selectedStaffPreview');
-      const btnGuardar = document.getElementById('btnGuardarPuntosStaff');
-      if (preview) preview.style.display = 'block';
-      if (btnGuardar) btnGuardar.disabled = false;
-    }
-
-    async function guardarPuntosStaff() {
-      if (!usuarioStaffSeleccionado || !sb) return;
-
-      const btn = document.getElementById('btnGuardarPuntosStaff');
-      if (btn) { btn.disabled = true; btn.innerText = 'Verificando Topes...'; }
-
-      const emailObj = usuarioStaffSeleccionado.email;
-      const rolUsr = (usuarioStaffSeleccionado.role || usuarioStaffSeleccionado.profile_id || 'striker').toLowerCase();
-      let esEst = rolUsr.includes('estudiante') || rolUsr.includes('striker') || (!rolUsr.includes('coach') && !rolUsr.includes('admin') && !rolUsr.includes('supervis') && !rolUsr.includes('staff') && !rolUsr.includes('coordinador'));
-      const TOPE = esEst ? 240 : 264;
-
-      const hace60Dias = new Date(); hace60Dias.setDate(hace60Dias.getDate() - 60); hace60Dias.setHours(0,0,0,0);
-      const hace30Dias = new Date(); hace30Dias.setDate(hace30Dias.getDate() - 30); hace30Dias.setHours(0,0,0,0);
-
-      const chksUser = cachedCheckins.filter(c => c.user_email === emailObj && c.status === 'aprobado' && new Date(c.created_at) >= hace60Dias);
-      const sumChk = chksUser.reduce((a,b)=>a+(parseFloat(b.rendimiento)||0), 0);
-      let ptsStaffExtra = cachedStaffPoints.filter(p => p.user_email === emailObj && new Date(p.created_at) >= hace30Dias).reduce((a,b)=>a+(parseFloat(b.points)||0), 0);
-      let totalActual = sumChk + ptsStaffExtra;
-
-      let puntosIngresados = parseInt(document.getElementById('selectPuntosStaff').value) || 0;
-      let nota = document.getElementById('inputNotaStaff').value.trim();
-      let mensajeTopeExtra = null;
-
-      if (totalActual >= TOPE && puntosIngresados > 0) {
-        puntosIngresados = 0;
-        mensajeTopeExtra = "El usuario ya alcanzó el límite máximo de su categoría. La bonificación fue ingresada en modo de mantenimiento (0 pts) para conservar su posición.";
-      } else if (totalActual + puntosIngresados > TOPE && puntosIngresados > 0) {
-        const espacio = TOPE - totalActual;
-        puntosIngresados = Math.max(0, parseFloat(espacio.toFixed(1)));
-        mensajeTopeExtra = `La bonificación fue ajustada a +${puntosIngresados} puntos para completar exactamente el tope máximo (${TOPE} Pts).`;
-      }
-
-      const payload = {
-        user_email: emailObj,
-        points: puntosIngresados,
-        reason: nota || (puntosIngresados >= 0 ? 'Incentivo de Coordinación' : 'Sanción Disciplinaria')
-      };
-
-      try {
-        const { error } = await sb.from('apex_staff_points').insert([payload]);
-        if (error) throw error;
-
-        await sb.from('apex_notifications').insert([{
-          user_email: emailObj,
-          title: puntosIngresados >= 0 ? `🏆 Calificación Coordinación (+${puntosIngresados} Pts)` : `⚠️ Medida Disciplinaria (${puntosIngresados} Pts)`,
-          message: mensajeTopeExtra ? `${payload.reason}\n\n${mensajeTopeExtra}` : payload.reason
-        }]);
-
-        alert(mensajeTopeExtra ? `¡Calificación aplicada con ajuste de tope!\n\n${mensajeTopeExtra}` : '¡Calificación aplicada con éxito al usuario!');
-        
-        const inputBusc = document.getElementById('inputBuscadorStaff');
-        const inputNota = document.getElementById('inputNotaStaff');
-        const preview = document.getElementById('selectedStaffPreview');
-        if (inputBusc) inputBusc.value = '';
-        if (inputNota) inputNota.value = '';
-        if (preview) preview.style.display = 'none';
-        usuarioStaffSeleccionado = null;
-
-        cargarCensoCompleto();
-      } catch (err) {
-        alert('Error al guardar puntos: ' + err.message);
-      } finally {
-        if (btn) { btn.disabled = false; btn.innerText = 'Aplicar Calificación al Usuario'; }
-      }
-    }
-
-    /* ================= ANÁLISIS GRUPAL & DRILL-DOWN ================= */
-    function cambiarGrupoAnalisis(grupo, btn) {
-      grupoAnalisisActual = grupo;
-      document.querySelectorAll('#tabDashboardGrupal .filter-btn').forEach(b => b.classList.remove('active'));
-      if (btn) btn.classList.add('active');
-
-      const grid = document.getElementById('kpisGrupalesGrid');
-      if (grid) {
-        if (grupo === 'strikers') {
-          grid.style.gridTemplateColumns = '1fr 1fr';
-          grid.innerHTML = `
-            <div class="kpi-box" onclick="abrirDrillKpi('kpi1')">
-              <div class="kpi-num" id="kpiG1">0</div>
-              <div class="kpi-label" id="lblKpiG1">Check-ins Totales</div>
-            </div>
-            <div class="kpi-box" onclick="abrirDrillKpi('kpi2')">
-              <div class="kpi-num" id="kpiG2">0</div>
-              <div class="kpi-label" id="lblKpiG2">Rendimiento Promedio</div>
-            </div>
-          `;
-        } else if (grupo === 'coaches') {
-          grid.style.gridTemplateColumns = '1fr 1fr';
-          grid.innerHTML = `
-            <div class="kpi-box" onclick="abrirDrillKpi('kpi1')">
-              <div class="kpi-num" id="kpiG1">0</div>
-              <div class="kpi-label" id="lblKpiG1">Coaches en Plantilla</div>
-            </div>
-            <div class="kpi-box" onclick="abrirDrillKpi('kpi2')">
-              <div class="kpi-num" id="kpiG2">0</div>
-              <div class="kpi-label" id="lblKpiG2">Clases Supervisadas</div>
-            </div>
-            <div class="kpi-box" onclick="abrirDrillKpi('kpi3')">
-              <div class="kpi-num" id="kpiG3">0</div>
-              <div class="kpi-label" id="lblKpiG3">Promedio Disfrute (Clases)</div>
-            </div>
-            <div class="kpi-box" onclick="abrirDrillKpi('kpi4')">
-              <div class="kpi-num" id="kpiG4">0</div>
-              <div class="kpi-label" id="lblKpiG4">Clases Óptimas</div>
-            </div>
-          `;
-        } else {
-          grid.style.gridTemplateColumns = '1fr 1fr';
-          grid.innerHTML = `
-            <div class="kpi-box" onclick="abrirDrillKpi('kpi1')">
-              <div class="kpi-num" id="kpiG1">0</div>
-              <div class="kpi-label" id="lblKpiG1">Supervisores Activos</div>
-            </div>
-            <div class="kpi-box" onclick="abrirDrillKpi('kpi2')">
-              <div class="kpi-num" id="kpiG2">0</div>
-              <div class="kpi-label" id="lblKpiG2">Auditorías Totales</div>
-            </div>
-            <div class="kpi-box" onclick="abrirDrillKpi('kpi3')">
-              <div class="kpi-num" id="kpiG3">0</div>
-              <div class="kpi-label" id="lblKpiG3">Precisión Auditoría</div>
-            </div>
-            <div class="kpi-box" onclick="abrirDrillKpi('kpi4')">
-              <div class="kpi-num" id="kpiG4">0</div>
-              <div class="kpi-label" id="lblKpiG4">Sanciones Aplicadas</div>
-            </div>
-          `;
-        }
-      }
-
-      if (grupo === 'strikers') renderizarGrupoStrikers();
-      else if (grupo === 'coaches') renderizarGrupoCoaches();
-      else if (grupo === 'supervisores') renderizarGrupoSupervisores();
-    }
-
-    function renderizarGrupoStrikers() {
-      try {
-        const totalCheckins = cachedCheckins.length;
-        const sumRend = cachedCheckins.reduce((a, b) => a + (parseFloat(b.rendimiento) || 0), 0);
-        const promRend = totalCheckins > 0 ? (sumRend / totalCheckins).toFixed(1) : '0.0';
-
-        const k1 = document.getElementById('kpiG1');
-        const k2 = document.getElementById('kpiG2');
-        const l1 = document.getElementById('lblKpiG1');
-        const l2 = document.getElementById('lblKpiG2');
-        const tituloG = document.getElementById('tituloGraficaGrupal');
-
-        if (l1) l1.innerText = "Check-ins Totales";
-        if (k1) { k1.innerText = totalCheckins; k1.style.color = "#fff"; }
-        if (l2) l2.innerText = "Rendimiento Promedio";
-        if (k2) k2.innerText = `${promRend} / 10`;
-        if (tituloG) tituloG.innerText = "Resumen Operativo Strikers";
-
-        const alt = cachedCheckins.filter(c => c.rendimiento >= 8).length;
-        const med = cachedCheckins.filter(c => c.rendimiento >= 5 && c.rendimiento < 8).length;
-        const baj = cachedCheckins.filter(c => c.rendimiento < 5).length;
-
-        renderChartGrupal(['Alto (8-10)', 'Medio (5-7)', 'Bajo (1-4)'], [alt, med, baj], ['#22c55e', '#eab308', '#e50914'], 'doughnut');
-      } catch (err) {
-        console.warn("Error renderizando grupo strikers:", err);
-      }
-    }
-
-    function renderizarGrupoCoaches() {
-      try {
-        const coaches = cachedUsers.filter(u => u.role === 'coach' || u.role === 'instructor');
-        const supervisados = cachedSupervisiones.filter(s => s.coordinator_status && s.coordinator_status !== 'pendiente_revision');
-
-        const totalSuperv = supervisados.length;
-        const checkinsPeriodo = cachedCheckins.filter(c => c.divertiste !== null && c.divertiste !== undefined);
-        const sumDiv = checkinsPeriodo.reduce((a,b)=>a+(parseFloat(b.divertiste)||0), 0);
-        const promDiversion = checkinsPeriodo.length > 0 ? (sumDiv / checkinsPeriodo.length).toFixed(1) : '6.3';
-
-        const k1 = document.getElementById('kpiG1');
-        const k2 = document.getElementById('kpiG2');
-        const k3 = document.getElementById('kpiG3');
-        const k4 = document.getElementById('kpiG4');
-        const l1 = document.getElementById('lblKpiG1');
-        const l2 = document.getElementById('lblKpiG2');
-        const l3 = document.getElementById('lblKpiG3');
-        const l4 = document.getElementById('lblKpiG4');
-        const tituloG = document.getElementById('tituloGraficaGrupal');
-
-        if (l1) l1.innerText = "Coaches en Plantilla";
-        if (k1) k1.innerText = coaches.length;
-        if (l2) l2.innerText = "Clases Supervisadas";
-        if (k2) { k2.innerText = totalSuperv; k2.style.color = "#fff"; }
-        if (l3) l3.innerText = "Promedio Disfrute (Clases)";
-        if (k3) k3.innerText = `${promDiversion} / 10 🤩`;
-        if (l4) l4.innerText = "Clases Óptimas";
-        
-        const optimas = supervisados.filter(s => s.coach_points >= 5).length;
-        if (k4) k4.innerText = `${optimas} Clases`;
-        if (tituloG) tituloG.innerText = "Balance de Puntos por Rango de Desempeño";
-        
-        const altos = supervisados.filter(s => s.coach_points >= 5).length;
-        const medios = supervisados.filter(s => s.coach_points >= 0 && s.coach_points < 5).length;
-        const negativos = supervisados.filter(s => s.coach_points < 0).length;
-
-        renderChartGrupal(['Óptimo (+5 a +10)', 'Neutro (0 a +4)', 'Deficiente (-1 a -10)'], [altos, medios, negativos], ['#22c55e', '#eab308', '#e50914'], 'doughnut', (evt, elements) => {
-          if (elements.length > 0) {
-            const idx = elements[0].index;
-            const rango = idx === 0 ? 'optimo' : (idx === 1 ? 'neutro' : 'deficiente');
-            abrirDrillSegmentoGrafica('coach_rango', rango, 'all');
-          }
-        });
-      } catch (err) {
-        console.warn("Error renderizando grupo coaches:", err);
-      }
-    }
-
-    function renderizarGrupoSupervisores() {
-      try {
-        const supervisores = cachedUsers.filter(u => u.role === 'supervisor');
-        const resueltas = cachedSupervisiones.filter(s => s.coordinator_status && s.coordinator_status !== 'pendiente_revision');
-
-        const aprobadasLimpias = resueltas.filter(s => s.coordinator_status === 'aprobado').length;
-        const sanciones = resueltas.filter(s => s.coordinator_status === 'sancionado').length;
-        const tasaExito = resueltas.length > 0 ? Math.round((aprobadasLimpias / resueltas.length) * 100) : 0;
-
-        const k1 = document.getElementById('kpiG1');
-        const k2 = document.getElementById('kpiG2');
-        const k3 = document.getElementById('kpiG3');
-        const k4 = document.getElementById('kpiG4');
-        const l1 = document.getElementById('lblKpiG1');
-        const l2 = document.getElementById('lblKpiG2');
-        const l3 = document.getElementById('lblKpiG3');
-        const l4 = document.getElementById('lblKpiG4');
-        const tituloG = document.getElementById('tituloGraficaGrupal');
-
-        if (l1) l1.innerText = "Supervisores Activos";
-        if (k1) k1.innerText = supervisores.length;
-        if (l2) l2.innerText = "Auditorías Totales";
-        if (k2) { k2.innerText = resueltas.length; k2.style.color = "#fff"; }
-        if (l3) l3.innerText = "Precisión Auditoría";
-        if (k3) k3.innerText = `${tasaExito}%`;
-        if (l4) l4.innerText = "Sanciones Aplicadas";
-        if (k4) { k4.innerText = `${sanciones} (-10 Pts)`; k4.style.color = sanciones > 0 ? 'var(--accent)' : 'var(--status-ok)'; }
-        if (tituloG) tituloG.innerText = "Efectividad del Equipo de Supervisión";
-
-        renderChartGrupal(['Aprobadas Limpias (+2)', 'Sancionadas por Error (-10)'], [aprobadasLimpias, sanciones], ['#22c55e', '#e50914'], 'doughnut', (evt, elements) => {
-          if (elements.length > 0) {
-            const idx = elements[0].index;
-            abrirDrillSegmentoGrafica('supervisor_efectividad', idx === 0 ? 'aprobado' : 'sancionado');
-          }
-        });
-      } catch (err) {
-        console.warn("Error renderizando grupo supervisores:", err);
-      }
-    }
-
-    function renderChartGrupal(labels, data, colors, type, onClickHandler) {
-      try {
-        if (chartGrupalInstance) chartGrupalInstance.destroy();
-        const canvasEl = document.getElementById('chartGrupal');
-        if (!canvasEl) return;
-        const ctx = canvasEl.getContext('2d');
-        chartGrupalInstance = new Chart(ctx, {
-          type: type,
-          data: {
-            labels: labels,
-            datasets: [{
-              data: data,
-              backgroundColor: colors,
-              borderWidth: 1,
-              borderColor: '#222'
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            onClick: onClickHandler || null,
-            plugins: {
-              legend: { labels: { color: '#ccc', font: { size: 10, weight: '700' } } }
-            },
-            scales: type === 'bar' ? {
-              y: { ticks: { color: '#888' }, grid: { color: '#222' } },
-              x: { ticks: { color: '#aaa' }, grid: { display: false } }
-            } : {}
-          }
-        });
-      } catch (err) {
-        console.warn("Error creando chart grupal:", err);
-      }
-    }
-
-    function abrirDrillKpi(kpiId) {
-      const modalTitle = document.getElementById('drillModalTitle');
-      const modalBody = document.getElementById('drillModalBody');
-      if (!modalBody || !modalTitle) return;
-      modalBody.innerHTML = '';
-
-      if (grupoAnalisisActual === 'strikers') {
-        if (kpiId === 'kpi1') {
-          modalTitle.innerText = "Desglose: Check-ins Totales";
-          cachedCheckins.slice(0, 20).forEach(c => {
-            modalBody.innerHTML += `<div class="review-item"><div class="review-top"><span>${c.user_email} — ${c.focus}</span><span style="color:var(--status-ok);">Rend: ${c.rendimiento}/10</span></div><div class="review-meta">Fecha: ${new Date(c.created_at).toLocaleDateString()}</div></div>`;
-          });
-        } else if (kpiId === 'kpi2') {
-          modalTitle.innerText = "Desglose: Rendimiento Promedio Strikers";
-          const strikers = cachedUsers.filter(u => !u.role || u.role === 'striker' || u.role === 'usuario');
-          strikers.forEach(s => {
-            const chks = cachedCheckins.filter(c => c.user_email === s.email);
-            const prom = chks.length > 0 ? (chks.reduce((a,b)=>a+b.rendimiento,0)/chks.length).toFixed(1) : '0.0';
-            modalBody.innerHTML += `<div class="review-item"><div class="review-top"><span>${s.name || s.email}</span><span style="color:var(--status-ok);">Promedio: ${prom}/10</span></div><div class="review-meta">Clases registradas: ${chks.length}</div></div>`;
-          });
-        }
-      } else if (grupoAnalisisActual === 'coaches') {
-        const coaches = cachedUsers.filter(u => u.role === 'coach' || u.role === 'instructor');
-        const superv = cachedSupervisiones.filter(s => s.coordinator_status && s.coordinator_status !== 'pendiente_revision');
-
-        if (kpiId === 'kpi1') {
-          modalTitle.innerText = "Desglose: Coaches en Plantilla";
-          coaches.forEach(c => {
-            modalBody.innerHTML += `<div class="review-item"><div class="review-top"><span>${c.name || 'Sin Nombre'}</span><span style="color:var(--text-muted);">${c.email}</span></div></div>`;
-          });
-        } else if (kpiId === 'kpi2') {
-          modalTitle.innerText = "Desglose: Clases Supervisadas";
-          superv.forEach(s => {
-            modalBody.innerHTML += `<div class="review-item"><div class="review-top"><span>Coach: ${s.coach_email}</span><span style="color:var(--status-ok);">${s.coach_points > 0 ? '+' : ''}${s.coach_points} Pts</span></div><div class="review-meta">Fecha: ${new Date(s.session_date).toLocaleDateString()} · Sup: ${s.supervisor_email}</div></div>`;
-          });
-        } else if (kpiId === 'kpi3') {
-          modalTitle.innerText = "Desglose: Promedio de Disfrute / Diversión (Global)";
-          const checkinsDiv = cachedCheckins.filter(c => c.divertiste !== null);
-          const promDiv = checkinsDiv.length > 0 ? (checkinsDiv.reduce((a,b)=>a+parseFloat(b.divertiste||0),0)/checkinsDiv.length).toFixed(1) : '6.3';
-          modalBody.innerHTML = `<div class="review-item" style="cursor:default;"><div class="review-top"><span>Calificación Global de Diversión</span><span style="color:var(--status-ok);">${promDiv} / 10 🤩</span></div><div class="review-meta">Basado en las respuestas de los Strikers.</div></div>`;
-        } else if (kpiId === 'kpi4') {
-          modalTitle.innerText = "Desglose: Clases Evaluadas Óptimas (+5 Pts)";
-          const optimas = superv.filter(s => s.coach_points >= 5);
-          optimas.forEach(s => {
-            modalBody.innerHTML += `<div class="review-item"><div class="review-top"><span>${s.coach_email}</span><span style="color:var(--status-ok);">+${s.coach_points} Pts</span></div><div class="review-meta">Fecha: ${new Date(s.session_date).toLocaleDateString()}</div></div>`;
-          });
-        }
-      } else if (grupoAnalisisActual === 'supervisores') {
-        const supervisores = cachedUsers.filter(u => u.role === 'supervisor');
-        const resueltas = cachedSupervisiones.filter(s => s.coordinator_status && s.coordinator_status !== 'pendiente_revision');
-
-        if (kpiId === 'kpi1') {
-          modalTitle.innerText = "Desglose: Supervisores Activos";
-          supervisores.forEach(sup => {
-            modalBody.innerHTML += `<div class="review-item"><div class="review-top"><span>${sup.name || 'Supervisor'}</span><span style="color:var(--text-muted);">${sup.email}</span></div></div>`;
-          });
-        } else if (kpiId === 'kpi2') {
-          modalTitle.innerText = "Desglose: Auditorías Totales Resueltas";
-          resueltas.forEach(r => {
-            modalBody.innerHTML += `<div class="review-item"><div class="review-top"><span>Supervisor: ${r.supervisor_email}</span><span style="color:${r.coordinator_status==='aprobado'?'var(--status-ok)':'var(--accent)'};">${r.coordinator_status.toUpperCase()}</span></div><div class="review-meta">Coach: ${r.coach_email} · Fecha: ${new Date(r.session_date).toLocaleDateString()}</div></div>`;
-          });
-        } else if (kpiId === 'kpi3') {
-          modalTitle.innerText = "Desglose: Precisión de Auditoría";
-          resueltas.forEach(r => {
-            modalBody.innerHTML += `<div class="review-item"><div class="review-top"><span>${r.supervisor_email}</span><span style="color:${r.coordinator_status==='aprobado'?'var(--status-ok)':'var(--accent)'};">${r.coordinator_status==='aprobado'?'Acierto (+2)':'Discrepancia (-10)'}</span></div><div class="review-meta">Coach: ${r.coach_email}</div></div>`;
-          });
-        } else if (kpiId === 'kpi4') {
-          modalTitle.innerText = "Desglose: Sanciones Aplicadas a Supervisores";
-          const sanc = resueltas.filter(r => r.coordinator_status === 'sancionado');
-          sanc.forEach(s => {
-            modalBody.innerHTML += `<div class="review-item"><div class="review-top"><span style="color:var(--accent);">${s.supervisor_email}</span><span>-10 Pts</span></div><div class="review-meta">Coach afectado: ${s.coach_email} · Nota: ${s.coordinator_notes || 'N/A'}</div></div>`;
-          });
-        }
-      }
-
-      document.getElementById('drillModal').style.display = 'flex';
-    }
-
-    function abrirDrillSegmentoGrafica(tipo, filtroVal) {
-      const modalTitle = document.getElementById('drillModalTitle');
-      const modalBody = document.getElementById('drillModalBody');
-      if (!modalBody || !modalTitle) return;
-      modalBody.innerHTML = '';
-
-      if (tipo === 'coach_rango') {
-        let superv = cachedSupervisiones.filter(s => s.coordinator_status && s.coordinator_status !== 'pendiente_revision');
-        const filtrados = superv.filter(s => {
-          if (filtroVal === 'optimo') return s.coach_points >= 5;
-          if (filtroVal === 'neutro') return s.coach_points >= 0 && s.coach_points < 5;
-          return s.coach_points < 0;
-        });
-        modalTitle.innerText = `Desglose Clases por Rango: ${filtroVal.toUpperCase()}`;
-        filtrados.forEach(s => {
-          modalBody.innerHTML += `<div class="review-item"><div class="review-top"><span>Coach: ${s.coach_email}</span><span style="color:var(--status-ok);">${s.coach_points} Pts</span></div><div class="review-meta">Fecha: ${new Date(s.session_date).toLocaleDateString()} · Supervisor: ${s.supervisor_email}</div></div>`;
-        });
-      } else if (tipo === 'supervisor_efectividad') {
-        const resueltas = cachedSupervisiones.filter(s => s.coordinator_status === filtroVal);
-        modalTitle.innerText = `Desglose Supervisores: ${filtroVal === 'aprobado' ? 'Aprobadas Limpias (+2)' : 'Sancionadas (-10)'}`;
-        resueltas.forEach(r => {
-          modalBody.innerHTML += `<div class="review-item"><div class="review-top"><span style="color:${filtroVal==='aprobado'?'var(--status-ok)':'var(--accent)'};">Supervisor: ${r.supervisor_email}</span><span>${filtroVal==='aprobado'?'+2 Pts':'-10 Pts'}</span></div><div class="review-meta">Coach: ${r.coach_email} · Fecha: ${new Date(r.session_date).toLocaleDateString()} ${r.coordinator_notes ? '· ' + r.coordinator_notes : ''}</div></div>`;
-        });
-      }
-
-      document.getElementById('drillModal').style.display = 'flex';
-    }
-
-    function cerrarModalDrill() {
-      document.getElementById('drillModal').style.display = 'none';
-    }
-
-    /* ================= ANÁLISIS INDIVIDUAL & VIGENCIA ================= */
-    function cargarPerfilIndividualSeleccionadoPorEmail(email) {
+    async function cargarPerfilIndividualSeleccionadoPorEmail(email) {
       const user = cachedUsers.find(u => u.email === email);
       if (!user) return;
 
@@ -1259,8 +798,66 @@
         }
       }
 
-      const rol = (user.role || user.profile_id || 'striker').toLowerCase();
+      // CALCULAR BARRA DE PROGRESO DE 4 FUENTES PARA EL USUARIO SELECCIONADO
+      try {
+        const hace60 = new Date(); hace60.setDate(hace60.getDate() - 60); hace60.setHours(0,0,0,0);
+        
+        const chksUsr = cachedCheckins.filter(c => c.user_email === email && c.status === 'aprobado' && new Date(c.created_at) >= hace60);
+        let ptsCheckins = chksUsr.reduce((a,b)=>a+(parseFloat(b.rendimiento)||0), 0);
 
+        let ptsCoach = 0;
+        let ptsSupervision = 0;
+        let ptsAdjustments = cachedStaffPoints.filter(p => p.user_email === email && new Date(p.created_at) >= hace60).reduce((a,b)=>a+(parseFloat(b.points)||0), 0);
+
+        cachedSupervisiones.forEach(s => {
+          if (s.coordinator_status !== 'pendiente_revision') {
+            const fechaSesion = new Date(s.session_date || s.created_at);
+            if (fechaSesion >= hace60) {
+              if ((s.coach_email || '').toLowerCase() === email.toLowerCase()) {
+                ptsCoach += parseFloat(s.coach_points || 0);
+              }
+              if ((s.supervisor_email || '').toLowerCase() === email.toLowerCase()) {
+                ptsSupervision += parseFloat(s.supervisor_points || 0);
+              }
+            }
+          }
+        });
+
+        let totalUsrPts = ptsCheckins + ptsCoach + ptsSupervision + ptsAdjustments;
+        const pctUsr = +Math.max(-100, Math.min(110, (totalUsrPts / 240) * 100)).toFixed(1);
+
+        let nxtLabel = 'INICIADO';
+        let nxtColor = '#ffffff';
+        if (pctUsr >= 101) { nxtLabel = 'APEX+'; nxtColor = '#ffd700'; }
+        else if (pctUsr >= 76) { nxtLabel = 'APEX'; nxtColor = '#d4af37'; }
+        else if (pctUsr >= 36) { nxtLabel = 'AVANZADO'; nxtColor = '#c0c0c0'; }
+        else if (pctUsr >= 11) { nxtLabel = 'INTERMEDIO'; nxtColor = '#cd7f32'; }
+
+        document.getElementById('indivPtsTxt').innerText = `${totalUsrPts.toFixed(1)} / 240 PTS`;
+        document.getElementById('indivTierPercent').innerText = `${pctUsr}%`;
+        document.getElementById('indivTierLabel').innerText = nxtLabel;
+
+        document.getElementById('indivSubPtsCheckins').innerText = ptsCheckins.toFixed(0);
+        document.getElementById('indivSubPtsCoach').innerText = ptsCoach.toFixed(0);
+        document.getElementById('indivSubPtsSupervision').innerText = ptsSupervision.toFixed(0);
+        document.getElementById('indivSubPtsAdjustments').innerText = ptsAdjustments.toFixed(0);
+
+        const absTotal = Math.max(1, Math.abs(ptsCheckins) + Math.abs(ptsCoach) + Math.abs(ptsSupervision) + Math.abs(ptsAdjustments));
+        const pCk = Math.max(0, (Math.abs(ptsCheckins) / absTotal) * Math.max(0, pctUsr));
+        const pCo = Math.max(0, (Math.abs(ptsCoach) / absTotal) * Math.max(0, pctUsr));
+        const pSu = Math.max(0, (Math.abs(ptsSupervision) / absTotal) * Math.max(0, pctUsr));
+        const pAd = Math.max(0, (Math.abs(ptsAdjustments) / absTotal) * Math.max(0, pctUsr));
+
+        const indivTrack = document.getElementById('indivProgressBarTrack');
+        indivTrack.innerHTML = `
+          <div class="progress-segment seg-checkins" style="width: ${pCk}%" title="Check-ins: ${ptsCheckins}pts"></div>
+          <div class="progress-segment seg-coach" style="width: ${pCo}%" title="Coach: ${ptsCoach}pts"></div>
+          <div class="progress-segment seg-supervision" style="width: ${pSu}%" title="Supervisión: ${ptsSupervision}pts"></div>
+          <div class="progress-segment seg-adjustments" style="width: ${pAd}%" title="Ajustes: ${ptsAdjustments}pts"></div>
+        `;
+      } catch (e) {}
+
+      const rol = (user.role || user.profile_id || 'striker').toLowerCase();
       if (rol.includes('coach')) {
         renderizarIndividualCoach(user);
       } else if (rol.includes('supervisor')) {
@@ -1494,6 +1091,186 @@
       }
     }
 
+    /* ================= BUSCADOR INTELIGENTE STAFF & PUNTUACIÓN MANUAL ================= */
+    function filtrarRolCalificacion(rol, btn) {
+      rolFiltroStaff = rol;
+      document.querySelectorAll('#tabCalificaciones .filter-btn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      const input = document.getElementById('inputBuscadorStaff');
+      const container = document.getElementById('autocompleteContainer');
+      if (input) input.value = '';
+      if (container) container.style.display = 'none';
+      usuarioStaffSeleccionado = null;
+      const preview = document.getElementById('selectedStaffPreview');
+      if (preview) preview.style.display = 'none';
+      const btnGuardar = document.getElementById('btnGuardarPuntosStaff');
+      if (btnGuardar) btnGuardar.disabled = true;
+    }
+
+    function onInputBusquedaStaff(query) {
+      const container = document.getElementById('autocompleteContainer');
+      const q = (query || '').trim().toLowerCase();
+
+      if (!container) return;
+      if (q.length === 0) {
+        container.style.display = 'none';
+        return;
+      }
+
+      let filtrados = cachedUsers.filter(u => {
+        const cumpleRol = (rolFiltroStaff === 'all') || 
+                          (rolFiltroStaff === 'striker' && (!u.role || u.role === 'striker' || u.role === 'usuario' || u.role === 'estudiante')) ||
+                          (u.role === rolFiltroStaff || u.profile_id === rolFiltroStaff);
+        if (!cumpleRol) return false;
+        
+        const nombre = (u.name || '').toLowerCase();
+        const email = (u.email || '').toLowerCase();
+        return nombre.includes(q) || email.includes(q);
+      });
+
+      if (filtrados.length === 0) {
+        container.innerHTML = '<div class="autocomplete-item" style="color:var(--text-muted);">Sin coincidencias</div>';
+        container.style.display = 'block';
+        return;
+      }
+
+      container.innerHTML = '';
+      filtrados.forEach(u => {
+        const div = document.createElement('div');
+        div.className = 'autocomplete-item';
+        div.innerHTML = `<strong>${u.name || 'Sin Nombre'}</strong> <span style="color:var(--text-muted); font-size:0.65rem;">(${u.email})</span>`;
+        div.onclick = () => seleccionarUsuarioStaff(u);
+        container.appendChild(div);
+      });
+      container.style.display = 'block';
+    }
+
+    async function seleccionarUsuarioStaff(user) {
+      usuarioStaffSeleccionado = user;
+      const input = document.getElementById('inputBuscadorStaff');
+      const container = document.getElementById('autocompleteContainer');
+      if (input) input.value = user.name || user.email;
+      if (container) container.style.display = 'none';
+
+      const nameEl = document.getElementById('previewStaffName');
+      const emailEl = document.getElementById('previewStaffEmail');
+      if (nameEl) nameEl.innerText = user.name || 'Sin Nombre';
+      if (emailEl) emailEl.innerText = `${user.email} · Rol: ${(user.role || user.profile_id || 'striker').toUpperCase()}`;
+      
+      const emailObj = user.email;
+      const hace60Dias = new Date(); hace60Dias.setDate(hace60Dias.getDate() - 60); hace60Dias.setHours(0,0,0,0);
+      const hace30Dias = new Date(); hace30Dias.setDate(hace30Dias.getDate() - 30); hace30Dias.setHours(0,0,0,0);
+
+      const chksUser = cachedCheckins.filter(c => c.user_email === emailObj && c.status === 'aprobado' && new Date(c.created_at) >= hace60Dias);
+      const sumChk = chksUser.reduce((a,b)=>a+(parseFloat(b.rendimiento)||0), 0);
+
+      const rolUsr = (user.role || user.profile_id || 'striker').toLowerCase();
+      let esEst = rolUsr.includes('estudiante') || rolUsr.includes('striker') || (!rolUsr.includes('coach') && !rolUsr.includes('admin') && !rolUsr.includes('supervis') && !rolUsr.includes('staff') && !rolUsr.includes('coordinador'));
+      const TOPE = esEst ? 240 : 264;
+
+      let ptsStaffExtra = cachedStaffPoints.filter(p => p.user_email === emailObj && new Date(p.created_at) >= hace30Dias).reduce((a,b)=>a+(parseFloat(b.points)||0), 0);
+      let totalActual = sumChk + ptsStaffExtra;
+
+      const badgeTope = document.getElementById('previewStaffTopeStatus');
+      if (badgeTope) {
+        if (totalActual >= TOPE) {
+          badgeTope.style.color = 'var(--accent)';
+          badgeTope.innerText = `⚠️ Límite alcanzado (${totalActual.toFixed(1)} / ${TOPE} Pts). Nuevos incentivos pasarán a modo mantenimiento (0 pts).`;
+        } else {
+          badgeTope.style.color = 'var(--status-ok)';
+          badgeTope.innerText = `✅ Puntuación actual en periodo: ${totalActual.toFixed(1)} / ${TOPE} Pts`;
+        }
+      }
+
+      const preview = document.getElementById('selectedStaffPreview');
+      const btnGuardar = document.getElementById('btnGuardarPuntosStaff');
+      if (preview) preview.style.display = 'block';
+      if (btnGuardar) btnGuardar.disabled = false;
+    }
+
+    function togglePuntosManual(val) {
+      const box = document.getElementById('manualPuntosBox');
+      if (!box) return;
+      if (val === 'manual') {
+        box.style.display = 'block';
+      } else {
+        box.style.display = 'none';
+      }
+    }
+
+    async function guardarPuntosStaff() {
+      if (!usuarioStaffSeleccionado || !sb) return;
+
+      const btn = document.getElementById('btnGuardarPuntosStaff');
+      if (btn) { btn.disabled = true; btn.innerText = 'Verificando Topes...'; }
+
+      const emailObj = usuarioStaffSeleccionado.email;
+      const rolUsr = (usuarioStaffSeleccionado.role || usuarioStaffSeleccionado.profile_id || 'striker').toLowerCase();
+      let esEst = rolUsr.includes('estudiante') || rolUsr.includes('striker') || (!rolUsr.includes('coach') && !rolUsr.includes('admin') && !rolUsr.includes('supervis') && !rolUsr.includes('staff') && !rolUsr.includes('coordinador'));
+      const TOPE = esEst ? 240 : 264;
+
+      const hace60Dias = new Date(); hace60Dias.setDate(hace60Dias.getDate() - 60); hace60Dias.setHours(0,0,0,0);
+      const hace30Dias = new Date(); hace30Dias.setDate(hace30Dias.getDate() - 30); hace30Dias.setHours(0,0,0,0);
+
+      const chksUser = cachedCheckins.filter(c => c.user_email === emailObj && c.status === 'aprobado' && new Date(c.created_at) >= hace60Dias);
+      const sumChk = chksUser.reduce((a,b)=>a+(parseFloat(b.rendimiento)||0), 0);
+      let ptsStaffExtra = cachedStaffPoints.filter(p => p.user_email === emailObj && new Date(p.created_at) >= hace30Dias).reduce((a,b)=>a+(parseFloat(b.points)||0), 0);
+      let totalActual = sumChk + ptsStaffExtra;
+
+      const selVal = document.getElementById('selectPuntosStaff').value;
+      let puntosIngresados = 0;
+      if (selVal === 'manual') {
+        puntosIngresados = parseFloat(document.getElementById('inputPuntosManualVal').value) || 0;
+      } else {
+        puntosIngresados = parseInt(selVal) || 0;
+      }
+
+      let nota = document.getElementById('inputNotaStaff').value.trim();
+      let mensajeTopeExtra = null;
+
+      if (totalActual >= TOPE && puntosIngresados > 0) {
+        puntosIngresados = 0;
+        mensajeTopeExtra = "El usuario ya alcanzó el límite máximo de su categoría. La bonificación fue ingresada en modo de mantenimiento (0 pts) para conservar su posición.";
+      } else if (totalActual + puntosIngresados > TOPE && puntosIngresados > 0) {
+        const espacio = TOPE - totalActual;
+        puntosIngresados = Math.max(0, parseFloat(espacio.toFixed(1)));
+        mensajeTopeExtra = `La bonificación fue ajustada a +${puntosIngresados} puntos para completar exactamente el tope máximo (${TOPE} Pts).`;
+      }
+
+      const payload = {
+        user_email: emailObj,
+        points: puntosIngresados,
+        reason: nota || (puntosIngresados >= 0 ? 'Incentivo de Coordinación' : 'Sanción Disciplinaria')
+      };
+
+      try {
+        const { error } = await sb.from('apex_staff_points').insert([payload]);
+        if (error) throw error;
+
+        await sb.from('apex_notifications').insert([{
+          user_email: emailObj,
+          title: puntosIngresados >= 0 ? `🏆 Calificación Coordinación (+${puntosIngresados} Pts)` : `⚠️ Medida Disciplinaria (${puntosIngresados} Pts)`,
+          message: mensajeTopeExtra ? `${payload.reason}\n\n${mensajeTopeExtra}` : payload.reason
+        }]);
+
+        alert(mensajeTopeExtra ? `¡Calificación aplicada con ajuste de tope!\n\n${mensajeTopeExtra}` : '¡Calificación aplicada con éxito al usuario!');
+        
+        const inputBusc = document.getElementById('inputBuscadorStaff');
+        const inputNota = document.getElementById('inputNotaStaff');
+        const preview = document.getElementById('selectedStaffPreview');
+        if (inputBusc) inputBusc.value = '';
+        if (inputNota) inputNota.value = '';
+        if (preview) preview.style.display = 'none';
+        usuarioStaffSeleccionado = null;
+
+        cargarCensoCompleto();
+      } catch (err) {
+        alert('Error al guardar puntos: ' + err.message);
+      } finally {
+        if (btn) { btn.disabled = false; btn.innerText = 'Aplicar Calificación al Usuario'; }
+      }
+    }
+
     /* ================= COLA DE AUDITORÍAS PENDIENTES & GESTIÓN DIRECTA ================= */
     async function cargarColaPendientes() {
       const colaEl = document.getElementById('colaList');
@@ -1597,24 +1374,7 @@
       document.querySelectorAll('.review-item').forEach(el => el.classList.remove('selected'));
     }
 
-    /* ================= MODAL DE CONFIRMACIÓN PERSONALIZADO ================= */
-    let resolveConfirmCallback = null;
-    function mostrarConfirmacionCustom(titulo, mensaje, onOk) {
-      document.getElementById('confirmTitle').innerText = titulo;
-      document.getElementById('confirmMessage').innerText = mensaje;
-      document.getElementById('customConfirmModal').style.display = 'flex';
-      const btnOk = document.getElementById('btnConfirmOk');
-      btnOk.onclick = () => {
-        cerrarModalConfirm(true);
-        if (onOk) onOk();
-      };
-    }
-
-    function cerrarModalConfirm(result) {
-      document.getElementById('customConfirmModal').style.display = 'none';
-    }
-
-    /* ================= ACCIONES DE EDICIÓN, ELIMINACIÓN Y CREACIÓN DE SUPERVISIONES ================= */
+    /* ================= ACCIONES DE EDICIÓN, ELIMINACIÓN Y CREACIÓN CON CHECKLIST ================= */
     function eliminarSupervisionActual() {
       if (!sessionSeleccionada) return;
       mostrarConfirmacionCustom(
@@ -1632,6 +1392,17 @@
           }
         }
       );
+    }
+
+    function mostrarConfirmacionCustom(titulo, mensaje, onOk) {
+      document.getElementById('confirmTitle').innerText = titulo;
+      document.getElementById('confirmMessage').innerText = mensaje;
+      document.getElementById('customConfirmModal').style.display = 'flex';
+      const btnOk = document.getElementById('btnConfirmOk');
+      btnOk.onclick = () => {
+        cerrarModalConfirm(true);
+        if (onOk) onOk();
+      };
     }
 
     function abrirModalEditarSupervision() {
@@ -1689,19 +1460,40 @@
       }
     }
 
-    function abrirModalCrearSupervision() {
+    async function abrirModalCrearSupervision() {
       const modalTitle = document.getElementById('drillModalTitle');
       const modalBody = document.getElementById('drillModalBody');
       if (!modalBody || !modalTitle) return;
 
       const hoyStr = new Date().toISOString().split('T')[0];
 
-      modalTitle.innerText = "Crear Nueva Supervisión (Coordinador)";
+      const coaches = cachedUsers.filter(u => {
+        const rol = (u.role || u.profile_id || '').toLowerCase();
+        return rol.includes('coach') || rol.includes('instructor') || rol.includes('admin');
+      });
+
+      let optionsCoaches = '<option value="" disabled selected>Selecciona el coach...</option>';
+      coaches.forEach(c => {
+        optionsCoaches += `<option value="${c.email}">${c.name || c.email} (${c.email})</option>`;
+      });
+      if (coaches.length === 0) {
+        optionsCoaches += `<option value="victor@apexboxing.com">Víctor Garcés (victor@apexboxing.com)</option>`;
+      }
+
+      let optionsHoras = '<option value="" disabled selected>Selecciona la hora...</option>';
+      for (let h = 5; h <= 22; h++) {
+        const hh = String(h).padStart(2, '0');
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        const h12 = h % 12 === 0 ? 12 : h % 12;
+        optionsHoras += `<option value="${hh}:00 (${h12}:00 ${ampm})">${hh}:00 — ${h12}:00 ${ampm}</option>`;
+      }
+
+      modalTitle.innerText = "Crear Nueva Supervisión & Cotejo";
       modalBody.innerHTML = `
         <div style="display:flex; flex-direction:column; gap:10px;">
           <div>
-            <label style="font-size:0.68rem; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Correo del Coach Evaluado</label>
-            <input type="email" id="newCoachEmail" class="form-control" placeholder="coach@apexboxing.com">
+            <label style="font-size:0.68rem; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Coach Evaluado</label>
+            <select id="newCoachEmail" class="form-control">${optionsCoaches}</select>
           </div>
           <div>
             <label style="font-size:0.68rem; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Fecha de la Sesión</label>
@@ -1709,9 +1501,25 @@
           </div>
           <div>
             <label style="font-size:0.68rem; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Hora de la Clase</label>
-            <input type="text" id="newClassTime" class="form-control" placeholder="Ej: 7:00 PM">
+            <select id="newClassTime" class="form-control">${optionsHoras}</select>
           </div>
-          <button type="button" class="btn" onclick="ejecutarCreacionSupervision()" style="background:var(--status-ok); color:#000;">Registrar en Cola Pendiente</button>
+          <div style="margin-top:6px;">
+            <label style="font-size:0.68rem; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Checklist de Calidad (10 Criterios)</label>
+            <div class="checklist-container" style="max-height: 200px; overflow-y: auto;">
+              ${DESCRIPCIONES_CRITERIOS.map((desc, idx) => `
+                <label class="check-item" id="new_box_c${idx+1}">
+                  <input type="checkbox" id="new_c${idx+1}">
+                  <span class="check-num">${idx+1}.</span>
+                  <span class="check-desc">${desc}</span>
+                </label>
+              `).join('')}
+            </div>
+          </div>
+          <div style="margin-top:6px;">
+            <label style="font-size:0.68rem; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Nota / Justificación (Opcional)</label>
+            <input type="text" id="newCoordNotes" class="form-control" placeholder="Observación general...">
+          </div>
+          <button type="button" class="btn" onclick="ejecutarCreacionSupervision()" style="background:var(--status-ok); color:#000;">Registrar Supervisión</button>
         </div>
       `;
       document.getElementById('drillModal').style.display = 'flex';
@@ -1719,14 +1527,21 @@
 
     async function ejecutarCreacionSupervision() {
       if (!sb) return;
-      const coachEmail = document.getElementById('newCoachEmail').value.trim();
+      const coachEmail = document.getElementById('newCoachEmail').value;
       const sessionDate = document.getElementById('newSessionDate').value;
-      const classTime = document.getElementById('newClassTime').value.trim();
+      const classTime = document.getElementById('newClassTime').value;
+      const coordNotes = document.getElementById('newCoordNotes').value.trim();
 
       if (!coachEmail || !sessionDate || !classTime) {
-        alert("Por favor completa todos los campos.");
+        alert("Por favor completa el coach, la fecha y la hora.");
         return;
       }
+
+      let marcados = 0;
+      for (let i = 1; i <= 10; i++) {
+        if (document.getElementById(`new_c${i}`)?.checked) marcados++;
+      }
+      const coachPts = (marcados * 2) - 10;
 
       const payload = {
         coach_email: coachEmail,
@@ -1734,24 +1549,25 @@
         session_date: sessionDate,
         class_time: classTime,
         coordinator_status: 'pendiente_revision',
-        coach_points: 10,
+        coach_points: coachPts,
         supervisor_points: 2,
-        c1_puntualidad: true,
-        c2_bloques_lamina: true,
-        c3_explicacion_postura: true,
-        c4_trato_respetuoso: true,
-        c5_musica_comunicacion: true,
-        c6_material_audiovisual: true,
-        c7_imagen_presentacion: true,
-        c8_verifico_autoevaluacion: true,
-        c9_orden_limpieza: true,
-        c10_progresiones_nuevos: true
+        coordinator_notes: coordNotes,
+        c1_puntualidad: document.getElementById('new_c1')?.checked || false,
+        c2_bloques_lamina: document.getElementById('new_c2')?.checked || false,
+        c3_explicacion_postura: document.getElementById('new_c3')?.checked || false,
+        c4_trato_respetuoso: document.getElementById('new_c4')?.checked || false,
+        c5_musica_comunicacion: document.getElementById('new_c5')?.checked || false,
+        c6_material_audiovisual: document.getElementById('new_c6')?.checked || false,
+        c7_imagen_presentacion: document.getElementById('new_c7')?.checked || false,
+        c8_verifico_autoevaluacion: document.getElementById('new_c8')?.checked || false,
+        c9_orden_limpieza: document.getElementById('new_c9')?.checked || false,
+        c10_progresiones_nuevos: document.getElementById('new_c10')?.checked || false
       };
 
       try {
         const { error } = await sb.from('apex_coach_supervisions').insert([payload]);
         if (error) throw error;
-        alert("Nueva supervisión creada y añadida a la cola de revisiones.");
+        alert("Nueva supervisión creada con éxito y añadida a la cola de revisiones.");
         cerrarModalDrill();
         cargarCensoCompleto();
       } catch (err) {
@@ -1899,13 +1715,17 @@
       }
     }
 
-    /* ================= HISTORIAL CON DESGLOSE E INTEGRACIÓN DUAL ================= */
+    /* ================= HISTORIAL TRIPLE (AUDITORÍAS, STAFF Y CHECK-INS) ================= */
     function cambiarTipoHistorial(tipo, btn) {
       tipoHistorialActual = tipo;
       document.querySelectorAll('#tabHistorial .filter-btn').forEach(b => b.classList.remove('active'));
       if (btn) btn.classList.add('active');
       const titleBar = document.getElementById('histTitleBar');
-      if (titleBar) titleBar.innerText = tipo === 'auditorias' ? 'Auditorías de Clases Resueltas' : 'Calificaciones de Staff / Usuarios';
+      if (titleBar) {
+        if (tipo === 'auditorias') titleBar.innerText = 'Auditorías de Clases Resueltas';
+        else if (tipo === 'staff') titleBar.innerText = 'Calificaciones de Staff / Usuarios';
+        else titleBar.innerText = 'Historial de Check-ins (Strikers)';
+      }
       renderizarHistorial();
     }
 
@@ -1917,13 +1737,19 @@
     }
 
     async function cargarHistorialResuelto() {
-      if (cachedSupervisiones.length === 0 || cachedStaffPoints.length === 0) {
-        const [resSup, resStf] = await Promise.all([
-          sb.from('apex_coach_supervisions').select('*').order('session_date', { ascending: false }),
-          sb.from('apex_staff_points').select('*').order('created_at', { ascending: false })
-        ]);
-        if (resSup.data) cachedSupervisiones = resSup.data;
-        if (resStf.data) cachedStaffPoints = resStf.data;
+      if (cachedSupervisiones.length === 0 || cachedStaffPoints.length === 0 || cachedCheckins.length === 0) {
+        try {
+          const resSup = await sb.from('apex_coach_supervisions').select('*').order('session_date', { ascending: false });
+          if (resSup.data) cachedSupervisiones = resSup.data;
+        } catch (e) {}
+        try {
+          const resStf = await sb.from('apex_staff_points').select('*').order('created_at', { ascending: false });
+          if (resStf.data) cachedStaffPoints = resStf.data;
+        } catch (e) {}
+        try {
+          const resChk = await sb.from('apex_checkins').select('*').order('created_at', { ascending: false });
+          if (resChk.data) cachedCheckins = resChk.data;
+        } catch (e) {}
       }
       renderizarHistorial();
     }
@@ -2003,7 +1829,7 @@
           cont.appendChild(div);
         });
 
-      } else {
+      } else if (tipoHistorialActual === 'staff') {
         let filtrados = cachedStaffPoints;
 
         if (diasFiltroHistorial !== 'all') {
@@ -2025,4 +1851,124 @@
 
         if (rolSel !== 'all') {
           filtrados = filtrados.filter(r => {
-            const usr = cachedUsers.find(u => u.email ===
+            const usr = cachedUsers.find(u => u.email === r.user_email);
+            const rUsr = (usr?.role || usr?.profile_id || 'striker').toLowerCase();
+            if (rolSel === 'striker') return rUsr.includes('striker') || rUsr.includes('estudiante') || rUsr === 'usuario';
+            return rUsr.includes(rolSel);
+          });
+        }
+
+        const countTxt = document.getElementById('histCountTxt');
+        if (countTxt) countTxt.innerText = `${filtrados.length} Calificaciones`;
+        if (filtrados.length === 0) {
+          cont.innerHTML = '<span style="color:var(--text-muted); font-size:0.75rem;">No hay calificaciones de staff coincidentes.</span>';
+          return;
+        }
+
+        cont.innerHTML = '';
+        filtrados.forEach(item => {
+          const div = document.createElement('div');
+          div.className = 'review-item';
+          div.style.cursor = 'default';
+
+          const d = new Date(item.created_at);
+          const fechaStr = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
+          const esPositivo = item.points >= 0;
+
+          div.innerHTML = `
+            <div class="review-top">
+              <span>👤 ${item.user_email}</span>
+              <span style="color:${esPositivo?'var(--status-ok)':'var(--accent)'}; font-weight:900;">${item.points > 0 ? '+' : ''}${item.points} Pts</span>
+            </div>
+            <div class="review-meta">
+              Fecha: ${fechaStr}<br>
+              <em>"${item.reason || 'Sin justificación'}"</em>
+            </div>
+          `;
+          cont.appendChild(div);
+        });
+
+      } else {
+        // TIPO: CHECK-INS
+        let filtrados = cachedCheckins;
+
+        if (diasFiltroHistorial !== 'all') {
+          const fLim = new Date();
+          fLim.setDate(fLim.getDate() - parseInt(diasFiltroHistorial));
+          filtrados = filtrados.filter(r => new Date(r.created_at) >= fLim);
+        }
+
+        if (fechaSel) {
+          filtrados = filtrados.filter(r => r.created_at && r.created_at.startsWith(fechaSel));
+        }
+
+        if (personalTxt) {
+          filtrados = filtrados.filter(r => (r.user_email || '').toLowerCase().includes(personalTxt));
+        }
+
+        const countTxt = document.getElementById('histCountTxt');
+        if (countTxt) countTxt.innerText = `${filtrados.length} Check-ins`;
+        if (filtrados.length === 0) {
+          cont.innerHTML = '<span style="color:var(--text-muted); font-size:0.75rem;">No hay check-ins coincidentes.</span>';
+          return;
+        }
+
+        cont.innerHTML = '';
+        filtrados.forEach(item => {
+          const div = document.createElement('div');
+          div.className = 'review-item';
+          div.style.cursor = 'default';
+
+          const d = new Date(item.created_at);
+          const fechaStr = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
+
+          div.innerHTML = `
+            <div class="review-top">
+              <span>🥊 ${item.user_email}</span>
+              <span style="color:var(--status-ok); font-weight:900;">Rend: ${item.rendimiento}/10</span>
+            </div>
+            <div class="review-meta">
+              Fecha: ${fechaStr} · Enfoque: <strong style="color:#ddd;">${item.focus}</strong> · Estado: <span style="text-transform:uppercase;">${item.status}</span><br>
+              RPE: ${item.rpe} | Soltura: ${item.soltura} | Técnica: ${item.preguntacoach || item.student_tech_score || '-'}
+            </div>
+          `;
+          cont.appendChild(div);
+        });
+      }
+    }
+
+    function abrirDesgloseAuditoriaHistorial(item) {
+      const modalTitle = document.getElementById('drillModalTitle');
+      const modalBody = document.getElementById('drillModalBody');
+      if (!modalBody || !modalTitle) return;
+      modalTitle.innerText = `Desglose Auditoría: ${item.coach_email} (${item.class_time})`;
+
+      let html = `<p style="font-size:0.7rem; color:var(--text-muted); margin-bottom:10px;">Supervisor a cargo: <strong>${item.supervisor_email}</strong> · Estado: <strong style="color:${item.coordinator_status==='aprobado'?'var(--status-ok)':'var(--accent)'};">${item.coordinator_status.toUpperCase()}</strong></p>`;
+      html += `<div class="checklist-container">`;
+
+      for (let i = 1; i <= 10; i++) {
+        const colKeyName = ['c1_puntualidad', 'c2_bloques_lamina', 'c3_explicacion_postura', 'c4_trato_respetuoso', 'c5_musica_comunicacion', 'c6_material_audiovisual', 'c7_imagen_presentacion', 'c8_verifico_autoevaluacion', 'c9_orden_limpieza', 'c10_progresiones_nuevos'][i-1];
+        const marcado = !!item[colKeyName];
+
+        html += `
+          <div class="check-item ${marcado ? 'active' : ''}" style="cursor:default;">
+            <span class="check-num">${i}.</span>
+            <span class="check-desc">${DESCRIPCIONES_CRITERIOS[i-1]}</span>
+            <span style="margin-left:auto; font-size:0.68rem; font-weight:900; color:${marcado?'var(--status-ok)':'var(--accent)'};">${marcado?'[ CUMPLE ]':'[ FALLÓ ]'}</span>
+          </div>
+        `;
+      }
+      html += `</div>`;
+
+      if (item.coordinator_notes) {
+        html += `<div style="margin-top:12px; background:#1c1c1c; padding:10px; border-radius:6px; font-size:0.75rem;"><strong>Nota de Coordinación:</strong> ${item.coordinator_notes}</div>`;
+      }
+
+      modalBody.innerHTML = html;
+      document.getElementById('drillModal').style.display = 'flex';
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
