@@ -141,6 +141,9 @@
     .btn { background: var(--accent); color: #fff; border: none; padding: 13px; width: 100%; font-weight: 900; text-transform: uppercase; border-radius: 6px; cursor: pointer; font-size: 0.85rem; letter-spacing: 0.5px; margin-top: 10px; transition: 0.2s; }
     .btn:disabled { background: #333; color: #777; cursor: not-allowed; }
     .btn:active { filter: brightness(0.85); }
+    .btn-secondary { background: #222; color: #fff; }
+    .btn-danger { background: var(--accent); }
+    .btn-small { padding: 6px 10px; font-size: 0.65rem; width: auto; margin-top: 0; display: inline-block; }
 
     .chart-box { height: 260px; position: relative; margin-top: 10px; }
 
@@ -152,8 +155,8 @@
     .autocomplete-item { padding: 8px 12px; font-size: 0.75rem; cursor: pointer; border-bottom: 1px solid var(--border); color: #ddd; }
     .autocomplete-item:hover { background: #26262a; color: #fff; }
 
-    /* MODAL DESGLOSE / DRILL-DOWN */
-    #drillModal {
+    /* MODAL DESGLOSE / DRILL-DOWN / CUSTOM CONFIRM */
+    #drillModal, #customConfirmModal {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       background: rgba(0,0,0,0.85); backdrop-filter: blur(6px);
       z-index: 10000; display: none; justify-content: center; align-items: center; padding: 16px;
@@ -195,6 +198,18 @@
         <button onclick="cerrarModalDrill()" style="background:none; border:none; color:var(--text-muted); font-size:1.1rem; cursor:pointer;">✕</button>
       </div>
       <div id="drillModalBody">Cargando desglose...</div>
+    </div>
+  </div>
+
+  <!-- MODAL DE CONFIRMACIÓN PERSONALIZADO -->
+  <div id="customConfirmModal">
+    <div class="modal-box" style="max-width: 380px; text-align: center;">
+      <div style="font-size: 1rem; font-weight: 900; text-transform: uppercase; margin-bottom: 8px; color: var(--accent);" id="confirmTitle">Confirmar Acción</div>
+      <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 16px; line-height: 1.4;" id="confirmMessage">¿Estás seguro de realizar esta acción?</div>
+      <div style="display: flex; gap: 10px;">
+        <button type="button" class="btn btn-secondary" onclick="cerrarModalConfirm(false)" style="margin-top:0;">Cancelar</button>
+        <button type="button" class="btn btn-danger" id="btnConfirmOk" style="margin-top:0;">Sí, Ejecutar</button>
+      </div>
     </div>
   </div>
 
@@ -242,6 +257,11 @@
 
   <!-- ================= SUBMÓDULO 1: REVISIÓN ACTIVA DE AUDITORÍAS ================= -->
   <div id="tabPendientes" class="tab-section active">
+    <!-- BOTÓN PARA CREAR NUEVA SUPERVISIÓN DIRECTAMENTE DESDE REVISIONES -->
+    <div style="margin-bottom: 12px; display: flex; justify-content: flex-end;">
+      <button class="btn btn-small" onclick="abrirModalCrearSupervision()" style="background: var(--status-ok); color:#000; font-weight:900;">＋ Crear Nueva Supervisión</button>
+    </div>
+
     <div class="card" id="cardCola">
       <div class="card-title">
         <span>Cola de Auditorías Pendientes</span>
@@ -263,7 +283,11 @@
       <div class="card">
         <div class="card-title">
           <span id="lblSesionInfo">Cotejo de Sesión</span>
-          <button onclick="cerrarAuditoria()" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:0.75rem; font-weight:800;">✕ CERRAR</button>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <button onclick="abrirModalEditarSupervision()" class="btn-small" style="background:#3b82f6; border:none; color:#fff; border-radius:4px; cursor:pointer;">✏️ Editar</button>
+            <button onclick="eliminarSupervisionActual()" class="btn-small" style="background:var(--accent); border:none; color:#fff; border-radius:4px; cursor:pointer;">🗑️ Eliminar</button>
+            <button onclick="cerrarAuditoria()" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:0.75rem; font-weight:800;">✕ CERRAR</button>
+          </div>
         </div>
 
         <p style="font-size:0.7rem; color:var(--text-muted); margin-bottom:10px;">
@@ -342,7 +366,7 @@
       </div>
     </div>
 
-    <!-- KPIS GLOBALES REACTIVOS INTERACTIVOS (2 TARJETAS PARA STRIKERS SEGURAS) -->
+    <!-- KPIS GLOBALES REACTIVOS INTERACTIVOS -->
     <div class="kpi-grid" id="kpisGrupalesGrid">
       <div class="kpi-box" onclick="abrirDrillKpi('kpi1')">
         <div class="kpi-num" id="kpiG1">0</div>
@@ -363,7 +387,7 @@
     </div>
   </div>
 
-  <!-- ================= SUBMÓDULO 4: PERFIL INDIVIDUAL & VIGENCIAS (CON BUSCADOR INTELIGENTE) ================= -->
+  <!-- ================= SUBMÓDULO 4: PERFIL INDIVIDUAL & VIGENCIAS ================= -->
   <div id="tabPerfilIndividual" class="tab-section">
     <div class="card">
       <div class="card-title">Auditoría Individual de Usuario</div>
@@ -815,7 +839,7 @@
 
       const chksUser = cachedCheckins.filter(c => c.user_email === emailObj && c.status === 'aprobado' && new Date(c.created_at) >= hace60Dias);
       const sumChk = chksUser.reduce((a,b)=>a+(parseFloat(b.rendimiento)||0), 0);
-      let ptsStaffExtra = cachedStaffPoints.filter(p => p.user_email === emailObj && new Date(p.created_at) >= hace30Dias).reduce((a,b)=>a+(parseFloat(p.points)||0), 0);
+      let ptsStaffExtra = cachedStaffPoints.filter(p => p.user_email === emailObj && new Date(p.created_at) >= hace30Dias).reduce((a,b)=>a+(parseFloat(b.points)||0), 0);
       let totalActual = sumChk + ptsStaffExtra;
 
       let puntosIngresados = parseInt(document.getElementById('selectPuntosStaff').value) || 0;
@@ -865,19 +889,13 @@
       }
     }
 
-    /* ================= ANÁLISIS GRUPAL & DRILL-DOWN (GLOBAL SIN FILTRO DE COACH) ================= */
+    /* ================= ANÁLISIS GRUPAL & DRILL-DOWN ================= */
     function cambiarGrupoAnalisis(grupo, btn) {
       grupoAnalisisActual = grupo;
       document.querySelectorAll('#tabDashboardGrupal .filter-btn').forEach(b => b.classList.remove('active'));
       if (btn) btn.classList.add('active');
 
-      const filterBox = document.getElementById('coachIndividualFilterBox');
       const grid = document.getElementById('kpisGrupalesGrid');
-
-      if (filterBox) {
-        filterBox.style.display = 'none'; // Eliminado el selector de coach individual
-      }
-
       if (grid) {
         if (grupo === 'strikers') {
           grid.style.gridTemplateColumns = '1fr 1fr';
@@ -973,8 +991,6 @@
         const supervisados = cachedSupervisiones.filter(s => s.coordinator_status && s.coordinator_status !== 'pendiente_revision');
 
         const totalSuperv = supervisados.length;
-        
-        // Promedio global de disfrute de las clases
         const checkinsPeriodo = cachedCheckins.filter(c => c.divertiste !== null && c.divertiste !== undefined);
         const sumDiv = checkinsPeriodo.reduce((a,b)=>a+(parseFloat(b.divertiste)||0), 0);
         const promDiversion = checkinsPeriodo.length > 0 ? (sumDiv / checkinsPeriodo.length).toFixed(1) : '6.3';
@@ -999,7 +1015,7 @@
         
         const optimas = supervisados.filter(s => s.coach_points >= 5).length;
         if (k4) k4.innerText = `${optimas} Clases`;
-        if (tituloG) tituloG.innerText = "Balance de Puntos por Rango de Desempeño (Dona Staff)";
+        if (tituloG) tituloG.innerText = "Balance de Puntos por Rango de Desempeño";
         
         const altos = supervisados.filter(s => s.coach_points >= 5).length;
         const medios = supervisados.filter(s => s.coach_points >= 0 && s.coach_points < 5).length;
@@ -1170,7 +1186,7 @@
       document.getElementById('drillModal').style.display = 'flex';
     }
 
-    function abrirDrillSegmentoGrafica(tipo, filtroVal, subFiltro) {
+    function abrirDrillSegmentoGrafica(tipo, filtroVal) {
       const modalTitle = document.getElementById('drillModalTitle');
       const modalBody = document.getElementById('drillModalBody');
       if (!modalBody || !modalTitle) return;
@@ -1202,7 +1218,7 @@
       document.getElementById('drillModal').style.display = 'none';
     }
 
-    /* ================= ANÁLISIS INDIVIDUAL & VIGENCIA (CON BUSCADOR INTELIGENTE) ================= */
+    /* ================= ANÁLISIS INDIVIDUAL & VIGENCIA ================= */
     function cargarPerfilIndividualSeleccionadoPorEmail(email) {
       const user = cachedUsers.find(u => u.email === email);
       if (!user) return;
@@ -1478,7 +1494,7 @@
       }
     }
 
-    /* ================= COLA DE AUDITORÍAS PENDIENTES ================= */
+    /* ================= COLA DE AUDITORÍAS PENDIENTES & GESTIÓN DIRECTA ================= */
     async function cargarColaPendientes() {
       const colaEl = document.getElementById('colaList');
       if (!colaEl) return;
@@ -1579,6 +1595,168 @@
       const workspace = document.getElementById('workspaceAuditoria');
       if (workspace) workspace.style.display = 'none';
       document.querySelectorAll('.review-item').forEach(el => el.classList.remove('selected'));
+    }
+
+    /* ================= MODAL DE CONFIRMACIÓN PERSONALIZADO ================= */
+    let resolveConfirmCallback = null;
+    function mostrarConfirmacionCustom(titulo, mensaje, onOk) {
+      document.getElementById('confirmTitle').innerText = titulo;
+      document.getElementById('confirmMessage').innerText = mensaje;
+      document.getElementById('customConfirmModal').style.display = 'flex';
+      const btnOk = document.getElementById('btnConfirmOk');
+      btnOk.onclick = () => {
+        cerrarModalConfirm(true);
+        if (onOk) onOk();
+      };
+    }
+
+    function cerrarModalConfirm(result) {
+      document.getElementById('customConfirmModal').style.display = 'none';
+    }
+
+    /* ================= ACCIONES DE EDICIÓN, ELIMINACIÓN Y CREACIÓN DE SUPERVISIONES ================= */
+    function eliminarSupervisionActual() {
+      if (!sessionSeleccionada) return;
+      mostrarConfirmacionCustom(
+        "Eliminar Supervisión",
+        `¿Estás seguro de eliminar la supervisión del coach ${sessionSeleccionada.coach_email} (${sessionSeleccionada.class_time})? Esta acción no se puede deshacer.`,
+        async () => {
+          try {
+            const { error } = await sb.from('apex_coach_supervisions').delete().eq('id', sessionSeleccionada.id);
+            if (error) throw error;
+            alert("Supervisión eliminada con éxito.");
+            cerrarAuditoria();
+            cargarCensoCompleto();
+          } catch (err) {
+            alert("Error al eliminar supervisión: " + err.message);
+          }
+        }
+      );
+    }
+
+    function abrirModalEditarSupervision() {
+      if (!sessionSeleccionada) return;
+      const modalTitle = document.getElementById('drillModalTitle');
+      const modalBody = document.getElementById('drillModalBody');
+      if (!modalBody || !modalTitle) return;
+
+      modalTitle.innerText = "Editar Datos de Supervisión";
+      modalBody.innerHTML = `
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <div>
+            <label style="font-size:0.68rem; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Fecha de Sesión</label>
+            <input type="date" id="editSessionDate" class="form-control" value="${(sessionSeleccionada.session_date || '').split('T')[0]}">
+          </div>
+          <div>
+            <label style="font-size:0.68rem; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Hora de Clase</label>
+            <input type="text" id="editClassTime" class="form-control" value="${sessionSeleccionada.class_time || ''}">
+          </div>
+          <div>
+            <label style="font-size:0.68rem; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Correo del Coach</label>
+            <input type="email" id="editCoachEmail" class="form-control" value="${sessionSeleccionada.coach_email || ''}">
+          </div>
+          <button type="button" class="btn" onclick="guardarEdicionSupervision()">Guardar Cambios</button>
+        </div>
+      `;
+      document.getElementById('drillModal').style.display = 'flex';
+    }
+
+    async function guardarEdicionSupervision() {
+      if (!sessionSeleccionada || !sb) return;
+      const nuevaFecha = document.getElementById('editSessionDate').value;
+      const nuevaHora = document.getElementById('editClassTime').value.trim();
+      const nuevoCoach = document.getElementById('editCoachEmail').value.trim();
+
+      if (!nuevaFecha || !nuevaHora || !nuevoCoach) {
+        alert("Por favor completa todos los campos.");
+        return;
+      }
+
+      try {
+        const { error } = await sb.from('apex_coach_supervisions').update({
+          session_date: nuevaFecha,
+          class_time: nuevaHora,
+          coach_email: nuevoCoach
+        }).eq('id', sessionSeleccionada.id);
+
+        if (error) throw error;
+        alert("Supervisión actualizada con éxito.");
+        cerrarModalDrill();
+        cerrarAuditoria();
+        cargarCensoCompleto();
+      } catch (err) {
+        alert("Error al actualizar: " + err.message);
+      }
+    }
+
+    function abrirModalCrearSupervision() {
+      const modalTitle = document.getElementById('drillModalTitle');
+      const modalBody = document.getElementById('drillModalBody');
+      if (!modalBody || !modalTitle) return;
+
+      const hoyStr = new Date().toISOString().split('T')[0];
+
+      modalTitle.innerText = "Crear Nueva Supervisión (Coordinador)";
+      modalBody.innerHTML = `
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <div>
+            <label style="font-size:0.68rem; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Correo del Coach Evaluado</label>
+            <input type="email" id="newCoachEmail" class="form-control" placeholder="coach@apexboxing.com">
+          </div>
+          <div>
+            <label style="font-size:0.68rem; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Fecha de la Sesión</label>
+            <input type="date" id="newSessionDate" class="form-control" value="${hoyStr}">
+          </div>
+          <div>
+            <label style="font-size:0.68rem; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Hora de la Clase</label>
+            <input type="text" id="newClassTime" class="form-control" placeholder="Ej: 7:00 PM">
+          </div>
+          <button type="button" class="btn" onclick="ejecutarCreacionSupervision()" style="background:var(--status-ok); color:#000;">Registrar en Cola Pendiente</button>
+        </div>
+      `;
+      document.getElementById('drillModal').style.display = 'flex';
+    }
+
+    async function ejecutarCreacionSupervision() {
+      if (!sb) return;
+      const coachEmail = document.getElementById('newCoachEmail').value.trim();
+      const sessionDate = document.getElementById('newSessionDate').value;
+      const classTime = document.getElementById('newClassTime').value.trim();
+
+      if (!coachEmail || !sessionDate || !classTime) {
+        alert("Por favor completa todos los campos.");
+        return;
+      }
+
+      const payload = {
+        coach_email: coachEmail,
+        supervisor_email: emailCoordinadorActivo,
+        session_date: sessionDate,
+        class_time: classTime,
+        coordinator_status: 'pendiente_revision',
+        coach_points: 10,
+        supervisor_points: 2,
+        c1_puntualidad: true,
+        c2_bloques_lamina: true,
+        c3_explicacion_postura: true,
+        c4_trato_respetuoso: true,
+        c5_musica_comunicacion: true,
+        c6_material_audiovisual: true,
+        c7_imagen_presentacion: true,
+        c8_verifico_autoevaluacion: true,
+        c9_orden_limpieza: true,
+        c10_progresiones_nuevos: true
+      };
+
+      try {
+        const { error } = await sb.from('apex_coach_supervisions').insert([payload]);
+        if (error) throw error;
+        alert("Nueva supervisión creada y añadida a la cola de revisiones.");
+        cerrarModalDrill();
+        cargarCensoCompleto();
+      } catch (err) {
+        alert("Error al crear supervisión: " + err.message);
+      }
     }
 
     function verificarCambios() {
@@ -1847,77 +2025,4 @@
 
         if (rolSel !== 'all') {
           filtrados = filtrados.filter(r => {
-            const usr = cachedUsers.find(u => u.email === r.user_email);
-            const rUsr = (usr?.role || usr?.profile_id || 'striker').toLowerCase();
-            if (rolSel === 'striker') return rUsr.includes('striker') || rUsr.includes('estudiante') || rUsr === 'usuario';
-            return rUsr.includes(rolSel);
-          });
-        }
-
-        const countTxt = document.getElementById('histCountTxt');
-        if (countTxt) countTxt.innerText = `${filtrados.length} Calificaciones`;
-        if (filtrados.length === 0) {
-          cont.innerHTML = '<span style="color:var(--text-muted); font-size:0.75rem;">No hay calificaciones de staff coincidentes.</span>';
-          return;
-        }
-
-        cont.innerHTML = '';
-        filtrados.forEach(item => {
-          const div = document.createElement('div');
-          div.className = 'review-item';
-          div.style.cursor = 'default';
-
-          const d = new Date(item.created_at);
-          const fechaStr = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
-          const esPositivo = item.points >= 0;
-
-          div.innerHTML = `
-            <div class="review-top">
-              <span>👤 ${item.user_email}</span>
-              <span style="color:${esPositivo?'var(--status-ok)':'var(--accent)'}; font-weight:900;">${item.points > 0 ? '+' : ''}${item.points} Pts</span>
-            </div>
-            <div class="review-meta">
-              Fecha: ${fechaStr}<br>
-              <em>"${item.reason || 'Sin justificación'}"</em>
-            </div>
-          `;
-          cont.appendChild(div);
-        });
-      }
-    }
-
-    function abrirDesgloseAuditoriaHistorial(item) {
-      const modalTitle = document.getElementById('drillModalTitle');
-      const modalBody = document.getElementById('drillModalBody');
-      if (!modalBody || !modalTitle) return;
-      modalTitle.innerText = `Desglose Auditoría: ${item.coach_email} (${item.class_time})`;
-
-      let html = `<p style="font-size:0.7rem; color:var(--text-muted); margin-bottom:10px;">Supervisor a cargo: <strong>${item.supervisor_email}</strong> · Estado: <strong style="color:${item.coordinator_status==='aprobado'?'var(--status-ok)':'var(--accent)'};">${item.coordinator_status.toUpperCase()}</strong></p>`;
-      html += `<div class="checklist-container">`;
-
-      for (let i = 1; i <= 10; i++) {
-        const colKeyName = ['c1_puntualidad', 'c2_bloques_lamina', 'c3_explicacion_postura', 'c4_trato_respetuoso', 'c5_musica_comunicacion', 'c6_material_audiovisual', 'c7_imagen_presentacion', 'c8_verifico_autoevaluacion', 'c9_orden_limpieza', 'c10_progresiones_nuevos'][i-1];
-        const marcado = !!item[colKeyName];
-
-        html += `
-          <div class="check-item ${marcado ? 'active' : ''}" style="cursor:default;">
-            <span class="check-num">${i}.</span>
-            <span class="check-desc">${DESCRIPCIONES_CRITERIOS[i-1]}</span>
-            <span style="margin-left:auto; font-size:0.68rem; font-weight:900; color:${marcado?'var(--status-ok)':'var(--accent)'};">${marcado?'[ CUMPLE ]':'[ FALLÓ ]'}</span>
-          </div>
-        `;
-      }
-      html += `</div>`;
-
-      if (item.coordinator_notes) {
-        html += `<div style="margin-top:12px; background:#1c1c1c; padding:10px; border-radius:6px; font-size:0.75rem;"><strong>Nota de Coordinación:</strong> ${item.coordinator_notes}</div>`;
-      }
-
-      modalBody.innerHTML = html;
-      document.getElementById('drillModal').style.display = 'flex';
-    }
-
-    window.onload = init;
-  </script>
-</body>
-</html>
+            const usr = cachedUsers.find(u => u.email ===
