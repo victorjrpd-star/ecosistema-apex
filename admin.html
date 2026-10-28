@@ -20,7 +20,6 @@
       --text-muted: #aaaaaa;
       --status-ok: #22c55e;
       --status-warn: #eab308;
-      --tier-color: #ffffff;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background: var(--bg); color: var(--text-main); padding: 16px; max-width: 680px; margin: 0 auto; min-height: 100vh; }
@@ -72,7 +71,7 @@
     .filter-bar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
     .filter-bar .form-control { padding: 8px 10px; font-size: 0.78rem; flex: 1; min-width: 130px; }
 
-    /* BARRAS MULTIFUENTE IDÉNTICAS A LAS OTRAS HERRAMIENTAS */
+    /* CLASES DE SEGMENTOS Y BARRAS MULTIFUENTE */
     .progress-bar-track {
       width: 100%; height: 6px; background: #121216; border-radius: 3px;
       overflow: hidden; border: 1px solid var(--border); margin-top: 4px; display: flex;
@@ -935,6 +934,9 @@
 
           const adjs = globalCoordinatorAdjustmentsCache.filter(a => (a.user_email || '').toLowerCase() === email && new Date(a.created_at) >= hace30Dias);
           adjs.forEach(a => ptsAdjustments += parseFloat(a.note || 0));
+
+          const staffPts = globalStaffPointsCache.filter(p => (p.user_email || '').toLowerCase() === email && new Date(p.created_at) >= hace30Dias);
+          staffPts.forEach(p => ptsAdjustments += parseFloat(p.points || 0));
         }
 
         const ptsTotales = ptsStriker + ptsCoach + ptsSupervisor + ptsAdjustments;
@@ -1036,6 +1038,7 @@
       const coachSupUser = globalSupervisionsCache.filter(cs => (cs.coach_email || '').toLowerCase() === email && cs.coordinator_status !== 'pendiente_revision' && new Date(cs.session_date || cs.created_at) >= hace60Dias);
       const supervUser = globalSupervisionsCache.filter(s => (s.supervisor_email || '').toLowerCase() === email && s.coordinator_status !== 'pendiente_revision' && new Date(s.session_date || s.created_at) >= hace60Dias);
       const adjUser = globalCoordinatorAdjustmentsCache.filter(a => (a.user_email || '').toLowerCase() === email && new Date(a.created_at) >= hace60Dias);
+      const staffPtsUser = globalStaffPointsCache.filter(p => (p.user_email || '').toLowerCase() === email && new Date(p.created_at) >= hace60Dias);
 
       let html = `
         <div style="margin-bottom: 12px; display:flex; align-items:center; gap:10px;">
@@ -1081,7 +1084,15 @@
         });
       }
 
-      if (chksUser.length === 0 && coachSupUser.length === 0 && supervUser.length === 0 && adjUser.length === 0) {
+      if (staffPtsUser.length > 0) {
+        html += `<div style="margin-bottom:8px; font-size:0.72rem; font-weight:800; color:#eab308; margin-top:8px;">Ajustes de Staff (${staffPtsUser.length}):</div>`;
+        staffPtsUser.forEach(p => {
+          const f = new Date(p.created_at).toLocaleDateString();
+          html += `<div style="font-size:0.68rem; color:#ccc; margin-left:8px; margin-bottom:4px; border-left:2px solid #eab308; padding-left:6px;">📅 ${f} · <strong>${p.points >= 0 ? '+' : ''}${p.points} pts</strong> (${p.reason || 'Sin razón'})</div>`;
+        });
+      }
+
+      if (chksUser.length === 0 && coachSupUser.length === 0 && supervUser.length === 0 && adjUser.length === 0 && staffPtsUser.length === 0) {
         html += `<span style="font-size:0.7rem; color:var(--text-muted);">No registra actividad en los últimos 60 días.</span>`;
       }
 
@@ -1159,17 +1170,19 @@
       container.innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;padding:8px;display:block;">Calculando métricas del staff...</span>';
 
       try {
-        const [usersRes, checkinsRes, supervisionsRes, adjustmentsRes] = await Promise.all([
+        const [usersRes, checkinsRes, supervisionsRes, adjustmentsRes, staffPtsRes] = await Promise.all([
           sb.from('apex_users').select('*'),
           sb.from('apex_checkins').select('*'),
           sb.from('apex_coach_supervisions').select('*'),
-          sb.from('apex_coordinator_adjustments').select('*')
+          sb.from('apex_coordinator_adjustments').select('*'),
+          sb.from('apex_staff_points').select('*')
         ]);
 
         const users = usersRes.data || [];
         const checkins = checkinsRes.data || [];
         const supervisions = supervisionsRes.data || [];
         const adjustments = adjustmentsRes.data || [];
+        const staffPts = staffPtsRes.data || [];
 
         const staffList = users.filter(u => {
           const rol = (u.profile_id || u.role || '').toLowerCase();
@@ -1206,8 +1219,11 @@
           supervStf.forEach(s => ptsSupervisor += parseFloat(s.supervisor_points || 0));
 
           const adjStf = adjustments.filter(a => (a.user_email || '').toLowerCase() === email && new Date(a.created_at) >= hace30Dias);
+          const ptsStfArr = staffPts.filter(p => (p.user_email || '').toLowerCase() === email && new Date(p.created_at) >= hace30Dias);
+
           let ptsAdjustments = 0;
           adjStf.forEach(a => ptsAdjustments += parseFloat(a.note || 0));
+          ptsStfArr.forEach(p => ptsAdjustments += parseFloat(p.points || 0));
 
           const ptsTotales = ptsStriker + ptsCoach + ptsSupervisor + ptsAdjustments;
           const meta = 240;
@@ -1357,11 +1373,18 @@
         if (misSup.length === 0) html += `<span style="color:var(--text-muted);">Sin supervisiones realizadas en 30 días.</span>`;
       } else if (rolTipo === 'adjustments') {
         const misAdjs = globalCoordinatorAdjustmentsCache.filter(a => (a.user_email || '').toLowerCase() === emailUser.toLowerCase() && new Date(a.created_at) >= hace30Dias);
+        const misStaffPts = globalStaffPointsCache.filter(p => (p.user_email || '').toLowerCase() === emailUser.toLowerCase() && new Date(p.created_at) >= hace30Dias);
+        
         misAdjs.forEach(a => {
           const f = new Date(a.created_at).toLocaleDateString();
-          html += `<div style="background:#050507; padding:8px; border-radius:4px; border:1px solid var(--border); margin-bottom:6px; font-size:0.72rem;">📅 ${f} · <strong>${a.note >= 0 ? '+' : ''}${a.note} Pts</strong></div>`;
+          html += `<div style="background:#050507; padding:8px; border-radius:4px; border:1px solid var(--border); margin-bottom:6px; font-size:0.72rem;">📅 ${f} · <strong>${a.note >= 0 ? '+' : ''}${a.note} Pts</strong> (Coordinación)</div>`;
         });
-        if (misAdjs.length === 0) html += `<span style="color:var(--text-muted);">Sin ajustes de coordinación en 30 días.</span>`;
+        misStaffPts.forEach(p => {
+          const f = new Date(p.created_at).toLocaleDateString();
+          html += `<div style="background:#050507; padding:8px; border-radius:4px; border:1px solid var(--border); margin-bottom:6px; font-size:0.72rem;">📅 ${f} · <strong>${p.points >= 0 ? '+' : ''}${p.points} Pts</strong> (Staff: ${p.reason || 'Sin razón'})</div>`;
+        });
+
+        if (misAdjs.length === 0 && misStaffPts.length === 0) html += `<span style="color:var(--text-muted);">Sin ajustes en 30 días.</span>`;
       }
 
       document.getElementById('staffDetailModalBody').innerHTML = html;
@@ -1594,6 +1617,9 @@
 
         const adjs = globalCoordinatorAdjustmentsCache.filter(a => (a.user_email || '').toLowerCase() === email && new Date(a.created_at) >= hace30Dias);
         adjs.forEach(a => ptsActualesBimestre += parseFloat(a.note || 0));
+
+        const staffPts = globalStaffPointsCache.filter(p => (p.user_email || '').toLowerCase() === email && new Date(p.created_at) >= hace30Dias);
+        staffPts.forEach(p => ptsActualesBimestre += parseFloat(p.points || 0));
       }
 
       let mensajeNotifExtra = null;
@@ -1813,6 +1839,9 @@
 
           const adjs = globalCoordinatorAdjustmentsCache.filter(a => (a.user_email || '').toLowerCase() === email && new Date(a.created_at) >= hace30Dias);
           adjs.forEach(a => ptsOtras += parseFloat(a.note || 0));
+
+          const staffPts = globalStaffPointsCache.filter(p => (p.user_email || '').toLowerCase() === email && new Date(p.created_at) >= hace30Dias);
+          staffPts.forEach(p => ptsOtras += parseFloat(p.points || 0));
         }
 
         if (ptsOtras + rendimientoIngresado > TOPE_MAXIMO) {
