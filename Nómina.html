@@ -1,0 +1,1820 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#000000">
+  <title>Apex | Contabilidad & Nómina Unificada</title>
+
+  <!-- Supabase JS & Chart.js & html2canvas -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #000000;
+      --card-bg: #0a0a0c;
+      --border: #1a1a1e;
+      --accent: #e50914;
+      --text-main: #f5f5f7;
+      --text-muted: #73737a;
+      --status-ok: #22c55e;
+      --status-warn: #eab308;
+      --status-info: #3b82f6;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text-main); padding: 12px; max-width: 680px; margin: 0 auto; padding-bottom: 70px; }
+
+    .header { border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .title { font-size: 1rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
+    .title span { color: var(--accent); }
+    .badge-nomina { font-size: 0.62rem; font-weight: 800; background: #061a0e; color: var(--status-ok); border: 1px solid var(--status-ok); padding: 3px 6px; border-radius: 4px; text-transform: uppercase; }
+
+    .nav-dropdown-container { background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; margin-bottom: 12px; overflow: hidden; }
+    .nav-dropdown-header { padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 0.72rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; }
+    .nav-dropdown-header span { color: var(--accent); }
+    .nav-dropdown-body { display: none; border-top: 1px solid var(--border); background: #050507; padding: 8px; flex-direction: column; gap: 4px; }
+    .nav-dropdown-body.show { display: flex; }
+    .nav-btn { width: 100%; padding: 8px 10px; background: #0a0a0c; border: 1px solid var(--border); color: var(--text-muted); font-size: 0.68rem; font-weight: 800; text-transform: uppercase; border-radius: 4px; cursor: pointer; text-align: left; transition: 0.2s; display: flex; justify-content: space-between; align-items: center; }
+    .nav-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    .tab-section { display: none; }
+    .tab-section.active { display: block; }
+
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; padding: 14px; margin-bottom: 12px; }
+    .card-title { font-size: 0.72rem; font-weight: 900; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+
+    .form-control { width: 100%; padding: 8px 10px; background: var(--bg); border: 1px solid var(--border); color: #fff; border-radius: 4px; font-weight: 600; outline: none; font-size: 0.78rem; color-scheme: dark; }
+    .form-control:focus { border-color: var(--accent); }
+
+    .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 12px; }
+    .kpi-box { background: #050507; border: 1px solid var(--border); border-radius: 6px; padding: 8px; text-align: center; cursor: pointer; transition: 0.2s; }
+    .kpi-box:hover { border-color: var(--accent); }
+    .kpi-num { font-size: 1.05rem; font-weight: 900; color: #fff; }
+    .kpi-label { font-size: 0.52rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800; margin-top: 2px; }
+
+    .staff-card-pro { background: #050507; border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; margin-bottom: 8px; transition: 0.2s; cursor: pointer; }
+    .staff-card-pro:hover { border-color: var(--accent); background: #120708; }
+    .staff-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+    .staff-info-left { display: flex; align-items: center; gap: 8px; }
+    .staff-avatar-mini { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border); background: #16161a; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:0.65rem; color:#fff; }
+    .staff-name { font-size: 0.82rem; font-weight: 900; color: #fff; text-transform: uppercase; }
+    .staff-role-badge { font-size: 0.55rem; font-weight: 800; padding: 2px 5px; border-radius: 3px; background: #16161a; border: 1px solid var(--border); text-transform: uppercase; }
+
+    .progress-bar-track { width: 100%; height: 5px; background: #121216; border-radius: 2px; overflow: hidden; border: 1px solid var(--border); margin-top: 4px; display: flex; }
+    .progress-segment { height: 100%; transition: width 0.6s ease; }
+    .seg-checkins { background: #22c55e; }
+    .seg-coach { background: #3b82f6; }
+    .seg-supervision { background: #a855f7; }
+    .seg-adjustments { background: #eab308; }
+
+    .store-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 10px; }
+    .product-card {
+      background-size: cover; background-position: center; border-radius: 6px; border: 1px solid var(--border);
+      height: 110px; display: flex; flex-direction: column; justify-content: flex-end; padding: 8px; position: relative; overflow: hidden;
+      background-color: #0d0d10;
+    }
+    .product-card::before {
+      content: ''; position: absolute; top:0; left:0; right:0; bottom:0;
+      background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.4) 100%);
+    }
+    .product-card > * { position: relative; z-index: 1; }
+    .product-title { font-size: 0.72rem; font-weight: 900; color: #fff; text-transform: uppercase; }
+    .product-price { font-size: 0.75rem; font-weight: 900; color: var(--status-ok); margin-top: 2px; }
+
+    .btn { background: var(--accent); color: #fff; border: none; padding: 10px; width: 100%; font-weight: 900; text-transform: uppercase; border-radius: 4px; cursor: pointer; font-size: 0.75rem; transition: 0.2s; }
+    .btn:disabled { background: #222; color: #555; cursor: not-allowed; }
+    .btn-small { padding: 4px 8px; font-size: 0.6rem; width: auto; margin-top: 0; }
+    .btn-success { background: var(--status-ok); color: #000; }
+    .btn-secondary { background: #16161a; border: 1px solid var(--border); color: #fff; }
+    .btn-danger { background: rgba(229,9,20,0.1); border: 1px solid rgba(229,9,20,0.3); color: var(--accent); padding: 4px 6px; border-radius: 3px; font-size: 0.6rem; font-weight: 800; cursor: pointer; }
+    .btn-edit { background: #08080a; border: 1px solid var(--border); color: #ffffff; padding: 4px 6px; border-radius: 3px; font-size: 0.6rem; font-weight: 800; cursor: pointer; }
+
+    #detalleModal, #facturaModal, #desgloseKpiModal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.88); backdrop-filter: blur(6px); z-index: 10000; display: none; justify-content: center; align-items: center; padding: 12px; }
+    .modal-box { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 14px; width: 100%; max-width: 480px; max-height: 85vh; overflow-y: auto; }
+    .invoice-box { background: #fff; color: #000; border-radius: 6px; padding: 18px; font-family: monospace; width: 100%; }
+  </style>
+</head>
+<body>
+
+  <!-- MODAL DE DESGLOSE Y LIQUIDACIÓN -->
+  <div id="detalleModal" onclick="if(event.target === this) cerrarModalDetalle()">
+    <div class="modal-box">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid var(--border); padding-bottom:6px;">
+        <span id="modalStaffNombre" style="font-size:0.78rem; font-weight:900; text-transform:uppercase; color:var(--text-main);">Desglose de Saldo & Liquidación</span>
+        <button onclick="cerrarModalDetalle()" style="background:none; border:none; color:var(--text-muted); font-size:1rem; cursor:pointer;">✕</button>
+      </div>
+      <div id="modalStaffInfoMeta" style="font-size:0.65rem; color:var(--text-muted); margin-bottom:10px;">-</div>
+
+      <div id="excepcionPagoBox" style="margin-bottom: 10px; background: #120708; border: 1px solid var(--accent); border-radius: 4px; padding: 8px; display: none; justify-content: space-between; align-items: center;">
+        <div>
+          <strong style="font-size:0.65rem; color:var(--accent); display:block;">ESTE STAFF ESTÁ INACTIVO PARA PAGO</strong>
+          <span style="font-size:0.55rem; color:var(--text-muted);">Puedes habilitarlo excepcionalmente para liquidar este lote.</span>
+        </div>
+        <button class="btn btn-small" id="btnHabilitarExcepcion" onclick="toggleHabilitacionExcepcion()" style="background:var(--accent); color:#fff; font-size:0.6rem; padding:5px 8px;">Habilitar Manual</button>
+      </div>
+
+      <div style="font-size:0.6rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px; font-weight:800;">Servicios pendientes de pago:</div>
+      <div id="modalClasesList" style="display:flex; flex-direction:column; gap:6px; max-height:150px; overflow-y:auto; margin-bottom:10px;">Cargando clases...</div>
+      
+      <div style="font-size:0.6rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px; font-weight:800;">Adelantos / Productos (Deuda del Staff):</div>
+      <div id="modalCargosList" style="display:flex; flex-direction:column; gap:6px; max-height:120px; overflow-y:auto; margin-bottom:10px;">Cargando cargos...</div>
+
+      <div class="form-group" style="margin-bottom:10px;">
+        <label style="font-size:0.6rem; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:3px;">Cuenta Propia para Descargar / Recibir Fondos</label>
+        <select id="selectCuentaPagoLiquidacion" class="form-control"></select>
+      </div>
+
+      <div style="background:#050507; border:1px solid var(--border); border-radius:6px; padding:10px; display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <div>
+          <span id="labelModalNeto" style="font-size:0.58rem; color:var(--text-muted); text-transform:uppercase; display:block;">Saldo Neto Líquido</span>
+          <strong id="modalTotalPagarVal" style="font-size:1.2rem; color:var(--status-ok);">$0.00</strong>
+        </div>
+        <button class="btn btn-success btn-small" id="btnPagarLote" onclick="marcarPeriodoPagadoYGenerarFactura()" style="font-weight:900; padding:8px 12px;">✓ Procesar Transacción</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE DESGLOSE INTERACTIVO DE KPI -->
+  <div id="desgloseKpiModal" onclick="if(event.target === this) cerrarModalDesgloseKpi()">
+    <div class="modal-box">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid var(--border); padding-bottom:6px;">
+        <span id="kpiModalTitulo" style="font-size:0.78rem; font-weight:900; text-transform:uppercase; color:var(--text-main);">Desglose</span>
+        <button onclick="cerrarModalDesgloseKpi()" style="background:none; border:none; color:var(--text-muted); font-size:1rem; cursor:pointer;">✕</button>
+      </div>
+      <div id="kpiModalContenido" style="display:flex; flex-direction:column; gap:6px; max-height:300px; overflow-y:auto;">Cargando...</div>
+    </div>
+  </div>
+
+  <!-- MODAL DE SOPORTE / TICKET EN JPG -->
+  <div id="facturaModal" onclick="if(event.target === this) cerrarModalFactura()">
+    <div class="modal-box" style="max-width: 420px; background: transparent; border: none; padding: 0;">
+      <div id="facturaContenido" class="invoice-box"></div>
+      <div style="display:flex; gap:6px; margin-top:10px; background:#0a0a0c; padding:8px; border-radius:6px;">
+        <button class="btn btn-secondary btn-small" onclick="descargarTicketComoJPG()" style="flex:1;">📷 Descargar JPG</button>
+        <button class="btn btn-small" onclick="cerrarModalFactura()" style="flex:1; margin-top:0;">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="header">
+    <div class="title">Apex <span>Contabilidad & Nómina</span></div>
+    <div class="badge-nomina">Sistema Unificado</div>
+  </div>
+
+  <!-- NAVEGACIÓN DESPLEGABLE -->
+  <div class="nav-dropdown-container">
+    <div class="nav-dropdown-header" onclick="toggleNavMenu()">
+      <div>Módulo Activo: <span id="currentModuleTitle">📊 Resumen & Balance</span></div>
+      <span style="font-size: 0.75rem;">▼</span>
+    </div>
+    <div class="nav-dropdown-body" id="navDropdownBody">
+      <button class="nav-btn active" onclick="switchNominaTab('tabResumen', '📊 Resumen & Balance', this)">📊 Resumen & Balance <span>›</span></button>
+      <button class="nav-btn" onclick="switchNominaTab('tabServicios', '⚙️ Catálogo Artículos & Servicios', this)">⚙️ Catálogo Artículos & Servicios <span>›</span></button>
+      <button class="nav-btn" onclick="switchNominaTab('tabAsignar', '➕ Asignar Servicio a Staff', this)">➕ Asignar Servicio a Staff <span>›</span></button>
+      <button class="nav-btn" onclick="switchNominaTab('tabHistorico', '📜 Histórico & Gráficas', this)">📜 Histórico & Gráficas <span>›</span></button>
+      <button class="nav-btn" onclick="switchNominaTab('tabCuentas', '🏦 Cuentas & Auditoría Temporal', this)">🏦 Cuentas & Auditoría Temporal <span>›</span></button>
+    </div>
+  </div>
+
+  <!-- ================= PESTAÑA 1: RESUMEN Y BALANCE GENERAL ================= -->
+  <div id="tabResumen" class="tab-section active">
+    <div class="kpi-grid">
+      <div class="kpi-box" onclick="mostrarDesgloseKpi('debo')">
+        <div class="kpi-num" id="kpiDebo" style="color:var(--accent);">$0</div>
+        <div class="kpi-label">Nómina que Debo</div>
+      </div>
+      <div class="kpi-box" onclick="mostrarDesgloseKpi('meDeben')">
+        <div class="kpi-num" id="kpiMeDeben" style="color:var(--status-warn);">$0</div>
+        <div class="kpi-label">Deuda de Nómina</div>
+      </div>
+      <div class="kpi-box" onclick="mostrarDesgloseKpi('proyeccion')">
+        <div class="kpi-num" id="kpiProyeccion" style="color:var(--status-ok);">$0</div>
+        <div class="kpi-label">Disponible Proyectado</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Selector de Periodo de Pago</div>
+      <div class="form-group" style="margin-bottom: 0;">
+        <select id="selectPeriodoMinimal" class="form-control" onchange="cambiarPeriodoMinimal(this.value)">
+          <option value="semana">Filtro: Semanal (Últimos 7 días)</option>
+          <option value="quincena">Filtro: Quincenal (Últimos 15 días)</option>
+          <option value="mes" selected>Filtro: Mensual (Último mes)</option>
+          <option value="historico">Filtro: Histórico Total</option>
+          <option value="custom">Filtro: Rango Libre (Personalizado)</option>
+        </select>
+      </div>
+
+      <div id="customPeriodoBox" style="display:none; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; border-top: 1px solid var(--border); padding-top: 8px;">
+        <div>
+          <label style="font-size:0.55rem; color:var(--text-muted);">Desde:</label>
+          <input type="date" id="filtroFechaDesde" class="form-control" onchange="calcularNominaGeneral()">
+        </div>
+        <div>
+          <label style="font-size:0.55rem; color:var(--text-muted);">Hasta:</label>
+          <input type="date" id="filtroFechaHasta" class="form-control" onchange="calcularNominaGeneral()">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Staff Apex & Saldos Netos</div>
+      <div id="staffListContainer">Cargando staff...</div>
+    </div>
+  </div>
+
+  <!-- ================= PESTAÑA 2: CATÁLOGO VISUAL DE ARTÍCULOS & SERVICIOS ================= -->
+  <div id="tabServicios" class="tab-section">
+    <div class="card">
+      <div class="card-title" id="tituloFormCatalogo">Configurar Elemento del Catálogo</div>
+      <form onsubmit="ServiciosAdmin.guardar(event)">
+        <input type="hidden" id="servId">
+        <div class="form-group">
+          <label>Nombre</label>
+          <input type="text" id="inputNombreServicio" class="form-control" placeholder="Ej: Clase Estándar, Guantes, Herramienta" required>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+          <div class="form-group">
+            <label>Precio ($)</label>
+            <input type="number" id="inputPrecioServicio" class="form-control" placeholder="20000" min="0" required>
+          </div>
+          <div class="form-group">
+            <label>Stock (Cantidad)</label>
+            <input type="number" id="inputStockServicio" class="form-control" placeholder="10" min="0" value="10" required>
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px;">
+          <div class="form-group">
+            <label>Naturaleza Contable</label>
+            <select id="inputEsServicio" class="form-control">
+              <option value="true">Servicio (La academia debe al staff)</option>
+              <option value="false">Producto (Staff debe a caja)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Clasificación de Elemento</label>
+            <select id="inputClasificacionItem" class="form-control">
+              <option value="servicio_nomina">Servicio de Nómina (Pago Staff)</option>
+              <option value="producto_venta">Producto de Venta a Cliente</option>
+              <option value="activo_herramienta">Activo / Herramienta / Equipo</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-top:8px; display:flex; align-items:center; gap:6px; background:#050507; border:1px solid var(--border); padding:8px; border-radius:4px;">
+          <input type="checkbox" id="inputEsClaseEstandar" style="accent-color:var(--status-ok);">
+          <div>
+            <label for="inputEsClaseEstandar" style="font-size:0.65rem; color:#fff; font-weight:bold; cursor:pointer;">★ Marcar como Clase Estándar de Supervisión</label>
+            <span style="font-size:0.55rem; color:var(--text-muted); display:block;">El sistema usará este artículo de forma predeterminada para calcular la nómina de supervisiones.</span>
+          </div>
+        </div>
+        <div class="form-group" style="margin-top:8px;">
+          <label>Imagen (URL)</label>
+          <input type="text" id="inputImagenUrl" class="form-control" placeholder="https://...">
+        </div>
+        <div style="display:flex; gap:6px; margin-top:8px;">
+          <button type="submit" class="btn" id="btnGuardarServicio">Guardar Elemento</button>
+          <button type="button" class="btn btn-secondary" onclick="ServiciosAdmin.limpiarFormulario()" style="display:none;" id="btnCancelarEdicion">Cancelar</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- BALANCE GENERAL DE STOCK -->
+    <div class="card">
+      <div class="card-title">Balance General de Inventario (Solo Productos Físicos)</div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; margin-bottom:8px;">
+        <div style="background:#050507; border:1px solid var(--border); padding:8px; border-radius:4px; text-align:center;">
+          <span style="font-size:0.52rem; color:var(--text-muted); text-transform:uppercase;">Valor Stock Venta</span>
+          <div id="valorStockVentaLbl" style="font-size:0.95rem; font-weight:900; color:var(--status-ok);">$0</div>
+        </div>
+        <div style="background:#050507; border:1px solid var(--border); padding:8px; border-radius:4px; text-align:center;">
+          <span style="font-size:0.52rem; color:var(--text-muted); text-transform:uppercase;">Valor Activos / Herramientas</span>
+          <div id="valorStockActivosLbl" style="font-size:0.95rem; font-weight:900; color:var(--status-info);">$0</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Catálogo Activo (Tarjetas Visuales)</div>
+      <div class="store-grid" id="catalogoServiciosGrid">Cargando catálogo...</div>
+    </div>
+  </div>
+
+  <!-- ================= PESTAÑA 3: ASIGNAR SERVICIO A STAFF ================= -->
+  <div id="tabAsignar" class="tab-section">
+    <div class="card">
+      <div class="card-title">Asignar Servicio o Cargar Producto a Staff</div>
+      <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:10px;">
+        <div>
+          <label style="font-size:0.65rem;">Seleccionar Miembro del Staff</label>
+          <select id="selectStaffAsignar" class="form-control" onchange="actualizarContextoStaffAsignacion()"></select>
+        </div>
+
+        <!-- CONTEXTO PREVIO DEL STAFF -->
+        <div id="boxContextoStaff" style="background:#050507; border:1px solid var(--border); border-radius:4px; padding:8px; font-size:0.65rem; display:none;">
+          <div style="font-weight:900; color:#fff; text-transform:uppercase; margin-bottom:2px;" id="ctxStaffNombre">-</div>
+          <div style="color:var(--text-muted);">Servicios pendientes: <b style="color:var(--status-ok);" id="ctxServiciosVal">$0</b> | Adelantos/Cargos: <b style="color:var(--accent);" id="ctxCargosVal">$0</b></div>
+          <div style="margin-top:2px; font-weight:800;" id="ctxNetoVal">Saldo Neto: $0</div>
+        </div>
+
+        <div>
+          <label style="font-size:0.65rem;">Seleccionar Elemento del Catálogo</label>
+          <select id="selectServicioAsignar" class="form-control" onchange="actualizarNaturalezaAsignacion()"></select>
+        </div>
+
+        <div style="background:#050507; border:1px solid var(--border); border-radius:4px; padding:6px; font-size:0.62rem; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <span style="color:var(--text-muted); display:block; font-weight:800;">Naturaleza de la Transacción:</span>
+            <span id="lblNaturalezaAsignacion" style="color:var(--status-ok); font-weight:900;">Servicio (Suma a favor del staff)</span>
+          </div>
+          <button class="btn btn-secondary btn-small" onclick="toggleInvertirNaturaleza()" id="btnInvertirNaturaleza">Invertir</button>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
+          <div>
+            <label style="font-size:0.65rem;">Fecha</label>
+            <input type="date" id="inputAsignarFecha" class="form-control">
+          </div>
+          <div>
+            <label style="font-size:0.65rem;">Hora (Formato 24h)</label>
+            <input type="time" id="inputAsignarHora" class="form-control" value="19:00">
+          </div>
+        </div>
+        <button class="btn btn-success" onclick="guardarAsignacionServicioStaff()" style="font-weight:900;">✓ Registrar en Cuenta</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= PESTAÑA 4: HISTÓRICO & GRÁFICAS & LIBRO MAYOR ================= -->
+  <div id="tabHistorico" class="tab-section">
+    <div class="card">
+      <div class="card-title">Filtros de Análisis Financiero</div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; margin-bottom:10px;">
+        <div>
+          <label style="font-size:0.55rem; color:var(--text-muted);">Filtrar por Miembro:</label>
+          <select id="filtroHistStaff" class="form-control" style="font-size:0.7rem;" onchange="renderizarHistoricoPagos(); renderizarGraficaHistorico();">
+            <option value="todos">Todo el Staff (General)</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:0.55rem; color:var(--text-muted);">Periodo:</label>
+          <select id="filtroHistPeriodo" class="form-control" style="font-size:0.7rem;" onchange="renderizarHistoricoPagos(); renderizarGraficaHistorico();">
+            <option value="semana">Semanal</option>
+            <option value="quincena">Quincenal</option>
+            <option value="mes">Último Mes</option>
+            <option value="trimestre">Último Trimestre</option>
+            <option value="todo" selected>Histórico Completo</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; margin-bottom:12px;">
+        <div class="kpi-box" onclick="mostrarDesgloseHistorico('gastoReal')">
+          <span style="font-size:0.52rem; color:var(--text-muted); text-transform:uppercase;">Gasto Real (Pagado)</span>
+          <div id="kpiGastoReal" style="font-size:1.1rem; font-weight:900; color:var(--status-ok);">$0</div>
+        </div>
+        <div class="kpi-box" onclick="mostrarDesgloseHistorico('deudaNomina')">
+          <span style="font-size:0.52rem; color:var(--text-muted); text-transform:uppercase;">Deuda Nómina (Pendiente)</span>
+          <div id="kpiDeudaNomina" style="font-size:1.1rem; font-weight:900; color:var(--accent);">$0</div>
+        </div>
+      </div>
+
+      <div style="height: 180px; position: relative; margin-bottom: 12px;">
+        <canvas id="chartHistoricoPagos"></canvas>
+      </div>
+
+      <div class="card-title" style="border-top: 1px solid var(--border); padding-top: 10px;">Libro Mayor (apex_transacciones_libro_mayor)</div>
+      <div id="historicoPagosList" style="max-height:220px; overflow-y:auto;">Cargando libro mayor...</div>
+    </div>
+  </div>
+
+  <!-- ================= PESTAÑA 5: CUENTAS & AUDITORÍA TEMPORAL & MULTISELECCIÓN ================= -->
+  <div id="tabCuentas" class="tab-section">
+    <div class="card">
+      <div class="card-title">Auditoría Temporal & Métrica Multi-Cuenta</div>
+      
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; margin-bottom:8px;">
+        <div>
+          <label style="font-size:0.55rem; color:var(--text-muted);">Fecha Inicio (Opcional):</label>
+          <input type="date" id="auditoriaFechaInicio" class="form-control" onchange="AuditoriaTemporal.calcular()">
+        </div>
+        <div>
+          <label style="font-size:0.55rem; color:var(--text-muted);">Fecha de Corte (Fin):</label>
+          <input type="date" id="auditoriaFechaCorte" class="form-control" onchange="AuditoriaTemporal.calcular()">
+        </div>
+      </div>
+
+      <div style="margin-bottom: 8px;">
+        <label style="font-size:0.55rem; color:var(--text-muted); display:block; margin-bottom:3px;">Selección de Cuentas (Múltiples / Global):</label>
+        <div id="checkboxesCuentasAuditoria" style="display:flex; flex-wrap:wrap; gap:6px; background:#050507; border:1px solid var(--border); padding:8px; border-radius:4px; max-height:100px; overflow-y:auto;">
+          <!-- Checkboxes generados dinámicamente -->
+        </div>
+      </div>
+
+      <!-- 4 MÉTRICAS EN EL TIEMPO (CLICKEABLES) -->
+      <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:6px; margin-bottom:10px;">
+        <div class="kpi-box" onclick="AuditoriaTemporal.mostrarDesgloseMetrica('tengo')">
+          <span style="font-size:0.52rem; color:var(--text-muted); text-transform:uppercase;">Dinero Tengo (Capital)</span>
+          <div id="metricTengo" style="font-size:0.95rem; font-weight:900; color:var(--status-ok);">$0</div>
+        </div>
+        <div class="kpi-box" onclick="AuditoriaTemporal.mostrarDesgloseMetrica('ingresos')">
+          <span style="font-size:0.52rem; color:var(--text-muted); text-transform:uppercase;">Facturación (Ingresos)</span>
+          <div id="metricIngresos" style="font-size:0.95rem; font-weight:900; color:#3b82f6;">$0</div>
+        </div>
+        <div class="kpi-box" onclick="AuditoriaTemporal.mostrarDesgloseMetrica('debo')">
+          <span style="font-size:0.52rem; color:var(--text-muted); text-transform:uppercase;">Lo que Debo</span>
+          <div id="metricDebo" style="font-size:0.95rem; font-weight:900; color:var(--accent);">$0</div>
+        </div>
+        <div class="kpi-box" onclick="AuditoriaTemporal.mostrarDesgloseMetrica('medeben')">
+          <span style="font-size:0.52rem; color:var(--text-muted); text-transform:uppercase;">Lo que me Deben</span>
+          <div id="metricMeDeben" style="font-size:0.95rem; font-weight:900; color:var(--status-warn);">$0</div>
+        </div>
+      </div>
+
+      <div style="height: 160px; position: relative; margin-top: 10px;">
+        <canvas id="chartAuditoriaCuenta"></canvas>
+      </div>
+    </div>
+
+    <!-- LISTADO DE TRANSACCIONES DETALLADAS PARA FACTURAR (MÁS RECIENTES ARRIBA) -->
+    <div class="card">
+      <div class="card-title">Desglose de Transacciones & Facturación</div>
+      <div id="listaTransaccionesAuditoria" style="max-height:220px; overflow-y:auto;">Cargando transacciones...</div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://fprvbvucmtdpxdihuvrw.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_xAMs8LpCwyMyoql3ohoJUQ_BIRhBQoD';
+    const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+    let cachedUsers = [];
+    let cachedSupervisiones = [];
+    let cachedCheckins = [];
+    let cachedStaffPoints = [];
+    let cachedCoordAdjustments = [];
+    let cachedServicios = [];
+    let cachedCargosStaff = [];
+    let cachedNominaPagos = [];
+    let cachedCuentas = [];
+    let cachedCategoriasFinancieras = [];
+    let cachedTransaccionesLibro = [];
+    let periodoActual = 'mes';
+    let staffSeleccionadoActual = null;
+    let clasesSeleccionadasParaPago = new Set();
+    let chartHistoricoInstance = null;
+    let chartAuditoriaInstance = null;
+    let excepcionesPagoStaff = new Set();
+    let naturalezaInvertidaAsignacion = false;
+    let cuentasSeleccionadasAuditoria = new Set(['todas']);
+
+    function formatCOP(num) {
+      return '$' + Math.round(num || 0).toLocaleString('es-CO');
+    }
+
+    async function initNomina() {
+      if (!sb) return;
+      document.getElementById('inputAsignarFecha').value = new Date().toISOString().split('T')[0];
+      const hoyStr = new Date().toISOString().split('T')[0];
+      document.getElementById('auditoriaFechaCorte').value = hoyStr;
+      await cargarDatosBase();
+      calcularNominaGeneral();
+    }
+
+    function toggleNavMenu() {
+      document.getElementById('navDropdownBody').classList.toggle('show');
+    }
+
+    function switchNominaTab(tabId, titulo, btn) {
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+      document.getElementById('currentModuleTitle').innerText = titulo;
+      document.getElementById('navDropdownBody').classList.remove('show');
+
+      if (tabId === 'tabHistorico') {
+        poblarFiltroHistoricoStaff();
+        renderizarHistoricoPagos();
+        renderizarGraficaHistorico();
+      } else if (tabId === 'tabServicios') {
+        renderizarServiciosCatalogo();
+      } else if (tabId === 'tabAsignar') {
+        poblarSelectoresAsignacion();
+      } else if (tabId === 'tabCuentas') {
+        AuditoriaTemporal.inicializar();
+      }
+    }
+
+    async function cargarDatosBase() {
+      try {
+        const resUsers = await sb.from('apex_users').select('*').order('name', { ascending: true });
+        cachedUsers = resUsers.data || [];
+      } catch (e) { cachedUsers = []; }
+
+      try {
+        const resSup = await sb.from('apex_coach_supervisions').select('*').order('session_date', { ascending: false });
+        cachedSupervisiones = resSup.data || [];
+      } catch (e) { cachedSupervisiones = []; }
+
+      try {
+        const resChk = await sb.from('apex_checkins').select('*');
+        cachedCheckins = resChk.data || [];
+      } catch (e) { cachedCheckins = []; }
+
+      try {
+        const resStf = await sb.from('apex_staff_points').select('*');
+        cachedStaffPoints = resStf.data || [];
+      } catch (e) { cachedStaffPoints = []; }
+
+      try {
+        const resAdj = await sb.from('apex_coordinator_adjustments').select('*');
+        cachedCoordAdjustments = resAdj.data || [];
+      } catch (e) { cachedCoordAdjustments = []; }
+
+      try {
+        const resServ = await sb.from('apex_productos').select('*').order('nombre', { ascending: true });
+        cachedServicios = resServ.data && resServ.data.length > 0 ? resServ.data : [
+          { id: '1', nombre: 'Clase Estándar / Supervisión', precio: 20000, es_servicio: true, es_clase_estandar: true, stock: 999999 }
+        ];
+      } catch (e) {
+        cachedServicios = [{ id: '1', nombre: 'Clase Estándar / Supervisión', precio: 20000, es_servicio: true, es_clase_estandar: true, stock: 999999 }];
+      }
+
+      try {
+        const resCargos = await sb.from('apex_cargos_staff').select('*');
+        cachedCargosStaff = resCargos.data || [];
+      } catch (e) { cachedCargosStaff = []; }
+
+      try {
+        const resNom = await sb.from('apex_nomina').select('*').order('created_at', { ascending: false });
+        cachedNominaPagos = resNom.data || [];
+      } catch (e) { cachedNominaPagos = []; }
+
+      try {
+        const resCta = await sb.from('apex_cuentas').select('*').order('nombre');
+        cachedCuentas = resCta.data || [];
+      } catch (e) { cachedCuentas = []; }
+
+      try {
+        const resCat = await sb.from('apex_categorias_financieras').select('*');
+        cachedCategoriasFinancieras = resCat.data || [];
+      } catch (e) { cachedCategoriasFinancieras = []; }
+
+      try {
+        const resLibro = await sb.from('apex_transacciones_libro_mayor').select('*').order('created_at', { ascending: false });
+        cachedTransaccionesLibro = resLibro.data || [];
+      } catch (e) { cachedTransaccionesLibro = []; }
+
+      renderizarServiciosCatalogo();
+      poblarSelectoresAsignacion();
+    }
+
+    function cambiarPeriodoMinimal(tipo) {
+      periodoActual = tipo;
+      const customBox = document.getElementById('customPeriodoBox');
+      customBox.style.display = (tipo === 'custom') ? 'grid' : 'none';
+      calcularNominaGeneral();
+    }
+
+    function obtenerFechasFiltroPeriodo() {
+      const hoy = new Date();
+      hoy.setHours(23, 59, 59, 999);
+      let desde = new Date();
+      desde.setHours(0, 0, 0, 0);
+
+      if (periodoActual === 'semana') {
+        desde.setDate(hoy.getDate() - 7);
+      } else if (periodoActual === 'quincena') {
+        desde.setDate(hoy.getDate() - 15);
+      } else if (periodoActual === 'mes') {
+        desde.setMonth(hoy.getMonth() - 1);
+      } else if (periodoActual === 'historico') {
+        desde = new Date(2025, 0, 1);
+      } else if (periodoActual === 'custom') {
+        const valDesde = document.getElementById('filtroFechaDesde').value;
+        const valHasta = document.getElementById('filtroFechaHasta').value;
+        return {
+          desde: valDesde ? new Date(valDesde + 'T00:00:00') : new Date(2025, 0, 1),
+          hasta: valHasta ? new Date(valHasta + 'T23:59:59') : hoy
+        };
+      }
+      return { desde, hasta: hoy };
+    }
+
+    async function calcularPuntajeBimestreMultifuente(email) {
+      const hace60Dias = new Date(); hace60Dias.setDate(hace60Dias.getDate() - 60); hace60Dias.setHours(0,0,0,0);
+      const hace30Dias = new Date(); hace30Dias.setDate(hace30Dias.getDate() - 30); hace30Dias.setHours(0,0,0,0);
+
+      const chksStf = cachedCheckins.filter(c => (c.user_email || '').toLowerCase() === email.toLowerCase() && c.status === 'aprobado' && new Date(c.created_at) >= hace60Dias);
+      let ptsStriker = 0; chksStf.forEach(c => ptsStriker += parseFloat(c.rendimiento || 0));
+
+      const coachSupStf = cachedSupervisiones.filter(cs => (cs.coach_email || '').toLowerCase() === email.toLowerCase() && cs.coordinator_status !== 'pendiente_revision' && new Date(cs.session_date || cs.created_at) >= hace30Dias);
+      let ptsCoach = 0; coachSupStf.forEach(cs => ptsCoach += parseFloat(cs.coach_points || 0));
+
+      const supervStf = cachedSupervisiones.filter(s => (s.supervisor_email || '').toLowerCase() === email.toLowerCase() && s.coordinator_status !== 'pendiente_revision' && new Date(s.session_date || s.created_at) >= hace30Dias);
+      let ptsSupervisor = 0; supervStf.forEach(s => ptsSupervisor += parseFloat(s.supervisor_points || 0));
+
+      const adjStf = cachedStaffPoints.filter(a => (a.user_email || '').toLowerCase() === email.toLowerCase() && new Date(a.created_at) >= hace30Dias);
+      const coordAdjStf = cachedCoordAdjustments.filter(a => (a.user_email || '').toLowerCase() === email.toLowerCase() && new Date(a.created_at) >= hace30Dias);
+      
+      let ptsAdjustments = 0;
+      adjStf.forEach(a => ptsAdjustments += parseFloat(a.points || 0));
+      coordAdjStf.forEach(a => ptsAdjustments += parseFloat(a.note || 0));
+
+      const total = ptsStriker + ptsCoach + ptsSupervisor + ptsAdjustments;
+      return { total, ptsCheckins: ptsStriker, ptsCoach, ptsSupervisor, ptsAdjustments };
+    }
+
+    function determinarRangoYMultiplicador(pts) {
+      const porcentaje = (pts / 240) * 100;
+      if (porcentaje >= 101) return { nivel: 'APEX+', mult: 2.0, elegible: true, color: '#ffd700' };
+      if (porcentaje >= 76) return { nivel: 'APEX', mult: 1.5, elegible: true, color: '#d4af37' };
+      if (porcentaje >= 36) return { nivel: 'AVANZADO', mult: 1.0, elegible: true, color: '#c0c0c0' };
+      if (porcentaje >= 11) return { nivel: 'INTERMEDIO', mult: 1.0, elegible: false, color: '#cd7f32' };
+      return { nivel: 'INICIADO', mult: 1.0, elegible: false, color: '#ffffff' };
+    }
+
+    async function calcularNominaGeneral() {
+      const container = document.getElementById('staffListContainer');
+      if (!container) return;
+
+      const { desde, hasta } = obtenerFechasFiltroPeriodo();
+      const staffList = cachedUsers.filter(u => {
+        const r = (u.role || u.profile_id || '').toLowerCase();
+        return r.includes('coach') || r.includes('supervisor') || r.includes('coordinador') || r.includes('admin');
+      });
+
+      if (staffList.length === 0) {
+        container.innerHTML = '<span style="color:var(--text-muted); font-size:0.75rem;">No hay personal de staff registrado.</span>';
+        return;
+      }
+
+      let granTotalTengo = 0;
+      let granTotalDeboN = 0;
+      let granTotalMeDebenN = 0;
+      const propias = cachedCuentas.filter(c => c.activa !== false && (c.clasificacion === 'propia' || !c.clasificacion));
+      granTotalTengo = propias.reduce((a, b) => a + parseFloat(b.saldo_actual || 0), 0);
+
+      const servicioEstandarObj = cachedServicios.find(s => s.es_clase_estandar === true) || cachedServicios[0];
+      const precioBaseClase = servicioEstandarObj ? parseFloat(servicioEstandarObj.precio || 20000) : 20000;
+      container.innerHTML = '';
+
+      for (let staff of staffList) {
+        const desglPts = await calcularPuntajeBimestreMultifuente(staff.email);
+        const ptsBim = desglPts.total;
+        let infoRango = determinarRangoYMultiplicador(ptsBim);
+
+        if (excepcionesPagoStaff.has(staff.email)) {
+          infoRango = { nivel: infoRango.nivel + ' (Excepción)', mult: 1.0, elegible: true, color: 'var(--status-ok)' };
+        }
+
+        const clasesPeriodo = cachedSupervisiones.filter(s => {
+          const esCoach = (s.coach_email || '').toLowerCase() === staff.email.toLowerCase();
+          const fecha = new Date(s.session_date || s.created_at);
+          return esCoach && (s.coordinator_status === 'aprobado' || s.coordinator_status === 'sancionado') && s.is_paid !== true && s.is_deleted !== true && fecha >= desde && fecha <= hasta;
+        });
+
+        let totalServiciosStaff = 0;
+        if (infoRango.elegible) {
+          clasesPeriodo.forEach(() => { totalServiciosStaff += (precioBaseClase * infoRango.mult); });
+        }
+
+        const cargosStaff = cachedCargosStaff.filter(c => (c.staff_email || '').toLowerCase() === staff.email.toLowerCase() && !c.is_paid && !c.is_deleted);
+        let totalCargosStaff = 0;
+        cargosStaff.forEach(c => totalCargosStaff += parseFloat(c.valor || 0));
+
+        const saldoNeto = totalServiciosStaff - totalCargosStaff;
+        if (saldoNeto > 0) granTotalDeboN += saldoNeto;
+        if (saldoNeto < 0) granTotalMeDebenN += Math.abs(saldoNeto);
+
+        const colorNeto = saldoNeto > 0 ? 'var(--status-ok)' : (saldoNeto < 0 ? 'var(--accent)' : 'var(--text-muted)');
+
+        const porcentaje = Math.max(0, Math.min(100, (ptsBim / 240) * 100));
+        const absTotal = Math.max(1, Math.abs(desglPts.ptsCheckins) + Math.abs(desglPts.ptsCoach) + Math.abs(desglPts.ptsSupervisor) + Math.abs(desglPts.ptsAdjustments));
+        const pCk = Math.max(0, (Math.abs(desglPts.ptsCheckins) / absTotal) * porcentaje);
+        const pCo = Math.max(0, (Math.abs(desglPts.ptsCoach) / absTotal) * porcentaje);
+        const pSu = Math.max(0, (Math.abs(desglPts.ptsSupervisor) / absTotal) * porcentaje);
+        const pSt = Math.max(0, (Math.abs(desglPts.ptsAdjustments) / absTotal) * porcentaje);
+
+        const avatarUrl = staff.photo_url || staff.avatar_url;
+        const avatarHtml = (avatarUrl && typeof avatarUrl === 'string' && avatarUrl.startsWith('http'))
+          ? `<img src="${avatarUrl}" class="staff-avatar-mini" alt="Foto">`
+          : `<div class="staff-avatar-mini">${(staff.name || 'ST').substring(0,2).toUpperCase()}</div>`;
+
+        const div = document.createElement('div');
+        div.className = 'staff-card-pro';
+        div.onclick = () => abrirModalDetalleStaff(staff, desde, hasta, infoRango, precioBaseClase, servicioEstandarObj.nombre);
+
+        div.innerHTML = `
+          <div class="staff-card-header">
+            <div class="staff-info-left">
+              ${avatarHtml}
+              <div>
+                <div class="staff-name">${staff.name || staff.email}</div>
+                <span style="font-size:0.58rem; color:var(--text-muted);">Nivel: <b style="color:${infoRango.color};">${infoRango.nivel}</b> · ${clasesPeriodo.length} Serv. Pendientes</span>
+              </div>
+            </div>
+            <div style="text-align:right;">
+              <span style="font-size:0.95rem; font-weight:900; color:${colorNeto};">${formatCOP(saldoNeto)}</span>
+              <span class="staff-role-badge" style="display:block; margin-top:2px; color:${infoRango.elegible?'var(--status-ok)':'var(--text-muted)'};">${infoRango.elegible ? infoRango.mult + 'x' : 'Inactivo'}</span>
+            </div>
+          </div>
+          <div style="width:100%; display:grid; grid-template-columns: repeat(4, 1fr); gap:3px; background:#050507; padding:3px; border-radius:3px; border:1px solid var(--border); text-align:center; font-size:0.48rem; text-transform:uppercase; margin-bottom:3px;">
+            <div>Check: <b>${desglPts.ptsCheckins.toFixed(0)}</b></div>
+            <div>Coach: <b>${desglPts.ptsCoach.toFixed(0)}</b></div>
+            <div>Superv: <b>${desglPts.ptsSupervisor.toFixed(0)}</b></div>
+            <div>Adj: <b>${desglPts.ptsAdjustments.toFixed(0)}</b></div>
+          </div>
+          <div style="width:100%; background:#050507; padding:5px 6px; border-radius:5px; border:1px solid var(--border);">
+            <div style="display:flex; justify-content:space-between; font-size:0.55rem; font-weight:800; text-transform:uppercase; margin-bottom:2px; color:#fff;">
+              <span>Global Staff: ${ptsBim.toFixed(1)} / 240 PTS</span>
+              <span style="color:${infoRango.color};">${porcentaje.toFixed(0)}%</span>
+            </div>
+            <div class="progress-bar-track">
+              <div class="progress-segment seg-checkins" style="width: ${pCk}%"></div>
+              <div class="progress-segment seg-coach" style="width: ${pCo}%"></div>
+              <div class="progress-segment seg-supervision" style="width: ${pSu}%"></div>
+              <div class="progress-segment seg-adjustments" style="width: ${pSt}%"></div>
+            </div>
+          </div>
+          <div style="font-size:0.58rem; color:var(--text-muted); margin-top:4px;">Servicios: ${formatCOP(totalServiciosStaff)} | Tienda/Cargos: ${formatCOP(totalCargosStaff)}</div>
+        `;
+        container.appendChild(div);
+      }
+
+      document.getElementById('kpiDebo').innerText = formatCOP(granTotalDeboN);
+      document.getElementById('kpiMeDeben').innerText = formatCOP(granTotalMeDebenN);
+      
+      const proyeccionFinal = granTotalTengo - granTotalDeboN + granTotalMeDebenN;
+      const proyeccionEl = document.getElementById('kpiProyeccion');
+      proyeccionEl.innerText = formatCOP(proyeccionFinal);
+      proyeccionEl.style.color = proyeccionFinal >= 0 ? 'var(--status-ok)' : 'var(--accent)';
+    }
+
+    async function abrirModalDetalleStaff(staff, desde, hasta, infoRangoBase, precioBase, nombreServicioEstandar) {
+      let infoRango = infoRangoBase;
+      if (excepcionesPagoStaff.has(staff.email)) {
+        infoRango = { nivel: 'EXCEPCIÓN MANUAL', mult: 1.0, elegible: true, color: 'var(--status-ok)' };
+      }
+
+      staffSeleccionadoActual = { staff, desde, hasta, infoRango, precioBase, nombreServicioEstandar };
+      document.getElementById('modalStaffNombre').innerText = `Liquidación: ${staff.name || staff.email}`;
+      document.getElementById('modalStaffInfoMeta').innerText = `Rango: ${infoRango.nivel}`;
+
+      const selCta = document.getElementById('selectCuentaPagoLiquidacion');
+      selCta.innerHTML = '';
+      cachedCuentas.filter(c => c.activa !== false && (c.clasificacion === 'propia' || !c.clasificacion)).forEach(c => {
+        selCta.innerHTML += `<option value="${c.id}">${c.nombre} (${formatCOP(c.saldo_actual)})</option>`;
+      });
+
+      const excepcionBox = document.getElementById('excepcionPagoBox');
+      const btnExcepcion = document.getElementById('btnHabilitarExcepcion');
+      if (!infoRangoBase.elegible && !excepcionesPagoStaff.has(staff.email)) {
+        excepcionBox.style.display = 'flex';
+        btnExcepcion.innerText = 'Habilitar Manual';
+      } else if (excepcionesPagoStaff.has(staff.email)) {
+        excepcionBox.style.display = 'flex';
+        btnExcepcion.innerText = 'Quitar Excepción';
+      } else {
+        excepcionBox.style.display = 'none';
+      }
+
+      const clases = cachedSupervisiones.filter(s => {
+        const esCoach = (s.coach_email || '').toLowerCase() === staff.email.toLowerCase();
+        const fecha = new Date(s.session_date || s.created_at);
+        return esCoach && (s.coordinator_status === 'aprobado' || s.coordinator_status === 'sancionado') && s.is_paid !== true && s.is_deleted !== true && fecha >= desde && fecha <= hasta;
+      });
+
+      clasesSeleccionadasParaPago.clear();
+      clases.forEach(c => clasesSeleccionadasParaPago.add(c.id));
+
+      renderizarListasModal(clases, staff, infoRango, precioBase, nombreServicioEstandar);
+      document.getElementById('detalleModal').style.display = 'flex';
+    }
+
+    function toggleHabilitacionExcepcion() {
+      const email = staffSeleccionadoActual.staff.email;
+      if (excepcionesPagoStaff.has(email)) excepcionesPagoStaff.delete(email);
+      else excepcionesPagoStaff.add(email);
+      cerrarModalDetalle();
+      calcularNominaGeneral();
+    }
+
+    function renderizarListasModal(clases, staff, infoRango, precioBase, nombreServicioEstandar) {
+      const listClases = document.getElementById('modalClasesList');
+      const listCargos = document.getElementById('modalCargosList');
+      
+      listClases.innerHTML = '';
+      let totalServicios = 0;
+
+      clases.forEach(c => {
+        const d = new Date(c.session_date || c.created_at);
+        const fechaStr = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
+        const seleccionada = clasesSeleccionadasParaPago.has(c.id);
+        const subtotal = (infoRango.elegible && seleccionada) ? (precioBase * infoRango.mult) : 0;
+        if (seleccionada && infoRango.elegible) totalServicios += subtotal;
+
+        listClases.innerHTML += `
+          <div style="background:#050507; border:1px solid var(--border); border-radius:4px; padding:6px; font-size:0.65rem; display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; align-items:center; gap:6px;">
+              <input type="checkbox" ${seleccionada ? 'checked' : ''} onchange="toggleSeleccionClase('${c.id}')" style="accent-color:var(--status-ok);">
+              <div>
+                <span>📅 ${fechaStr} · ${c.class_time || 'Servicio'}</span>
+                <div style="font-size:0.55rem; color:var(--text-muted);">Concepto: ${nombreServicioEstandar} (${formatCOP(precioBase)} x ${infoRango.mult}x)</div>
+              </div>
+            </div>
+            <strong>$${subtotal.toLocaleString()}</strong>
+          </div>
+        `;
+      });
+
+      const cargosSt = cachedCargosStaff.filter(c => (c.staff_email || '').toLowerCase() === staff.email.toLowerCase() && !c.is_paid && !c.is_deleted);
+      let totalCargos = 0;
+      listCargos.innerHTML = '';
+      if (cargosSt.length === 0) {
+        listCargos.innerHTML = '<span style="font-size:0.6rem; color:var(--text-muted);">Sin adelantos o productos pendientes.</span>';
+      } else {
+        cargosSt.forEach(cargo => {
+          totalCargos += parseFloat(cargo.valor || 0);
+          listCargos.innerHTML += `
+            <div style="background:#050507; border:1px solid var(--border); border-radius:4px; padding:6px; font-size:0.65rem; display:flex; justify-content:space-between; align-items:center;">
+              <span>🛒 ${cargo.descripcion}</span>
+              <strong style="color:var(--accent);">-$${parseFloat(cargo.valor).toLocaleString()}</strong>
+            </div>
+          `;
+        });
+      }
+
+      const netoFinal = totalServicios - totalCargos;
+      const valEl = document.getElementById('modalTotalPagarVal');
+      valEl.innerText = formatCOP(netoFinal);
+      valEl.style.color = netoFinal >= 0 ? 'var(--status-ok)' : 'var(--accent)';
+      document.getElementById('labelModalNeto').innerText = netoFinal >= 0 ? 'Saldo Neto a Pagar' : 'Saldo Neto a Cobrar';
+    }
+
+    function toggleSeleccionClase(id) {
+      if (clasesSeleccionadasParaPago.has(id)) clasesSeleccionadasParaPago.delete(id);
+      else clasesSeleccionadasParaPago.add(id);
+      const { staff, desde, hasta, infoRango, precioBase, nombreServicioEstandar } = staffSeleccionadoActual;
+      const clases = cachedSupervisiones.filter(s => {
+        const esCoach = (s.coach_email || '').toLowerCase() === staff.email.toLowerCase();
+        const fecha = new Date(s.session_date || s.created_at);
+        return esCoach && (s.coordinator_status === 'aprobado' || s.coordinator_status === 'sancionado') && s.is_paid !== true && s.is_deleted !== true && fecha >= desde && fecha <= hasta;
+      });
+      renderizarListasModal(clases, staff, infoRango, precioBase, nombreServicioEstandar);
+    }
+
+    function cerrarModalDetalle() {
+      document.getElementById('detalleModal').style.display = 'none';
+    }
+
+    async function marcarPeriodoPagadoYGenerarFactura() {
+      if (!staffSeleccionadoActual || !sb) return;
+      const { staff, desde, hasta, infoRango, precioBase, nombreServicioEstandar } = staffSeleccionadoActual;
+      const cuentaId = document.getElementById('selectCuentaPagoLiquidacion').value;
+
+      if (!cuentaId) { alert("Selecciona la cuenta propia de pago/cobro."); return; }
+
+      const idsPagados = Array.from(clasesSeleccionadasParaPago);
+      const clasesAPagar = cachedSupervisiones.filter(s => idsPagados.includes(s.id));
+      let totalServicios = 0;
+      if (infoRango.elegible) {
+        clasesAPagar.forEach(() => totalServicios += (precioBase * infoRango.mult));
+      }
+
+      const cargosSt = cachedCargosStaff.filter(c => (c.staff_email || '').toLowerCase() === staff.email.toLowerCase() && !c.is_paid && !c.is_deleted);
+      let totalCargos = 0;
+      cargosSt.forEach(c => totalCargos += parseFloat(c.valor || 0));
+
+      const netoFinal = totalServicios - totalCargos;
+
+      let conteoServicios = {};
+      clasesAPagar.forEach(() => {
+        conteoServicios[nombreServicioEstandar] = (conteoServicios[nombreServicioEstandar] || 0) + 1;
+      });
+      cargosSt.forEach(c => {
+        conteoServicios[`[Adelanto] ${c.descripcion}`] = -1;
+      });
+
+      try {
+        const cta = cachedCuentas.find(c => c.id === cuentaId);
+        const userEmailActivo = localStorage.getItem('apex_user_email') || sessionStorage.getItem('apex_user_email') || 'admin@apex.com';
+
+        if (netoFinal !== 0) {
+          const esEgreso = netoFinal > 0;
+          const montoAbs = Math.abs(netoFinal);
+
+          if (esEgreso) {
+            if (!cta || cta.saldo_actual < montoAbs) {
+              alert(`Saldo insuficiente en cuenta "${cta?.nombre}". Fondos: ${formatCOP(cta?.saldo_actual)}`);
+              return;
+            }
+            await sb.from('apex_cuentas').update({ saldo_actual: parseFloat(cta.saldo_actual) - montoAbs }).eq('id', cuentaId);
+          } else {
+            await sb.from('apex_cuentas').update({ saldo_actual: parseFloat(cta.saldo_actual) + montoAbs }).eq('id', cuentaId);
+          }
+
+          const catObj = cachedCategoriasFinancieras.find(c => c.nombre.toLowerCase().includes('sueldos') || c.nombre.toLowerCase().includes('nomina') || c.nombre.toLowerCase().includes('ingreso')) || cachedCategoriasFinancieras[0];
+          
+          // REGISTRO OBLIGATORIO EN EL LIBRO MAYOR apex_transacciones_libro_mayor
+          await sb.from('apex_transacciones_libro_mayor').insert([{
+            type: esEgreso ? 'egreso' : 'ingreso',
+            category: esEgreso ? 'Pago de Nómina' : 'Cobro Saldo a Favor Staff',
+            categoria_id: catObj ? catObj.id : null,
+            amount: montoAbs,
+            account_id: cuentaId,
+            description: `Liquidación a ${staff.email}. Neto: ${formatCOP(netoFinal)}`,
+            registered_by: userEmailActivo
+          }]);
+        }
+
+        for (let idClase of idsPagados) {
+          await sb.from('apex_coach_supervisions').update({ is_paid: true }).eq('id', idClase);
+        }
+        for (let cargo of cargosSt) {
+          await sb.from('apex_cargos_staff').update({ is_paid: true }).eq('id', cargo.id);
+        }
+
+        const { data: resIns } = await sb.from('apex_nomina').insert([{
+          user_email: staff.email,
+          staff_email: staff.email,
+          total_paid: netoFinal,
+          period_start: desde.toISOString().split('T')[0],
+          status: 'pagado',
+          concepto: JSON.stringify(conteoServicios)
+        }]).select();
+
+        cerrarModalDetalle();
+        mostrarFacturaSoporteInterno({
+          id: resIns?.[0]?.id || Math.floor(Math.random() * 90000 + 10000),
+          fecha: new Date().toLocaleDateString(),
+          staffNombre: staff.name || staff.email,
+          conteoServicios: conteoServicios,
+          total: netoFinal,
+          rango: infoRango.nivel
+        });
+
+        await cargarDatosBase();
+        calcularNominaGeneral();
+      } catch (err) {
+        alert('Error al registrar pago: ' + err.message);
+      }
+    }
+
+    function mostrarFacturaSoporteInterno(factura) {
+      const container = document.getElementById('facturaContenido');
+      let detalleHTML = '';
+      for (let [desc, cant] of Object.entries(factura.conteoServicios)) {
+        detalleHTML += `<div style="display:flex; justify-content:space-between; font-size:0.62rem; margin-bottom:3px;"><span>${desc}</span> <b>${cant > 0 ? 'x' + cant + ' u.' : 'Descuento'}</b></div>`;
+      }
+
+      container.innerHTML = `
+        <div id="ticketImprimible" style="background:#fff; color:#000; padding:16px; border-radius:6px;">
+          <div style="text-align:center; border-bottom:2px dashed #333; padding-bottom:8px; margin-bottom:8px;">
+            <h2 style="font-size:0.95rem; font-weight:900; text-transform:uppercase;">APEX BOXING ECOSYSTEM</h2>
+            <div style="font-size:0.6rem; color:#666;">COMPROBANTE CONTABLE DE NÓMINA</div>
+            <div style="font-size:0.55rem; color:#888;">Ticket N° APEX-TX-${factura.id}</div>
+          </div>
+          <div style="font-size:0.65rem; line-height:1.4; margin-bottom:8px;">
+            <div><b>Fecha:</b> ${factura.fecha}</div>
+            <div><b>Beneficiario:</b> ${factura.staffNombre}</div>
+            <div><b>Nivel:</b> ${factura.rango}</div>
+          </div>
+          <div style="border-top:1px dashed #333; border-bottom:1px dashed #333; padding:6px 0; margin-bottom:8px;">
+            <div style="font-size:0.6rem; font-weight:800; text-transform:uppercase; margin-bottom:4px;">Desglose de Cuenta:</div>
+            ${detalleHTML}
+          </div>
+          <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:0.8rem; margin-bottom:8px;">
+            <span>TOTAL LÍQUIDADO:</span>
+            <span style="color:#16a34a;">${formatCOP(factura.total)}</span>
+          </div>
+        </div>
+      `;
+      document.getElementById('facturaModal').style.display = 'flex';
+    }
+
+    async function descargarTicketComoJPG() {
+      const ticketEl = document.getElementById('ticketImprimible');
+      if (!ticketEl) return;
+      try {
+        const canvas = await html2canvas(ticketEl, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+        const link = document.createElement('a');
+        link.download = `Apex_Ticket_${Date.now()}.jpg`;
+        link.href = canvas.toDataURL('image/jpeg', 0.95);
+        link.click();
+      } catch (err) { alert("Error: " + err.message); }
+    }
+
+    function cerrarModalFactura() {
+      document.getElementById('facturaModal').style.display = 'none';
+    }
+
+    function mostrarDesgloseKpi(tipo) {
+      const modal = document.getElementById('desgloseKpiModal');
+      const titulo = document.getElementById('kpiModalTitulo');
+      const contenido = document.getElementById('kpiModalContenido');
+      if (!modal || !titulo || !contenido) return;
+
+      const { desde, hasta } = obtenerFechasFiltroPeriodo();
+      const staffList = cachedUsers.filter(u => {
+        const r = (u.role || u.profile_id || '').toLowerCase();
+        return r.includes('coach') || r.includes('supervisor') || r.includes('coordinador') || r.includes('admin');
+      });
+
+      const servicioEstandarObj = cachedServicios.find(s => s.es_clase_estandar === true) || cachedServicios[0];
+      const precioBaseClase = servicioEstandarObj ? parseFloat(servicioEstandarObj.precio || 20000) : 20000;
+
+      let html = '';
+      if (tipo === 'debo') {
+        titulo.innerText = 'Desglose: Nómina que Debo';
+        staffList.forEach(async st => {
+          const desglPts = await calcularPuntajeBimestreMultifuente(st.email);
+          let infoRango = determinarRangoYMultiplicador(desglPts.total);
+          if (excepcionesPagoStaff.has(st.email)) infoRango.elegible = true;
+
+          const clases = cachedSupervisiones.filter(s => (s.coach_email || '').toLowerCase() === st.email.toLowerCase() && (s.coordinator_status === 'aprobado' || s.coordinator_status === 'sancionado') && s.is_paid !== true && s.is_deleted !== true && new Date(s.session_date || s.created_at) >= desde && new Date(s.session_date || s.created_at) <= hasta);
+          if (clases.length > 0 && infoRango.elegible) {
+            html += `<div style="background:#050507; border:1px solid var(--border); padding:6px; border-radius:4px; font-size:0.65rem; display:flex; justify-content:space-between;"><span>${st.name || st.email} (${clases.length} serv.)</span><b style="color:var(--status-ok);">${formatCOP(clases.length * precioBaseClase * infoRango.mult)}</b></div>`;
+          } else if (clases.length > 0 && !infoRango.elegible) {
+            html += `<div style="background:#050507; border:1px solid var(--border); padding:6px; border-radius:4px; font-size:0.65rem; display:flex; justify-content:space-between; opacity:0.6;"><span>${st.name || st.email} (${clases.length} serv. - Inactivo)</span><b style="color:var(--text-muted);">${formatCOP(clases.length * precioBaseClase)}</b></div>`;
+          }
+        });
+      } else if (tipo === 'meDeben') {
+        titulo.innerText = 'Desglose: Deuda de Nómina (Adelantos)';
+        staffList.forEach(st => {
+          const cargos = cachedCargosStaff.filter(c => (c.staff_email || '').toLowerCase() === st.email.toLowerCase() && !c.is_paid && !c.is_deleted);
+          let sumC = 0; cargos.forEach(c => sumC += parseFloat(c.valor || 0));
+          if (sumC > 0) {
+            html += `<div style="background:#050507; border:1px solid var(--border); padding:6px; border-radius:4px; font-size:0.65rem; display:flex; justify-content:space-between;"><span>${st.name || st.email} (${cargos.length} cargos)</span><b style="color:var(--status-warn);">${formatCOP(sumC)}</b></div>`;
+          }
+        });
+      } else if (tipo === 'proyeccion') {
+        titulo.innerText = 'Proyección Financiera de Caja';
+        const propias = cachedCuentas.filter(c => c.activa !== false && (c.clasificacion === 'propia' || !c.clasificacion));
+        propias.forEach(c => {
+          html += `<div style="background:#050507; border:1px solid var(--border); padding:6px; border-radius:4px; font-size:0.65rem; display:flex; justify-content:space-between;"><span>${c.nombre} (${c.tipo})</span><b style="color:#fff;">${formatCOP(c.saldo_actual)}</b></div>`;
+        });
+      }
+
+      setTimeout(() => {
+        contenido.innerHTML = html || '<span style="font-size:0.65rem; color:var(--text-muted);">Sin registros en este desglose.</span>';
+      }, 100);
+
+      modal.style.display = 'flex';
+    }
+
+    function cerrarModalDesgloseKpi() {
+      document.getElementById('desgloseKpiModal').style.display = 'none';
+    }
+
+    function mostrarDesgloseHistorico(tipo) {
+      const modal = document.getElementById('desgloseKpiModal');
+      const titulo = document.getElementById('kpiModalTitulo');
+      const contenido = document.getElementById('kpiModalContenido');
+      if (!modal || !titulo || !contenido) return;
+
+      titulo.innerText = tipo === 'gastoReal' ? 'Desglose: Gasto Real Pagado' : 'Desglose: Deuda Nómina Pendiente';
+      let html = '';
+      cachedNominaPagos.forEach(p => {
+        if (tipo === 'gastoReal' && parseFloat(p.total_paid || 0) > 0) {
+          html += `<div style="background:#050507; border:1px solid var(--border); padding:6px; border-radius:4px; font-size:0.65rem; display:flex; justify-content:space-between;"><span>${p.user_email} (${p.period_start})</span><b style="color:var(--status-ok);">${formatCOP(p.total_paid)}</b></div>`;
+        }
+      });
+      contenido.innerHTML = html || '<span style="font-size:0.65rem; color:var(--text-muted);">Sin registros.</span>';
+      modal.style.display = 'flex';
+    }
+
+    const ServiciosAdmin = {
+      guardar: async function(e) {
+        e.preventDefault();
+        const id = document.getElementById('servId').value;
+        const nombre = document.getElementById('inputNombreServicio').value.trim();
+        const precio = parseFloat(document.getElementById('inputPrecioServicio').value);
+        const stock = parseFloat(document.getElementById('inputStockServicio').value) || 0;
+        const es_servicio = document.getElementById('inputEsServicio').value === 'true';
+        const clasificacionItem = document.getElementById('inputClasificacionItem').value;
+        const esClaseEstandar = document.getElementById('inputEsClaseEstandar').checked;
+        const imagen_url = document.getElementById('inputImagenUrl').value.trim();
+
+        if (!nombre || isNaN(precio)) { alert("Completa nombre y precio."); return; }
+
+        try {
+          if (esClaseEstandar) {
+            await sb.from('apex_productos').update({ es_clase_estandar: false }).neq('id', id || 'none');
+          }
+
+          const payload = { 
+            nombre, 
+            precio, 
+            stock: es_servicio ? 999999 : stock, 
+            es_servicio, 
+            es_clase_estandar: esClaseEstandar,
+            categoria: clasificacionItem, 
+            imagen_url 
+          };
+
+          if (id) {
+            const { error } = await sb.from('apex_productos').update(payload).eq('id', id);
+            if (error) throw error;
+          } else {
+            payload.id = 'prod_' + Date.now();
+            const { error } = await sb.from('apex_productos').insert([payload]);
+            if (error) throw error;
+          }
+          alert("¡Guardado con éxito!");
+          this.limpiarFormulario();
+          await cargarDatosBase();
+          calcularNominaGeneral();
+        } catch (err) { alert("Error: " + err.message); }
+      },
+
+      editar: function(id) {
+        const s = cachedServicios.find(x => x.id === id);
+        if (!s) return;
+        document.getElementById('servId').value = s.id;
+        document.getElementById('inputNombreServicio').value = s.nombre;
+        document.getElementById('inputPrecioServicio').value = s.precio;
+        document.getElementById('inputStockServicio').value = s.es_servicio ? 10 : (s.stock ?? 10);
+        document.getElementById('inputEsServicio').value = String(s.es_servicio !== false);
+        document.getElementById('inputEsClaseEstandar').checked = Boolean(s.es_clase_estandar);
+        
+        let clasif = s.categoria;
+        if (!clasif || clasif === 'Catálogo') {
+          clasif = s.es_servicio ? 'servicio_nomina' : 'producto_venta';
+        }
+        document.getElementById('inputClasificacionItem').value = clasif;
+        document.getElementById('inputImagenUrl').value = s.imagen_url || '';
+        document.getElementById('tituloFormCatalogo').innerText = 'Editar Elemento del Catálogo';
+        document.getElementById('btnGuardarServicio').innerText = 'Actualizar Elemento';
+        document.getElementById('btnCancelarEdicion').style.display = 'inline-block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      },
+
+      limpiarFormulario: function() {
+        document.getElementById('servId').value = '';
+        document.getElementById('inputNombreServicio').value = '';
+        document.getElementById('inputPrecioServicio').value = '';
+        document.getElementById('inputStockServicio').value = '10';
+        document.getElementById('inputEsClaseEstandar').checked = false;
+        document.getElementById('inputImagenUrl').value = '';
+        document.getElementById('inputEsServicio').value = 'true';
+        document.getElementById('inputClasificacionItem').value = 'servicio_nomina';
+        document.getElementById('tituloFormCatalogo').innerText = 'Configurar Elemento del Catálogo';
+        document.getElementById('btnGuardarServicio').innerText = 'Guardar Elemento';
+        document.getElementById('btnCancelarEdicion').style.display = 'none';
+      },
+
+      eliminar: async function(id) {
+        if (!confirm("¿Eliminar elemento?")) return;
+        try {
+          const { error } = await sb.from('apex_productos').delete().eq('id', id);
+          if (error) throw error;
+          await cargarDatosBase();
+          calcularNominaGeneral();
+        } catch (err) { alert("Error: " + err.message); }
+      }
+    };
+
+    function renderizarServiciosCatalogo() {
+      const grid = document.getElementById('catalogoServiciosGrid');
+      if (!grid) return;
+      if (cachedServicios.length === 0) {
+        grid.innerHTML = '<span style="font-size:0.7rem; color:var(--text-muted);">No hay elementos en catálogo.</span>';
+        document.getElementById('valorStockVentaLbl').innerText = formatCOP(0);
+        document.getElementById('valorStockActivosLbl').innerText = formatCOP(0);
+        return;
+      }
+
+      let valorStockVenta = 0;
+      let valorStockActivos = 0;
+
+      grid.innerHTML = cachedServicios.map(s => {
+        const bgImg = s.imagen_url || 'https://images.unsplash.com/photo-1517649763962-0c6232660102?w=300';
+        const esServ = s.es_servicio !== false;
+        const st = esServ ? 0 : parseFloat(s.stock || 0);
+        const pr = parseFloat(s.precio || 0);
+        const subtotal = st * pr;
+
+        if (!esServ) {
+          if (s.categoria === 'activo_herramienta') {
+            valorStockActivos += subtotal;
+          } else {
+            valorStockVenta += subtotal;
+          }
+        }
+
+        const estandarTag = s.es_clase_estandar ? ' ★ [Clase Estándar]' : '';
+        const tipoTxt = s.categoria === 'activo_herramienta' ? '[Activo/Herramienta]' : (esServ ? '[Servicio]' + estandarTag : '[Producto Venta]');
+        const stockTxt = esServ ? 'Stock: Infinito' : `Stock: ${st} un.`;
+
+        return `
+          <div class="product-card" style="background-image: url('${bgImg}');">
+            <div class="product-title">${s.nombre}</div>
+            <div style="font-size:0.55rem; color:var(--text-muted);">${tipoTxt} · ${stockTxt}</div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:3px;">
+              <span class="product-price">${formatCOP(pr)}</span>
+              <div style="display:flex; gap:3px;">
+                <button class="btn-edit" onclick="ServiciosAdmin.editar('${s.id}')">Edit</button>
+                <button class="btn-secondary" style="padding:2px 5px; font-size:0.5rem; color:var(--accent);" onclick="ServiciosAdmin.eliminar('${s.id}')">✕</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('valorStockVentaLbl').innerText = formatCOP(valorStockVenta);
+      document.getElementById('valorStockActivosLbl').innerText = formatCOP(valorStockActivos);
+    }
+
+    function poblarSelectoresAsignacion() {
+      const selectStaff = document.getElementById('selectStaffAsignar');
+      const selectServ = document.getElementById('selectServicioAsignar');
+      if (!selectStaff || !selectServ) return;
+
+      const staffList = cachedUsers.filter(u => {
+        const r = (u.role || u.profile_id || '').toLowerCase();
+        return r.includes('coach') || r.includes('supervisor') || r.includes('coordinador') || r.includes('admin');
+      });
+
+      selectStaff.innerHTML = staffList.length > 0 
+        ? '<option value="" disabled selected>-- Selecciona staff --</option>' + staffList.map(s => `<option value="${s.email}">${s.name || s.email}</option>`).join('')
+        : '<option value="" disabled>No hay staff</option>';
+
+      selectServ.innerHTML = cachedServicios.length > 0
+        ? '<option value="" disabled selected>-- Selecciona elemento --</option>' + cachedServicios.map(serv => `<option value="${serv.nombre}" data-esservicio="${serv.es_servicio !== false}" data-precio="${serv.precio}">[${serv.es_servicio !== false ? 'Servicio' : 'Producto'}] ${serv.nombre} — ${formatCOP(serv.precio)}</option>`).join('')
+        : '<option value="" disabled>No hay elementos</option>';
+
+      actualizarContextoStaffAsignacion();
+      actualizarNaturalezaAsignacion();
+    }
+
+    function actualizarContextoStaffAsignacion() {
+      const email = document.getElementById('selectStaffAsignar').value;
+      const box = document.getElementById('boxContextoStaff');
+      if (!email || !box) return;
+
+      const user = cachedUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
+      if (!user) { box.style.display = 'none'; return; }
+
+      const pendientesNom = cachedNominaPagos.filter(n => n.staff_email === email && n.estado === 'pendiente_pagar');
+      const saldoNom = pendientesNom.reduce((a, b) => a + parseFloat(b.monto || 0), 0);
+
+      const cargosSt = cachedCargosStaff.filter(c => (c.staff_email || '').toLowerCase() === email.toLowerCase() && !c.is_paid && !c.is_deleted);
+      const saldoCargos = cargosSt.reduce((a, b) => a + parseFloat(b.valor || 0), 0);
+
+      const neto = saldoNom - saldoCargos;
+
+      document.getElementById('ctxStaffNombre').innerText = user.name || user.email;
+      document.getElementById('ctxServiciosVal').innerText = formatCOP(saldoNom);
+      document.getElementById('ctxCargosVal').innerText = formatCOP(saldoCargos);
+
+      const netoEl = document.getElementById('ctxNetoVal');
+      netoEl.innerText = `Saldo Neto: ${formatCOP(neto)}`;
+      netoEl.style.color = neto >= 0 ? 'var(--status-ok)' : 'var(--accent)';
+      box.style.display = 'block';
+    }
+
+    function actualizarNaturalezaAsignacion() {
+      const selServ = document.getElementById('selectServicioAsignar');
+      const opt = selServ.options[selServ.selectedIndex];
+      if (!opt) return;
+      const esServ = opt.getAttribute('data-esservicio') === 'true';
+      naturalezaInvertidaAsignacion = false;
+      actualizarTextoNaturaleza(esServ);
+    }
+
+    function toggleInvertirNaturaleza() {
+      naturalezaInvertidaAsignacion = !naturalezaInvertidaAsignacion;
+      const selServ = document.getElementById('selectServicioAsignar');
+      const opt = selServ.options[selServ.selectedIndex];
+      const esServOriginal = opt ? opt.getAttribute('data-esservicio') === 'true' : true;
+      const esServEfectivo = naturalezaInvertidaAsignacion ? !esServOriginal : esServOriginal;
+      actualizarTextoNaturaleza(esServEfectivo);
+    }
+
+    function actualizarTextoNaturaleza(esServicio) {
+      const lbl = document.getElementById('lblNaturalezaAsignacion');
+      if (esServicio) {
+        lbl.innerText = 'Servicio (Suma a favor del staff)';
+        lbl.style.color = 'var(--status-ok)';
+      } else {
+        lbl.innerText = 'Producto / Adelanto (Suma deuda al staff)';
+        lbl.style.color = 'var(--accent)';
+      }
+    }
+
+    async function guardarAsignacionServicioStaff() {
+      const emailStaff = document.getElementById('selectStaffAsignar').value;
+      const nombreServicio = document.getElementById('selectServicioAsignar').value;
+      const fecha = document.getElementById('inputAsignarFecha').value;
+      const hora = document.getElementById('inputAsignarHora').value || '19:00';
+
+      const optSel = document.getElementById('selectServicioAsignar');
+      const opt = optSel.options[optSel.selectedIndex];
+      const esServicioOriginal = opt ? opt.getAttribute('data-esservicio') === 'true' : true;
+      const esServicioEfectivo = naturalezaInvertidaAsignacion ? !esServicioOriginal : esServicioOriginal;
+      const precioServ = opt ? parseFloat(opt.getAttribute('data-precio')) || 0 : 20000;
+
+      if (!emailStaff || !nombreServicio || !fecha) { alert("Completa los campos."); return; }
+
+      try {
+        if (esServicioEfectivo) {
+          const payload = {
+            coach_email: emailStaff,
+            supervisor_email: localStorage.getItem('apex_user_email') || 'admin@apex.com',
+            session_date: fecha,
+            class_time: nombreServicio + ' (' + hora + ')',
+            coordinator_status: 'aprobado',
+            coach_points: 10,
+            supervisor_points: 2,
+            is_paid: false,
+            is_deleted: false
+          };
+          const { error } = await sb.from('apex_coach_supervisions').insert([payload]);
+          if (error) throw error;
+        } else {
+          const payloadCargo = {
+            staff_email: emailStaff,
+            descripcion: nombreServicio,
+            valor: precioServ,
+            is_paid: false,
+            is_deleted: false
+          };
+          const { error } = await sb.from('apex_cargos_staff').insert([payloadCargo]);
+          if (error) throw error;
+        }
+
+        alert("¡Registrado con éxito!");
+        await cargarDatosBase();
+        calcularNominaGeneral();
+        actualizarContextoStaffAsignacion();
+        document.getElementById('selectStaffAsignar').selectedIndex = 0;
+        document.getElementById('boxContextoStaff').style.display = 'none';
+      } catch (err) { alert("Error: " + err.message); }
+    }
+
+    function poblarFiltroHistoricoStaff() {
+      const select = document.getElementById('filtroHistStaff');
+      if (!select) return;
+      const staffList = cachedUsers.filter(u => {
+        const r = (u.role || u.profile_id || '').toLowerCase();
+        return r.includes('coach') || r.includes('supervisor') || r.includes('coordinador') || r.includes('admin');
+      });
+      select.innerHTML = '<option value="todos">Todo el Staff (General)</option>' + 
+        staffList.map(s => `<option value="${s.email}">${s.name || s.email}</option>`).join('');
+    }
+
+    function renderizarHistoricoPagos() {
+      const container = document.getElementById('historicoPagosList');
+      const filtroStaff = document.getElementById('filtroHistStaff')?.value || 'todos';
+      const filtroPeriodo = document.getElementById('filtroHistPeriodo')?.value || 'todo';
+      if (!container) return;
+
+      let filtrados = cachedNominaPagos;
+      if (filtroStaff !== 'todos') {
+        filtrados = filtrados.filter(p => (p.user_email || '').toLowerCase() === filtroStaff.toLowerCase());
+      }
+
+      const ahora = new Date();
+      if (filtroPeriodo === 'semana') {
+        const haceSemana = new Date(); haceSemana.setDate(ahora.getDate() - 7);
+        filtrados = filtrados.filter(p => new Date(p.created_at || p.period_start) >= haceSemana);
+      } else if (filtroPeriodo === 'quincena') {
+        const haceQuincena = new Date(); haceQuincena.setDate(ahora.getDate() - 15);
+        filtrados = filtrados.filter(p => new Date(p.created_at || p.period_start) >= haceQuincena);
+      } else if (filtroPeriodo === 'mes') {
+        const haceMes = new Date(); haceMes.setMonth(ahora.getMonth() - 1);
+        filtrados = filtrados.filter(p => new Date(p.created_at || p.period_start) >= haceMes);
+      } else if (filtroPeriodo === 'trimestre') {
+        const haceTrim = new Date(); haceTrim.setMonth(ahora.getMonth() - 3);
+        filtrados = filtrados.filter(p => new Date(p.created_at || p.period_start) >= haceTrim);
+      }
+
+      let gastoRealTotal = 0;
+      filtrados.forEach(p => gastoRealTotal += parseFloat(p.total_paid || 0));
+      document.getElementById('kpiGastoReal').innerText = formatCOP(gastoRealTotal);
+      document.getElementById('kpiDeudaNomina').innerText = formatCOP(0);
+
+      if (filtrados.length === 0) {
+        container.innerHTML = '<span style="font-size:0.7rem; color:var(--text-muted);">No hay pagos registrados con estos filtros.</span>';
+        return;
+      }
+
+      container.innerHTML = filtrados.map(p => {
+        let detalleServiciosTxt = 'Servicios generales';
+        try {
+          if (p.concepto && p.concepto.startsWith('{')) {
+            const parsed = JSON.parse(p.concepto);
+            detalleServiciosTxt = Object.entries(parsed).map(([k, v]) => `${k} (${v > 0 ? 'x' + v : 'Descuento'})`).join(', ');
+          } else if (p.concepto) {
+            detalleServiciosTxt = p.concepto;
+          }
+        } catch(e) {}
+
+        return `
+          <div class="staff-card-pro" style="cursor:default;">
+            <div class="staff-card-header">
+              <div>
+                <div class="staff-name" style="font-size:0.75rem;">👤 ${p.user_email}</div>
+                <span style="font-size:0.58rem; color:var(--text-muted);">Fecha: ${p.period_start || 'N/A'} · ${detalleServiciosTxt}</span>
+              </div>
+              <div style="text-align:right;">
+                <span style="font-size:0.85rem; font-weight:900; color:${parseFloat(p.total_paid||0)>=0?'var(--status-ok)':'var(--accent)'};">${formatCOP(p.total_paid || 0)}</span>
+                <button class="btn btn-secondary btn-small" onclick='verTicketHistorico(${JSON.stringify(p)})' style="display:block; margin-top:4px; font-size:0.55rem;">📄 Ver Ticket</button>
+                <button class="btn btn-secondary btn-small" onclick="reversarTransaccionNomina('${p.id}')" style="display:block; margin-top:2px; font-size:0.55rem; color:var(--accent);">🔄 Reversar</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      renderizarGraficaHistoricoFiltered(filtrados);
+    }
+
+    function verTicketHistorico(p) {
+      let conteoServicios = {};
+      try {
+        if (p.concepto && p.concepto.startsWith('{')) {
+          conteoServicios = JSON.parse(p.concepto);
+        } else {
+          conteoServicios = { [p.concepto || 'Pago Nómina']: 1 };
+        }
+      } catch(e) {
+        conteoServicios = { 'Pago General': 1 };
+      }
+
+      mostrarFacturaSoporteInterno({
+        id: p.id ? p.id.substring(0, 6) : '12345',
+        fecha: p.period_start || new Date().toLocaleDateString(),
+        staffNombre: p.user_email,
+        conteoServicios: conteoServicios,
+        total: parseFloat(p.total_paid || 0),
+        rango: 'APEX'
+      });
+    }
+
+    async function reversarTransaccionNomina(id) {
+      if (!confirm("¿Deseas registrar una contrapartida de reversión para este pago? Se mantendrá la trazabilidad histórica.")) return;
+      try {
+        const pObj = cachedNominaPagos.find(x => x.id === id);
+        if (!pObj) return;
+
+        const montoReversion = parseFloat(pObj.total_paid || 0);
+        const userEmailActivo = localStorage.getItem('apex_user_email') || sessionStorage.getItem('apex_user_email') || 'admin@apex.com';
+
+        const catObj = cachedCategoriasFinancieras.find(c => c.nombre.toLowerCase().includes('ajuste') || c.nombre.toLowerCase().includes('egreso') || c.nombre.toLowerCase().includes('ingreso')) || cachedCategoriasFinancieras[0];
+        
+        const ctaPropia = cachedCuentas.find(c => c.activa !== false && (c.clasificacion === 'propia' || !c.clasificacion));
+        if (ctaPropia && montoReversion !== 0) {
+          const nuevoSaldoCta = montoReversion > 0 ? parseFloat(ctaPropia.saldo_actual) + montoReversion : parseFloat(ctaPropia.saldo_actual) - Math.abs(montoReversion);
+          await sb.from('apex_cuentas').update({ saldo_actual: nuevoSaldoCta }).eq('id', ctaPropia.id);
+          
+          await sb.from('apex_transacciones_libro_mayor').insert([{
+            type: montoReversion > 0 ? 'ingreso' : 'egreso',
+            category: 'Reversión / Contrapartida',
+            categoria_id: catObj ? catObj.id : null,
+            amount: Math.abs(montoReversion),
+            account_id: ctaPropia.id,
+            description: `Reversión de pago ID ${id.substring(0,6)}`,
+            registered_by: userEmailActivo
+          }]);
+        }
+
+        await sb.from('apex_nomina').insert([{
+          user_email: pObj.user_email,
+          staff_email: pObj.staff_email,
+          total_paid: -montoReversion,
+          period_start: new Date().toISOString().split('T')[0],
+          status: 'reversado',
+          concepto: `REVERSIÓN de pago ID ${id.substring(0,6)}`
+        }]);
+
+        alert("Reversión registrada con trazabilidad exitosamente.");
+        await cargarDatosBase();
+        calcularNominaGeneral();
+      } catch (err) { alert("Error al reversar: " + err.message); }
+    }
+
+    function renderizarGraficaHistorico() { renderizarHistoricoPagos(); }
+
+    function renderizarGraficaHistoricoFiltered(filtrados) {
+      const canvasEl = document.getElementById('chartHistoricoPagos');
+      if (!canvasEl) return;
+      if (chartHistoricoInstance) chartHistoricoInstance.destroy();
+
+      const labels = filtrados.slice(0, 8).reverse().map(p => p.period_start || 'Pago');
+      const dataPagos = filtrados.slice(0, 8).reverse().map(p => p.total_paid || 0);
+
+      chartHistoricoInstance = new Chart(canvasEl.getContext('2d'), {
+        type: 'line',
+        data: {
+          labels: labels.length > 0 ? labels : ['Sin datos'],
+          datasets: [{
+            label: 'Evolución Gasto Nómina (COP)',
+            data: dataPagos.length > 0 ? dataPagos : [0],
+            borderColor: '#e50914',
+            backgroundColor: 'rgba(229, 9, 20, 0.15)',
+            borderWidth: 2,
+            tension: 0.3,
+            fill: true,
+            pointRadius: 3
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: '#888', font: { size: 8 } }, grid: { display: false } },
+            y: { ticks: { color: '#888', font: { size: 9 } }, grid: { color: '#16161a' } }
+          }
+        }
+      });
+    }
+
+    const AuditoriaTemporal = {
+      inicializar: function() {
+        const contCheckboxes = document.getElementById('checkboxesCuentasAuditoria');
+        if (!contCheckboxes) return;
+
+        contCheckboxes.innerHTML = `
+          <label style="font-size:0.6rem; color:#fff; cursor:pointer; display:flex; align-items:center; gap:4px;">
+            <input type="checkbox" value="todas" ${cuentasSeleccionadasAuditoria.has('todas') ? 'checked' : ''} onchange="AuditoriaTemporal.toggleCheckboxCuenta('todas')"> <b>[Global / Todas]</b>
+          </label>
+        `;
+
+        cachedCuentas.forEach(c => {
+          const checked = cuentasSeleccionadasAuditoria.has(c.id) && !cuentasSeleccionadasAuditoria.has('todas');
+          contCheckboxes.innerHTML += `
+            <label style="font-size:0.6rem; color:#fff; cursor:pointer; display:flex; align-items:center; gap:4px;">
+              <input type="checkbox" value="${c.id}" ${checked ? 'checked' : ''} onchange="AuditoriaTemporal.toggleCheckboxCuenta('${c.id}')"> ${c.nombre}
+            </label>
+          `;
+        });
+
+        this.calcular();
+        this.renderizarListaTransacciones();
+      },
+
+      toggleCheckboxCuenta: function(id) {
+        if (id === 'todas') {
+          cuentasSeleccionadasAuditoria.clear();
+          cuentasSeleccionadasAuditoria.add('todas');
+        } else {
+          cuentasSeleccionadasAuditoria.delete('todas');
+          if (cuentasSeleccionadasAuditoria.has(id)) {
+            cuentasSeleccionadasAuditoria.delete(id);
+          } else {
+            cuentasSeleccionadasAuditoria.add(id);
+          }
+          if (cuentasSeleccionadasAuditoria.size === 0) {
+            cuentasSeleccionadasAuditoria.add('todas');
+          }
+        }
+        this.inicializar();
+      },
+
+      calcular: function() {
+        const fechaInicioStr = document.getElementById('auditoriaFechaInicio').value;
+        const fechaCorteStr = document.getElementById('auditoriaFechaCorte').value;
+        if (!fechaCorteStr) return;
+
+        const fechaCorte = new Date(fechaCorteStr + 'T23:59:59');
+        const fechaInicio = fechaInicioStr ? new Date(fechaInicioStr + 'T00:00:00') : null;
+
+        let saldoTengo = 0;
+        let facturacionIngresos = 0;
+        let totalDeboNovedad = 0;
+        let totalMeDebenNovedad = 0;
+
+        cachedCuentas.forEach(cta => {
+          if (!cuentasSeleccionadasAuditoria.has('todas') && !cuentasSeleccionadasAuditoria.has(cta.id)) return;
+          let saldoActualCalc = parseFloat(cta.saldo_actual || 0);
+
+          const transPosteriores = cachedTransaccionesLibro.filter(t => t.account_id === cta.id && new Date(t.created_at) > fechaCorte);
+          transPosteriores.forEach(t => {
+            const monto = parseFloat(t.amount || 0);
+            if (t.type === 'ingreso') saldoActualCalc -= monto;
+            else saldoActualCalc += monto;
+          });
+
+          saldoTengo += saldoActualCalc;
+        });
+
+        let transRango = cachedTransaccionesLibro.filter(t => {
+          if (!cuentasSeleccionadasAuditoria.has('todas') && !cuentasSeleccionadasAuditoria.has(t.account_id)) return false;
+          const tDate = new Date(t.created_at);
+          if (tDate > fechaCorte) return false;
+          if (fechaInicio && tDate < fechaInicio) return false;
+          return true;
+        });
+
+        transRango.forEach(t => {
+          const monto = parseFloat(t.amount || 0);
+          if (t.type === 'ingreso') facturacionIngresos += monto;
+        });
+
+        const staffListGlobal = cachedUsers.filter(u => {
+          const r = (u.role || u.profile_id || '').toLowerCase();
+          return r.includes('coach') || r.includes('supervisor') || r.includes('coordinador') || r.includes('admin');
+        });
+
+        staffListGlobal.forEach(st => {
+          const cargosSt = cachedCargosStaff.filter(c => (c.staff_email || '').toLowerCase() === st.email.toLowerCase() && !c.is_deleted && new Date(c.created_at) <= fechaCorte);
+          let sumCargos = 0; cargosSt.forEach(c => sumCargos += parseFloat(c.valor || 0));
+          if (sumCargos > 0) totalMeDebenNovedad += sumCargos;
+        });
+
+        document.getElementById('metricTengo').innerText = formatCOP(saldoTengo);
+        document.getElementById('metricIngresos').innerText = formatCOP(facturacionIngresos);
+        document.getElementById('metricDebo').innerText = formatCOP(totalDeboNovedad);
+        document.getElementById('metricMeDeben').innerText = formatCOP(totalMeDebenNovedad);
+
+        this.renderizarGraficaAuditoria(transRango);
+        this.renderizarListaTransacciones(transRango);
+      },
+
+      mostrarDesgloseMetrica: function(tipo) {
+        const modal = document.getElementById('desgloseKpiModal');
+        const titulo = document.getElementById('kpiModalTitulo');
+        const contenido = document.getElementById('kpiModalContenido');
+        if (!modal || !titulo || !contenido) return;
+
+        const fechaCorteStr = document.getElementById('auditoriaFechaCorte').value;
+        const fechaCorte = new Date(fechaCorteStr + 'T23:59:59');
+        const fechaInicioStr = document.getElementById('auditoriaFechaInicio').value;
+        const fechaInicio = fechaInicioStr ? new Date(fechaInicioStr + 'T00:00:00') : null;
+
+        let html = '';
+        if (tipo === 'tengo') {
+          titulo.innerText = 'Desglose: Dinero que Tengo (Cuentas)';
+          cachedCuentas.forEach(cta => {
+            if (!cuentasSeleccionadasAuditoria.has('todas') && !cuentasSeleccionadasAuditoria.has(cta.id)) return;
+            let saldoCalc = parseFloat(cta.saldo_actual || 0);
+            const transPost = cachedTransaccionesLibro.filter(t => t.account_id === cta.id && new Date(t.created_at) > fechaCorte);
+            transPost.forEach(t => {
+              const m = parseFloat(t.amount || 0);
+              if (t.type === 'ingreso') saldoCalc -= m; else saldoCalc += m;
+            });
+            html += `<div style="background:#050507; border:1px solid var(--border); padding:6px; border-radius:4px; font-size:0.65rem; display:flex; justify-content:space-between;"><span>${cta.nombre} (${cta.tipo})</span><b style="color:var(--status-ok);">${formatCOP(saldoCalc)}</b></div>`;
+          });
+        } else if (tipo === 'ingresos') {
+          titulo.innerText = 'Desglose: Facturación (Ingresos en Rango)';
+          let transRango = cachedTransaccionesLibro.filter(t => {
+            if (!cuentasSeleccionadasAuditoria.has('todas') && !cuentasSeleccionadasAuditoria.has(t.account_id)) return false;
+            const tDate = new Date(t.created_at);
+            if (tDate > fechaCorte) return false;
+            if (fechaInicio && tDate < fechaInicio) return false;
+            return t.type === 'ingreso';
+          });
+          transRango.forEach(t => {
+            html += `<div style="background:#050507; border:1px solid var(--border); padding:6px; border-radius:4px; font-size:0.65rem; display:flex; justify-content:space-between;"><span>${t.category} (${new Date(t.created_at).toLocaleDateString()})</span><b style="color:#3b82f6;">${formatCOP(t.amount)}</b></div>`;
+          });
+        } else if (tipo === 'debo') {
+          titulo.innerText = 'Desglose: Lo que Debo (Nómina Pendiente)';
+          const staffListGlobal = cachedUsers.filter(u => {
+            const r = (u.role || u.profile_id || '').toLowerCase();
+            return r.includes('coach') || r.includes('supervisor') || r.includes('coordinador') || r.includes('admin');
+          });
+          const servicioEstandarObj = cachedServicios.find(s => s.es_clase_estandar === true) || cachedServicios[0];
+          const precioBase = servicioEstandarObj ? parseFloat(servicioEstandarObj.precio || 20000) : 20000;
+
+          staffListGlobal.forEach(st => {
+            const clases = cachedSupervisiones.filter(s => (s.coach_email || '').toLowerCase() === st.email.toLowerCase() && (s.coordinator_status === 'aprobado' || s.coordinator_status === 'sancionado') && s.is_paid !== true && s.is_deleted !== true);
+            if (clases.length > 0) {
+              html += `<div style="background:#050507; border:1px solid var(--border); padding:6px; border-radius:4px; font-size:0.65rem; display:flex; justify-content:space-between;"><span>${st.name || st.email} (${clases.length} clases)</span><b style="color:var(--accent);">${formatCOP(clases.length * precioBase)}</b></div>`;
+            }
+          });
+        } else if (tipo === 'medeben') {
+          titulo.innerText = 'Desglose: Lo que me Deben (Adelantos)';
+          const staffListGlobal = cachedUsers.filter(u => {
+            const r = (u.role || u.profile_id || '').toLowerCase();
+            return r.includes('coach') || r.includes('supervisor') || r.includes('coordinador') || r.includes('admin');
+          });
+          staffListGlobal.forEach(st => {
+            const cargos = cachedCargosStaff.filter(c => (c.staff_email || '').toLowerCase() === st.email.toLowerCase() && !c.is_paid && !c.is_deleted);
+            let sumC = 0; cargos.forEach(c => sumC += parseFloat(c.valor || 0));
+            if (sumC > 0) {
+              html += `<div style="background:#050507; border:1px solid var(--border); padding:6px; border-radius:4px; font-size:0.65rem; display:flex; justify-content:space-between;"><span>${st.name || st.email} (${cargos.length} cargos)</span><b style="color:var(--status-warn);">${formatCOP(sumC)}</b></div>`;
+            }
+          });
+        }
+
+        contenido.innerHTML = html || '<span style="font-size:0.65rem; color:var(--text-muted);">Sin registros en este desglose.</span>';
+        modal.style.display = 'flex';
+      },
+
+      renderizarListaTransacciones: function(transList = null) {
+        const cont = document.getElementById('listaTransaccionesAuditoria');
+        if (!cont) return;
+
+        const fechaCorteStr = document.getElementById('auditoriaFechaCorte').value;
+        const fechaCorte = new Date(fechaCorteStr + 'T23:59:59');
+        const fechaInicioStr = document.getElementById('auditoriaFechaInicio').value;
+        const fechaInicio = fechaInicioStr ? new Date(fechaInicioStr + 'T00:00:00') : null;
+
+        let lista = transList || cachedTransaccionesLibro.filter(t => {
+          if (!cuentasSeleccionadasAuditoria.has('todas') && !cuentasSeleccionadasAuditoria.has(t.account_id)) return false;
+          const tDate = new Date(t.created_at);
+          if (tDate > fechaCorte) return false;
+          if (fechaInicio && tDate < fechaInicio) return false;
+          return true;
+        });
+
+        if (lista.length === 0) {
+          cont.innerHTML = '<span style="font-size:0.7rem; color:var(--text-muted);">No hay transacciones en este rango de fechas.</span>';
+          return;
+        }
+
+        cont.innerHTML = lista.map(t => {
+          const color = t.type === 'ingreso' ? 'var(--status-ok)' : 'var(--accent)';
+          const signo = t.type === 'ingreso' ? '+' : '-';
+          const fechaFmt = new Date(t.created_at).toLocaleString('es-CO');
+          const ctaObj = cachedCuentas.find(c => c.id === t.account_id);
+          const nombreCta = ctaObj ? ctaObj.nombre : 'Cuenta General';
+
+          return `
+            <div style="background:#050507; border:1px solid var(--border); border-radius:4px; padding:8px; margin-top:4px; display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <strong style="font-size:0.72rem; color:#fff; display:block;">${t.category || 'Transacción'}</strong>
+                <span style="font-size:0.55rem; color:var(--text-muted);">${nombreCta} · ${fechaFmt} · Resp: ${t.registered_by || 'Sistema'}</span>
+                <div style="font-size:0.58rem; color:#aaa; margin-top:1px;">${t.description || 'Sin descripción'}</div>
+              </div>
+              <div style="text-align:right;">
+                <strong style="color:${color}; font-size:0.8rem; display:block;">${signo}${formatCOP(t.amount)}</strong>
+                <button class="btn btn-secondary btn-small" onclick='imprimirFacturaTransaccionLibro(${JSON.stringify(t)})' style="margin-top:2px; font-size:0.5rem;">📄 Factura</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      },
+
+      renderizarGraficaAuditoria: function(transRango) {
+        const canvasEl = document.getElementById('chartAuditoriaCuenta');
+        if (!canvasEl) return;
+        if (chartAuditoriaInstance) chartAuditoriaInstance.destroy();
+
+        let acumulado = 0;
+        let puntosFechas = [];
+        let puntosSaldos = [];
+
+        transRango.forEach(t => {
+          const monto = parseFloat(t.amount || 0);
+          if (t.type === 'ingreso') acumulado += monto;
+          else acumulado -= monto;
+
+          const fStr = new Date(t.created_at).toLocaleDateString();
+          puntosFechas.push(fStr);
+          puntosSaldos.push(acumulado);
+        });
+
+        if (puntosFechas.length === 0) {
+          puntosFechas = ['Sin datos'];
+          puntosSaldos = [0];
+        }
+
+        chartAuditoriaInstance = new Chart(canvasEl.getContext('2d'), {
+          type: 'line',
+          data: {
+            labels: puntosFechas,
+            datasets: [{
+              label: 'Comportamiento en el Tiempo (COP)',
+              data: puntosSaldos,
+              borderColor: '#3b82f6',
+              backgroundColor: 'rgba(59, 130, 246, 0.15)',
+              borderWidth: 2,
+              tension: 0.3,
+              fill: true,
+              pointRadius: 3
+            }]
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { ticks: { color: '#888', font: { size: 8 } }, grid: { display: false } },
+              y: { ticks: { color: '#888', font: { size: 9 } }, grid: { color: '#16161a' } }
+            }
+          }
+        });
+      }
+    };
+
+    function imprimirFacturaTransaccionLibro(t) {
+      const ctaObj = cachedCuentas.find(c => c.id === t.account_id);
+      mostrarFacturaSoporteInterno({
+        id: t.id ? t.id.substring(0, 6) : '12345',
+        fecha: new Date(t.created_at).toLocaleString('es-CO'),
+        staffNombre: t.registered_by || 'Contabilidad Apex',
+        conteoServicios: { [t.category + ': ' + (t.description || 'Transacción contable')]: 1 },
+        total: parseFloat(t.amount || 0),
+        rango: ctaObj ? ctaObj.nombre : 'General'
+      });
+    }
+
+    window.onload = initNomina;
+  </script>
+</body>
+</html>
