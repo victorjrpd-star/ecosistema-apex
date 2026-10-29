@@ -394,8 +394,9 @@
             letter-spacing: 0.5px;
         }
 
+        /* ESTRICTAMENTE OCULTO FUERA DEL MODO EDICIÓN */
         .edit-controls {
-            display: none;
+            display: none !important;
             background: rgba(10, 10, 10, 0.95);
             border: 2px dashed var(--accent-blue);
             padding: 15px;
@@ -417,8 +418,12 @@
             z-index: 50;
         }
 
-        .btn-add-content {
-            display: none;
+        .btn-add-content, .btn-delete-block {
+            display: none !important;
+        }
+
+        body.edit-mode .btn-add-content {
+            display: inline-block !important;
             background: var(--accent-blue);
             color: #fff;
             border: none;
@@ -431,8 +436,19 @@
             z-index: 10;
         }
 
-        body.edit-mode .btn-add-content {
+        body.edit-mode .btn-delete-block {
             display: inline-block !important;
+            background: var(--accent-red);
+            color: #fff;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 8px;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 101;
         }
 
         .grid-logos {
@@ -551,8 +567,9 @@
             <h2 contenteditable="false" data-key="title-quienes">Quiénes Somos</h2>
             <p contenteditable="false" data-key="desc-quienes">Promovemos el deporte masivamente generando alto impacto social a través de un espectáculo moderno. Monetizamos el show para que los atletas vivan de su profesión.</p>
             
-            <div id="dynamic-content-quienes">
-                <div class="media-wrapper">
+            <div id="dynamic-content-quienes" class="dynamic-blocks-container" data-section="quienes">
+                <div class="media-wrapper" data-block-id="quienes_default">
+                    <button class="btn-delete-block" onclick="eliminarBloqueMedia(this)">🗑️ Eliminar bloque</button>
                     <div class="media-container" id="container-quienes">
                         <img src="" alt="Quiénes Somos" id="media-quienes">
                     </div>
@@ -565,7 +582,7 @@
                     </div>
                 </div>
             </div>
-            <button class="btn-add-content" onclick="addMediaBlock('dynamic-content-quienes')">+ Añadir bloque</button>
+            <button class="btn-add-content" onclick="addMediaBlock('dynamic-content-quienes', 'quienes')">+ Añadir bloque</button>
         </div>
     </div>
 
@@ -576,8 +593,9 @@
             <h2 contenteditable="false" data-key="title-educativas">Instituciones Educativas</h2>
             <p contenteditable="false" data-key="desc-educativas">Visitamos colegios con nuestra feria deportiva itinerante para promover el deporte y encender la pasión en un entorno seguro.</p>
             
-            <div id="dynamic-content-educativas">
-                <div class="media-wrapper">
+            <div id="dynamic-content-educativas" class="dynamic-blocks-container" data-section="educativas">
+                <div class="media-wrapper" data-block-id="educativas_default">
+                    <button class="btn-delete-block" onclick="eliminarBloqueMedia(this)">🗑️ Eliminar bloque</button>
                     <div class="media-container" id="container-educativas">
                         <img src="" alt="Educativas" id="media-educativas">
                     </div>
@@ -590,7 +608,7 @@
                     </div>
                 </div>
             </div>
-            <button class="btn-add-content" onclick="addMediaBlock('dynamic-content-educativas')">+ Añadir bloque</button>
+            <button class="btn-add-content" onclick="addMediaBlock('dynamic-content-educativas', 'educativas')">+ Añadir bloque</button>
         </div>
     </div>
 
@@ -608,8 +626,9 @@
 
             <div id="subtab-propuesta" class="subtab-content active">
                 <p contenteditable="false" data-key="desc-ciclovia-propuesta">Dinamizamos el sector deportivo entregando métricas de alto impacto social que la Secretaría puede reportar como resultados propios, sin requerir inversión logística estatal.</p>
-                <div id="dynamic-content-ciclovia-propuesta">
-                    <div class="media-wrapper">
+                <div id="dynamic-content-ciclovia-propuesta" class="dynamic-blocks-container" data-section="ciclovia-propuesta">
+                    <div class="media-wrapper" data-block-id="ciclovia_propuesta_default">
+                        <button class="btn-delete-block" onclick="eliminarBloqueMedia(this)">🗑️ Eliminar bloque</button>
                         <div class="media-container" id="container-ciclovia-propuesta">
                             <img src="" alt="Propuesta" id="media-ciclovia-propuesta">
                         </div>
@@ -622,13 +641,14 @@
                         </div>
                     </div>
                 </div>
-                <button class="btn-add-content" onclick="addMediaBlock('dynamic-content-ciclovia-propuesta')">+ Añadir bloque</button>
+                <button class="btn-add-content" onclick="addMediaBlock('dynamic-content-ciclovia-propuesta', 'ciclovia-propuesta')">+ Añadir bloque</button>
             </div>
 
             <div id="subtab-ubicacion" class="subtab-content">
                 <p contenteditable="false" data-key="desc-ciclovia-ubicacion">Bahía de aceleración/desaceleración de 12 metros para pre-registro QR en la Calle 49 con Autopista Suroriental y circuito sincronizado en la "U" del retorno.</p>
-                <div id="dynamic-content-ciclovia-ubicacion">
-                    <div class="media-wrapper">
+                <div id="dynamic-content-ciclovia-ubicacion" class="dynamic-blocks-container" data-section="ciclovia-ubicacion">
+                    <div class="media-wrapper" data-block-id="ciclovia_ubicacion_default">
+                        <button class="btn-delete-block" onclick="eliminarBloqueMedia(this)">🗑️ Eliminar bloque</button>
                         <div class="media-container" id="container-ciclovia-ubicacion">
                             <img src="" alt="Ubicación" id="media-ciclovia-ubicacion">
                         </div>
@@ -641,13 +661,14 @@
                         </div>
                     </div>
                 </div>
-                <button class="btn-add-content" onclick="addMediaBlock('dynamic-content-ciclovia-ubicacion')">+ Añadir bloque</button>
+                <button class="btn-add-content" onclick="addMediaBlock('dynamic-content-ciclovia-ubicacion', 'ciclovia-ubicacion')">+ Añadir bloque</button>
             </div>
 
             <div id="subtab-seguridad" class="subtab-content">
                 <p contenteditable="false" data-key="desc-ciclovia-seguridad">Personal uniformado con petos, comunicación por radios con auriculares cableados, supervisión técnica y criterios estrictos de seguridad biomecánica.</p>
-                <div id="dynamic-content-ciclovia-seguridad">
-                    <div class="media-wrapper">
+                <div id="dynamic-content-ciclovia-seguridad" class="dynamic-blocks-container" data-section="ciclovia-seguridad">
+                    <div class="media-wrapper" data-block-id="ciclovia_seguridad_default">
+                        <button class="btn-delete-block" onclick="eliminarBloqueMedia(this)">🗑️ Eliminar bloque</button>
                         <div class="media-container" id="container-ciclovia-seguridad">
                             <img src="" alt="Seguridad" id="media-ciclovia-seguridad">
                         </div>
@@ -660,7 +681,7 @@
                         </div>
                     </div>
                 </div>
-                <button class="btn-add-content" onclick="addMediaBlock('dynamic-content-ciclovia-seguridad')">+ Añadir bloque</button>
+                <button class="btn-add-content" onclick="addMediaBlock('dynamic-content-ciclovia-seguridad', 'ciclovia-seguridad')">+ Añadir bloque</button>
             </div>
 
         </div>
@@ -673,8 +694,9 @@
             <h2 contenteditable="false" data-key="title-aliados">Red de Aliados Estratégicos</h2>
             <p contenteditable="false" data-key="desc-aliados">Activaciones en colegios, ciclovías y parques (como CRP), interconectando escenarios y promoviendo torneos oficiales.</p>
             
-            <div id="dynamic-content-aliados">
-                <div class="media-wrapper">
+            <div id="dynamic-content-aliados" class="dynamic-blocks-container" data-section="aliados">
+                <div class="media-wrapper" data-block-id="aliados_default">
+                    <button class="btn-delete-block" onclick="eliminarBloqueMedia(this)">🗑️ Eliminar bloque</button>
                     <div class="media-container" id="container-aliados">
                         <img src="" alt="Aliados" id="media-aliados">
                     </div>
@@ -687,7 +709,7 @@
                     </div>
                 </div>
             </div>
-            <button class="btn-add-content" onclick="addMediaBlock('dynamic-content-aliados')">+ Añadir bloque</button>
+            <button class="btn-add-content" onclick="addMediaBlock('dynamic-content-aliados', 'aliados')">+ Añadir bloque</button>
         </div>
     </div>
 
@@ -698,8 +720,9 @@
             <h2 contenteditable="false" data-key="title-patrocinadores">Patrocinadores y Aliados</h2>
             <p contenteditable="false" data-key="desc-patrocinadores">Comerciantes locales que proporcionan bonos de descuento, regalos digitales y premios físicos para los participantes.</p>
             
-            <div id="dynamic-content-patrocinadores">
-                <div class="media-wrapper">
+            <div id="dynamic-content-patrocinadores" class="dynamic-blocks-container" data-section="patrocinadores">
+                <div class="media-wrapper" data-block-id="patrocinadores_default">
+                    <button class="btn-delete-block" onclick="eliminarBloqueMedia(this)">🗑️ Eliminar bloque</button>
                     <div class="media-container" id="container-patrocinadores">
                         <img src="" alt="Patrocinadores" id="media-patrocinadores">
                     </div>
@@ -712,7 +735,7 @@
                     </div>
                 </div>
             </div>
-            <button class="btn-add-content" onclick="addMediaBlock('dynamic-content-patrocinadores')">+ Añadir bloque</button>
+            <button class="btn-add-content" onclick="addMediaBlock('dynamic-content-patrocinadores', 'patrocinadores')">+ Añadir bloque</button>
         </div>
     </div>
 
@@ -723,8 +746,9 @@
             <h2 contenteditable="false" data-key="title-desarrollo">En Desarrollo</h2>
             <p contenteditable="false" data-key="desc-desarrollo">Nuestros progresos tecnológicos y de software, incluyendo telemetría con ESP32, aplicaciones web propias y herramientas de análisis biomecánico.</p>
             
-            <div id="dynamic-content-desarrollo">
-                <div class="media-wrapper">
+            <div id="dynamic-content-desarrollo" class="dynamic-blocks-container" data-section="desarrollo">
+                <div class="media-wrapper" data-block-id="desarrollo_default">
+                    <button class="btn-delete-block" onclick="eliminarBloqueMedia(this)">🗑️ Eliminar bloque</button>
                     <div class="media-container" id="container-desarrollo">
                         <img src="" alt="En Desarrollo" id="media-desarrollo">
                     </div>
@@ -737,7 +761,7 @@
                     </div>
                 </div>
             </div>
-            <button class="btn-add-content" onclick="addMediaBlock('dynamic-content-desarrollo')">+ Añadir bloque</button>
+            <button class="btn-add-content" onclick="addMediaBlock('dynamic-content-desarrollo', 'desarrollo')">+ Añadir bloque</button>
         </div>
     </div>
 
@@ -782,13 +806,48 @@
             });
         }
 
-        // CARGAR TEXTOS Y MULTIMEDIA DESDE SUPABASE
+        // CARGAR TEXTOS Y MULTIMEDIA DESDE SUPABASE (INCLUYENDO BLOQUES DINÁMICOS Y LOGO)
         async function cargarDatosDesdeSupabase() {
             if (!sb) return;
             try {
                 const { data, error } = await sb.from('apex_content').select('*');
                 if (error) { console.error(error); return; }
 
+                // Registro especial para almacenar la estructura de bloques dinámicos de cada sección
+                let bloquesConfig = {};
+                
+                data.forEach(item => {
+                    if (item.id === 'apex_dynamic_blocks_structure') {
+                        try { bloquesConfig = JSON.parse(item.content); } catch(e){}
+                    }
+                });
+
+                // Reconstruir bloques dinámicos primero si existen
+                for (const sectionKey in bloquesConfig) {
+                    const blockIds = bloquesConfig[sectionKey]; // array de IDs unicos
+                    const containerMap = {
+                        'quienes': 'dynamic-content-quienes',
+                        'educativas': 'dynamic-content-educativas',
+                        'ciclovia-propuesta': 'dynamic-content-ciclovia-propuesta',
+                        'ciclovia-ubicacion': 'dynamic-content-ciclovia-ubicacion',
+                        'ciclovia-seguridad': 'dynamic-content-ciclovia-seguridad',
+                        'aliados': 'dynamic-content-aliados',
+                        'patrocinadores': 'dynamic-content-patrocinadores',
+                        'desarrollo': 'dynamic-content-desarrollo'
+                    };
+                    const containerId = containerMap[sectionKey];
+                    if (containerId) {
+                        const wrapperContainer = document.getElementById(containerId);
+                        if (wrapperContainer) {
+                            wrapperContainer.innerHTML = ''; // Limpiar predeterminados para recrearlos exactos
+                            blockIds.forEach(bId => {
+                                construirBloqueDOM(wrapperContainer, sectionKey, bId);
+                            });
+                        }
+                    }
+                }
+
+                // Cargar contenidos (Textos, Logos y Media)
                 data.forEach(item => {
                     if (item.id.startsWith('media_')) {
                         const mediaEl = document.getElementById(item.id.replace('media_', ''));
@@ -822,6 +881,23 @@
         async function guardarDatoSupabase(id, content) {
             if (!sb) return;
             await sb.from('apex_content').upsert({ id: id, content: content, updated_at: new Date() });
+        }
+
+        // Guardar la estructura completa de bloques activos en Supabase para persistencia total
+        async function guardarEstructuraBloques() {
+            if (!sb) return;
+            const estructura = {};
+            document.querySelectorAll('.dynamic-blocks-container').forEach(container => {
+                const sectionKey = container.getAttribute('data-section');
+                const blocks = container.querySelectorAll('.media-wrapper');
+                const blockIds = [];
+                blocks.forEach(b => {
+                    const bId = b.getAttribute('data-block-id');
+                    if (bId) blockIds.push(bId);
+                });
+                estructura[sectionKey] = blockIds;
+            });
+            await guardarDatoSupabase('apex_dynamic_blocks_structure', JSON.stringify(estructura));
         }
 
         function toggleConfigPanel() {
@@ -870,6 +946,7 @@
                     promesas.push(guardarDatoSupabase(key, el.innerHTML));
                 }
             });
+            await guardarEstructuraBloques();
             await Promise.all(promesas);
         }
 
@@ -922,7 +999,6 @@
             }
 
             try {
-                // 1. Consultar si ya existe un archivo guardado previamente para este ID para borrarlo y evitar basura
                 const { data: existingData } = await sb.from('apex_content').select('content').eq('id', 'media_' + uploadId).single();
                 if (existingData && existingData.content && existingData.content.includes('apex_multimedia')) {
                     const oldUrl = existingData.content;
@@ -986,26 +1062,57 @@
             await guardarDatoSupabase('media_' + elementId, publicUrl);
         }
 
-        function addMediaBlock(wrapperId) {
-            const wrapper = document.getElementById(wrapperId);
-            const uniqueId = 'media_' + Date.now();
-            const containerId = 'container_' + Date.now();
+        // CONSTRUCTOR DE BLOQUE DOM (USADO TANTO AL AÑADIR COMO AL RECARGAR DESDE SUPABASE)
+        function construirBloqueDOM(wrapperContainer, sectionKey, blockUniqueId) {
+            const uniqueMediaId = blockUniqueId;
+            const uniqueContainerId = 'container_' + blockUniqueId;
+            const overlayKey = uniqueMediaId + '-overlay';
 
             const newBlock = document.createElement('div');
             newBlock.className = 'media-wrapper';
+            newBlock.setAttribute('data-block-id', blockUniqueId);
             newBlock.innerHTML = `
-                <div class="media-container" id="${containerId}">
-                    <img src="" alt="Elemento" id="${uniqueId}">
+                <button class="btn-delete-block" onclick="eliminarBloqueMedia(this)">🗑️ Eliminar bloque</button>
+                <div class="media-container" id="${uniqueContainerId}">
+                    <img src="" alt="Elemento" id="${uniqueMediaId}">
                 </div>
-                <div class="media-overlay-text" contenteditable="${isEditMode ? 'true' : 'false'}" data-key="${uniqueId}-overlay">Nuevo Título en Gran Formato</div>
+                <div class="media-overlay-text" contenteditable="${isEditMode ? 'true' : 'false'}" data-key="${overlayKey}">Nuevo Título en Gran Formato</div>
                 <div class="edit-controls">
                     <label>Texto sobrepuesto:</label>
                     <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
                     <label>Cargar Media (Cloud):</label>
-                    <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, '${containerId}', '${uniqueId}')">
+                    <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, '${uniqueContainerId}', '${uniqueMediaId}')">
                 </div>
             `;
-            wrapper.appendChild(newBlock);
+            wrapperContainer.appendChild(newBlock);
+        }
+
+        function addMediaBlock(wrapperId, sectionKey) {
+            const wrapper = document.getElementById(wrapperId);
+            const randomId = 'media_dyn_' + Date.now() + '_' + Math.floor(Math.random()*1000);
+            construirBloqueDOM(wrapper, sectionKey, randomId);
+            guardarEstructuraBloques();
+        }
+
+        // ELIMINAR BLOQUE Y SU CONTENIDO ASOCIADO EN SUPABASE/STORAGE
+        async function eliminarBloqueMedia(btn) {
+            const wrapper = btn.closest('.media-wrapper');
+            if (!wrapper) return;
+            
+            if (!confirm("¿Estás seguro de eliminar este bloque multimedia?")) return;
+
+            const mediaImgOrVid = wrapper.querySelector('img, video');
+            if (mediaImgOrVid && mediaImgOrVid.id) {
+                const mediaId = mediaImgOrVid.id;
+                // Borrar referencia en base de datos
+                if (sb) {
+                    await sb.from('apex_content').delete().eq('id', 'media_' + mediaId);
+                    await sb.from('apex_content').delete().eq('id', mediaId + '-overlay');
+                }
+            }
+            wrapper.remove();
+            await guardarEstructuraBloques();
+            alert("Bloque eliminado con éxito.");
         }
 
         // Navegación táctil por deslizamiento (Swipe)
