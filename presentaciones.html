@@ -43,6 +43,7 @@
             height: 100vh;
             object-fit: cover;
             z-index: -2;
+            transition: opacity 2s ease-in-out;
         }
 
         .bg-overlay {
@@ -237,6 +238,7 @@
             height: 100%;
             object-fit: cover;
             border: none;
+            transition: opacity 2s ease-in-out;
         }
 
         .brand-container {
@@ -303,6 +305,23 @@
             color: var(--accent-blue);
             font-size: 1.1rem;
             font-weight: bold;
+        }
+
+        .home-slogan-box {
+            margin-top: 25px;
+            padding: 15px 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .home-slogan-box p {
+            font-size: 1.1rem;
+            font-style: italic;
+            color: var(--text-main);
+            margin: 0;
+            text-shadow: 0 2px 6px rgba(0,0,0,0.9);
         }
 
         .page-content-box {
@@ -374,6 +393,19 @@
             border: 1px solid var(--card-border);
         }
 
+        /* Sistema de 2 columnas exclusivo para Patrocinadores y Aliados */
+        .dynamic-blocks-container.grid-two-columns {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        @media(max-width: 600px) {
+            .dynamic-blocks-container.grid-two-columns {
+                grid-template-columns: 1fr;
+            }
+        }
+
         .media-container {
             position: relative;
             width: 100%;
@@ -390,6 +422,7 @@
             max-height: 60vh;
             object-fit: contain;
             display: block;
+            transition: opacity 2s ease-in-out;
         }
 
         .media-overlay-text {
@@ -626,6 +659,11 @@
                 <h2 contenteditable="false" id="t-desarrollo" data-key="t-desarrollo">En Desarrollo</h2>
                 <span>+</span>
             </div>
+
+            <!-- Leyenda oficial modificable en modo edición -->
+            <div class="home-slogan-box">
+                <p contenteditable="false" id="home-slogan" data-key="home-slogan">APEX Boxing es el camino correcto, solo debes recorrerlo.</p>
+            </div>
         </main>
     </div>
 
@@ -756,14 +794,14 @@
         </div>
     </div>
 
-    <!-- VISTA 5: ALIADOS -->
+    <!-- VISTA 5: ALIADOS (2 Columnas Estilo Google Fotos Simplificado) -->
     <div id="view-aliados" class="view-page" data-page-index="4">
         <button class="btn-back" onclick="switchView('view-home')">← Volver</button>
         <div class="page-content-box">
             <h2 contenteditable="false" data-key="title-aliados">Red de Aliados Estratégicos</h2>
             <p contenteditable="false" data-key="desc-aliados">Activaciones en colegios, ciclovías y parques (como CRP), interconectando escenarios y promoviendo torneos oficiales.</p>
             
-            <div id="dynamic-content-aliados" class="dynamic-blocks-container" data-section="aliados">
+            <div id="dynamic-content-aliados" class="dynamic-blocks-container grid-two-columns" data-section="aliados">
                 <div class="media-wrapper" data-block-id="aliados_default">
                     <button class="btn-delete-block" onclick="eliminarBloqueMedia(this)">🗑️ Eliminar bloque</button>
                     <div class="media-container" id="container-aliados">
@@ -782,14 +820,14 @@
         </div>
     </div>
 
-    <!-- VISTA 6: PATROCINADORES -->
+    <!-- VISTA 6: PATROCINADORES (2 Columnas Estilo Google Fotos Simplificado) -->
     <div id="view-patrocinadores" class="view-page" data-page-index="5">
         <button class="btn-back" onclick="switchView('view-home')">← Volver</button>
         <div class="page-content-box">
             <h2 contenteditable="false" data-key="title-patrocinadores">Patrocinadores y Aliados</h2>
             <p contenteditable="false" data-key="desc-patrocinadores">Comerciantes locales que proporcionan bonos de descuento, regalos digitales y premios físicos para los participantes.</p>
             
-            <div id="dynamic-content-patrocinadores" class="dynamic-blocks-container" data-section="patrocinadores">
+            <div id="dynamic-content-patrocinadores" class="dynamic-blocks-container grid-two-columns" data-section="patrocinadores">
                 <div class="media-wrapper" data-block-id="patrocinadores_default">
                     <button class="btn-delete-block" onclick="eliminarBloqueMedia(this)">🗑️ Eliminar bloque</button>
                     <div class="media-container" id="container-patrocinadores">
@@ -888,6 +926,50 @@
             });
         }
 
+        // APLICAR EFECTO DE BUCLE OSCURECIDO NATIVO (FADE TO BLACK DE 4s TOTALES: 2s SALIDA, 2s ENTRADA)
+        function configurarBucleSuaveVideo(videoEl) {
+            if (!videoEl || videoEl.dataset.loopConfigured) return;
+            videoEl.dataset.loopConfigured = "true";
+
+            videoEl.addEventListener('timeupdate', () => {
+                if (!videoEl.duration) return;
+                const tiempoRestante = videoEl.duration - videoEl.currentTime;
+                // Si faltan 2 segundos para terminar, desvanecer a negro (opacity 0)
+                if (tiempoRestante <= 2.0 && videoEl.style.opacity !== '0') {
+                    videoEl.style.opacity = '0';
+                }
+            });
+
+            videoEl.addEventListener('ended', () => {
+                videoEl.currentTime = 0;
+                videoEl.play().catch(e => {});
+                // Al reiniciar, mantener oscuro 2 segundos y hacer fundido de entrada a opacidad 1
+                videoEl.style.opacity = '0';
+                setTimeout(() => {
+                    videoEl.style.opacity = '1';
+                }, 2000);
+            });
+
+            // Para el video de fondo general de la pantalla
+            if (videoEl.id === 'global-bg-video') {
+                videoEl.addEventListener('timeupdate', () => {
+                    if (!videoEl.duration) return;
+                    const tiempoRestante = videoEl.duration - videoEl.currentTime;
+                    if (tiempoRestante <= 2.0 && videoEl.style.opacity !== '0') {
+                        videoEl.style.opacity = '0';
+                    }
+                });
+                videoEl.addEventListener('ended', () => {
+                    videoEl.currentTime = 0;
+                    videoEl.play().catch(e => {});
+                    videoEl.style.opacity = '0';
+                    setTimeout(() => {
+                        videoEl.style.opacity = '1';
+                    }, 2000);
+                });
+            }
+        }
+
         // CARGAR TEXTOS Y MULTIMEDIA DESDE SUPABASE
         async function cargarDatosDesdeSupabase() {
             if (!sb) return;
@@ -934,6 +1016,8 @@
                                 const container = mediaEl.closest('.media-container');
                                 if (container) {
                                     container.innerHTML = `<video src="${item.content}" autoplay muted loop playsinline style="width:100%; height:100%; object-fit:cover;"></video>`;
+                                    const vid = container.querySelector('video');
+                                    configurarBucleSuaveVideo(vid);
                                 }
                             } else {
                                 mediaEl.src = item.content;
@@ -942,7 +1026,8 @@
                     } else if (item.id === 'global_bg_video') {
                         const bgVideo = document.getElementById('global-bg-video');
                         bgVideo.src = item.content;
-                        bgVideo.play();
+                        bgVideo.play().catch(e => {});
+                        configurarBucleSuaveVideo(bgVideo);
                     } else if (item.id === 'bg_opacity') {
                         document.documentElement.style.setProperty('--overlay-alpha', item.content);
                         document.getElementById('opacityRange').value = item.content;
@@ -1046,7 +1131,8 @@
             if (publicUrl) {
                 const bgVideo = document.getElementById('global-bg-video');
                 bgVideo.src = publicUrl;
-                bgVideo.play();
+                bgVideo.play().catch(e => {});
+                configurarBucleSuaveVideo(bgVideo);
                 guardarDatoSupabase('global_bg_video', publicUrl);
             }
         }
@@ -1119,6 +1205,7 @@
                 video.style.height = '100%';
                 video.style.objectFit = 'cover';
                 container.appendChild(video);
+                configurarBucleSuaveVideo(video);
             } else {
                 const img = document.createElement('img');
                 img.id = elementId;
@@ -1275,7 +1362,7 @@
             }, false);
 
             function handleSwipe() {
-                const threshold = 150; // Umbral incrementado para evitar cambios accidentales con movimientos sutiles
+                const threshold = 150; // Umbral incrementado para evitar cambios accidentales
                 const activePage = document.querySelector('.view-page.active');
                 if (!activePage) return;
                 
