@@ -56,7 +56,7 @@
             transition: background 0.3s ease;
         }
 
-        /* Contenedor Superior HUD (Configuración + Indicadores de Carga) */
+        /* HUD Superior: Indicadores de Carga y Rueda de Configuración */
         .hud-top-right {
             position: fixed;
             top: 10px;
@@ -95,7 +95,7 @@
 
         .upload-badge {
             background: rgba(10, 10, 10, 0.9);
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--card-border);
             border-radius: 4px;
             padding: 4px 8px;
             font-size: 0.65rem;
@@ -405,11 +405,11 @@
             z-index: 100;
         }
 
-        .edit-mode .edit-controls {
-            display: block;
+        body.edit-mode .edit-controls {
+            display: block !important;
         }
 
-        .edit-mode [contenteditable="true"] {
+        body.edit-mode [contenteditable="true"] {
             border: 1px dashed var(--accent-blue);
             padding: 4px;
             background: rgba(255, 255, 255, 0.05);
@@ -431,8 +431,8 @@
             z-index: 10;
         }
 
-        .edit-mode .btn-add-content {
-            display: inline-block;
+        body.edit-mode .btn-add-content {
+            display: inline-block !important;
         }
 
         .grid-logos {
@@ -998,7 +998,7 @@
                     <img src="" alt="Elemento" id="${uniqueId}">
                 </div>
                 <div class="media-overlay-text" contenteditable="${isEditMode ? 'true' : 'false'}" data-key="${uniqueId}-overlay">Nuevo Título en Gran Formato</div>
-                <div class="edit-controls" style="display: ${isEditMode ? 'block' : 'none'};">
+                <div class="edit-controls">
                     <label>Texto sobrepuesto:</label>
                     <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
                     <label>Cargar Media (Cloud):</label>
