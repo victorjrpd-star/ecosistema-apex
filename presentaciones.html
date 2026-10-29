@@ -464,7 +464,7 @@
             z-index: 101;
         }
 
-        /* ESTILOS PARA LA GALERÍA VERTICAL DE SUPABASE STORAGE */
+        /* Estilos para la galería vertical de Supabase Storage */
         .gallery-container {
             display: flex;
             flex-direction: column;
@@ -580,12 +580,13 @@
     <!-- VISTA 1: HOME -->
     <div id="view-home" class="view-page active">
         <header>
+            <!-- LOGO TRADICIONAL CON CLAVE FIJA BLINDADA -->
             <div class="header-logo-container" id="container-header-logo">
-                <img src="" alt="Logo Tradicional" id="media-header-logo">
+                <img src="" alt="Logo Tradicional" id="media-logo_principal">
             </div>
             <div class="edit-controls" style="margin-bottom: 15px; width: 100%; max-width: 300px;">
                 <label style="font-size:0.8rem; color:var(--text-muted);">Cargar Logo / Video Superior (Cloud):</label>
-                <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-header-logo', 'media-header-logo')">
+                <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-header-logo', 'media-logo_principal')">
             </div>
 
             <div class="brand-container">
@@ -1071,7 +1072,6 @@
             }
         }
 
-        // SUBIDA OPTIMIZADA A SUPABASE STORAGE (SIN BORRADO CIEGO PARA EVITAR CRUZAR ARCHIVOS)
         async function subirArchivoSupabaseStorage(file, fileNameCustom, uploadId) {
             if (!sb) { 
                 actualizarBadgeCarga(uploadId, 'error', 'Error');
@@ -1123,7 +1123,7 @@
                 const img = document.createElement('img');
                 img.id = elementId;
                 img.src = publicUrl;
-                img.style.width = '100vw';
+                img.style.width = '100%';
                 img.style.height = '100%';
                 img.style.objectFit = 'cover';
                 container.appendChild(img);
@@ -1182,7 +1182,6 @@
             alert("Bloque eliminado con éxito.");
         }
 
-        // RENDERIZAR GALERÍA DESDE SUPABASE STORAGE Y TABLA DE CONTENIDO
         async function renderizarGaleriaSupabase() {
             const container = document.getElementById('galleryContainer');
             if (!container || !sb) return;
@@ -1190,7 +1189,6 @@
             container.innerHTML = '<span style="color:var(--text-muted);">Consultando bucket de Supabase y registros activos...</span>';
 
             try {
-                // 1. Listar archivos del bucket apex_multimedia
                 const { data: filesList, error: listError } = await sb.storage.from('apex_multimedia').list('', { limit: 100, sortBy: { column: 'created_at', order: 'desc' } });
                 if (listError) throw listError;
 
@@ -1199,7 +1197,6 @@
                     return;
                 }
 
-                // 2. Obtener mapeo de contenidos activos en la tabla apex_content para saber si están vigentes
                 const { data: contentData } = await sb.from('apex_content').select('*');
                 let activeUrls = new Set();
                 let urlToIdMap = {};
@@ -1237,7 +1234,7 @@
                             <span><b>Archivo:</b> ${file.name}</span>
                             <span><b>Fecha de Subida:</b> ${fechaSubida}</span>
                             <span><b>Asignación:</b> ${assignedId}</span>
-                            <span><b>Estado:</b> <span class="badge-vigencia ${isVigente ? 'activo' : 'inactivo'}">${isVigente ? 'Vigente (En uso)' : 'No Vigente (Huerfano)'}</span></span>
+                            <span><b>Estado:</b> <span class="badge-vigencia ${isVigente ? 'activo' : 'inactivo'}">${isVigente ? 'Vigente (En uso)' : 'No Vigente (Huérfano)'}</span></span>
                         </div>
                         <button class="btn-delete-gallery" onclick="eliminarArchivoStorage('${file.name}')">🗑️ Eliminar de Supabase</button>
                     `;
@@ -1250,7 +1247,6 @@
             }
         }
 
-        // ELIMINAR ARCHIVO MANUALMENTE DESDE LA GALERÍA
         async function eliminarArchivoStorage(fileName) {
             if (!confirm(`¿Estás seguro de eliminar permanentemente el archivo "${fileName}" de Supabase Storage?`)) return;
 
@@ -1264,7 +1260,7 @@
             }
         }
 
-        // Navegación táctil por deslizamiento (Swipe)
+        // Navegación táctil por deslizamiento (Swipe) con umbral ampliado (Menos sensibilidad)
         function initSwipeGestures() {
             let touchStartX = 0;
             let touchEndX = 0;
@@ -1279,7 +1275,7 @@
             }, false);
 
             function handleSwipe() {
-                const threshold = 70;
+                const threshold = 150; // Umbral incrementado para evitar cambios accidentales con movimientos sutiles
                 const activePage = document.querySelector('.view-page.active');
                 if (!activePage) return;
                 
