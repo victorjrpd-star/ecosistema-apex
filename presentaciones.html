@@ -56,23 +56,29 @@
             transition: background 0.3s ease;
         }
 
-        /* Rueda de configuración sin reborde, limpia y tecnológica */
-        .settings-toggle {
+        /* Contenedor Superior HUD (Configuración + Indicadores de Carga) */
+        .hud-top-right {
             position: fixed;
-            top: 15px;
+            top: 10px;
             right: 15px;
             z-index: 2000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .settings-toggle {
             background: transparent;
             border: none;
             color: var(--accent-blue);
-            font-size: 2.2rem;
-            width: 50px;
-            height: 50px;
+            font-size: 1.6rem;
+            width: 36px;
+            height: 36px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            text-shadow: 0 0 10px rgba(37, 99, 235, 0.6);
+            text-shadow: 0 0 8px rgba(37, 99, 235, 0.6);
             transition: transform 0.3s ease;
         }
 
@@ -80,9 +86,42 @@
             transform: scale(1.15);
         }
 
+        /* Contenedor dinámico para indicadores de carga minimalistas */
+        #upload-status-container {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .upload-badge {
+            background: rgba(10, 10, 10, 0.9);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 0.65rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            backdrop-filter: blur(4px);
+        }
+
+        .upload-badge.loading { color: #38bdf8; border-color: #38bdf8; }
+        .upload-badge.error { color: var(--accent-red); border-color: var(--accent-red); }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .spinner-icon {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
+
         .config-panel {
             position: fixed;
-            top: 70px;
+            top: 55px;
             right: 15px;
             z-index: 2500;
             background: rgba(10, 10, 10, 0.98);
@@ -151,49 +190,51 @@
 
         header {
             position: relative;
-            min-height: 40vh;
+            min-height: 35vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             text-align: center;
-            padding: 30px 15px;
+            padding: 20px 15px 30px 15px;
             border-bottom: 1px solid var(--card-border);
         }
 
-        /* Logo Superior Tradicional con Esquinas Redondeadas y Desvanecido Perimetral */
+        /* Logo Superior Más Pequeño, Arriba y con Desvanecido Perimetral Total (Sin Borde) */
         .header-logo-container {
             width: 100%;
-            max-width: 320px;
-            height: 160px;
-            border-radius: 16px;
+            max-width: 220px;
+            height: 110px;
+            border-radius: 12px;
             background: var(--card-bg);
-            backdrop-filter: blur(10px);
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             display: flex;
             align-items: center;
             justify-content: center;
             position: relative;
             overflow: hidden;
-            -webkit-mask-image: radial-gradient(circle at center, black 65%, rgba(0,0,0,0.2) 100%);
-            mask-image: radial-gradient(circle at center, black 65%, rgba(0,0,0,0.2) 100%);
+            border: none;
+            box-shadow: none;
+            -webkit-mask-image: radial-gradient(circle, rgba(0,0,0,1) 35%, rgba(0,0,0,0) 95%);
+            mask-image: radial-gradient(circle, rgba(0,0,0,1) 35%, rgba(0,0,0,0) 95%);
         }
 
         .header-logo-container img, .header-logo-container video {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            border: none;
         }
 
         .brand-container {
             border-bottom: 3px solid var(--accent-red);
-            padding-bottom: 10px;
-            margin-bottom: 10px;
+            padding-bottom: 8px;
+            margin-bottom: 8px;
             display: inline-block;
         }
 
         header h1 {
-            font-size: 2.5rem;
+            font-size: 2.2rem;
             color: var(--text-main);
             text-transform: uppercase;
             letter-spacing: 2px;
@@ -202,7 +243,7 @@
         }
 
         header .subtitle-brand {
-            font-size: 1rem;
+            font-size: 0.9rem;
             color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 3px;
@@ -211,7 +252,7 @@
         }
 
         header p {
-            font-size: 1rem;
+            font-size: 0.95rem;
             color: var(--text-main);
             max-width: 700px;
             margin-bottom: 15px;
@@ -412,9 +453,10 @@
         }
 
         @media(max-width: 480px) {
-            header h1 { font-size: 2rem; }
+            header h1 { font-size: 1.8rem; }
             .page-content-box { padding: 15px; }
             .media-overlay-text { font-size: 1.1rem; padding: 12px; }
+            .header-logo-container { max-width: 160px; height: 90px; }
         }
     </style>
 </head>
@@ -425,9 +467,12 @@
     </video>
     <div class="bg-overlay" id="bg-overlay"></div>
 
-    <!-- Rueda de configuración sin reborde -->
-    <div class="settings-toggle" onclick="toggleConfigPanel()" title="Configuración y Edición">
-        ⚙️
+    <!-- HUD Superior: Indicadores de Carga y Rueda de Configuración -->
+    <div class="hud-top-right">
+        <div id="upload-status-container"></div>
+        <button class="settings-toggle" onclick="toggleConfigPanel()" title="Configuración y Edición">
+            ⚙️
+        </button>
     </div>
 
     <div class="config-panel" id="configPanel">
@@ -520,6 +565,7 @@
                     </div>
                 </div>
             </div>
+            <button class="btn-add-content" onclick="addMediaBlock('dynamic-content-quienes')">+ Añadir bloque</button>
         </div>
     </div>
 
@@ -544,6 +590,7 @@
                     </div>
                 </div>
             </div>
+            <button class="btn-add-content" onclick="addMediaBlock('dynamic-content-educativas')">+ Añadir bloque</button>
         </div>
     </div>
 
@@ -561,50 +608,59 @@
 
             <div id="subtab-propuesta" class="subtab-content active">
                 <p contenteditable="false" data-key="desc-ciclovia-propuesta">Dinamizamos el sector deportivo entregando métricas de alto impacto social que la Secretaría puede reportar como resultados propios, sin requerir inversión logística estatal.</p>
-                <div class="media-wrapper">
-                    <div class="media-container" id="container-ciclovia-propuesta">
-                        <img src="" alt="Propuesta" id="media-ciclovia-propuesta">
-                    </div>
-                    <div class="media-overlay-text" contenteditable="false" data-key="overlay-ciclovia-propuesta">Dinamización y Métricas de Impacto</div>
-                    <div class="edit-controls">
-                        <label>Texto sobrepuesto:</label>
-                        <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
-                        <label>Cargar Media (Cloud):</label>
-                        <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-ciclovia-propuesta', 'media-ciclovia-propuesta')">
+                <div id="dynamic-content-ciclovia-propuesta">
+                    <div class="media-wrapper">
+                        <div class="media-container" id="container-ciclovia-propuesta">
+                            <img src="" alt="Propuesta" id="media-ciclovia-propuesta">
+                        </div>
+                        <div class="media-overlay-text" contenteditable="false" data-key="overlay-ciclovia-propuesta">Dinamización y Métricas de Impacto</div>
+                        <div class="edit-controls">
+                            <label>Texto sobrepuesto:</label>
+                            <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
+                            <label>Cargar Media (Cloud):</label>
+                            <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-ciclovia-propuesta', 'media-ciclovia-propuesta')">
+                        </div>
                     </div>
                 </div>
+                <button class="btn-add-content" onclick="addMediaBlock('dynamic-content-ciclovia-propuesta')">+ Añadir bloque</button>
             </div>
 
             <div id="subtab-ubicacion" class="subtab-content">
                 <p contenteditable="false" data-key="desc-ciclovia-ubicacion">Bahía de aceleración/desaceleración de 12 metros para pre-registro QR en la Calle 49 con Autopista Suroriental y circuito sincronizado en la "U" del retorno.</p>
-                <div class="media-wrapper">
-                    <div class="media-container" id="container-ciclovia-ubicacion">
-                        <img src="" alt="Ubicación" id="media-ciclovia-ubicacion">
-                    </div>
-                    <div class="media-overlay-text" contenteditable="false" data-key="overlay-ciclovia-ubicacion">Calle 49 con Autopista Suroriental</div>
-                    <div class="edit-controls">
-                        <label>Texto sobrepuesto:</label>
-                        <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
-                        <label>Cargar Media (Cloud):</label>
-                        <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-ciclovia-ubicacion', 'media-ciclovia-ubicacion')">
+                <div id="dynamic-content-ciclovia-ubicacion">
+                    <div class="media-wrapper">
+                        <div class="media-container" id="container-ciclovia-ubicacion">
+                            <img src="" alt="Ubicación" id="media-ciclovia-ubicacion">
+                        </div>
+                        <div class="media-overlay-text" contenteditable="false" data-key="overlay-ciclovia-ubicacion">Calle 49 con Autopista Suroriental</div>
+                        <div class="edit-controls">
+                            <label>Texto sobrepuesto:</label>
+                            <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
+                            <label>Cargar Media (Cloud):</label>
+                            <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-ciclovia-ubicacion', 'media-ciclovia-ubicacion')">
+                        </div>
                     </div>
                 </div>
+                <button class="btn-add-content" onclick="addMediaBlock('dynamic-content-ciclovia-ubicacion')">+ Añadir bloque</button>
             </div>
 
             <div id="subtab-seguridad" class="subtab-content">
                 <p contenteditable="false" data-key="desc-ciclovia-seguridad">Personal uniformado con petos, comunicación por radios con auriculares cableados, supervisión técnica y criterios estrictos de seguridad biomecánica.</p>
-                <div class="media-wrapper">
-                    <div class="media-container" id="container-ciclovia-seguridad">
-                        <img src="" alt="Seguridad" id="media-ciclovia-seguridad">
-                    </div>
-                    <div class="media-overlay-text" contenteditable="false" data-key="overlay-ciclovia-seguridad">Control Táctico y Seguridad Operativa</div>
-                    <div class="edit-controls">
-                        <label>Texto sobrepuesto:</label>
-                        <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
-                        <label>Cargar Media (Cloud):</label>
-                        <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-ciclovia-seguridad', 'media-ciclovia-seguridad')">
+                <div id="dynamic-content-ciclovia-seguridad">
+                    <div class="media-wrapper">
+                        <div class="media-container" id="container-ciclovia-seguridad">
+                            <img src="" alt="Seguridad" id="media-ciclovia-seguridad">
+                        </div>
+                        <div class="media-overlay-text" contenteditable="false" data-key="overlay-ciclovia-seguridad">Control Táctico y Seguridad Operativa</div>
+                        <div class="edit-controls">
+                            <label>Texto sobrepuesto:</label>
+                            <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
+                            <label>Cargar Media (Cloud):</label>
+                            <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-ciclovia-seguridad', 'media-ciclovia-seguridad')">
+                        </div>
                     </div>
                 </div>
+                <button class="btn-add-content" onclick="addMediaBlock('dynamic-content-ciclovia-seguridad')">+ Añadir bloque</button>
             </div>
 
         </div>
@@ -616,11 +672,22 @@
         <div class="page-content-box">
             <h2 contenteditable="false" data-key="title-aliados">Red de Aliados Estratégicos</h2>
             <p contenteditable="false" data-key="desc-aliados">Activaciones en colegios, ciclovías y parques (como CRP), interconectando escenarios y promoviendo torneos oficiales.</p>
-            <div class="grid-logos">
-                <div class="logo-box" contenteditable="false">Parques CRP</div>
-                <div class="logo-box" contenteditable="false">Colegios</div>
-                <div class="logo-box" contenteditable="false">Ciclovía</div>
+            
+            <div id="dynamic-content-aliados">
+                <div class="media-wrapper">
+                    <div class="media-container" id="container-aliados">
+                        <img src="" alt="Aliados" id="media-aliados">
+                    </div>
+                    <div class="media-overlay-text" contenteditable="false" data-key="overlay-aliados">Red de Escenarios Aliados</div>
+                    <div class="edit-controls">
+                        <label>Texto sobrepuesto:</label>
+                        <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
+                        <label>Cargar Media (Cloud):</label>
+                        <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-aliados', 'media-aliados')">
+                    </div>
+                </div>
             </div>
+            <button class="btn-add-content" onclick="addMediaBlock('dynamic-content-aliados')">+ Añadir bloque</button>
         </div>
     </div>
 
@@ -630,10 +697,22 @@
         <div class="page-content-box">
             <h2 contenteditable="false" data-key="title-patrocinadores">Patrocinadores y Aliados</h2>
             <p contenteditable="false" data-key="desc-patrocinadores">Comerciantes locales que proporcionan bonos de descuento, regalos digitales y premios físicos para los participantes.</p>
-            <div class="grid-logos">
-                <div class="logo-box" contenteditable="false">Comerciantes</div>
-                <div class="logo-box" contenteditable="false">Bonos Digitales</div>
+            
+            <div id="dynamic-content-patrocinadores">
+                <div class="media-wrapper">
+                    <div class="media-container" id="container-patrocinadores">
+                        <img src="" alt="Patrocinadores" id="media-patrocinadores">
+                    </div>
+                    <div class="media-overlay-text" contenteditable="false" data-key="overlay-patrocinadores">Comercio Local e Incentivos</div>
+                    <div class="edit-controls">
+                        <label>Texto sobrepuesto:</label>
+                        <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
+                        <label>Cargar Media (Cloud):</label>
+                        <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-patrocinadores', 'media-patrocinadores')">
+                    </div>
+                </div>
             </div>
+            <button class="btn-add-content" onclick="addMediaBlock('dynamic-content-patrocinadores')">+ Añadir bloque</button>
         </div>
     </div>
 
@@ -644,18 +723,21 @@
             <h2 contenteditable="false" data-key="title-desarrollo">En Desarrollo</h2>
             <p contenteditable="false" data-key="desc-desarrollo">Nuestros progresos tecnológicos y de software, incluyendo telemetría con ESP32, aplicaciones web propias y herramientas de análisis biomecánico.</p>
             
-            <div class="media-wrapper">
-                <div class="media-container" id="container-desarrollo">
-                    <img src="" alt="En Desarrollo" id="media-desarrollo">
-                </div>
-                <div class="media-overlay-text" contenteditable="false" data-key="overlay-desarrollo">Tecnología y Prototipos Propios</div>
-                <div class="edit-controls">
-                    <label>Texto sobrepuesto:</label>
-                    <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
-                    <label>Cargar Media (Cloud):</label>
-                    <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-desarrollo', 'media-desarrollo')">
+            <div id="dynamic-content-desarrollo">
+                <div class="media-wrapper">
+                    <div class="media-container" id="container-desarrollo">
+                        <img src="" alt="En Desarrollo" id="media-desarrollo">
+                    </div>
+                    <div class="media-overlay-text" contenteditable="false" data-key="overlay-desarrollo">Tecnología y Prototipos Propios</div>
+                    <div class="edit-controls">
+                        <label>Texto sobrepuesto:</label>
+                        <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
+                        <label>Cargar Media (Cloud):</label>
+                        <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-desarrollo', 'media-desarrollo')">
+                    </div>
                 </div>
             </div>
+            <button class="btn-add-content" onclick="addMediaBlock('dynamic-content-desarrollo')">+ Añadir bloque</button>
         </div>
     </div>
 
@@ -673,6 +755,32 @@
             applyDeviceMode();
             initSwipeGestures();
         });
+
+        // GESTIÓN DE BADGES DE CARGA ACTIVA
+        const uploadStatuses = new Map();
+
+        function actualizarBadgeCarga(id, estado, mensaje) {
+            const container = document.getElementById('upload-status-container');
+            if (!container) return;
+
+            if (estado === 'done' || estado === 'error') {
+                uploadStatuses.delete(id);
+            } else {
+                uploadStatuses.set(id, { estado, mensaje });
+            }
+
+            container.innerHTML = '';
+            uploadStatuses.forEach((val, key) => {
+                const badge = document.createElement('div');
+                badge.className = `upload-badge ${val.estado}`;
+                if (val.estado === 'loading') {
+                    badge.innerHTML = `<span class="spinner-icon">⟳</span> ${val.mensaje}`;
+                } else if (val.estado === 'error') {
+                    badge.innerHTML = `<span>✕</span> ${val.mensaje}`;
+                }
+                container.appendChild(badge);
+            });
+        }
 
         // CARGAR TEXTOS Y MULTIMEDIA DESDE SUPABASE
         async function cargarDatosDesdeSupabase() {
@@ -711,7 +819,6 @@
             }
         }
 
-        // GUARDAR TEXTOS EN TIEMPO REAL EN SUPABASE
         async function guardarDatoSupabase(id, content) {
             if (!sb) return;
             await sb.from('apex_content').upsert({ id: id, content: content, updated_at: new Date() });
@@ -774,13 +881,15 @@
         async function updateGlobalVideo(event) {
             const file = event.target.files[0];
             if (!file) return;
-            const publicUrl = await subirArchivoSupabaseStorage(file, 'global_bg.mp4');
+            const uploadId = 'global_bg';
+            actualizarBadgeCarga(uploadId, 'loading', 'Fondo');
+
+            const publicUrl = await subirArchivoSupabaseStorage(file, 'global_bg.mp4', uploadId);
             if (publicUrl) {
                 const bgVideo = document.getElementById('global-bg-video');
                 bgVideo.src = publicUrl;
                 bgVideo.play();
                 guardarDatoSupabase('global_bg_video', publicUrl);
-                alert("¡Video de fondo general actualizado en la nube!");
             }
         }
 
@@ -805,27 +914,48 @@
             }
         }
 
-        // SUBIDA OPTIMIZADA A SUPABASE STORAGE (BUCKET: apex_multimedia)
-        async function subirArchivoSupabaseStorage(file, fileNameCustom) {
-            if (!sb) { alert("Supabase no inicializado."); return null; }
-            const fileName = `media_${Date.now()}_${fileNameCustom || file.name.replace(/[^a-zA-Z0-9_.-]/g, '_')}`;
-            
-            const { data, error } = await sb.storage.from('apex_multimedia').upload(fileName, file, { upsert: true });
-            if (error) {
-                alert("Error al subir archivo a la nube: " + error.message);
-                return null;
+        // SUBIDA OPTIMIZADA A SUPABASE STORAGE CON ELIMINACIÓN DE ARCHIVO ANTERIOR (LIMPIEZA DE BASURA)
+        async function subirArchivoSupabaseStorage(file, fileNameCustom, uploadId) {
+            if (!sb) { 
+                actualizarBadgeCarga(uploadId, 'error', 'Error');
+                return null; 
             }
 
-            const { data: publicUrlData } = sb.storage.from('apex_multimedia').getPublicUrl(fileName);
-            return publicUrlData.publicUrl;
+            try {
+                // 1. Consultar si ya existe un archivo guardado previamente para este ID para borrarlo y evitar basura
+                const { data: existingData } = await sb.from('apex_content').select('content').eq('id', 'media_' + uploadId).single();
+                if (existingData && existingData.content && existingData.content.includes('apex_multimedia')) {
+                    const oldUrl = existingData.content;
+                    const pathParts = oldUrl.split('/apex_multimedia/');
+                    if (pathParts.length > 1) {
+                        const oldPath = pathParts[1];
+                        await sb.storage.from('apex_multimedia').remove([oldPath]);
+                    }
+                }
+
+                const fileName = `${uploadId}_${Date.now()}_${fileNameCustom.replace(/[^a-zA-Z0-9_.-]/g, '_')}`;
+                
+                const { data, error } = await sb.storage.from('apex_multimedia').upload(fileName, file, { upsert: true });
+                if (error) throw error;
+
+                const { data: publicUrlData } = sb.storage.from('apex_multimedia').getPublicUrl(fileName);
+                actualizarBadgeCarga(uploadId, 'done', '');
+                return publicUrlData.publicUrl;
+
+            } catch (err) {
+                console.error(err);
+                actualizarBadgeCarga(uploadId, 'error', 'Fallo');
+                setTimeout(() => actualizarBadgeCarga(uploadId, 'done', ''), 4000);
+                return null;
+            }
         }
 
         async function subirMultimediaSupabase(event, containerId, elementId) {
             const file = event.target.files[0];
             if (!file) return;
             
-            alert("Subiendo archivo optimizado a Supabase Storage...");
-            const publicUrl = await subirArchivoSupabaseStorage(file, file.name);
+            actualizarBadgeCarga(elementId, 'loading', 'Subiendo');
+            const publicUrl = await subirArchivoSupabaseStorage(file, file.name, elementId);
             if (!publicUrl) return;
 
             const container = document.getElementById(containerId);
@@ -853,9 +983,29 @@
                 container.appendChild(img);
             }
 
-            // Guardar referencia en la tabla apex_content
             await guardarDatoSupabase('media_' + elementId, publicUrl);
-            alert("¡Multimedia subida y sincronizada en la nube con éxito!");
+        }
+
+        function addMediaBlock(wrapperId) {
+            const wrapper = document.getElementById(wrapperId);
+            const uniqueId = 'media_' + Date.now();
+            const containerId = 'container_' + Date.now();
+
+            const newBlock = document.createElement('div');
+            newBlock.className = 'media-wrapper';
+            newBlock.innerHTML = `
+                <div class="media-container" id="${containerId}">
+                    <img src="" alt="Elemento" id="${uniqueId}">
+                </div>
+                <div class="media-overlay-text" contenteditable="${isEditMode ? 'true' : 'false'}" data-key="${uniqueId}-overlay">Nuevo Título en Gran Formato</div>
+                <div class="edit-controls" style="display: ${isEditMode ? 'block' : 'none'};">
+                    <label>Texto sobrepuesto:</label>
+                    <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
+                    <label>Cargar Media (Cloud):</label>
+                    <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, '${containerId}', '${uniqueId}')">
+                </div>
+            `;
+            wrapper.appendChild(newBlock);
         }
 
         // Navegación táctil por deslizamiento (Swipe)
