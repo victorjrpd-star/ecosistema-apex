@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apex Boxing - Escuela de Strikers</title>
+    <style>
+        :root {
+            --bg-color: #000000;
+            --card-bg: rgba(10, 10, 10, 0.92);
+            --card-border: #222222;
+            --accent-blue: #2563eb;
+            --accent-red: #dc2626;
+            --text-main: #ffffff;
+            --text-muted: #a3a3a3;
+            --overlay-alpha: 0.75;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        #global-bg-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover;
+            z-index: -2;
+        }
+
+        .bg-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, var(--overlay-alpha));
+            z-index: -1;
+            transition: background 0.3s ease;
+        }
+
+        /* Rueda de configuración sin reborde, limpia y tecnológica */
+        .settings-toggle {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            z-index: 2000;
+            background: transparent;
+            border: none;
+            color: var(--accent-blue);
+            font-size: 2.2rem;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            text-shadow: 0 0 10px rgba(37, 99, 235, 0.6);
+            transition: transform 0.3s ease;
+        }
+
+        .settings-toggle:hover {
+            transform: scale(1.15);
+        }
+
+        .config-panel {
+            position: fixed;
+            top: 70px;
+            right: 15px;
+            z-index: 2500;
+            background: rgba(10, 10, 10, 0.98);
+            border: 1px solid var(--accent-blue);
+            padding: 15px;
+            border-radius: 12px;
+            width: 290px;
+            display: none;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.9);
+        }
+
+        .config-panel h3 {
+            color: var(--accent-blue);
+            margin-bottom: 10px;
+            font-size: 1rem;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 5px;
+        }
+
+        .config-panel label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 8px;
+            margin-bottom: 4px;
+        }
+
+        .config-panel input[type="range"], .config-panel input[type="file"], .config-panel select {
+            width: 100%;
+            margin-bottom: 8px;
+        }
+
+        .view-page {
+            display: none;
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 0 15px;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .view-page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .btn-back {
+            background: transparent;
+            border: 2px solid var(--accent-blue);
+            color: var(--text-main);
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            z-index: 10;
+        }
+
+        header {
+            position: relative;
+            min-height: 40vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 30px 15px;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        /* Logo Superior Tradicional con Esquinas Redondeadas y Desvanecido Perimetral */
+        .header-logo-container {
+            width: 100%;
+            max-width: 320px;
+            height: 160px;
+            border-radius: 16px;
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            -webkit-mask-image: radial-gradient(circle at center, black 65%, rgba(0,0,0,0.2) 100%);
+            mask-image: radial-gradient(circle at center, black 65%, rgba(0,0,0,0.2) 100%);
+        }
+
+        .header-logo-container img, .header-logo-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .brand-container {
+            border-bottom: 3px solid var(--accent-red);
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            color: var(--text-main);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            line-height: 1.1;
+            text-shadow: 0 4px 15px rgba(0, 0, 0, 0.9);
+        }
+
+        header .subtitle-brand {
+            font-size: 1rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-top: 4px;
+            font-weight: 400;
+        }
+
+        header p {
+            font-size: 1rem;
+            color: var(--text-main);
+            max-width: 700px;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.9);
+        }
+
+        .menu-container {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 0 15px;
+            display: grid;
+            gap: 15px;
+        }
+
+        .section-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-left: 4px solid var(--accent-blue);
+            border-radius: 8px;
+            padding: 20px;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-card h2 {
+            font-size: 1.25rem;
+            color: var(--text-main);
+            text-shadow: 0 2px 6px rgba(0,0,0,0.8);
+        }
+
+        .section-card span {
+            color: var(--accent-blue);
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .page-content-box {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 25px 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.9);
+            position: relative;
+        }
+
+        .page-content-box h2 {
+            color: var(--text-main);
+            margin-bottom: 15px;
+            font-size: 1.8rem;
+            border-bottom: 2px solid var(--card-border);
+            padding-bottom: 8px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.9);
+        }
+
+        .page-content-box p {
+            color: var(--text-main);
+            font-size: 1rem;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 6px rgba(0,0,0,0.9);
+        }
+
+        .subtabs-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 10px;
+            overflow-x: auto;
+        }
+
+        .subtab-btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--card-border);
+            color: var(--text-muted);
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+
+        .subtab-btn.active {
+            background: var(--accent-blue);
+            color: #fff;
+            border-color: var(--accent-blue);
+        }
+
+        .subtab-content {
+            display: none;
+        }
+
+        .subtab-content.active {
+            display: block;
+        }
+
+        .media-wrapper {
+            margin: 20px 0;
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--card-border);
+        }
+
+        .media-container {
+            position: relative;
+            width: 100%;
+            height: auto;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .media-container img, .media-container video {
+            width: 100%;
+            height: auto;
+            max-height: 60vh;
+            object-fit: contain;
+            display: block;
+        }
+
+        .media-overlay-text {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(to top, rgba(0,0,0,0.95), transparent);
+            color: #ffffff;
+            font-size: 1.4rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            text-shadow: 0 4px 12px rgba(0,0,0,0.9);
+            letter-spacing: 0.5px;
+        }
+
+        .edit-controls {
+            display: none;
+            background: rgba(10, 10, 10, 0.95);
+            border: 2px dashed var(--accent-blue);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 12px 0;
+            position: relative;
+            z-index: 100;
+        }
+
+        .edit-mode .edit-controls {
+            display: block;
+        }
+
+        .edit-mode [contenteditable="true"] {
+            border: 1px dashed var(--accent-blue);
+            padding: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            position: relative;
+            z-index: 50;
+        }
+
+        .btn-add-content {
+            display: none;
+            background: var(--accent-blue);
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .edit-mode .btn-add-content {
+            display: inline-block;
+        }
+
+        .grid-logos {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .logo-box {
+            background: rgba(5, 5, 5, 0.9);
+            border: 1px solid var(--card-border);
+            padding: 12px;
+            text-align: center;
+            border-radius: 6px;
+            color: var(--text-main);
+            text-shadow: 0 2px 6px rgba(0,0,0,0.9);
+        }
+
+        @media(max-width: 480px) {
+            header h1 { font-size: 2rem; }
+            .page-content-box { padding: 15px; }
+            .media-overlay-text { font-size: 1.1rem; padding: 12px; }
+        }
+    </style>
+</head>
+<body class="">
+
+    <video autoplay muted loop playsinline id="global-bg-video">
+        <source src="" type="video/mp4">
+    </video>
+    <div class="bg-overlay" id="bg-overlay"></div>
+
+    <!-- Rueda de configuración sin reborde -->
+    <div class="settings-toggle" onclick="toggleConfigPanel()" title="Configuración y Edición">
+        ⚙️
+    </div>
+
+    <div class="config-panel" id="configPanel">
+        <h3>Configuración</h3>
+        <label>Dispositivo:</label>
+        <select id="deviceMode" onchange="applyDeviceMode()">
+            <option value="auto">Automático</option>
+            <option value="desktop">Escritorio</option>
+            <option value="mobile">Móvil</option>
+        </select>
+
+        <label>Opacidad Fondo:</label>
+        <input type="range" id="opacityRange" min="0.3" max="0.95" step="0.05" value="0.75" oninput="changeOpacity(this.value)">
+
+        <label>Video Fondo General:</label>
+        <input type="file" accept="video/*" onchange="updateGlobalVideo(event)">
+
+        <button onclick="toggleEditMode()" style="width:100%; background:var(--accent-blue); color:#fff; border:none; padding:8px; border-radius:6px; font-weight:bold; cursor:pointer; margin-top:8px;">Modo Edición</button>
+    </div>
+
+    <!-- VISTA 1: HOME -->
+    <div id="view-home" class="view-page active">
+        <header>
+            <div class="header-logo-container" id="container-header-logo">
+                <img src="" alt="Logo Tradicional" id="media-header-logo">
+            </div>
+            <div class="edit-controls" style="margin-bottom: 15px; width: 100%; max-width: 300px;">
+                <label style="font-size:0.8rem; color:var(--text-muted);">Cargar Logo / Video Superior:</label>
+                <input type="file" accept="image/*,video/*,.gif" onchange="updateMediaSecure(event, 'container-header-logo', 'media-header-logo')">
+            </div>
+
+            <div class="brand-container">
+                <h1 contenteditable="false" id="main-title" data-key="main-title">Apex Boxing</h1>
+                <div class="subtitle-brand" contenteditable="false" id="sub-title" data-key="sub-title">Escuela de Strikers</div>
+            </div>
+            <p contenteditable="false" id="main-subtitle" data-key="main-subtitle">Construyendo el futuro del boxeo y kickboxing. Transformamos los deportes de contacto con seguridad biomecánica y telemetría para elevar el deporte a un show total.</p>
+        </header>
+
+        <main class="menu-container">
+            <div class="section-card" onclick="switchView('view-quienes')">
+                <h2 contenteditable="false" id="t-quienes" data-key="t-quienes">Quiénes Somos</h2>
+                <span>+</span>
+            </div>
+
+            <div class="section-card" onclick="switchView('view-educativas')">
+                <h2 contenteditable="false" id="t-educativas" data-key="t-educativas">Instituciones Educativas</h2>
+                <span>+</span>
+            </div>
+
+            <div class="section-card" onclick="switchView('view-ciclovia')">
+                <h2 contenteditable="false" id="t-ciclovia" data-key="t-ciclovia">Ciclovía de Cali</h2>
+                <span>+</span>
+            </div>
+
+            <div class="section-card" onclick="switchView('view-aliados')">
+                <h2 contenteditable="false" id="t-aliados" data-key="t-aliados">Red de Aliados Estratégicos</h2>
+                <span>+</span>
+            </div>
+
+            <div class="section-card" onclick="switchView('view-patrocinadores')">
+                <h2 contenteditable="false" id="t-patrocinadores" data-key="t-patrocinadores">Patrocinadores y Aliados</h2>
+                <span>+</span>
+            </div>
+
+            <div class="section-card" onclick="switchView('view-desarrollo')">
+                <h2 contenteditable="false" id="t-desarrollo" data-key="t-desarrollo">En Desarrollo</h2>
+                <span>+</span>
+            </div>
+        </main>
+    </div>
+
+    <!-- VISTA 2: QUIÉNES SOMOS -->
+    <div id="view-quienes" class="view-page" data-page-index="1">
+        <button class="btn-back" onclick="switchView('view-home')">← Volver</button>
+        <div class="page-content-box">
+            <h2 contenteditable="false">Quiénes Somos</h2>
+            <p contenteditable="false" data-key="desc-quienes">Promovemos el deporte masivamente generando alto impacto social a través de un espectáculo moderno. Monetizamos el show para que los atletas vivan de su profesión.</p>
+            
+            <div id="dynamic-content-quienes">
+                <div class="media-wrapper">
+                    <div class="media-container" id="container-quienes">
+                        <img src="" alt="Quiénes Somos" id="media-quienes">
+                    </div>
+                    <div class="media-overlay-text" contenteditable="false" data-key="overlay-quienes">El show del combate profesional</div>
+                    <div class="edit-controls">
+                        <label>Texto sobrepuesto:</label>
+                        <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
+                        <label>Cargar Media:</label>
+                        <input type="file" accept="image/*,video/*,.gif" onchange="updateMediaSecure(event, 'container-quienes', 'media-quienes')">
+                    </div>
+                </div>
+            </div>
+            <button class="btn-add-content" onclick="addMediaBlock('dynamic-content-quienes')">+ Añadir bloque</button>
+        </div>
+    </div>
+
+    <!-- VISTA 3: INSTITUCIONES EDUCATIVAS -->
+    <div id="view-educativas" class="view-page" data-page-index="2">
+        <button class="btn-back" onclick="switchView('view-home')">← Volver</button>
+        <div class="page-content-box">
+            <h2 contenteditable="false">Instituciones Educativas</h2>
+            <p contenteditable="false" data-key="desc-educativas">Visitamos colegios con nuestra feria deportiva itinerante para promover el deporte y encender la pasión en un entorno seguro.</p>
+            
+            <div id="dynamic-content-educativas">
+                <div class="media-wrapper">
+                    <div class="media-container" id="container-educativas">
+                        <img src="" alt="Educativas" id="media-educativas">
+                    </div>
+                    <div class="media-overlay-text" contenteditable="false" data-key="overlay-educativas">La pasión por el deporte nace aquí</div>
+                    <div class="edit-controls">
+                        <label>Texto sobrepuesto:</label>
+                        <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
+                        <label>Cargar Media:</label>
+                        <input type="file" accept="image/*,video/*,.gif" onchange="updateMediaSecure(event, 'container-educativas', 'media-educativas')">
+                    </div>
+                </div>
+            </div>
+            <button class="btn-add-content" onclick="addMediaBlock('dynamic-content-educativas')">+ Añadir bloque</button>
+        </div>
+    </div>
+
+    <!-- VISTA 4: CICLOVÍA -->
+    <div id="view-ciclovia" class="view-page" data-page-index="3">
+        <button class="btn-back" onclick="switchView('view-home')">← Volver</button>
+        <div class="page-content-box">
+            <h2 contenteditable="false">Integración con Ciclovía de Cali</h2>
+            
+            <div class="subtabs-container">
+                <button class="subtab-btn active" onclick="switchSubTab('subtab-propuesta', this)">Propuesta</button>
+                <button class="subtab-btn" onclick="switchSubTab('subtab-ubicacion', this)">Ubicación</button>
+                <button class="subtab-btn" onclick="switchSubTab('subtab-seguridad', this)">Seguridad</button>
+            </div>
+
+            <div id="subtab-propuesta" class="subtab-content active">
+                <p contenteditable="false" data-key="desc-ciclovia-propuesta">Dinamizamos el sector deportivo entregando métricas de alto impacto social que la Secretaría puede reportar como resultados propios, sin requerir inversión logística estatal.</p>
+                <div id="dynamic-content-ciclovia-propuesta">
+                    <div class="media-wrapper">
+                        <div class="media-container" id="container-ciclovia-propuesta">
+                            <img src="" alt="Propuesta" id="media-ciclovia-propuesta">
+                        </div>
+                        <div class="media-overlay-text" contenteditable="false" data-key="overlay-ciclovia-propuesta">Dinamización y Métricas de Impacto</div>
+                        <div class="edit-controls">
+                            <label>Texto sobrepuesto:</label>
+                            <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
+                            <label>Cargar Media:</label>
+                            <input type="file" accept="image/*,video/*,.gif" onchange="updateMediaSecure(event, 'container-ciclovia-propuesta', 'media-ciclovia-propuesta')">
+                        </div>
+                    </div>
+                </div>
+                <button class="btn-add-content" onclick="addMediaBlock('dynamic-content-ciclovia-propuesta')">+ Añadir bloque</button>
+            </div>
+
+            <div id="subtab-ubicacion" class="subtab-content">
+                <p contenteditable="false" data-key="desc-ciclovia-ubicacion">Bahía de aceleración/desaceleración de 12 metros para pre-registro QR en la Calle 49 con Autopista Suroriental y circuito sincronizado en la "U" del retorno.</p>
+                <div id="dynamic-content-ciclovia-ubicacion">
+                    <div class="media-wrapper">
+                        <div class="media-container" id="container-ciclovia-ubicacion">
+                            <img src="" alt="Ubicación" id="media-ciclovia-ubicacion">
+                        </div>
+                        <div class="media-overlay-text" contenteditable="false" data-key="overlay-ciclovia-ubicacion">Calle 49 con Autopista Suroriental</div>
+                        <div class="edit-controls">
+                            <label>Texto sobrepuesto:</label>
+                            <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
+                            <label>Cargar Media:</label>
+                            <input type="file" accept="image/*,video/*,.gif" onchange="updateMediaSecure(event, 'container-ciclovia-ubicacion', 'media-ciclovia-ubicacion')">
+                        </div>
+                    </div>
+                </div>
+                <button class="btn-add-content" onclick="addMediaBlock('dynamic-content-ciclovia-ubicacion')">+ Añadir bloque</button>
+            </div>
+
+            <div id="subtab-seguridad" class="subtab-content">
+                <p contenteditable="false" data-key="desc-ciclovia-seguridad">Personal uniformado con petos, comunicación por radios con auriculares cableados, supervisión técnica y criterios estrictos de seguridad biomecánica.</p>
+                <div id="dynamic-content-ciclovia-seguridad">
+                    <div class="media-wrapper">
+                        <div class="media-container" id="container-ciclovia-seguridad">
+                            <img src="" alt="Seguridad" id="media-ciclovia-seguridad">
+                        </div>
+                        <div class="media-overlay-text" contenteditable="false" data-key="overlay-ciclovia-seguridad">Control Táctico y Seguridad Operativa</div>
+                        <div class="edit-controls">
+                            <label>Texto sobrepuesto:</label>
+                            <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
+                            <label>Cargar Media:</label>
+                            <input type="file" accept="image/*,video/*,.gif" onchange="updateMediaSecure(event, 'container-ciclovia-seguridad', 'media-ciclovia-seguridad')">
+                        </div>
+                    </div>
+                </div>
+                <button class="btn-add-content" onclick="addMediaBlock('dynamic-content-ciclovia-seguridad')">+ Añadir bloque</button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- VISTA 5: ALIADOS -->
+    <div id="view-aliados" class="view-page" data-page-index="4">
+        <button class="btn-back" onclick="switchView('view-home')">← Volver</button>
+        <div class="page-content-box">
+            <h2 contenteditable="false">Red de Aliados Estratégicos</h2>
+            <p contenteditable="false" data-key="desc-aliados">Activaciones en colegios, ciclovías y parques (como CRP), interconectando escenarios y promoviendo torneos oficiales.</p>
+            <div class="grid-logos">
+                <div class="logo-box" contenteditable="false">Parques CRP</div>
+                <div class="logo-box" contenteditable="false">Colegios</div>
+                <div class="logo-box" contenteditable="false">Ciclovía</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VISTA 6: PATROCINADORES -->
+    <div id="view-patrocinadores" class="view-page" data-page-index="5">
+        <button class="btn-back" onclick="switchView('view-home')">← Volver</button>
+        <div class="page-content-box">
+            <h2 contenteditable="false">Patrocinadores y Aliados</h2>
+            <p contenteditable="false" data-key="desc-patrocinadores">Comerciantes locales que proporcionan bonos de descuento, regalos digitales y premios físicos para los participantes.</p>
+            <div class="grid-logos">
+                <div class="logo-box" contenteditable="false">Comerciantes</div>
+                <div class="logo-box" contenteditable="false">Bonos Digitales</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VISTA 7: EN DESARROLLO -->
+    <div id="view-desarrollo" class="view-page" data-page-index="6">
+        <button class="btn-back" onclick="switchView('view-home')">← Volver</button>
+        <div class="page-content-box">
+            <h2 contenteditable="false">En Desarrollo</h2>
+            <p contenteditable="false" data-key="desc-desarrollo">Nuestros progresos tecnológicos y de software, incluyendo telemetría con ESP32, aplicaciones web propias y herramientas de análisis biomecánico.</p>
+            
+            <div id="dynamic-content-desarrollo">
+                <div class="media-wrapper">
+                    <div class="media-container" id="container-desarrollo">
+                        <img src="" alt="En Desarrollo" id="media-desarrollo">
+                    </div>
+                    <div class="media-overlay-text" contenteditable="false" data-key="overlay-desarrollo">Tecnología y Prototipos Propios</div>
+                    <div class="edit-controls">
+                        <label>Texto sobrepuesto:</label>
+                        <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
+                        <label>Cargar Media:</label>
+                        <input type="file" accept="image/*,video/*,.gif" onchange="updateMediaSecure(event, 'container-desarrollo', 'media-desarrollo')">
+                    </div>
+                </div>
+            </div>
+            <button class="btn-add-content" onclick="addMediaBlock('dynamic-content-desarrollo')">+ Añadir bloque</button>
+        </div>
+    </div>
+
+    <script>
+        let isEditMode = false;
+        const pageOrder = ['view-home', 'view-quienes', 'view-educativas', 'view-ciclovia', 'view-aliados', 'view-patrocinadores', 'view-desarrollo'];
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedData = JSON.parse(localStorage.getItem('apex_presentation_data') || '{}');
+            for (const key in savedData) {
+                if (key.startsWith('text_')) {
+                    const elId = key.replace('text_', '');
+                    const el = document.getElementById(elId) || document.querySelector(`[data-key="${elId}"]`);
+                    if (el) el.innerHTML = savedData[key];
+                } else if (key.startsWith('media_')) {
+                    const mediaId = key.replace('media_', '');
+                    const mediaEl = document.getElementById(mediaId);
+                    if (mediaEl) mediaEl.src = savedData[key];
+                } else if (key === 'global_bg_video') {
+                    const bgVideo = document.getElementById('global-bg-video');
+                    bgVideo.src = savedData[key];
+                    bgVideo.play();
+                } else if (key === 'bg_opacity') {
+                    document.documentElement.style.setProperty('--overlay-alpha', savedData[key]);
+                    document.getElementById('opacityRange').value = savedData[key];
+                }
+            }
+            applyDeviceMode();
+            initSwipeGestures();
+        });
+
+        function toggleConfigPanel() {
+            const panel = document.getElementById('configPanel');
+            panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function switchView(viewId) {
+            document.querySelectorAll('.view-page').forEach(page => page.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            window.scrollTo(0, 0);
+            document.getElementById('configPanel').style.display = 'none';
+        }
+
+        function switchSubTab(tabId, btn) {
+            const container = btn.closest('.page-content-box');
+            container.querySelectorAll('.subtab-content').forEach(c => c.classList.remove('active'));
+            container.querySelectorAll('.subtab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        function toggleEditMode() {
+            isEditMode = !isEditMode;
+            document.body.classList.toggle('edit-mode', isEditMode);
+            
+            document.querySelectorAll('[contenteditable]').forEach(el => {
+                el.setAttribute('contenteditable', isEditMode ? 'true' : 'false');
+            });
+
+            if (!isEditMode) {
+                saveAllData();
+                alert("¡Guardado local exitoso!");
+            } else {
+                alert("Modo Edición Activado.");
+            }
+            toggleConfigPanel();
+        }
+
+        function changeOpacity(val) {
+            document.documentElement.style.setProperty('--overlay-alpha', val);
+            const saved = JSON.parse(localStorage.getItem('apex_presentation_data') || '{}');
+            saved['bg_opacity'] = val;
+            localStorage.setItem('apex_presentation_data', JSON.stringify(saved));
+        }
+
+        function updateGlobalVideo(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const bgVideo = document.getElementById('global-bg-video');
+                bgVideo.src = e.target.result;
+                bgVideo.play();
+                const saved = JSON.parse(localStorage.getItem('apex_presentation_data') || '{}');
+                saved['global_bg_video'] = e.target.result;
+                localStorage.setItem('apex_presentation_data', JSON.stringify(saved));
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function applyDeviceMode() {
+            const mode = document.getElementById('deviceMode').value;
+            if (mode === 'mobile') {
+                document.body.style.fontSize = '14px';
+            } else if (mode === 'desktop') {
+                document.body.style.fontSize = '16px';
+            } else {
+                document.body.style.fontSize = window.innerWidth <= 480 ? '14px' : '16px';
+            }
+        }
+
+        function updateOverlayText(input) {
+            const wrapper = input.closest('.media-wrapper');
+            if (wrapper) {
+                wrapper.querySelector('.media-overlay-text').innerHTML = input.value;
+            }
+        }
+
+        function saveAllData() {
+            const dataToSave = JSON.parse(localStorage.getItem('apex_presentation_data') || '{}');
+            
+            document.querySelectorAll('[contenteditable]').forEach(el => {
+                const key = el.id || el.getAttribute('data-key');
+                if (key) dataToSave['text_' + key] = el.innerHTML;
+            });
+
+            document.querySelectorAll('img, video').forEach(media => {
+                if (media.id && media.src && !media.id.includes('global-bg-video')) {
+                    dataToSave['media_' + media.id] = media.src;
+                }
+            });
+
+            localStorage.setItem('apex_presentation_data', JSON.stringify(dataToSave));
+        }
+
+        function updateMediaSecure(event, containerId, elementId) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const container = document.getElementById(containerId);
+                container.innerHTML = '';
+
+                if (file.type.startsWith('video/')) {
+                    const video = document.createElement('video');
+                    video.id = elementId;
+                    video.src = e.target.result;
+                    video.autoplay = true;
+                    video.muted = true;
+                    video.loop = true;
+                    video.playsInline = true;
+                    video.style.width = '100%';
+                    video.style.height = '100%';
+                    video.style.objectFit = 'cover';
+                    container.appendChild(video);
+                } else {
+                    const img = document.createElement('img');
+                    img.id = elementId;
+                    img.src = e.target.result;
+                    img.style.width = '100%';
+                    img.style.height = '100%';
+                    img.style.objectFit = 'cover';
+                    container.appendChild(img);
+                }
+                saveAllData();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function addMediaBlock(wrapperId) {
+            const wrapper = document.getElementById(wrapperId);
+            const uniqueId = 'media-' + Date.now();
+            const containerId = 'container-' + Date.now();
+
+            const newBlock = document.createElement('div');
+            newBlock.className = 'media-wrapper';
+            newBlock.innerHTML = `
+                <div class="media-container" id="${containerId}">
+                    <img src="" alt="Elemento" id="${uniqueId}">
+                </div>
+                <div class="media-overlay-text" contenteditable="${isEditMode ? 'true' : 'false'}" data-key="${uniqueId}-overlay">Nuevo Título en Gran Formato</div>
+                <div class="edit-controls" style="display: ${isEditMode ? 'block' : 'none'};">
+                    <label>Texto sobrepuesto:</label>
+                    <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
+                    <label>Cargar Media:</label>
+                    <input type="file" accept="image/*,video/*,.gif" onchange="updateMediaSecure(event, '${containerId}', '${uniqueId}')">
+                </div>
+            `;
+            wrapper.appendChild(newBlock);
+        }
+
+        function initSwipeGestures() {
+            let touchStartX = 0;
+            let touchEndX = 0;
+
+            document.addEventListener('touchstart', e => {
+                touchStartX = e.changedTouches[0].screenX;
+            }, false);
+
+            document.addEventListener('touchend', e => {
+                touchEndX = e.changedTouches[0].screenX;
+                handleSwipe();
+            }, false);
+
+            function handleSwipe() {
+                const threshold = 70;
+                const activePage = document.querySelector('.view-page.active');
+                if (!activePage) return;
+                
+                const currentId = activePage.id;
+                const currentIndex = pageOrder.indexOf(currentId);
+
+                if (touchEndX + threshold < touchStartX) {
+                    if (currentIndex > 0 && currentIndex < pageOrder.length - 1) {
+                        switchView(pageOrder[currentIndex + 1]);
+                    }
+                } else if (touchEndX > touchStartX + threshold) {
+                    if (currentIndex > 1) {
+                        switchView(pageOrder[currentIndex - 1]);
+                    } else if (currentIndex === 1) {
+                        switchView('view-home');
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>
