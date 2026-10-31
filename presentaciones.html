@@ -43,7 +43,8 @@
             height: 100vh;
             object-fit: cover;
             z-index: -2;
-            transition: opacity 2s ease-in-out;
+            opacity: 1;
+            transition: opacity 1s ease-in-out;
         }
 
         .bg-overlay {
@@ -57,7 +58,6 @@
             transition: background 0.3s ease;
         }
 
-        /* HUD Superior: Indicadores de Carga y Rueda de Configuración */
         .hud-top-right {
             position: fixed;
             top: 10px;
@@ -67,6 +67,28 @@
             align-items: center;
             gap: 8px;
         }
+
+        .network-indicator {
+            background: rgba(10, 10, 10, 0.9);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 4px 10px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            backdrop-filter: blur(4px);
+        }
+
+        .network-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .network-dot.online { background: #22c55e; box-shadow: 0 0 8px #22c55e; }
+        .network-dot.offline { background: #ef4444; box-shadow: 0 0 8px #ef4444; }
 
         .settings-toggle {
             background: transparent;
@@ -174,7 +196,7 @@
             display: none;
             max-width: 900px;
             margin: 20px auto;
-            padding: 0 15px;
+            padding: 0 15px 60px 15px;
             animation: fadeIn 0.3s ease-in-out;
         }
 
@@ -238,7 +260,8 @@
             height: 100%;
             object-fit: cover;
             border: none;
-            transition: opacity 2s ease-in-out;
+            opacity: 1;
+            transition: opacity 1s ease-in-out;
         }
 
         .brand-container {
@@ -276,7 +299,7 @@
 
         .menu-container {
             max-width: 900px;
-            margin: 20px auto;
+            margin: 20px auto 40px auto;
             padding: 0 15px;
             display: grid;
             gap: 15px;
@@ -309,6 +332,7 @@
 
         .home-slogan-box {
             margin-top: 25px;
+            margin-bottom: 40px;
             padding: 15px 20px;
             background: var(--card-bg);
             border: 1px solid var(--card-border);
@@ -332,6 +356,7 @@
             backdrop-filter: blur(10px);
             box-shadow: 0 15px 30px rgba(0,0,0,0.9);
             position: relative;
+            margin-bottom: 40px;
         }
 
         .page-content-box h2 {
@@ -393,7 +418,6 @@
             border: 1px solid var(--card-border);
         }
 
-        /* Sistema de 2 columnas exclusivo para Patrocinadores y Aliados */
         .dynamic-blocks-container.grid-two-columns {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -422,7 +446,8 @@
             max-height: 60vh;
             object-fit: contain;
             display: block;
-            transition: opacity 2s ease-in-out;
+            opacity: 1;
+            transition: opacity 1s ease-in-out;
         }
 
         .media-overlay-text {
@@ -440,7 +465,6 @@
             letter-spacing: 0.5px;
         }
 
-        /* Estrictamente oculto fuera del modo edición */
         .edit-controls {
             display: none !important;
             background: rgba(10, 10, 10, 0.95);
@@ -497,7 +521,133 @@
             z-index: 101;
         }
 
-        /* Estilos para la galería vertical de Supabase Storage */
+        .upload-actions-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 6px;
+        }
+
+        .btn-supabase-selector {
+            background: #1e293b;
+            color: #38bdf8;
+            border: 1px solid #38bdf8;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+        .btn-supabase-selector:hover {
+            background: #38bdf8;
+            color: #000;
+        }
+
+        #supabaseModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.85);
+            z-index: 5000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(8px);
+        }
+
+        .supabase-modal-content {
+            background: #0f0f0f;
+            border: 1px solid var(--accent-blue);
+            border-radius: 12px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 80vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.9);
+        }
+
+        .supabase-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 10px;
+        }
+
+        .supabase-modal-header h3 {
+            color: var(--accent-blue);
+            font-size: 1.1rem;
+        }
+
+        .btn-close-modal {
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        .supabase-grid-picker {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 12px;
+            overflow-y: auto;
+            max-height: 50vh;
+            padding: 5px;
+        }
+
+        .supabase-picker-item {
+            background: #141414;
+            border: 1px solid var(--card-border);
+            border-radius: 6px;
+            padding: 8px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            align-items: center;
+            transition: border-color 0.2s;
+        }
+
+        .supabase-picker-item:hover {
+            border-color: var(--accent-blue);
+        }
+
+        .supabase-picker-thumb {
+            width: 100%;
+            height: 90px;
+            background: #000;
+            border-radius: 4px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .supabase-picker-thumb img, .supabase-picker-thumb video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .supabase-picker-name {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-align: center;
+            word-break: break-all;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
         .gallery-container {
             display: flex;
             flex-direction: column;
@@ -578,13 +728,16 @@
 </head>
 <body class="">
 
-    <video autoplay muted loop playsinline id="global-bg-video">
+    <video autoplay muted playsinline id="global-bg-video">
         <source src="" type="video/mp4">
     </video>
     <div class="bg-overlay" id="bg-overlay"></div>
 
-    <!-- HUD Superior: Indicadores de Carga y Rueda de Configuración -->
     <div class="hud-top-right">
+        <div class="network-indicator" id="networkIndicator" title="Estado de Conexión">
+            <span class="network-dot online" id="networkDot"></span>
+            <span id="networkText">Online</span>
+        </div>
         <div id="upload-status-container"></div>
         <button class="settings-toggle" onclick="toggleConfigPanel()" title="Configuración y Edición">
             ⚙️
@@ -606,20 +759,34 @@
         <label>Video Fondo General:</label>
         <input type="file" accept="video/*" onchange="updateGlobalVideo(event)">
 
+        <button class="btn-panel-action" onclick="forzarSincronizacionManual()">🔄 Forzar Actualización</button>
         <button class="btn-panel-action" onclick="toggleEditMode()">Modo Edición</button>
         <button class="btn-panel-action" style="background:var(--accent-red);" onclick="switchView('view-galeria'); toggleConfigPanel();">Ir a la Galería</button>
     </div>
 
-    <!-- VISTA 1: HOME -->
+    <div id="supabaseModal">
+        <div class="supabase-modal-content">
+            <div class="supabase-modal-header">
+                <h3>Seleccionar archivo de Supabase Storage</h3>
+                <button class="btn-close-modal" onclick="cerrarModalSupabase()">✕</button>
+            </div>
+            <div id="supabasePickerGrid" class="supabase-grid-picker">
+                <span style="color:var(--text-muted);">Cargando archivos...</span>
+            </div>
+        </div>
+    </div>
+
     <div id="view-home" class="view-page active">
         <header>
-            <!-- LOGO TRADICIONAL CON CLAVE FIJA BLINDADA -->
             <div class="header-logo-container" id="container-header-logo">
-                <img src="" alt="Logo Tradicional" id="media-logo_principal">
+                <img src="" alt="" id="media-logo_principal">
             </div>
-            <div class="edit-controls" style="margin-bottom: 15px; width: 100%; max-width: 300px;">
-                <label style="font-size:0.8rem; color:var(--text-muted);">Cargar Logo / Video Superior (Cloud):</label>
-                <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-header-logo', 'media-logo_principal')">
+            <div class="edit-controls" style="margin-bottom: 15px; width: 100%; max-width: 320px;">
+                <label style="font-size:0.8rem; color:var(--text-muted);">Cargar / Seleccionar Logo:</label>
+                <div class="upload-actions-row">
+                    <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-header-logo', 'media-logo_principal')" style="flex:1;">
+                    <button class="btn-supabase-selector" onclick="abrirSelectorSupabase('container-header-logo', 'media-logo_principal')">☁️ Supabase</button>
+                </div>
             </div>
 
             <div class="brand-container">
@@ -660,14 +827,12 @@
                 <span>+</span>
             </div>
 
-            <!-- Leyenda oficial modificable en modo edición -->
             <div class="home-slogan-box">
                 <p contenteditable="false" id="home-slogan" data-key="home-slogan">APEX Boxing es el camino correcto, solo debes recorrerlo.</p>
             </div>
         </main>
     </div>
 
-    <!-- VISTA 2: QUIÉNES SOMOS -->
     <div id="view-quienes" class="view-page" data-page-index="1">
         <button class="btn-back" onclick="switchView('view-home')">← Volver</button>
         <div class="page-content-box">
@@ -678,14 +843,17 @@
                 <div class="media-wrapper" data-block-id="quienes_default">
                     <button class="btn-delete-block" onclick="eliminarBloqueMedia(this)">🗑️ Eliminar bloque</button>
                     <div class="media-container" id="container-quienes">
-                        <img src="" alt="Quiénes Somos" id="media-quienes">
+                        <img src="" alt="" id="media-quienes">
                     </div>
                     <div class="media-overlay-text" contenteditable="false" data-key="overlay-quienes">El show del combate profesional</div>
                     <div class="edit-controls">
                         <label>Texto sobrepuesto:</label>
                         <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
-                        <label>Cargar Media (Cloud):</label>
-                        <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-quienes', 'media-quienes')">
+                        <label>Cargar Media:</label>
+                        <div class="upload-actions-row">
+                            <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-quienes', 'media-quienes')" style="flex:1;">
+                            <button class="btn-supabase-selector" onclick="abrirSelectorSupabase('container-quienes', 'media-quienes')">☁️ Supabase</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -693,7 +861,6 @@
         </div>
     </div>
 
-    <!-- VISTA 3: INSTITUCIONES EDUCATIVAS -->
     <div id="view-educativas" class="view-page" data-page-index="2">
         <button class="btn-back" onclick="switchView('view-home')">← Volver</button>
         <div class="page-content-box">
@@ -704,14 +871,17 @@
                 <div class="media-wrapper" data-block-id="educativas_default">
                     <button class="btn-delete-block" onclick="eliminarBloqueMedia(this)">🗑️ Eliminar bloque</button>
                     <div class="media-container" id="container-educativas">
-                        <img src="" alt="Educativas" id="media-educativas">
+                        <img src="" alt="" id="media-educativas">
                     </div>
                     <div class="media-overlay-text" contenteditable="false" data-key="overlay-educativas">La pasión por el deporte nace aquí</div>
                     <div class="edit-controls">
                         <label>Texto sobrepuesto:</label>
                         <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
-                        <label>Cargar Media (Cloud):</label>
-                        <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-educativas', 'media-educativas')">
+                        <label>Cargar Media:</label>
+                        <div class="upload-actions-row">
+                            <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-educativas', 'media-educativas')" style="flex:1;">
+                            <button class="btn-supabase-selector" onclick="abrirSelectorSupabase('container-educativas', 'media-educativas')">☁️ Supabase</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -719,7 +889,6 @@
         </div>
     </div>
 
-    <!-- VISTA 4: CICLOVÍA -->
     <div id="view-ciclovia" class="view-page" data-page-index="3">
         <button class="btn-back" onclick="switchView('view-home')">← Volver</button>
         <div class="page-content-box">
@@ -737,14 +906,17 @@
                     <div class="media-wrapper" data-block-id="ciclovia_propuesta_default">
                         <button class="btn-delete-block" onclick="eliminarBloqueMedia(this)">🗑️ Eliminar bloque</button>
                         <div class="media-container" id="container-ciclovia-propuesta">
-                            <img src="" alt="Propuesta" id="media-ciclovia-propuesta">
+                            <img src="" alt="" id="media-ciclovia-propuesta">
                         </div>
                         <div class="media-overlay-text" contenteditable="false" data-key="overlay-ciclovia-propuesta">Dinamización y Métricas de Impacto</div>
                         <div class="edit-controls">
                             <label>Texto sobrepuesto:</label>
                             <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
-                            <label>Cargar Media (Cloud):</label>
-                            <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-ciclovia-propuesta', 'media-ciclovia-propuesta')">
+                            <label>Cargar Media:</label>
+                            <div class="upload-actions-row">
+                                <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-ciclovia-propuesta', 'media-ciclovia-propuesta')" style="flex:1;">
+                                <button class="btn-supabase-selector" onclick="abrirSelectorSupabase('container-ciclovia-propuesta', 'media-ciclovia-propuesta')">☁️ Supabase</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -757,14 +929,17 @@
                     <div class="media-wrapper" data-block-id="ciclovia_ubicacion_default">
                         <button class="btn-delete-block" onclick="eliminarBloqueMedia(this)">🗑️ Eliminar bloque</button>
                         <div class="media-container" id="container-ciclovia-ubicacion">
-                            <img src="" alt="Ubicación" id="media-ciclovia-ubicacion">
+                            <img src="" alt="" id="media-ciclovia-ubicacion">
                         </div>
                         <div class="media-overlay-text" contenteditable="false" data-key="overlay-ciclovia-ubicacion">Calle 49 con Autopista Suroriental</div>
                         <div class="edit-controls">
                             <label>Texto sobrepuesto:</label>
                             <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
-                            <label>Cargar Media (Cloud):</label>
-                            <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-ciclovia-ubicacion', 'media-ciclovia-ubicacion')">
+                            <label>Cargar Media:</label>
+                            <div class="upload-actions-row">
+                                <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-ciclovia-ubicacion', 'media-ciclovia-ubicacion')" style="flex:1;">
+                                <button class="btn-supabase-selector" onclick="abrirSelectorSupabase('container-ciclovia-ubicacion', 'media-ciclovia-ubicacion')">☁️ Supabase</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -777,14 +952,17 @@
                     <div class="media-wrapper" data-block-id="ciclovia_seguridad_default">
                         <button class="btn-delete-block" onclick="eliminarBloqueMedia(this)">🗑️ Eliminar bloque</button>
                         <div class="media-container" id="container-ciclovia-seguridad">
-                            <img src="" alt="Seguridad" id="media-ciclovia-seguridad">
+                            <img src="" alt="" id="media-ciclovia-seguridad">
                         </div>
                         <div class="media-overlay-text" contenteditable="false" data-key="overlay-ciclovia-seguridad">Control Táctico y Seguridad Operativa</div>
                         <div class="edit-controls">
                             <label>Texto sobrepuesto:</label>
                             <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
-                            <label>Cargar Media (Cloud):</label>
-                            <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-ciclovia-seguridad', 'media-ciclovia-seguridad')">
+                            <label>Cargar Media:</label>
+                            <div class="upload-actions-row">
+                                <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-ciclovia-seguridad', 'media-ciclovia-seguridad')" style="flex:1;">
+                                <button class="btn-supabase-selector" onclick="abrirSelectorSupabase('container-ciclovia-seguridad', 'media-ciclovia-seguridad')">☁️ Supabase</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -794,7 +972,6 @@
         </div>
     </div>
 
-    <!-- VISTA 5: ALIADOS (2 Columnas Estilo Google Fotos Simplificado) -->
     <div id="view-aliados" class="view-page" data-page-index="4">
         <button class="btn-back" onclick="switchView('view-home')">← Volver</button>
         <div class="page-content-box">
@@ -805,14 +982,17 @@
                 <div class="media-wrapper" data-block-id="aliados_default">
                     <button class="btn-delete-block" onclick="eliminarBloqueMedia(this)">🗑️ Eliminar bloque</button>
                     <div class="media-container" id="container-aliados">
-                        <img src="" alt="Aliados" id="media-aliados">
+                        <img src="" alt="" id="media-aliados">
                     </div>
                     <div class="media-overlay-text" contenteditable="false" data-key="overlay-aliados">Red de Escenarios Aliados</div>
                     <div class="edit-controls">
                         <label>Texto sobrepuesto:</label>
                         <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
-                        <label>Cargar Media (Cloud):</label>
-                        <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-aliados', 'media-aliados')">
+                        <label>Cargar Media:</label>
+                        <div class="upload-actions-row">
+                            <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-aliados', 'media-aliados')" style="flex:1;">
+                            <button class="btn-supabase-selector" onclick="abrirSelectorSupabase('container-aliados', 'media-aliados')">☁️ Supabase</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -820,7 +1000,6 @@
         </div>
     </div>
 
-    <!-- VISTA 6: PATROCINADORES (2 Columnas Estilo Google Fotos Simplificado) -->
     <div id="view-patrocinadores" class="view-page" data-page-index="5">
         <button class="btn-back" onclick="switchView('view-home')">← Volver</button>
         <div class="page-content-box">
@@ -831,14 +1010,17 @@
                 <div class="media-wrapper" data-block-id="patrocinadores_default">
                     <button class="btn-delete-block" onclick="eliminarBloqueMedia(this)">🗑️ Eliminar bloque</button>
                     <div class="media-container" id="container-patrocinadores">
-                        <img src="" alt="Patrocinadores" id="media-patrocinadores">
+                        <img src="" alt="" id="media-patrocinadores">
                     </div>
                     <div class="media-overlay-text" contenteditable="false" data-key="overlay-patrocinadores">Comercio Local e Incentivos</div>
                     <div class="edit-controls">
                         <label>Texto sobrepuesto:</label>
                         <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
-                        <label>Cargar Media (Cloud):</label>
-                        <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-patrocinadores', 'media-patrocinadores')">
+                        <label>Cargar Media:</label>
+                        <div class="upload-actions-row">
+                            <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-patrocinadores', 'media-patrocinadores')" style="flex:1;">
+                            <button class="btn-supabase-selector" onclick="abrirSelectorSupabase('container-patrocinadores', 'media-patrocinadores')">☁️ Supabase</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -846,7 +1028,6 @@
         </div>
     </div>
 
-    <!-- VISTA 7: EN DESARROLLO -->
     <div id="view-desarrollo" class="view-page" data-page-index="6">
         <button class="btn-back" onclick="switchView('view-home')">← Volver</button>
         <div class="page-content-box">
@@ -857,14 +1038,17 @@
                 <div class="media-wrapper" data-block-id="desarrollo_default">
                     <button class="btn-delete-block" onclick="eliminarBloqueMedia(this)">🗑️ Eliminar bloque</button>
                     <div class="media-container" id="container-desarrollo">
-                        <img src="" alt="En Desarrollo" id="media-desarrollo">
+                        <img src="" alt="" id="media-desarrollo">
                     </div>
                     <div class="media-overlay-text" contenteditable="false" data-key="overlay-desarrollo">Tecnología y Prototipos Propios</div>
                     <div class="edit-controls">
                         <label>Texto sobrepuesto:</label>
                         <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
-                        <label>Cargar Media (Cloud):</label>
-                        <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-desarrollo', 'media-desarrollo')">
+                        <label>Cargar Media:</label>
+                        <div class="upload-actions-row">
+                            <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-desarrollo', 'media-desarrollo')" style="flex:1;">
+                            <button class="btn-supabase-selector" onclick="abrirSelectorSupabase('container-desarrollo', 'media-desarrollo')">☁️ Supabase</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -872,7 +1056,6 @@
         </div>
     </div>
 
-    <!-- VISTA 8: GALERÍA DE CONTROL EN SUPABASE -->
     <div id="view-galeria" class="view-page" data-page-index="7">
         <button class="btn-back" onclick="switchView('view-home')">← Volver</button>
         <div class="page-content-box">
@@ -886,7 +1069,26 @@
     </div>
 
     <script>
-        // CONFIGURACIÓN DE SUPABASE
+        window.switchView = function(viewId) {
+            document.querySelectorAll('.view-page').forEach(page => page.classList.remove('active'));
+            const target = document.getElementById(viewId);
+            if (target) target.classList.add('active');
+            window.scrollTo(0, 0);
+            const panel = document.getElementById('configPanel');
+            if (panel) panel.style.display = 'none';
+
+            if (viewId === 'view-galeria') {
+                renderizarGaleriaSupabase();
+            }
+        };
+
+        window.toggleConfigPanel = function() {
+            const panel = document.getElementById('configPanel');
+            if (panel) {
+                panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+            }
+        };
+
         const SUPABASE_URL = 'https://fprvbvucmtdpxdihuvrw.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_xAMs8LpCwyMyoql3ohoJUQ_BIRhBQoD';
         const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
@@ -895,12 +1097,85 @@
         const pageOrder = ['view-home', 'view-quienes', 'view-educativas', 'view-ciclovia', 'view-aliados', 'view-patrocinadores', 'view-desarrollo', 'view-galeria'];
 
         window.addEventListener('DOMContentLoaded', async () => {
-            await cargarDatosDesdeSupabase();
+            initNetworkListener();
+            await cargarDatosSistema();
             applyDeviceMode();
             initSwipeGestures();
+
+            setInterval(() => {
+                if (navigator.onLine) {
+                    sincronizarSegundoPlano();
+                }
+            }, 300000);
         });
 
-        // GESTIÓN DE BADGES DE CARGA ACTIVA
+        function initNetworkListener() {
+            updateNetworkStatus();
+            window.addEventListener('online', updateNetworkStatus);
+            window.addEventListener('offline', updateNetworkStatus);
+        }
+
+        function updateNetworkStatus() {
+            const dot = document.getElementById('networkDot');
+            const text = document.getElementById('networkText');
+            if (!dot || !text) return;
+
+            if (navigator.onLine) {
+                dot.className = 'network-dot online';
+                text.textContent = 'Online';
+            } else {
+                dot.className = 'network-dot offline';
+                text.textContent = 'Offline (Local)';
+            }
+        }
+
+        async function cargarDatosSistema() {
+            let data = null;
+            if (navigator.onLine && sb) {
+                try {
+                    const response = await sb.from('apex_content').select('*');
+                    if (!response.error && response.data) {
+                        data = response.data;
+                        localStorage.setItem('apex_cache_content', JSON.stringify(data));
+                    }
+                } catch (e) {
+                    console.warn("Fallo de red al consultar Supabase, usando caché local:", e);
+                }
+            }
+
+            if (!data) {
+                const cached = localStorage.getItem('apex_cache_content');
+                if (cached) {
+                    try { data = JSON.parse(cached); } catch(err){}
+                }
+            }
+
+            if (data) {
+                procesarDatosEnDOM(data);
+            }
+        }
+
+        async function sincronizarSegundoPlano() {
+            if (!sb) return;
+            try {
+                const { data, error } = await sb.from('apex_content').select('*');
+                if (!error && data) {
+                    localStorage.setItem('apex_cache_content', JSON.stringify(data));
+                }
+            } catch(e){}
+        }
+
+        window.forzarSincronizacionManual = async function() {
+            if (!navigator.onLine) {
+                alert("Estás offline. No se puede sincronizar con la nube en este momento.");
+                return;
+            }
+            alert("Sincronizando con Supabase...");
+            await cargarDatosSistema();
+            alert("¡Sincronización completada con éxito!");
+            toggleConfigPanel();
+        };
+
         const uploadStatuses = new Map();
 
         function actualizarBadgeCarga(id, estado, mensaje) {
@@ -926,16 +1201,21 @@
             });
         }
 
-        // APLICAR EFECTO DE BUCLE OSCURECIDO NATIVO (FADE TO BLACK DE 4s TOTALES: 2s SALIDA, 2s ENTRADA)
-        function configurarBucleSuaveVideo(videoEl) {
-            if (!videoEl || videoEl.dataset.loopConfigured) return;
-            videoEl.dataset.loopConfigured = "true";
+        // BUCLE FLUIDO CON TRANSICIÓN DE FUNDIDO A NEGRO (FADE TO BLACK SUAVE Y CONTINUO)
+        function configurarBucleConFundidoVideo(videoEl) {
+            if (!videoEl || videoEl.dataset.fadeConfigured) return;
+            videoEl.dataset.fadeConfigured = "true";
+
+            videoEl.autoplay = true;
+            videoEl.muted = true;
+            videoEl.playsInline = true;
+            videoEl.style.opacity = '1';
 
             videoEl.addEventListener('timeupdate', () => {
                 if (!videoEl.duration) return;
                 const tiempoRestante = videoEl.duration - videoEl.currentTime;
-                // Si faltan 2 segundos para terminar, desvanecer a negro (opacity 0)
-                if (tiempoRestante <= 2.0 && videoEl.style.opacity !== '0') {
+                // A los 1.5 segundos finales, desvanecer opacidad a 0 (fundido a negro)
+                if (tiempoRestante <= 1.5 && videoEl.style.opacity !== '0') {
                     videoEl.style.opacity = '0';
                 }
             });
@@ -943,111 +1223,87 @@
             videoEl.addEventListener('ended', () => {
                 videoEl.currentTime = 0;
                 videoEl.play().catch(e => {});
-                // Al reiniciar, mantener oscuro 2 segundos y hacer fundido de entrada a opacidad 1
-                videoEl.style.opacity = '0';
+                // Mantener opacidad en 0 brevemente en negro, luego desvanecer de entrada a 1
                 setTimeout(() => {
                     videoEl.style.opacity = '1';
-                }, 2000);
+                }, 300);
             });
-
-            // Para el video de fondo general de la pantalla
-            if (videoEl.id === 'global-bg-video') {
-                videoEl.addEventListener('timeupdate', () => {
-                    if (!videoEl.duration) return;
-                    const tiempoRestante = videoEl.duration - videoEl.currentTime;
-                    if (tiempoRestante <= 2.0 && videoEl.style.opacity !== '0') {
-                        videoEl.style.opacity = '0';
-                    }
-                });
-                videoEl.addEventListener('ended', () => {
-                    videoEl.currentTime = 0;
-                    videoEl.play().catch(e => {});
-                    videoEl.style.opacity = '0';
-                    setTimeout(() => {
-                        videoEl.style.opacity = '1';
-                    }, 2000);
-                });
-            }
         }
 
-        // CARGAR TEXTOS Y MULTIMEDIA DESDE SUPABASE
-        async function cargarDatosDesdeSupabase() {
-            if (!sb) return;
-            try {
-                const { data, error } = await sb.from('apex_content').select('*');
-                if (error) { console.error(error); return; }
+        function procesarDatosEnDOM(data) {
+            let bloquesConfig = {};
+            data.forEach(item => {
+                if (item.id === 'apex_dynamic_blocks_structure') {
+                    try { bloquesConfig = JSON.parse(item.content); } catch(e){}
+                }
+            });
 
-                let bloquesConfig = {};
-                data.forEach(item => {
-                    if (item.id === 'apex_dynamic_blocks_structure') {
-                        try { bloquesConfig = JSON.parse(item.content); } catch(e){}
-                    }
-                });
-
-                for (const sectionKey in bloquesConfig) {
-                    const blockIds = bloquesConfig[sectionKey];
-                    const containerMap = {
-                        'quienes': 'dynamic-content-quienes',
-                        'educativas': 'dynamic-content-educativas',
-                        'ciclovia-propuesta': 'dynamic-content-ciclovia-propuesta',
-                        'ciclovia-ubicacion': 'dynamic-content-ciclovia-ubicacion',
-                        'ciclovia-seguridad': 'dynamic-content-ciclovia-seguridad',
-                        'aliados': 'dynamic-content-aliados',
-                        'patrocinadores': 'dynamic-content-patrocinadores',
-                        'desarrollo': 'dynamic-content-desarrollo'
-                    };
-                    const containerId = containerMap[sectionKey];
-                    if (containerId) {
-                        const wrapperContainer = document.getElementById(containerId);
-                        if (wrapperContainer) {
-                            wrapperContainer.innerHTML = '';
-                            blockIds.forEach(bId => {
-                                construirBloqueDOM(wrapperContainer, sectionKey, bId);
-                            });
-                        }
+            for (const sectionKey in bloquesConfig) {
+                const blockIds = bloquesConfig[sectionKey];
+                const containerMap = {
+                    'quienes': 'dynamic-content-quienes',
+                    'educativas': 'dynamic-content-educativas',
+                    'ciclovia-propuesta': 'dynamic-content-ciclovia-propuesta',
+                    'ciclovia-ubicacion': 'dynamic-content-ciclovia-ubicacion',
+                    'ciclovia-seguridad': 'dynamic-content-ciclovia-seguridad',
+                    'aliados': 'dynamic-content-aliados',
+                    'patrocinadores': 'dynamic-content-patrocinadores',
+                    'desarrollo': 'dynamic-content-desarrollo'
+                };
+                const containerId = containerMap[sectionKey];
+                if (containerId) {
+                    const wrapperContainer = document.getElementById(containerId);
+                    if (wrapperContainer) {
+                        wrapperContainer.innerHTML = '';
+                        blockIds.forEach(bId => {
+                            construirBloqueDOM(wrapperContainer, sectionKey, bId);
+                        });
                     }
                 }
+            }
 
-                data.forEach(item => {
-                    if (item.id.startsWith('media_')) {
-                        const mediaEl = document.getElementById(item.id.replace('media_', ''));
-                        if (mediaEl) {
+            data.forEach(item => {
+                if (item.id.startsWith('media_')) {
+                    let targetId = item.id.replace('media_', '');
+                    if (targetId === 'logo_principal' || targetId.includes('logo') || targetId === 'media-logo_principal' || targetId === 'media-header-logo') {
+                        targetId = 'media-logo_principal';
+                    }
+
+                    const mediaEl = document.getElementById(targetId);
+                    if (mediaEl) {
+                        const container = mediaEl.closest('.media-container') || mediaEl.parentElement;
+                        if (container) {
                             if (item.content.match(/\.(mp4|webm|ogg|mov)$/i)) {
-                                const container = mediaEl.closest('.media-container');
-                                if (container) {
-                                    container.innerHTML = `<video src="${item.content}" autoplay muted loop playsinline style="width:100%; height:100%; object-fit:cover;"></video>`;
-                                    const vid = container.querySelector('video');
-                                    configurarBucleSuaveVideo(vid);
-                                }
+                                container.innerHTML = `<video src="${item.content}" autoplay muted playsinline style="width:100%; height:100%; object-fit:cover;"></video>`;
+                                const vid = container.querySelector('video');
+                                configurarBucleConFundidoVideo(vid);
                             } else {
-                                mediaEl.src = item.content;
+                                container.innerHTML = `<img src="${item.content}" alt="" id="${targetId}" style="width:100%; height:100%; object-fit:cover;">`;
                             }
                         }
-                    } else if (item.id === 'global_bg_video') {
-                        const bgVideo = document.getElementById('global-bg-video');
-                        bgVideo.src = item.content;
-                        bgVideo.play().catch(e => {});
-                        configurarBucleSuaveVideo(bgVideo);
-                    } else if (item.id === 'bg_opacity') {
-                        document.documentElement.style.setProperty('--overlay-alpha', item.content);
-                        document.getElementById('opacityRange').value = item.content;
-                    } else {
-                        const el = document.getElementById(item.id) || document.querySelector(`[data-key="${item.id}"]`);
-                        if (el) el.innerHTML = item.content;
                     }
-                });
-            } catch (err) {
-                console.error("Error sincronizando con Supabase:", err);
-            }
+                } else if (item.id === 'global_bg_video') {
+                    const bgVideo = document.getElementById('global-bg-video');
+                    bgVideo.src = item.content;
+                    configurarBucleConFundidoVideo(bgVideo);
+                } else if (item.id === 'bg_opacity') {
+                    document.documentElement.style.setProperty('--overlay-alpha', item.content);
+                    const range = document.getElementById('opacityRange');
+                    if (range) range.value = item.content;
+                } else {
+                    const el = document.getElementById(item.id) || document.querySelector(`[data-key="${item.id}"]`);
+                    if (el) el.innerHTML = item.content;
+                }
+            });
         }
 
         async function guardarDatoSupabase(id, content) {
-            if (!sb) return;
+            if (!sb || !navigator.onLine) return;
             await sb.from('apex_content').upsert({ id: id, content: content, updated_at: new Date() });
         }
 
         async function guardarEstructuraBloques() {
-            if (!sb) return;
+            if (!sb || !navigator.onLine) return;
             const estructura = {};
             document.querySelectorAll('.dynamic-blocks-container').forEach(container => {
                 const sectionKey = container.getAttribute('data-section');
@@ -1062,31 +1318,16 @@
             await guardarDatoSupabase('apex_dynamic_blocks_structure', JSON.stringify(estructura));
         }
 
-        function toggleConfigPanel() {
-            const panel = document.getElementById('configPanel');
-            panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
-        }
-
-        function switchView(viewId) {
-            document.querySelectorAll('.view-page').forEach(page => page.classList.remove('active'));
-            document.getElementById(viewId).classList.add('active');
-            window.scrollTo(0, 0);
-            document.getElementById('configPanel').style.display = 'none';
-
-            if (viewId === 'view-galeria') {
-                renderizarGaleriaSupabase();
-            }
-        }
-
-        function switchSubTab(tabId, btn) {
+        window.switchSubTab = function(tabId, btn) {
             const container = btn.closest('.page-content-box');
             container.querySelectorAll('.subtab-content').forEach(c => c.classList.remove('active'));
             container.querySelectorAll('.subtab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
+            const targetTab = document.getElementById(tabId);
+            if (targetTab) targetTab.classList.add('active');
             btn.classList.add('active');
-        }
+        };
 
-        function toggleEditMode() {
+        window.toggleEditMode = function() {
             isEditMode = !isEditMode;
             document.body.classList.toggle('edit-mode', isEditMode);
             
@@ -1096,15 +1337,14 @@
 
             if (!isEditMode) {
                 sincronizarTodoEnNube();
-                alert("¡Sincronizado y guardado en Supabase!");
+                alert("¡Sincronizado y guardado!");
             } else {
                 alert("Modo Edición Activado.");
             }
             toggleConfigPanel();
-        }
+        };
 
         async function sincronizarTodoEnNube() {
-            if (!sb) return;
             const promesas = [];
             document.querySelectorAll('[contenteditable]').forEach(el => {
                 const key = el.id || el.getAttribute('data-key');
@@ -1116,12 +1356,12 @@
             await Promise.all(promesas);
         }
 
-        function changeOpacity(val) {
+        window.changeOpacity = function(val) {
             document.documentElement.style.setProperty('--overlay-alpha', val);
             guardarDatoSupabase('bg_opacity', val);
-        }
+        };
 
-        async function updateGlobalVideo(event) {
+        window.updateGlobalVideo = async function(event) {
             const file = event.target.files[0];
             if (!file) return;
             const uploadId = 'global_bg';
@@ -1131,13 +1371,12 @@
             if (publicUrl) {
                 const bgVideo = document.getElementById('global-bg-video');
                 bgVideo.src = publicUrl;
-                bgVideo.play().catch(e => {});
-                configurarBucleSuaveVideo(bgVideo);
+                configurarBucleConFundidoVideo(bgVideo);
                 guardarDatoSupabase('global_bg_video', publicUrl);
             }
-        }
+        };
 
-        function applyDeviceMode() {
+        window.applyDeviceMode = function() {
             const mode = document.getElementById('deviceMode').value;
             if (mode === 'mobile') {
                 document.body.style.fontSize = '14px';
@@ -1146,9 +1385,9 @@
             } else {
                 document.body.style.fontSize = window.innerWidth <= 480 ? '14px' : '16px';
             }
-        }
+        };
 
-        function updateOverlayText(input) {
+        window.updateOverlayText = function(input) {
             const wrapper = input.closest('.media-wrapper');
             if (wrapper) {
                 const overlay = wrapper.querySelector('.media-overlay-text');
@@ -1156,11 +1395,11 @@
                 const key = overlay.getAttribute('data-key') || overlay.id;
                 if (key) guardarDatoSupabase(key, input.value);
             }
-        }
+        };
 
         async function subirArchivoSupabaseStorage(file, fileNameCustom, uploadId) {
-            if (!sb) { 
-                actualizarBadgeCarga(uploadId, 'error', 'Error');
+            if (!sb || !navigator.onLine) { 
+                actualizarBadgeCarga(uploadId, 'error', 'Sin red');
                 return null; 
             }
 
@@ -1182,7 +1421,7 @@
             }
         }
 
-        async function subirMultimediaSupabase(event, containerId, elementId) {
+        window.subirMultimediaSupabase = async function(event, containerId, elementId) {
             const file = event.target.files[0];
             if (!file) return;
             
@@ -1190,33 +1429,84 @@
             const publicUrl = await subirArchivoSupabaseStorage(file, file.name, elementId);
             if (!publicUrl) return;
 
+            aplicarMultimediaEnContenedor(containerId, elementId, publicUrl);
+            await guardarDatoSupabase('media_' + elementId, publicUrl);
+        };
+
+        function aplicarMultimediaEnContenedor(containerId, elementId, publicUrl) {
             const container = document.getElementById(containerId);
+            if (!container) return;
             container.innerHTML = '';
 
-            if (file.type.startsWith('video/')) {
+            if (publicUrl.match(/\.(mp4|webm|ogg|mov)$/i)) {
                 const video = document.createElement('video');
                 video.id = elementId;
                 video.src = publicUrl;
-                video.autoplay = true;
-                video.muted = true;
-                video.loop = true;
-                video.playsInline = true;
-                video.style.width = '100%';
-                video.style.height = '100%';
-                video.style.objectFit = 'cover';
                 container.appendChild(video);
-                configurarBucleSuaveVideo(video);
+                configurarBucleConFundidoVideo(video);
             } else {
                 const img = document.createElement('img');
                 img.id = elementId;
                 img.src = publicUrl;
-                img.style.width = '100%';
-                img.style.height = '100%';
-                img.style.objectFit = 'cover';
                 container.appendChild(img);
             }
+        }
 
-            await guardarDatoSupabase('media_' + elementId, publicUrl);
+        let currentPickerContainerId = null;
+        let currentPickerElementId = null;
+
+        window.abrirSelectorSupabase = async function(containerId, elementId) {
+            currentPickerContainerId = containerId;
+            currentPickerElementId = elementId;
+            const modal = document.getElementById('supabaseModal');
+            const grid = document.getElementById('supabasePickerGrid');
+            modal.style.display = 'flex';
+            grid.innerHTML = '<span style="color:var(--text-muted);">Cargando galería de la nube...</span>';
+
+            if (!sb) return;
+            try {
+                const { data: filesList, error } = await sb.storage.from('apex_multimedia').list('', { limit: 100, sortBy: { column: 'created_at', order: 'desc' } });
+                if (error) throw error;
+
+                if (!filesList || filesList.length === 0) {
+                    grid.innerHTML = '<span style="color:var(--text-muted);">No hay archivos en Supabase Storage.</span>';
+                    return;
+                }
+
+                grid.innerHTML = '';
+                filesList.forEach(file => {
+                    const { data: pubUrlData } = sb.storage.from('apex_multimedia').getPublicUrl(file.name);
+                    const fileUrl = pubUrlData.publicUrl;
+                    const esVideo = file.name.match(/\.(mp4|webm|ogg|mov)$/i);
+
+                    const item = document.createElement('div');
+                    item.className = 'supabase-picker-item';
+                    item.onclick = () => seleccionarArchivoDeSupabase(fileUrl);
+                    item.innerHTML = `
+                        <div class="supabase-picker-thumb">
+                            ${esVideo ? `<video src="${fileUrl}" muted playsinline></video>` : `<img src="${fileUrl}" alt="">`}
+                        </div>
+                        <span class="supabase-picker-name">${file.name}</span>
+                    `;
+                    grid.appendChild(item);
+                });
+            } catch (err) {
+                console.error(err);
+                grid.innerHTML = '<span style="color:var(--accent-red);">Error al listar archivos.</span>';
+            }
+        };
+
+        window.cerrarModalSupabase = function() {
+            const modal = document.getElementById('supabaseModal');
+            if (modal) modal.style.display = 'none';
+        };
+
+        async function seleccionarArchivoDeSupabase(fileUrl) {
+            if (!currentPickerContainerId || !currentPickerElementId) return;
+            aplicarMultimediaEnContenedor(currentPickerContainerId, currentPickerElementId, fileUrl);
+            await guardarDatoSupabase('media_' + currentPickerElementId, fileUrl);
+            cerrarModalSupabase();
+            alert("¡Archivo reutilizado con éxito!");
         }
 
         function construirBloqueDOM(wrapperContainer, sectionKey, blockUniqueId) {
@@ -1230,27 +1520,31 @@
             newBlock.innerHTML = `
                 <button class="btn-delete-block" onclick="eliminarBloqueMedia(this)">🗑️ Eliminar bloque</button>
                 <div class="media-container" id="${uniqueContainerId}">
-                    <img src="" alt="Elemento" id="${uniqueMediaId}">
+                    <img src="" alt="" id="${uniqueMediaId}">
                 </div>
                 <div class="media-overlay-text" contenteditable="${isEditMode ? 'true' : 'false'}" data-key="${overlayKey}">Nuevo Título en Gran Formato</div>
                 <div class="edit-controls">
                     <label>Texto sobrepuesto:</label>
                     <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
-                    <label>Cargar Media (Cloud):</label>
-                    <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, '${uniqueContainerId}', '${uniqueMediaId}')">
+                    <label>Cargar Media:</label>
+                    <div class="upload-actions-row">
+                        <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, '${uniqueContainerId}', '${uniqueMediaId}')" style="flex:1;">
+                        <button class="btn-supabase-selector" onclick="abrirSelectorSupabase('${uniqueContainerId}', '${uniqueMediaId}')">☁️ Supabase</button>
+                    </div>
                 </div>
             `;
             wrapperContainer.appendChild(newBlock);
         }
 
-        function addMediaBlock(wrapperId, sectionKey) {
+        window.addMediaBlock = function(wrapperId, sectionKey) {
             const wrapper = document.getElementById(wrapperId);
+            if (!wrapper) return;
             const randomId = 'media_dyn_' + Date.now() + '_' + Math.floor(Math.random()*1000);
             construirBloqueDOM(wrapper, sectionKey, randomId);
             guardarEstructuraBloques();
-        }
+        };
 
-        async function eliminarBloqueMedia(btn) {
+        window.eliminarBloqueMedia = async function(btn) {
             const wrapper = btn.closest('.media-wrapper');
             if (!wrapper) return;
             
@@ -1267,20 +1561,20 @@
             wrapper.remove();
             await guardarEstructuraBloques();
             alert("Bloque eliminado con éxito.");
-        }
+        };
 
         async function renderizarGaleriaSupabase() {
             const container = document.getElementById('galleryContainer');
             if (!container || !sb) return;
 
-            container.innerHTML = '<span style="color:var(--text-muted);">Consultando bucket de Supabase y registros activos...</span>';
+            container.innerHTML = '<span style="color:var(--text-muted);">Consultando galería de Supabase...</span>';
 
             try {
                 const { data: filesList, error: listError } = await sb.storage.from('apex_multimedia').list('', { limit: 100, sortBy: { column: 'created_at', order: 'desc' } });
                 if (listError) throw listError;
 
                 if (!filesList || filesList.length === 0) {
-                    container.innerHTML = '<span style="color:var(--text-muted);">No hay archivos multimedia almacenados en Supabase Storage actualmente.</span>';
+                    container.innerHTML = '<span style="color:var(--text-muted);">No hay archivos en Supabase Storage.</span>';
                     return;
                 }
 
@@ -1330,24 +1624,23 @@
 
             } catch (err) {
                 console.error(err);
-                container.innerHTML = '<span style="color:var(--accent-red);">Error al cargar la galería desde Supabase Storage.</span>';
+                container.innerHTML = '<span style="color:var(--accent-red);">Error al cargar la galería.</span>';
             }
         }
 
-        async function eliminarArchivoStorage(fileName) {
-            if (!confirm(`¿Estás seguro de eliminar permanentemente el archivo "${fileName}" de Supabase Storage?`)) return;
+        window.eliminarArchivoStorage = async function(fileName) {
+            if (!confirm(`¿Estás seguro de eliminar permanentemente "${fileName}"?`)) return;
 
             try {
                 const { error } = await sb.storage.from('apex_multimedia').remove([fileName]);
                 if (error) throw error;
-                alert("¡Archivo eliminado con éxito de Supabase Storage!");
+                alert("¡Archivo eliminado con éxito!");
                 renderizarGaleriaSupabase();
             } catch (err) {
-                alert("Error al eliminar el archivo: " + err.message);
+                alert("Error al eliminar: " + err.message);
             }
-        }
+        };
 
-        // Navegación táctil por deslizamiento (Swipe) con umbral ampliado (Menos sensibilidad)
         function initSwipeGestures() {
             let touchStartX = 0;
             let touchEndX = 0;
@@ -1362,7 +1655,7 @@
             }, false);
 
             function handleSwipe() {
-                const threshold = 150; // Umbral incrementado para evitar cambios accidentales
+                const threshold = 150;
                 const activePage = document.querySelector('.view-page.active');
                 if (!activePage) return;
                 
