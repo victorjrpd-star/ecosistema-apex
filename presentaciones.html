@@ -130,6 +130,7 @@
 
         .upload-badge.loading { color: #38bdf8; border-color: #38bdf8; }
         .upload-badge.error { color: var(--accent-red); border-color: var(--accent-red); }
+        .upload-badge.success { color: #22c55e; border-color: #22c55e; }
 
         @keyframes spin {
             0% { transform: rotate(0deg); }
@@ -529,6 +530,23 @@
             margin-top: 6px;
         }
 
+        .btn-save-text {
+            background: #22c55e;
+            color: #000;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            margin-top: 6px;
+        }
+        .btn-save-text:hover {
+            background: #16a34a;
+            color: #fff;
+        }
+
         .btn-supabase-selector {
             background: #1e293b;
             color: #38bdf8;
@@ -790,45 +808,45 @@
             </div>
 
             <div class="brand-container">
-                <h1 contenteditable="false" id="main-title" data-key="main-title" onblur="guardarTextoInmediato(this)">Apex Boxing</h1>
-                <div class="subtitle-brand" contenteditable="false" id="sub-title" data-key="sub-title" onblur="guardarTextoInmediato(this)">Escuela de Strikers</div>
+                <h1 contenteditable="false" id="main-title" data-key="main-title">Apex Boxing</h1>
+                <div class="subtitle-brand" contenteditable="false" id="sub-title" data-key="sub-title">Escuela de Strikers</div>
             </div>
-            <p contenteditable="false" id="main-subtitle" data-key="main-subtitle" onblur="guardarTextoInmediato(this)">Construyendo el futuro del boxeo y kickboxing. Transformamos los deportes de contacto con seguridad biomecánica y telemetría para elevar el deporte a un show total.</p>
+            <p contenteditable="false" id="main-subtitle" data-key="main-subtitle">Construyendo el futuro del boxeo y kickboxing. Transformamos los deportes de contacto con seguridad biomecánica y telemetría para elevar el deporte a un show total.</p>
         </header>
 
         <main class="menu-container">
             <div class="section-card" onclick="switchView('view-quienes')">
-                <h2 contenteditable="false" id="t-quienes" data-key="t-quienes" onblur="guardarTextoInmediato(this)">Quiénes Somos</h2>
+                <h2 contenteditable="false" id="t-quienes" data-key="t-quienes">Quiénes Somos</h2>
                 <span>+</span>
             </div>
 
             <div class="section-card" onclick="switchView('view-educativas')">
-                <h2 contenteditable="false" id="t-educativas" data-key="t-educativas" onblur="guardarTextoInmediato(this)">Instituciones Educativas</h2>
+                <h2 contenteditable="false" id="t-educativas" data-key="t-educativas">Instituciones Educativas</h2>
                 <span>+</span>
             </div>
 
             <div class="section-card" onclick="switchView('view-ciclovia')">
-                <h2 contenteditable="false" id="t-ciclovia" data-key="t-ciclovia" onblur="guardarTextoInmediato(this)">Ciclovía de Cali</h2>
+                <h2 contenteditable="false" id="t-ciclovia" data-key="t-ciclovia">Ciclovía de Cali</h2>
                 <span>+</span>
             </div>
 
             <div class="section-card" onclick="switchView('view-aliados')">
-                <h2 contenteditable="false" id="t-aliados" data-key="t-aliados" onblur="guardarTextoInmediato(this)">Red de Aliados Estratégicos</h2>
+                <h2 contenteditable="false" id="t-aliados" data-key="t-aliados">Red de Aliados Estratégicos</h2>
                 <span>+</span>
             </div>
 
             <div class="section-card" onclick="switchView('view-patrocinadores')">
-                <h2 contenteditable="false" id="t-patrocinadores" data-key="t-patrocinadores" onblur="guardarTextoInmediato(this)">Patrocinadores y Aliados</h2>
+                <h2 contenteditable="false" id="t-patrocinadores" data-key="t-patrocinadores">Patrocinadores y Aliados</h2>
                 <span>+</span>
             </div>
 
             <div class="section-card" onclick="switchView('view-desarrollo')">
-                <h2 contenteditable="false" id="t-desarrollo" data-key="t-desarrollo" onblur="guardarTextoInmediato(this)">En Desarrollo</h2>
+                <h2 contenteditable="false" id="t-desarrollo" data-key="t-desarrollo">En Desarrollo</h2>
                 <span>+</span>
             </div>
 
             <div class="home-slogan-box">
-                <p contenteditable="false" id="home-slogan" data-key="home-slogan" onblur="guardarTextoInmediato(this)">APEX Boxing es el camino correcto, solo debes recorrerlo.</p>
+                <p contenteditable="false" id="home-slogan" data-key="home-slogan">APEX Boxing es el camino correcto, solo debes recorrerlo.</p>
             </div>
         </main>
     </div>
@@ -836,8 +854,8 @@
     <div id="view-quienes" class="view-page" data-page-index="1">
         <button class="btn-back" onclick="switchView('view-home')">← Volver</button>
         <div class="page-content-box">
-            <h2 contenteditable="false" data-key="title-quienes" onblur="guardarTextoInmediato(this)">Quiénes Somos</h2>
-            <p contenteditable="false" data-key="desc-quienes" onblur="guardarTextoInmediato(this)">Promovemos el deporte masivamente generando alto impacto social a través de un espectáculo moderno. Monetizamos el show para que los atletas vivan de su profesión.</p>
+            <h2 contenteditable="false" data-key="title-quienes">Quiénes Somos</h2>
+            <p contenteditable="false" data-key="desc-quienes">Promovemos el deporte masivamente generando alto impacto social a través de un espectáculo moderno. Monetizamos el show para que los atletas vivan de su profesión.</p>
             
             <div id="dynamic-content-quienes" class="dynamic-blocks-container" data-section="quienes">
                 <div class="media-wrapper" data-block-id="quienes_default">
@@ -845,11 +863,12 @@
                     <div class="media-container" id="container-quienes">
                         <img src="" alt="" id="media-quienes">
                     </div>
-                    <div class="media-overlay-text" contenteditable="false" data-key="overlay-quienes" onblur="guardarTextoInmediato(this)">El show del combate profesional</div>
+                    <div class="media-overlay-text" contenteditable="false" data-key="overlay-quienes">El show del combate profesional</div>
                     <div class="edit-controls">
                         <label>Texto sobrepuesto:</label>
-                        <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
-                        <label>Cargar Media:</label>
+                        <input type="text" oninput="updateOverlayTextInput(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
+                        <button class="btn-save-text" onclick="guardarTextoOverlayExplicit(this)">💾 Guardar Texto</button>
+                        <label style="margin-top:8px;">Cargar Media:</label>
                         <div class="upload-actions-row">
                             <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-quienes', 'media-quienes')" style="flex:1;">
                             <button class="btn-supabase-selector" onclick="abrirSelectorSupabase('container-quienes', 'media-quienes')">☁️ Supabase</button>
@@ -864,8 +883,8 @@
     <div id="view-educativas" class="view-page" data-page-index="2">
         <button class="btn-back" onclick="switchView('view-home')">← Volver</button>
         <div class="page-content-box">
-            <h2 contenteditable="false" data-key="title-educativas" onblur="guardarTextoInmediato(this)">Instituciones Educativas</h2>
-            <p contenteditable="false" data-key="desc-educativas" onblur="guardarTextoInmediato(this)">Visitamos colegios con nuestra feria deportiva itinerante para promover el deporte y encender la pasión en un entorno seguro.</p>
+            <h2 contenteditable="false" data-key="title-educativas">Instituciones Educativas</h2>
+            <p contenteditable="false" data-key="desc-educativas">Visitamos colegios con nuestra feria deportiva itinerante para promover el deporte y encender la pasión en un entorno seguro.</p>
             
             <div id="dynamic-content-educativas" class="dynamic-blocks-container" data-section="educativas">
                 <div class="media-wrapper" data-block-id="educativas_default">
@@ -873,11 +892,12 @@
                     <div class="media-container" id="container-educativas">
                         <img src="" alt="" id="media-educativas">
                     </div>
-                    <div class="media-overlay-text" contenteditable="false" data-key="overlay-educativas" onblur="guardarTextoInmediato(this)">La pasión por el deporte nace aquí</div>
+                    <div class="media-overlay-text" contenteditable="false" data-key="overlay-educativas">La pasión por el deporte nace aquí</div>
                     <div class="edit-controls">
                         <label>Texto sobrepuesto:</label>
-                        <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
-                        <label>Cargar Media:</label>
+                        <input type="text" oninput="updateOverlayTextInput(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
+                        <button class="btn-save-text" onclick="guardarTextoOverlayExplicit(this)">💾 Guardar Texto</button>
+                        <label style="margin-top:8px;">Cargar Media:</label>
                         <div class="upload-actions-row">
                             <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-educativas', 'media-educativas')" style="flex:1;">
                             <button class="btn-supabase-selector" onclick="abrirSelectorSupabase('container-educativas', 'media-educativas')">☁️ Supabase</button>
@@ -892,7 +912,7 @@
     <div id="view-ciclovia" class="view-page" data-page-index="3">
         <button class="btn-back" onclick="switchView('view-home')">← Volver</button>
         <div class="page-content-box">
-            <h2 contenteditable="false" data-key="title-ciclovia" onblur="guardarTextoInmediato(this)">Integración con Ciclovía de Cali</h2>
+            <h2 contenteditable="false" data-key="title-ciclovia">Integración con Ciclovía de Cali</h2>
             
             <div class="subtabs-container">
                 <button class="subtab-btn active" onclick="switchSubTab('subtab-propuesta', this)">Propuesta</button>
@@ -901,18 +921,19 @@
             </div>
 
             <div id="subtab-propuesta" class="subtab-content active">
-                <p contenteditable="false" data-key="desc-ciclovia-propuesta" onblur="guardarTextoInmediato(this)">Dinamizamos el sector deportivo entregando métricas de alto impacto social que la Secretaría puede reportar como resultados propios, sin requerir inversión logística estatal.</p>
+                <p contenteditable="false" data-key="desc-ciclovia-propuesta">Dinamizamos el sector deportivo entregando métricas de alto impacto social que la Secretaría puede reportar como resultados propios, sin requerir inversión logística estatal.</p>
                 <div id="dynamic-content-ciclovia-propuesta" class="dynamic-blocks-container" data-section="ciclovia-propuesta">
                     <div class="media-wrapper" data-block-id="ciclovia_propuesta_default">
                         <button class="btn-delete-block" onclick="eliminarBloqueMedia(this)">🗑️ Eliminar bloque</button>
                         <div class="media-container" id="container-ciclovia-propuesta">
                             <img src="" alt="" id="media-ciclovia-propuesta">
                         </div>
-                        <div class="media-overlay-text" contenteditable="false" data-key="overlay-ciclovia-propuesta" onblur="guardarTextoInmediato(this)">Dinamización y Métricas de Impacto</div>
+                        <div class="media-overlay-text" contenteditable="false" data-key="overlay-ciclovia-propuesta">Dinamización y Métricas de Impacto</div>
                         <div class="edit-controls">
                             <label>Texto sobrepuesto:</label>
-                            <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
-                            <label>Cargar Media:</label>
+                            <input type="text" oninput="updateOverlayTextInput(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
+                            <button class="btn-save-text" onclick="guardarTextoOverlayExplicit(this)">💾 Guardar Texto</button>
+                            <label style="margin-top:8px;">Cargar Media:</label>
                             <div class="upload-actions-row">
                                 <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-ciclovia-propuesta', 'media-ciclovia-propuesta')" style="flex:1;">
                                 <button class="btn-supabase-selector" onclick="abrirSelectorSupabase('container-ciclovia-propuesta', 'media-ciclovia-propuesta')">☁️ Supabase</button>
@@ -924,18 +945,19 @@
             </div>
 
             <div id="subtab-ubicacion" class="subtab-content">
-                <p contenteditable="false" data-key="desc-ciclovia-ubicacion" onblur="guardarTextoInmediato(this)">Bahía de aceleración/desaceleración de 12 metros para pre-registro QR en la Calle 49 con Autopista Suroriental y circuito sincronizado en la "U" del retorno.</p>
+                <p contenteditable="false" data-key="desc-ciclovia-ubicacion">Bahía de aceleración/desaceleración de 12 metros para pre-registro QR en la Calle 49 con Autopista Suroriental y circuito sincronizado en la "U" del retorno.</p>
                 <div id="dynamic-content-ciclovia-ubicacion" class="dynamic-blocks-container" data-section="ciclovia-ubicacion">
                     <div class="media-wrapper" data-block-id="ciclovia_ubicacion_default">
                         <button class="btn-delete-block" onclick="eliminarBloqueMedia(this)">🗑️ Eliminar bloque</button>
                         <div class="media-container" id="container-ciclovia-ubicacion">
                             <img src="" alt="" id="media-ciclovia-ubicacion">
                         </div>
-                        <div class="media-overlay-text" contenteditable="false" data-key="overlay-ciclovia-ubicacion" onblur="guardarTextoInmediato(this)">Calle 49 con Autopista Suroriental</div>
+                        <div class="media-overlay-text" contenteditable="false" data-key="overlay-ciclovia-ubicacion">Calle 49 con Autopista Suroriental</div>
                         <div class="edit-controls">
                             <label>Texto sobrepuesto:</label>
-                            <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
-                            <label>Cargar Media:</label>
+                            <input type="text" oninput="updateOverlayTextInput(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
+                            <button class="btn-save-text" onclick="guardarTextoOverlayExplicit(this)">💾 Guardar Texto</button>
+                            <label style="margin-top:8px;">Cargar Media:</label>
                             <div class="upload-actions-row">
                                 <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-ciclovia-ubicacion', 'media-ciclovia-ubicacion')" style="flex:1;">
                                 <button class="btn-supabase-selector" onclick="abrirSelectorSupabase('container-ciclovia-ubicacion', 'media-ciclovia-ubicacion')">☁️ Supabase</button>
@@ -947,18 +969,19 @@
             </div>
 
             <div id="subtab-seguridad" class="subtab-content">
-                <p contenteditable="false" data-key="desc-ciclovia-seguridad" onblur="guardarTextoInmediato(this)">Personal uniformado con petos, comunicación por radios con auriculares cableados, supervisión técnica y criterios estrictos de seguridad biomecánica.</p>
+                <p contenteditable="false" data-key="desc-ciclovia-seguridad">Personal uniformado con petos, comunicación por radios con auriculares cableados, supervisión técnica y criterios estrictos de seguridad biomecánica.</p>
                 <div id="dynamic-content-ciclovia-seguridad" class="dynamic-blocks-container" data-section="ciclovia-seguridad">
                     <div class="media-wrapper" data-block-id="ciclovia_seguridad_default">
                         <button class="btn-delete-block" onclick="eliminarBloqueMedia(this)">🗑️ Eliminar bloque</button>
                         <div class="media-container" id="container-ciclovia-seguridad">
                             <img src="" alt="" id="media-ciclovia-seguridad">
                         </div>
-                        <div class="media-overlay-text" contenteditable="false" data-key="overlay-ciclovia-seguridad" onblur="guardarTextoInmediato(this)">Control Táctico y Seguridad Operativa</div>
+                        <div class="media-overlay-text" contenteditable="false" data-key="overlay-ciclovia-seguridad">Control Táctico y Seguridad Operativa</div>
                         <div class="edit-controls">
                             <label>Texto sobrepuesto:</label>
-                            <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
-                            <label>Cargar Media:</label>
+                            <input type="text" oninput="updateOverlayTextInput(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
+                            <button class="btn-save-text" onclick="guardarTextoOverlayExplicit(this)">💾 Guardar Texto</button>
+                            <label style="margin-top:8px;">Cargar Media:</label>
                             <div class="upload-actions-row">
                                 <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-ciclovia-seguridad', 'media-ciclovia-seguridad')" style="flex:1;">
                                 <button class="btn-supabase-selector" onclick="abrirSelectorSupabase('container-ciclovia-seguridad', 'media-ciclovia-seguridad')">☁️ Supabase</button>
@@ -975,8 +998,8 @@
     <div id="view-aliados" class="view-page" data-page-index="4">
         <button class="btn-back" onclick="switchView('view-home')">← Volver</button>
         <div class="page-content-box">
-            <h2 contenteditable="false" data-key="title-aliados" onblur="guardarTextoInmediato(this)">Red de Aliados Estratégicos</h2>
-            <p contenteditable="false" data-key="desc-aliados" onblur="guardarTextoInmediato(this)">Activaciones en colegios, ciclovías y parques (como CRP), interconectando escenarios y promoviendo torneos oficiales.</p>
+            <h2 contenteditable="false" data-key="title-aliados">Red de Aliados Estratégicos</h2>
+            <p contenteditable="false" data-key="desc-aliados">Activaciones en colegios, ciclovías y parques (como CRP), interconectando escenarios y promoviendo torneos oficiales.</p>
             
             <div id="dynamic-content-aliados" class="dynamic-blocks-container grid-two-columns" data-section="aliados">
                 <div class="media-wrapper" data-block-id="aliados_default">
@@ -984,11 +1007,12 @@
                     <div class="media-container" id="container-aliados">
                         <img src="" alt="" id="media-aliados">
                     </div>
-                    <div class="media-overlay-text" contenteditable="false" data-key="overlay-aliados" onblur="guardarTextoInmediato(this)">Red de Escenarios Aliados</div>
+                    <div class="media-overlay-text" contenteditable="false" data-key="overlay-aliados">Red de Escenarios Aliados</div>
                     <div class="edit-controls">
                         <label>Texto sobrepuesto:</label>
-                        <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
-                        <label>Cargar Media:</label>
+                        <input type="text" oninput="updateOverlayTextInput(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
+                        <button class="btn-save-text" onclick="guardarTextoOverlayExplicit(this)">💾 Guardar Texto</button>
+                        <label style="margin-top:8px;">Cargar Media:</label>
                         <div class="upload-actions-row">
                             <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-aliados', 'media-aliados')" style="flex:1;">
                             <button class="btn-supabase-selector" onclick="abrirSelectorSupabase('container-aliados', 'media-aliados')">☁️ Supabase</button>
@@ -1003,8 +1027,8 @@
     <div id="view-patrocinadores" class="view-page" data-page-index="5">
         <button class="btn-back" onclick="switchView('view-home')">← Volver</button>
         <div class="page-content-box">
-            <h2 contenteditable="false" data-key="title-patrocinadores" onblur="guardarTextoInmediato(this)">Patrocinadores y Aliados</h2>
-            <p contenteditable="false" data-key="desc-patrocinadores" onblur="guardarTextoInmediato(this)">Comerciantes locales que proporcionan bonos de descuento, regalos digitales y premios físicos para los participantes.</p>
+            <h2 contenteditable="false" data-key="title-patrocinadores">Patrocinadores y Aliados</h2>
+            <p contenteditable="false" data-key="desc-patrocinadores">Comerciantes locales que proporcionan bonos de descuento, regalos digitales y premios físicos para los participantes.</p>
             
             <div id="dynamic-content-patrocinadores" class="dynamic-blocks-container grid-two-columns" data-section="patrocinadores">
                 <div class="media-wrapper" data-block-id="patrocinadores_default">
@@ -1012,11 +1036,12 @@
                     <div class="media-container" id="container-patrocinadores">
                         <img src="" alt="" id="media-patrocinadores">
                     </div>
-                    <div class="media-overlay-text" contenteditable="false" data-key="overlay-patrocinadores" onblur="guardarTextoInmediato(this)">Comercio Local e Incentivos</div>
+                    <div class="media-overlay-text" contenteditable="false" data-key="overlay-patrocinadores">Comercio Local e Incentivos</div>
                     <div class="edit-controls">
                         <label>Texto sobrepuesto:</label>
-                        <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
-                        <label>Cargar Media:</label>
+                        <input type="text" oninput="updateOverlayTextInput(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
+                        <button class="btn-save-text" onclick="guardarTextoOverlayExplicit(this)">💾 Guardar Texto</button>
+                        <label style="margin-top:8px;">Cargar Media:</label>
                         <div class="upload-actions-row">
                             <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-patrocinadores', 'media-patrocinadores')" style="flex:1;">
                             <button class="btn-supabase-selector" onclick="abrirSelectorSupabase('container-patrocinadores', 'media-patrocinadores')">☁️ Supabase</button>
@@ -1031,8 +1056,8 @@
     <div id="view-desarrollo" class="view-page" data-page-index="6">
         <button class="btn-back" onclick="switchView('view-home')">← Volver</button>
         <div class="page-content-box">
-            <h2 contenteditable="false" data-key="title-desarrollo" onblur="guardarTextoInmediato(this)">En Desarrollo</h2>
-            <p contenteditable="false" data-key="desc-desarrollo" onblur="guardarTextoInmediato(this)">Nuestros progresos tecnológicos y de software, incluyendo telemetría con ESP32, aplicaciones web propias y herramientas de análisis biomecánico.</p>
+            <h2 contenteditable="false" data-key="title-desarrollo">En Desarrollo</h2>
+            <p contenteditable="false" data-key="desc-desarrollo">Nuestros progresos tecnológicos y de software, incluyendo telemetría con ESP32, aplicaciones web propias y herramientas de análisis biomecánico.</p>
             
             <div id="dynamic-content-desarrollo" class="dynamic-blocks-container" data-section="desarrollo">
                 <div class="media-wrapper" data-block-id="desarrollo_default">
@@ -1040,11 +1065,12 @@
                     <div class="media-container" id="container-desarrollo">
                         <img src="" alt="" id="media-desarrollo">
                     </div>
-                    <div class="media-overlay-text" contenteditable="false" data-key="overlay-desarrollo" onblur="guardarTextoInmediato(this)">Tecnología y Prototipos Propios</div>
+                    <div class="media-overlay-text" contenteditable="false" data-key="overlay-desarrollo">Tecnología y Prototipos Propios</div>
                     <div class="edit-controls">
                         <label>Texto sobrepuesto:</label>
-                        <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
-                        <label>Cargar Media:</label>
+                        <input type="text" oninput="updateOverlayTextInput(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
+                        <button class="btn-save-text" onclick="guardarTextoOverlayExplicit(this)">💾 Guardar Texto</button>
+                        <label style="margin-top:8px;">Cargar Media:</label>
                         <div class="upload-actions-row">
                             <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-desarrollo', 'media-desarrollo')" style="flex:1;">
                             <button class="btn-supabase-selector" onclick="abrirSelectorSupabase('container-desarrollo', 'media-desarrollo')">☁️ Supabase</button>
@@ -1182,8 +1208,18 @@
             const container = document.getElementById('upload-status-container');
             if (!container) return;
 
-            if (estado === 'done' || estado === 'error') {
-                uploadStatuses.delete(id);
+            if (estado === 'done') {
+                uploadStatuses.set(id, { estado: 'success', mensaje: 'Guardado' });
+                setTimeout(() => {
+                    uploadStatuses.delete(id);
+                    actualizarBadgeCarga(id, 'clear', '');
+                }, 3000);
+            } else if (estado === 'error' || estado === 'clear') {
+                if (estado === 'clear') {
+                    uploadStatuses.delete(id);
+                } else {
+                    uploadStatuses.set(id, { estado: 'error', mensaje });
+                }
             } else {
                 uploadStatuses.set(id, { estado, mensaje });
             }
@@ -1196,12 +1232,14 @@
                     badge.innerHTML = `<span class="spinner-icon">⟳</span> ${val.mensaje}`;
                 } else if (val.estado === 'error') {
                     badge.innerHTML = `<span>✕</span> ${val.mensaje}`;
+                } else if (val.estado === 'success') {
+                    badge.innerHTML = `<span>✓</span> ${val.mensaje}`;
                 }
                 container.appendChild(badge);
             });
         }
 
-        // BUCLE FLUIDO CON TRANSICIÓN DE FUNDIDO A NEGRO (FADE TO BLACK SUAVE Y CONTINUO)
+        // BUCLE FLUIDO CON TRANSICIÓN DE FUNDIDO A NEGRO
         function configurarBucleConFundidoVideo(videoEl) {
             if (!videoEl || videoEl.dataset.fadeConfigured) return;
             videoEl.dataset.fadeConfigured = "true";
@@ -1295,17 +1333,37 @@
             });
         }
 
-        async function guardarDatoSupabase(id, content) {
+        async function guardarDatoSupabaseConProgreso(id, content, uploadId) {
+            actualizarBadgeCarga(uploadId, 'loading', 'Guardando 0%');
+            
             if (!sb || !navigator.onLine) {
-                // Respaldo inmediato en caché local por seguridad offline
                 guardarCacheLocalInmediato(id, content);
-                return;
+                actualizarBadgeCarga(uploadId, 'error', 'Sin red (Guardado Local)');
+                return false;
             }
+
             try {
-                await sb.from('apex_content').upsert({ id: id, content: content, updated_at: new Date() });
+                actualizarBadgeCarga(uploadId, 'loading', 'Enviando 50%');
+                const { error } = await sb.from('apex_content').upsert({ id: id, content: content, updated_at: new Date() });
+                
+                if (error) throw error;
+                
                 guardarCacheLocalInmediato(id, content);
-            } catch (e) {
+                actualizarBadgeCarga(uploadId, 'done', '');
+                return true;
+            } catch (err) {
+                console.error(err);
                 guardarCacheLocalInmediato(id, content);
+                
+                let motivo = 'Falló la carga';
+                if (err.message) {
+                    if (err.message.includes('JWT') || err.message.includes('auth')) motivo = 'Falló: Error de autenticación';
+                    else if (err.message.includes('network') || err.message.includes('Failed to fetch')) motivo = 'Falló: Sin conexión con Supabase';
+                    else motivo = 'Falló: ' + err.message.substring(0, 20);
+                }
+                
+                actualizarBadgeCarga(uploadId, 'error', motivo);
+                return false;
             }
         }
 
@@ -1327,11 +1385,28 @@
             } catch(err){}
         }
 
-        window.guardarTextoInmediato = function(el) {
-            const key = el.id || el.getAttribute('data-key');
-            if (key) {
-                guardarDatoSupabase(key, el.innerHTML);
+        window.updateOverlayTextInput = function(input) {
+            const wrapper = input.closest('.media-wrapper');
+            if (wrapper) {
+                const overlay = wrapper.querySelector('.media-overlay-text');
+                overlay.textContent = input.value;
             }
+        };
+
+        window.guardarTextoOverlayExplicit = async function(btn) {
+            const wrapper = btn.closest('.media-wrapper');
+            if (!wrapper) return;
+            const overlay = wrapper.querySelector('.media-overlay-text');
+            const input = wrapper.querySelector('input[type="text"]');
+            
+            if (input && input.value.trim() !== '') {
+                overlay.textContent = input.value;
+            }
+
+            const key = overlay.getAttribute('data-key') || overlay.id;
+            const uploadId = 'text_' + (key || Date.now());
+            
+            await guardarDatoSupabaseConProgreso(key, overlay.innerHTML, uploadId);
         };
 
         async function guardarEstructuraBloques() {
@@ -1346,7 +1421,7 @@
                 });
                 estructura[sectionKey] = blockIds;
             });
-            await guardarDatoSupabase('apex_dynamic_blocks_structure', JSON.stringify(estructura));
+            await guardarDatoSupabaseConProgreso('apex_dynamic_blocks_structure', JSON.stringify(estructura), 'struct_sync');
         }
 
         window.switchSubTab = function(tabId, btn) {
@@ -1380,7 +1455,7 @@
             document.querySelectorAll('[contenteditable]').forEach(el => {
                 const key = el.id || el.getAttribute('data-key');
                 if (key) {
-                    promesas.push(guardarDatoSupabase(key, el.innerHTML));
+                    promesas.push(guardarDatoSupabaseConProgreso(key, el.innerHTML, 'sync_all'));
                 }
             });
             await guardarEstructuraBloques();
@@ -1389,21 +1464,22 @@
 
         window.changeOpacity = function(val) {
             document.documentElement.style.setProperty('--overlay-alpha', val);
-            guardarDatoSupabase('bg_opacity', val);
+            guardarDatoSupabaseConProgreso('bg_opacity', val, 'opacity_sync');
         };
 
         window.updateGlobalVideo = async function(event) {
             const file = event.target.files[0];
             if (!file) return;
             const uploadId = 'global_bg';
-            actualizarBadgeCarga(uploadId, 'loading', 'Fondo');
 
-            const publicUrl = await subirArchivoSupabaseStorage(file, 'global_bg.mp4', uploadId);
+            actualizarBadgeCarga(uploadId, 'loading', 'Subiendo 0%');
+
+            const publicUrl = await subirArchivoSupabaseStorageConProgreso(file, 'global_bg.mp4', uploadId);
             if (publicUrl) {
                 const bgVideo = document.getElementById('global-bg-video');
                 bgVideo.src = publicUrl;
                 configurarBucleConFundidoVideo(bgVideo);
-                guardarDatoSupabase('global_bg_video', publicUrl);
+                await guardarDatoSupabaseConProgreso('global_bg_video', publicUrl, uploadId);
             }
         };
 
@@ -1418,36 +1494,35 @@
             }
         };
 
-        window.updateOverlayText = function(input) {
-            const wrapper = input.closest('.media-wrapper');
-            if (wrapper) {
-                const overlay = wrapper.querySelector('.media-overlay-text');
-                overlay.innerHTML = input.value;
-                const key = overlay.getAttribute('data-key') || overlay.id;
-                if (key) guardarDatoSupabase(key, input.value);
-            }
-        };
-
-        async function subirArchivoSupabaseStorage(file, fileNameCustom, uploadId) {
+        async function subirArchivoSupabaseStorageConProgreso(file, fileNameCustom, uploadId) {
             if (!sb || !navigator.onLine) { 
-                actualizarBadgeCarga(uploadId, 'error', 'Sin red');
+                actualizarBadgeCarga(uploadId, 'error', 'Falló: Sin conexión a internet');
                 return null; 
             }
 
             try {
+                actualizarBadgeCarga(uploadId, 'loading', 'Subiendo 30%');
                 const fileName = `${uploadId}_${Date.now()}_${fileNameCustom.replace(/[^a-zA-Z0-9_.-]/g, '_')}`;
                 
-                const { data, error } = await sb.storage.from('apex_multimedia').upload(fileName, file, { upsert: true });
+                const { error } = await sb.storage.from('apex_multimedia').upload(fileName, file, { upsert: true });
                 if (error) throw error;
 
+                actualizarBadgeCarga(uploadId, 'loading', 'Procesando 80%');
                 const { data: publicUrlData } = sb.storage.from('apex_multimedia').getPublicUrl(fileName);
+                
                 actualizarBadgeCarga(uploadId, 'done', '');
                 return publicUrlData.publicUrl;
 
             } catch (err) {
                 console.error(err);
-                actualizarBadgeCarga(uploadId, 'error', 'Fallo');
-                setTimeout(() => actualizarBadgeCarga(uploadId, 'done', ''), 4000);
+                let motivo = 'Falló la carga del archivo';
+                if (err.message) {
+                    if (err.message.includes('row-level security') || err.message.includes('policy')) motivo = 'Falló: Permisos denegados en Storage';
+                    else if (err.message.includes('PayloadTooLarge') || err.message.includes('size')) motivo = 'Falló: Archivo demasiado pesado';
+                    else if (err.message.includes('NetworkError') || err.message.includes('fetch')) motivo = 'Falló: Error de red o timeout';
+                    else motivo = 'Falló: ' + err.message.substring(0, 22);
+                }
+                actualizarBadgeCarga(uploadId, 'error', motivo);
                 return null;
             }
         }
@@ -1456,12 +1531,12 @@
             const file = event.target.files[0];
             if (!file) return;
             
-            actualizarBadgeCarga(elementId, 'loading', 'Subiendo');
-            const publicUrl = await subirArchivoSupabaseStorage(file, file.name, elementId);
+            const uploadId = elementId;
+            const publicUrl = await subirArchivoSupabaseStorageConProgreso(file, file.name, uploadId);
             if (!publicUrl) return;
 
             aplicarMultimediaEnContenedor(containerId, elementId, publicUrl);
-            await guardarDatoSupabase('media_' + elementId, publicUrl);
+            await guardarDatoSupabaseConProgreso('media_' + elementId, publicUrl, uploadId);
         };
 
         function aplicarMultimediaEnContenedor(containerId, elementId, publicUrl) {
@@ -1535,7 +1610,7 @@
         async function seleccionarArchivoDeSupabase(fileUrl) {
             if (!currentPickerContainerId || !currentPickerElementId) return;
             aplicarMultimediaEnContenedor(currentPickerContainerId, currentPickerElementId, fileUrl);
-            await guardarDatoSupabase('media_' + currentPickerElementId, fileUrl);
+            await guardarDatoSupabaseConProgreso('media_' + currentPickerElementId, fileUrl, currentPickerElementId);
             cerrarModalSupabase();
             alert("¡Archivo reutilizado con éxito!");
         }
@@ -1553,11 +1628,12 @@
                 <div class="media-container" id="${uniqueContainerId}">
                     <img src="" alt="" id="${uniqueMediaId}">
                 </div>
-                <div class="media-overlay-text" contenteditable="${isEditMode ? 'true' : 'false'}" data-key="${overlayKey}" onblur="guardarTextoInmediato(this)">Nuevo Título en Gran Formato</div>
+                <div class="media-overlay-text" contenteditable="${isEditMode ? 'true' : 'false'}" data-key="${overlayKey}">Nuevo Título en Gran Formato</div>
                 <div class="edit-controls">
                     <label>Texto sobrepuesto:</label>
-                    <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
-                    <label>Cargar Media:</label>
+                    <input type="text" oninput="updateOverlayTextInput(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
+                    <button class="btn-save-text" onclick="guardarTextoOverlayExplicit(this)">💾 Guardar Texto</button>
+                    <label style="margin-top:8px;">Cargar Media:</label>
                     <div class="upload-actions-row">
                         <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, '${uniqueContainerId}', '${uniqueMediaId}')" style="flex:1;">
                         <button class="btn-supabase-selector" onclick="abrirSelectorSupabase('${uniqueContainerId}', '${uniqueMediaId}')">☁️ Supabase</button>
