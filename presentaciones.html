@@ -790,45 +790,45 @@
             </div>
 
             <div class="brand-container">
-                <h1 contenteditable="false" id="main-title" data-key="main-title">Apex Boxing</h1>
-                <div class="subtitle-brand" contenteditable="false" id="sub-title" data-key="sub-title">Escuela de Strikers</div>
+                <h1 contenteditable="false" id="main-title" data-key="main-title" onblur="guardarTextoInmediato(this)">Apex Boxing</h1>
+                <div class="subtitle-brand" contenteditable="false" id="sub-title" data-key="sub-title" onblur="guardarTextoInmediato(this)">Escuela de Strikers</div>
             </div>
-            <p contenteditable="false" id="main-subtitle" data-key="main-subtitle">Construyendo el futuro del boxeo y kickboxing. Transformamos los deportes de contacto con seguridad biomecánica y telemetría para elevar el deporte a un show total.</p>
+            <p contenteditable="false" id="main-subtitle" data-key="main-subtitle" onblur="guardarTextoInmediato(this)">Construyendo el futuro del boxeo y kickboxing. Transformamos los deportes de contacto con seguridad biomecánica y telemetría para elevar el deporte a un show total.</p>
         </header>
 
         <main class="menu-container">
             <div class="section-card" onclick="switchView('view-quienes')">
-                <h2 contenteditable="false" id="t-quienes" data-key="t-quienes">Quiénes Somos</h2>
+                <h2 contenteditable="false" id="t-quienes" data-key="t-quienes" onblur="guardarTextoInmediato(this)">Quiénes Somos</h2>
                 <span>+</span>
             </div>
 
             <div class="section-card" onclick="switchView('view-educativas')">
-                <h2 contenteditable="false" id="t-educativas" data-key="t-educativas">Instituciones Educativas</h2>
+                <h2 contenteditable="false" id="t-educativas" data-key="t-educativas" onblur="guardarTextoInmediato(this)">Instituciones Educativas</h2>
                 <span>+</span>
             </div>
 
             <div class="section-card" onclick="switchView('view-ciclovia')">
-                <h2 contenteditable="false" id="t-ciclovia" data-key="t-ciclovia">Ciclovía de Cali</h2>
+                <h2 contenteditable="false" id="t-ciclovia" data-key="t-ciclovia" onblur="guardarTextoInmediato(this)">Ciclovía de Cali</h2>
                 <span>+</span>
             </div>
 
             <div class="section-card" onclick="switchView('view-aliados')">
-                <h2 contenteditable="false" id="t-aliados" data-key="t-aliados">Red de Aliados Estratégicos</h2>
+                <h2 contenteditable="false" id="t-aliados" data-key="t-aliados" onblur="guardarTextoInmediato(this)">Red de Aliados Estratégicos</h2>
                 <span>+</span>
             </div>
 
             <div class="section-card" onclick="switchView('view-patrocinadores')">
-                <h2 contenteditable="false" id="t-patrocinadores" data-key="t-patrocinadores">Patrocinadores y Aliados</h2>
+                <h2 contenteditable="false" id="t-patrocinadores" data-key="t-patrocinadores" onblur="guardarTextoInmediato(this)">Patrocinadores y Aliados</h2>
                 <span>+</span>
             </div>
 
             <div class="section-card" onclick="switchView('view-desarrollo')">
-                <h2 contenteditable="false" id="t-desarrollo" data-key="t-desarrollo">En Desarrollo</h2>
+                <h2 contenteditable="false" id="t-desarrollo" data-key="t-desarrollo" onblur="guardarTextoInmediato(this)">En Desarrollo</h2>
                 <span>+</span>
             </div>
 
             <div class="home-slogan-box">
-                <p contenteditable="false" id="home-slogan" data-key="home-slogan">APEX Boxing es el camino correcto, solo debes recorrerlo.</p>
+                <p contenteditable="false" id="home-slogan" data-key="home-slogan" onblur="guardarTextoInmediato(this)">APEX Boxing es el camino correcto, solo debes recorrerlo.</p>
             </div>
         </main>
     </div>
@@ -836,8 +836,8 @@
     <div id="view-quienes" class="view-page" data-page-index="1">
         <button class="btn-back" onclick="switchView('view-home')">← Volver</button>
         <div class="page-content-box">
-            <h2 contenteditable="false" data-key="title-quienes">Quiénes Somos</h2>
-            <p contenteditable="false" data-key="desc-quienes">Promovemos el deporte masivamente generando alto impacto social a través de un espectáculo moderno. Monetizamos el show para que los atletas vivan de su profesión.</p>
+            <h2 contenteditable="false" data-key="title-quienes" onblur="guardarTextoInmediato(this)">Quiénes Somos</h2>
+            <p contenteditable="false" data-key="desc-quienes" onblur="guardarTextoInmediato(this)">Promovemos el deporte masivamente generando alto impacto social a través de un espectáculo moderno. Monetizamos el show para que los atletas vivan de su profesión.</p>
             
             <div id="dynamic-content-quienes" class="dynamic-blocks-container" data-section="quienes">
                 <div class="media-wrapper" data-block-id="quienes_default">
@@ -845,7 +845,7 @@
                     <div class="media-container" id="container-quienes">
                         <img src="" alt="" id="media-quienes">
                     </div>
-                    <div class="media-overlay-text" contenteditable="false" data-key="overlay-quienes">El show del combate profesional</div>
+                    <div class="media-overlay-text" contenteditable="false" data-key="overlay-quienes" onblur="guardarTextoInmediato(this)">El show del combate profesional</div>
                     <div class="edit-controls">
                         <label>Texto sobrepuesto:</label>
                         <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
@@ -864,8 +864,8 @@
     <div id="view-educativas" class="view-page" data-page-index="2">
         <button class="btn-back" onclick="switchView('view-home')">← Volver</button>
         <div class="page-content-box">
-            <h2 contenteditable="false" data-key="title-educativas">Instituciones Educativas</h2>
-            <p contenteditable="false" data-key="desc-educativas">Visitamos colegios con nuestra feria deportiva itinerante para promover el deporte y encender la pasión en un entorno seguro.</p>
+            <h2 contenteditable="false" data-key="title-educativas" onblur="guardarTextoInmediato(this)">Instituciones Educativas</h2>
+            <p contenteditable="false" data-key="desc-educativas" onblur="guardarTextoInmediato(this)">Visitamos colegios con nuestra feria deportiva itinerante para promover el deporte y encender la pasión en un entorno seguro.</p>
             
             <div id="dynamic-content-educativas" class="dynamic-blocks-container" data-section="educativas">
                 <div class="media-wrapper" data-block-id="educativas_default">
@@ -873,7 +873,7 @@
                     <div class="media-container" id="container-educativas">
                         <img src="" alt="" id="media-educativas">
                     </div>
-                    <div class="media-overlay-text" contenteditable="false" data-key="overlay-educativas">La pasión por el deporte nace aquí</div>
+                    <div class="media-overlay-text" contenteditable="false" data-key="overlay-educativas" onblur="guardarTextoInmediato(this)">La pasión por el deporte nace aquí</div>
                     <div class="edit-controls">
                         <label>Texto sobrepuesto:</label>
                         <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
@@ -892,7 +892,7 @@
     <div id="view-ciclovia" class="view-page" data-page-index="3">
         <button class="btn-back" onclick="switchView('view-home')">← Volver</button>
         <div class="page-content-box">
-            <h2 contenteditable="false" data-key="title-ciclovia">Integración con Ciclovía de Cali</h2>
+            <h2 contenteditable="false" data-key="title-ciclovia" onblur="guardarTextoInmediato(this)">Integración con Ciclovía de Cali</h2>
             
             <div class="subtabs-container">
                 <button class="subtab-btn active" onclick="switchSubTab('subtab-propuesta', this)">Propuesta</button>
@@ -901,14 +901,14 @@
             </div>
 
             <div id="subtab-propuesta" class="subtab-content active">
-                <p contenteditable="false" data-key="desc-ciclovia-propuesta">Dinamizamos el sector deportivo entregando métricas de alto impacto social que la Secretaría puede reportar como resultados propios, sin requerir inversión logística estatal.</p>
+                <p contenteditable="false" data-key="desc-ciclovia-propuesta" onblur="guardarTextoInmediato(this)">Dinamizamos el sector deportivo entregando métricas de alto impacto social que la Secretaría puede reportar como resultados propios, sin requerir inversión logística estatal.</p>
                 <div id="dynamic-content-ciclovia-propuesta" class="dynamic-blocks-container" data-section="ciclovia-propuesta">
                     <div class="media-wrapper" data-block-id="ciclovia_propuesta_default">
                         <button class="btn-delete-block" onclick="eliminarBloqueMedia(this)">🗑️ Eliminar bloque</button>
                         <div class="media-container" id="container-ciclovia-propuesta">
                             <img src="" alt="" id="media-ciclovia-propuesta">
                         </div>
-                        <div class="media-overlay-text" contenteditable="false" data-key="overlay-ciclovia-propuesta">Dinamización y Métricas de Impacto</div>
+                        <div class="media-overlay-text" contenteditable="false" data-key="overlay-ciclovia-propuesta" onblur="guardarTextoInmediato(this)">Dinamización y Métricas de Impacto</div>
                         <div class="edit-controls">
                             <label>Texto sobrepuesto:</label>
                             <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
@@ -924,14 +924,14 @@
             </div>
 
             <div id="subtab-ubicacion" class="subtab-content">
-                <p contenteditable="false" data-key="desc-ciclovia-ubicacion">Bahía de aceleración/desaceleración de 12 metros para pre-registro QR en la Calle 49 con Autopista Suroriental y circuito sincronizado en la "U" del retorno.</p>
+                <p contenteditable="false" data-key="desc-ciclovia-ubicacion" onblur="guardarTextoInmediato(this)">Bahía de aceleración/desaceleración de 12 metros para pre-registro QR en la Calle 49 con Autopista Suroriental y circuito sincronizado en la "U" del retorno.</p>
                 <div id="dynamic-content-ciclovia-ubicacion" class="dynamic-blocks-container" data-section="ciclovia-ubicacion">
                     <div class="media-wrapper" data-block-id="ciclovia_ubicacion_default">
                         <button class="btn-delete-block" onclick="eliminarBloqueMedia(this)">🗑️ Eliminar bloque</button>
                         <div class="media-container" id="container-ciclovia-ubicacion">
                             <img src="" alt="" id="media-ciclovia-ubicacion">
                         </div>
-                        <div class="media-overlay-text" contenteditable="false" data-key="overlay-ciclovia-ubicacion">Calle 49 con Autopista Suroriental</div>
+                        <div class="media-overlay-text" contenteditable="false" data-key="overlay-ciclovia-ubicacion" onblur="guardarTextoInmediato(this)">Calle 49 con Autopista Suroriental</div>
                         <div class="edit-controls">
                             <label>Texto sobrepuesto:</label>
                             <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
@@ -947,14 +947,14 @@
             </div>
 
             <div id="subtab-seguridad" class="subtab-content">
-                <p contenteditable="false" data-key="desc-ciclovia-seguridad">Personal uniformado con petos, comunicación por radios con auriculares cableados, supervisión técnica y criterios estrictos de seguridad biomecánica.</p>
+                <p contenteditable="false" data-key="desc-ciclovia-seguridad" onblur="guardarTextoInmediato(this)">Personal uniformado con petos, comunicación por radios con auriculares cableados, supervisión técnica y criterios estrictos de seguridad biomecánica.</p>
                 <div id="dynamic-content-ciclovia-seguridad" class="dynamic-blocks-container" data-section="ciclovia-seguridad">
                     <div class="media-wrapper" data-block-id="ciclovia_seguridad_default">
                         <button class="btn-delete-block" onclick="eliminarBloqueMedia(this)">🗑️ Eliminar bloque</button>
                         <div class="media-container" id="container-ciclovia-seguridad">
                             <img src="" alt="" id="media-ciclovia-seguridad">
                         </div>
-                        <div class="media-overlay-text" contenteditable="false" data-key="overlay-ciclovia-seguridad">Control Táctico y Seguridad Operativa</div>
+                        <div class="media-overlay-text" contenteditable="false" data-key="overlay-ciclovia-seguridad" onblur="guardarTextoInmediato(this)">Control Táctico y Seguridad Operativa</div>
                         <div class="edit-controls">
                             <label>Texto sobrepuesto:</label>
                             <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
@@ -975,8 +975,8 @@
     <div id="view-aliados" class="view-page" data-page-index="4">
         <button class="btn-back" onclick="switchView('view-home')">← Volver</button>
         <div class="page-content-box">
-            <h2 contenteditable="false" data-key="title-aliados">Red de Aliados Estratégicos</h2>
-            <p contenteditable="false" data-key="desc-aliados">Activaciones en colegios, ciclovías y parques (como CRP), interconectando escenarios y promoviendo torneos oficiales.</p>
+            <h2 contenteditable="false" data-key="title-aliados" onblur="guardarTextoInmediato(this)">Red de Aliados Estratégicos</h2>
+            <p contenteditable="false" data-key="desc-aliados" onblur="guardarTextoInmediato(this)">Activaciones en colegios, ciclovías y parques (como CRP), interconectando escenarios y promoviendo torneos oficiales.</p>
             
             <div id="dynamic-content-aliados" class="dynamic-blocks-container grid-two-columns" data-section="aliados">
                 <div class="media-wrapper" data-block-id="aliados_default">
@@ -984,7 +984,7 @@
                     <div class="media-container" id="container-aliados">
                         <img src="" alt="" id="media-aliados">
                     </div>
-                    <div class="media-overlay-text" contenteditable="false" data-key="overlay-aliados">Red de Escenarios Aliados</div>
+                    <div class="media-overlay-text" contenteditable="false" data-key="overlay-aliados" onblur="guardarTextoInmediato(this)">Red de Escenarios Aliados</div>
                     <div class="edit-controls">
                         <label>Texto sobrepuesto:</label>
                         <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
@@ -1003,8 +1003,8 @@
     <div id="view-patrocinadores" class="view-page" data-page-index="5">
         <button class="btn-back" onclick="switchView('view-home')">← Volver</button>
         <div class="page-content-box">
-            <h2 contenteditable="false" data-key="title-patrocinadores">Patrocinadores y Aliados</h2>
-            <p contenteditable="false" data-key="desc-patrocinadores">Comerciantes locales que proporcionan bonos de descuento, regalos digitales y premios físicos para los participantes.</p>
+            <h2 contenteditable="false" data-key="title-patrocinadores" onblur="guardarTextoInmediato(this)">Patrocinadores y Aliados</h2>
+            <p contenteditable="false" data-key="desc-patrocinadores" onblur="guardarTextoInmediato(this)">Comerciantes locales que proporcionan bonos de descuento, regalos digitales y premios físicos para los participantes.</p>
             
             <div id="dynamic-content-patrocinadores" class="dynamic-blocks-container grid-two-columns" data-section="patrocinadores">
                 <div class="media-wrapper" data-block-id="patrocinadores_default">
@@ -1012,7 +1012,7 @@
                     <div class="media-container" id="container-patrocinadores">
                         <img src="" alt="" id="media-patrocinadores">
                     </div>
-                    <div class="media-overlay-text" contenteditable="false" data-key="overlay-patrocinadores">Comercio Local e Incentivos</div>
+                    <div class="media-overlay-text" contenteditable="false" data-key="overlay-patrocinadores" onblur="guardarTextoInmediato(this)">Comercio Local e Incentivos</div>
                     <div class="edit-controls">
                         <label>Texto sobrepuesto:</label>
                         <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
@@ -1031,8 +1031,8 @@
     <div id="view-desarrollo" class="view-page" data-page-index="6">
         <button class="btn-back" onclick="switchView('view-home')">← Volver</button>
         <div class="page-content-box">
-            <h2 contenteditable="false" data-key="title-desarrollo">En Desarrollo</h2>
-            <p contenteditable="false" data-key="desc-desarrollo">Nuestros progresos tecnológicos y de software, incluyendo telemetría con ESP32, aplicaciones web propias y herramientas de análisis biomecánico.</p>
+            <h2 contenteditable="false" data-key="title-desarrollo" onblur="guardarTextoInmediato(this)">En Desarrollo</h2>
+            <p contenteditable="false" data-key="desc-desarrollo" onblur="guardarTextoInmediato(this)">Nuestros progresos tecnológicos y de software, incluyendo telemetría con ESP32, aplicaciones web propias y herramientas de análisis biomecánico.</p>
             
             <div id="dynamic-content-desarrollo" class="dynamic-blocks-container" data-section="desarrollo">
                 <div class="media-wrapper" data-block-id="desarrollo_default">
@@ -1040,7 +1040,7 @@
                     <div class="media-container" id="container-desarrollo">
                         <img src="" alt="" id="media-desarrollo">
                     </div>
-                    <div class="media-overlay-text" contenteditable="false" data-key="overlay-desarrollo">Tecnología y Prototipos Propios</div>
+                    <div class="media-overlay-text" contenteditable="false" data-key="overlay-desarrollo" onblur="guardarTextoInmediato(this)">Tecnología y Prototipos Propios</div>
                     <div class="edit-controls">
                         <label>Texto sobrepuesto:</label>
                         <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
@@ -1214,7 +1214,6 @@
             videoEl.addEventListener('timeupdate', () => {
                 if (!videoEl.duration) return;
                 const tiempoRestante = videoEl.duration - videoEl.currentTime;
-                // A los 1.5 segundos finales, desvanecer opacidad a 0 (fundido a negro)
                 if (tiempoRestante <= 1.5 && videoEl.style.opacity !== '0') {
                     videoEl.style.opacity = '0';
                 }
@@ -1223,7 +1222,6 @@
             videoEl.addEventListener('ended', () => {
                 videoEl.currentTime = 0;
                 videoEl.play().catch(e => {});
-                // Mantener opacidad en 0 brevemente en negro, luego desvanecer de entrada a 1
                 setTimeout(() => {
                     videoEl.style.opacity = '1';
                 }, 300);
@@ -1298,12 +1296,45 @@
         }
 
         async function guardarDatoSupabase(id, content) {
-            if (!sb || !navigator.onLine) return;
-            await sb.from('apex_content').upsert({ id: id, content: content, updated_at: new Date() });
+            if (!sb || !navigator.onLine) {
+                // Respaldo inmediato en caché local por seguridad offline
+                guardarCacheLocalInmediato(id, content);
+                return;
+            }
+            try {
+                await sb.from('apex_content').upsert({ id: id, content: content, updated_at: new Date() });
+                guardarCacheLocalInmediato(id, content);
+            } catch (e) {
+                guardarCacheLocalInmediato(id, content);
+            }
         }
 
+        function guardarCacheLocalInmediato(id, content) {
+            try {
+                const cached = localStorage.getItem('apex_cache_content');
+                let data = cached ? JSON.parse(cached) : [];
+                let encontrado = false;
+                data.forEach(item => {
+                    if (item.id === id) {
+                        item.content = content;
+                        encontrado = true;
+                    }
+                });
+                if (!encontrado) {
+                    data.push({ id: id, content: content });
+                }
+                localStorage.setItem('apex_cache_content', JSON.stringify(data));
+            } catch(err){}
+        }
+
+        window.guardarTextoInmediato = function(el) {
+            const key = el.id || el.getAttribute('data-key');
+            if (key) {
+                guardarDatoSupabase(key, el.innerHTML);
+            }
+        };
+
         async function guardarEstructuraBloques() {
-            if (!sb || !navigator.onLine) return;
             const estructura = {};
             document.querySelectorAll('.dynamic-blocks-container').forEach(container => {
                 const sectionKey = container.getAttribute('data-section');
@@ -1337,7 +1368,7 @@
 
             if (!isEditMode) {
                 sincronizarTodoEnNube();
-                alert("¡Sincronizado y guardado!");
+                alert("¡Sincronizado y guardado con éxito!");
             } else {
                 alert("Modo Edición Activado.");
             }
@@ -1522,7 +1553,7 @@
                 <div class="media-container" id="${uniqueContainerId}">
                     <img src="" alt="" id="${uniqueMediaId}">
                 </div>
-                <div class="media-overlay-text" contenteditable="${isEditMode ? 'true' : 'false'}" data-key="${overlayKey}">Nuevo Título en Gran Formato</div>
+                <div class="media-overlay-text" contenteditable="${isEditMode ? 'true' : 'false'}" data-key="${overlayKey}" onblur="guardarTextoInmediato(this)">Nuevo Título en Gran Formato</div>
                 <div class="edit-controls">
                     <label>Texto sobrepuesto:</label>
                     <input type="text" oninput="updateOverlayText(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
@@ -1539,8 +1570,8 @@
         window.addMediaBlock = function(wrapperId, sectionKey) {
             const wrapper = document.getElementById(wrapperId);
             if (!wrapper) return;
-            const randomId = 'media_dyn_' + Date.now() + '_' + Math.floor(Math.random()*1000);
-            construirBloqueDOM(wrapper, sectionKey, randomId);
+            const persistentId = 'block_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+            construirBloqueDOM(wrapper, sectionKey, persistentId);
             guardarEstructuraBloques();
         };
 
