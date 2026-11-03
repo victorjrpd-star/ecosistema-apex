@@ -439,6 +439,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            min-height: 120px;
         }
 
         .media-container img, .media-container video {
@@ -464,6 +465,7 @@
             text-transform: uppercase;
             text-shadow: 0 4px 12px rgba(0,0,0,0.9);
             letter-spacing: 0.5px;
+            min-height: 30px;
         }
 
         .edit-controls {
@@ -541,10 +543,18 @@
             font-size: 0.75rem;
             text-transform: uppercase;
             margin-top: 6px;
+            transition: all 0.2s ease;
         }
-        .btn-save-text:hover {
+        .btn-save-text:hover:not(:disabled) {
             background: #16a34a;
             color: #fff;
+        }
+        .btn-save-text:disabled {
+            background: #262626;
+            color: #525252;
+            border: 1px solid #404040;
+            cursor: not-allowed;
+            opacity: 0.6;
         }
 
         .btn-supabase-selector {
@@ -866,8 +876,8 @@
                     <div class="media-overlay-text" contenteditable="false" data-key="overlay-quienes">El show del combate profesional</div>
                     <div class="edit-controls">
                         <label>Texto sobrepuesto:</label>
-                        <input type="text" oninput="updateOverlayTextInput(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
-                        <button class="btn-save-text" onclick="guardarTextoOverlayExplicit(this)">💾 Guardar Texto</button>
+                        <input type="text" oninput="updateOverlayTextInput(this)" placeholder="Escribe un título..." style="width:100%; margin-bottom:8px; padding:4px;">
+                        <button class="btn-save-text" id="btn-save-overlay-quienes" onclick="guardarTextoOverlayExplicit(this)" disabled>💾 Guardado</button>
                         <label style="margin-top:8px;">Cargar Media:</label>
                         <div class="upload-actions-row">
                             <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-quienes', 'media-quienes')" style="flex:1;">
@@ -895,8 +905,8 @@
                     <div class="media-overlay-text" contenteditable="false" data-key="overlay-educativas">La pasión por el deporte nace aquí</div>
                     <div class="edit-controls">
                         <label>Texto sobrepuesto:</label>
-                        <input type="text" oninput="updateOverlayTextInput(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
-                        <button class="btn-save-text" onclick="guardarTextoOverlayExplicit(this)">💾 Guardar Texto</button>
+                        <input type="text" oninput="updateOverlayTextInput(this)" placeholder="Escribe un título..." style="width:100%; margin-bottom:8px; padding:4px;">
+                        <button class="btn-save-text" id="btn-save-overlay-educativas" onclick="guardarTextoOverlayExplicit(this)" disabled>💾 Guardado</button>
                         <label style="margin-top:8px;">Cargar Media:</label>
                         <div class="upload-actions-row">
                             <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-educativas', 'media-educativas')" style="flex:1;">
@@ -931,8 +941,8 @@
                         <div class="media-overlay-text" contenteditable="false" data-key="overlay-ciclovia-propuesta">Dinamización y Métricas de Impacto</div>
                         <div class="edit-controls">
                             <label>Texto sobrepuesto:</label>
-                            <input type="text" oninput="updateOverlayTextInput(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
-                            <button class="btn-save-text" onclick="guardarTextoOverlayExplicit(this)">💾 Guardar Texto</button>
+                            <input type="text" oninput="updateOverlayTextInput(this)" placeholder="Escribe un título..." style="width:100%; margin-bottom:8px; padding:4px;">
+                            <button class="btn-save-text" id="btn-save-overlay-ciclovia_propuesta" onclick="guardarTextoOverlayExplicit(this)" disabled>💾 Guardado</button>
                             <label style="margin-top:8px;">Cargar Media:</label>
                             <div class="upload-actions-row">
                                 <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-ciclovia-propuesta', 'media-ciclovia-propuesta')" style="flex:1;">
@@ -955,8 +965,8 @@
                         <div class="media-overlay-text" contenteditable="false" data-key="overlay-ciclovia-ubicacion">Calle 49 con Autopista Suroriental</div>
                         <div class="edit-controls">
                             <label>Texto sobrepuesto:</label>
-                            <input type="text" oninput="updateOverlayTextInput(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
-                            <button class="btn-save-text" onclick="guardarTextoOverlayExplicit(this)">💾 Guardar Texto</button>
+                            <input type="text" oninput="updateOverlayTextInput(this)" placeholder="Escribe un título..." style="width:100%; margin-bottom:8px; padding:4px;">
+                            <button class="btn-save-text" id="btn-save-overlay-ciclovia_ubicacion" onclick="guardarTextoOverlayExplicit(this)" disabled>💾 Guardado</button>
                             <label style="margin-top:8px;">Cargar Media:</label>
                             <div class="upload-actions-row">
                                 <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-ciclovia-ubicacion', 'media-ciclovia-ubicacion')" style="flex:1;">
@@ -979,8 +989,8 @@
                         <div class="media-overlay-text" contenteditable="false" data-key="overlay-ciclovia-seguridad">Control Táctico y Seguridad Operativa</div>
                         <div class="edit-controls">
                             <label>Texto sobrepuesto:</label>
-                            <input type="text" oninput="updateOverlayTextInput(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
-                            <button class="btn-save-text" onclick="guardarTextoOverlayExplicit(this)">💾 Guardar Texto</button>
+                            <input type="text" oninput="updateOverlayTextInput(this)" placeholder="Escribe un título..." style="width:100%; margin-bottom:8px; padding:4px;">
+                            <button class="btn-save-text" id="btn-save-overlay-ciclovia_seguridad" onclick="guardarTextoOverlayExplicit(this)" disabled>💾 Guardado</button>
                             <label style="margin-top:8px;">Cargar Media:</label>
                             <div class="upload-actions-row">
                                 <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-ciclovia-seguridad', 'media-ciclovia-seguridad')" style="flex:1;">
@@ -1010,8 +1020,8 @@
                     <div class="media-overlay-text" contenteditable="false" data-key="overlay-aliados">Red de Escenarios Aliados</div>
                     <div class="edit-controls">
                         <label>Texto sobrepuesto:</label>
-                        <input type="text" oninput="updateOverlayTextInput(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
-                        <button class="btn-save-text" onclick="guardarTextoOverlayExplicit(this)">💾 Guardar Texto</button>
+                        <input type="text" oninput="updateOverlayTextInput(this)" placeholder="Escribe un título..." style="width:100%; margin-bottom:8px; padding:4px;">
+                        <button class="btn-save-text" id="btn-save-overlay-aliados" onclick="guardarTextoOverlayExplicit(this)" disabled>💾 Guardado</button>
                         <label style="margin-top:8px;">Cargar Media:</label>
                         <div class="upload-actions-row">
                             <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-aliados', 'media-aliados')" style="flex:1;">
@@ -1039,8 +1049,8 @@
                     <div class="media-overlay-text" contenteditable="false" data-key="overlay-patrocinadores">Comercio Local e Incentivos</div>
                     <div class="edit-controls">
                         <label>Texto sobrepuesto:</label>
-                        <input type="text" oninput="updateOverlayTextInput(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
-                        <button class="btn-save-text" onclick="guardarTextoOverlayExplicit(this)">💾 Guardar Texto</button>
+                        <input type="text" oninput="updateOverlayTextInput(this)" placeholder="Escribe un título..." style="width:100%; margin-bottom:8px; padding:4px;">
+                        <button class="btn-save-text" id="btn-save-overlay-patrocinadores" onclick="guardarTextoOverlayExplicit(this)" disabled>💾 Guardado</button>
                         <label style="margin-top:8px;">Cargar Media:</label>
                         <div class="upload-actions-row">
                             <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-patrocinadores', 'media-patrocinadores')" style="flex:1;">
@@ -1068,8 +1078,8 @@
                     <div class="media-overlay-text" contenteditable="false" data-key="overlay-desarrollo">Tecnología y Prototipos Propios</div>
                     <div class="edit-controls">
                         <label>Texto sobrepuesto:</label>
-                        <input type="text" oninput="updateOverlayTextInput(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
-                        <button class="btn-save-text" onclick="guardarTextoOverlayExplicit(this)">💾 Guardar Texto</button>
+                        <input type="text" oninput="updateOverlayTextInput(this)" placeholder="Escribe un título..." style="width:100%; margin-bottom:8px; padding:4px;">
+                        <button class="btn-save-text" id="btn-save-overlay-desarrollo" onclick="guardarTextoOverlayExplicit(this)" disabled>💾 Guardado</button>
                         <label style="margin-top:8px;">Cargar Media:</label>
                         <div class="upload-actions-row">
                             <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-desarrollo', 'media-desarrollo')" style="flex:1;">
@@ -1121,6 +1131,8 @@
 
         let isEditMode = false;
         const pageOrder = ['view-home', 'view-quienes', 'view-educativas', 'view-ciclovia', 'view-aliados', 'view-patrocinadores', 'view-desarrollo', 'view-galeria'];
+
+        const dbContentSnapshot = {};
 
         window.addEventListener('DOMContentLoaded', async () => {
             initNetworkListener();
@@ -1239,7 +1251,6 @@
             });
         }
 
-        // BUCLE FLUIDO CON TRANSICIÓN DE FUNDIDO A NEGRO
         function configurarBucleConFundidoVideo(videoEl) {
             if (!videoEl || videoEl.dataset.fadeConfigured) return;
             videoEl.dataset.fadeConfigured = "true";
@@ -1269,6 +1280,7 @@
         function procesarDatosEnDOM(data) {
             let bloquesConfig = {};
             data.forEach(item => {
+                dbContentSnapshot[item.id] = item.content;
                 if (item.id === 'apex_dynamic_blocks_structure') {
                     try { bloquesConfig = JSON.parse(item.content); } catch(e){}
                 }
@@ -1328,7 +1340,17 @@
                     if (range) range.value = item.content;
                 } else {
                     const el = document.getElementById(item.id) || document.querySelector(`[data-key="${item.id}"]`);
-                    if (el) el.innerHTML = item.content;
+                    if (el) {
+                        el.innerHTML = item.content;
+                        const wrapper = el.closest('.media-wrapper') || el.closest('header') || el.closest('.page-content-box');
+                        if (wrapper) {
+                            const inputEl = wrapper.querySelector('input[type="text"]');
+                            if (inputEl && el.classList.contains('media-overlay-text')) {
+                                inputEl.value = el.textContent.trim();
+                                actualizarEstadoBotonesGuardarTexto(inputEl);
+                            }
+                        }
+                    }
                 }
             });
         }
@@ -1348,6 +1370,7 @@
                 
                 if (error) throw error;
                 
+                dbContentSnapshot[id] = content;
                 guardarCacheLocalInmediato(id, content);
                 actualizarBadgeCarga(uploadId, 'done', '');
                 return true;
@@ -1390,8 +1413,32 @@
             if (wrapper) {
                 const overlay = wrapper.querySelector('.media-overlay-text');
                 overlay.textContent = input.value;
+                actualizarEstadoBotonesGuardarTexto(input);
             }
         };
+
+        function actualizarEstadoBotonesGuardarTexto(inputOrEl) {
+            const wrapper = inputOrEl.closest('.media-wrapper') || inputOrEl.closest('.page-content-box') || inputOrEl.closest('header');
+            if (!wrapper) return;
+            
+            const overlay = wrapper.querySelector('.media-overlay-text');
+            const input = wrapper.querySelector('input[type="text"]');
+            const btnSave = wrapper.querySelector('.btn-save-text');
+            
+            if (overlay && input && btnSave) {
+                const key = overlay.getAttribute('data-key') || overlay.id;
+                const valorBase = dbContentSnapshot[key] !== undefined ? dbContentSnapshot[key] : '';
+                const valorActual = input.value.trim();
+
+                if (valorActual !== valorBase.trim()) {
+                    btnSave.disabled = false;
+                    btnSave.textContent = '💾 Guardar Texto';
+                } else {
+                    btnSave.disabled = true;
+                    btnSave.textContent = '💾 Guardado';
+                }
+            }
+        }
 
         window.guardarTextoOverlayExplicit = async function(btn) {
             const wrapper = btn.closest('.media-wrapper');
@@ -1399,14 +1446,18 @@
             const overlay = wrapper.querySelector('.media-overlay-text');
             const input = wrapper.querySelector('input[type="text"]');
             
-            if (input && input.value.trim() !== '') {
+            if (input) {
                 overlay.textContent = input.value;
             }
 
             const key = overlay.getAttribute('data-key') || overlay.id;
             const uploadId = 'text_' + (key || Date.now());
             
-            await guardarDatoSupabaseConProgreso(key, overlay.innerHTML, uploadId);
+            const exito = await guardarDatoSupabaseConProgreso(key, overlay.innerHTML, uploadId);
+            if (exito) {
+                btn.disabled = true;
+                btn.textContent = '💾 Guardado';
+            }
         };
 
         async function guardarEstructuraBloques() {
@@ -1439,6 +1490,16 @@
             
             document.querySelectorAll('[contenteditable]').forEach(el => {
                 el.setAttribute('contenteditable', isEditMode ? 'true' : 'false');
+                if (isEditMode) {
+                    const wrapper = el.closest('.media-wrapper');
+                    if (wrapper) {
+                        const input = wrapper.querySelector('input[type="text"]');
+                        if (input) {
+                            input.value = el.textContent.trim();
+                            actualizarEstadoBotonesGuardarTexto(input);
+                        }
+                    }
+                }
             });
 
             if (!isEditMode) {
@@ -1619,6 +1680,7 @@
             const uniqueMediaId = blockUniqueId;
             const uniqueContainerId = 'container_' + blockUniqueId;
             const overlayKey = uniqueMediaId + '-overlay';
+            const saveBtnId = 'btn-save-' + overlayKey.replace(/[^a-zA-Z0-9]/g, '_');
 
             const newBlock = document.createElement('div');
             newBlock.className = 'media-wrapper';
@@ -1628,11 +1690,11 @@
                 <div class="media-container" id="${uniqueContainerId}">
                     <img src="" alt="" id="${uniqueMediaId}">
                 </div>
-                <div class="media-overlay-text" contenteditable="${isEditMode ? 'true' : 'false'}" data-key="${overlayKey}">Nuevo Título en Gran Formato</div>
+                <div class="media-overlay-text" contenteditable="${isEditMode ? 'true' : 'false'}" data-key="${overlayKey}"></div>
                 <div class="edit-controls">
                     <label>Texto sobrepuesto:</label>
-                    <input type="text" oninput="updateOverlayTextInput(this)" placeholder="Título..." style="width:100%; margin-bottom:8px; padding:4px;">
-                    <button class="btn-save-text" onclick="guardarTextoOverlayExplicit(this)">💾 Guardar Texto</button>
+                    <input type="text" oninput="updateOverlayTextInput(this)" placeholder="Escribe un título..." style="width:100%; margin-bottom:8px; padding:4px;" value="">
+                    <button class="btn-save-text" id="${saveBtnId}" onclick="guardarTextoOverlayExplicit(this)" disabled>💾 Guardado</button>
                     <label style="margin-top:8px;">Cargar Media:</label>
                     <div class="upload-actions-row">
                         <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, '${uniqueContainerId}', '${uniqueMediaId}')" style="flex:1;">
