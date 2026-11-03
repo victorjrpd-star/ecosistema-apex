@@ -143,7 +143,6 @@
             animation: spin 1s linear infinite;
         }
 
-        /* Estilo Noir Minimalista para el Panel de Configuración */
         .config-panel {
             position: fixed;
             top: 55px;
@@ -190,7 +189,6 @@
             margin-bottom: 8px;
         }
 
-        /* Barra de opacidad Noir con riel gris y control blanco */
         .config-panel input[type="range"] {
             -webkit-appearance: none;
             width: 100%;
@@ -477,6 +475,11 @@
             background: #050505;
         }
 
+        /* Ocultar automáticamente bloques vacíos cuando NO estamos en modo edición */
+        body:not(.edit-mode) .media-wrapper.empty-block {
+            display: none !important;
+        }
+
         .dynamic-blocks-container.grid-two-columns {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -546,49 +549,6 @@
             background: rgba(255, 255, 255, 0.02);
             position: relative;
             z-index: 50;
-        }
-
-        .btn-add-content, .btn-delete-block {
-            display: none !important;
-        }
-
-        body.edit-mode .btn-add-content {
-            display: inline-block !important;
-            background: #141414;
-            color: var(--text-main);
-            border: 1px solid #333;
-            padding: 8px 16px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: all 0.2s ease;
-        }
-        body.edit-mode .btn-add-content:hover {
-            background: #222;
-            border-color: #555;
-        }
-
-        body.edit-mode .btn-delete-block {
-            display: inline-block !important;
-            background: #141414;
-            color: #fca5a5;
-            border: 1px solid #5d1a1a;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            cursor: pointer;
-            margin: 8px;
-            position: relative;
-            z-index: 101;
-            transition: all 0.2s ease;
-        }
-        body.edit-mode .btn-delete-block:hover {
-            background: #2a1212;
-            border-color: var(--accent-red);
         }
 
         .upload-actions-row {
@@ -848,7 +808,7 @@
         </button>
     </div>
 
-    <!-- Panel de configuración rediseñado bajo identidad Noir minimalista Apex -->
+    <!-- Panel de configuración -->
     <div class="config-panel" id="configPanel">
         <h3>Configuración Cloud</h3>
         <label>Dispositivo:</label>
@@ -938,64 +898,29 @@
         </main>
     </div>
 
+    <!-- VISTA QUIENES (10 bloques fijos) -->
     <div id="view-quienes" class="view-page" data-page-index="1">
         <button class="btn-back" onclick="switchView('view-home')">← Volver</button>
         <div class="page-content-box">
             <h2 contenteditable="false" data-key="title-quienes">Quiénes Somos</h2>
             <p contenteditable="false" data-key="desc-quienes">Promovemos el deporte masivamente generando alto impacto social a través de un espectáculo moderno. Monetizamos el show para que los atletas vivan de su profesión.</p>
             
-            <div id="dynamic-content-quienes" class="dynamic-blocks-container" data-section="quienes">
-                <div class="media-wrapper" data-block-id="quienes_default">
-                    <button class="btn-delete-block" onclick="eliminarBloqueMedia(this)">🗑️ Eliminar bloque</button>
-                    <div class="media-container" id="container-quienes">
-                        <img src="" alt="" id="media-quienes">
-                    </div>
-                    <div class="media-overlay-text" contenteditable="false" id="quienes_default-overlay" data-key="quienes_default-overlay"></div>
-                    <div class="edit-controls">
-                        <label>Texto sobrepuesto:</label>
-                        <input type="text" oninput="updateOverlayTextInput(this)" placeholder="Escribe un título..." style="width:100%; margin-bottom:8px; padding:4px;" value="">
-                        <button class="btn-save-text" id="btn-save-quienes_default-overlay" onclick="guardarTextoOverlayExplicit(this)" disabled>💾 Guardado</button>
-                        <label style="margin-top:8px;">Cargar Media:</label>
-                        <div class="upload-actions-row">
-                            <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-quienes', 'media-quienes')" style="flex:1;">
-                            <button class="btn-supabase-selector" onclick="abrirSelectorSupabase('container-quienes', 'media-quienes')">☁️ Supabase</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <button class="btn-add-content" onclick="addMediaBlock('dynamic-content-quienes', 'quienes')">+ Añadir bloque</button>
+            <div id="dynamic-content-quienes" class="dynamic-blocks-container" data-section="quienes"></div>
         </div>
     </div>
 
+    <!-- VISTA EDUCATIVAS (10 bloques fijos) -->
     <div id="view-educativas" class="view-page" data-page-index="2">
         <button class="btn-back" onclick="switchView('view-home')">← Volver</button>
         <div class="page-content-box">
             <h2 contenteditable="false" data-key="title-educativas">Instituciones Educativas</h2>
             <p contenteditable="false" data-key="desc-educativas">Visitamos colegios con nuestra feria deportiva itinerante para promover el deporte y encender la pasión en un entorno seguro.</p>
             
-            <div id="dynamic-content-educativas" class="dynamic-blocks-container" data-section="educativas">
-                <div class="media-wrapper" data-block-id="educativas_default">
-                    <button class="btn-delete-block" onclick="eliminarBloqueMedia(this)">🗑️ Eliminar bloque</button>
-                    <div class="media-container" id="container-educativas">
-                        <img src="" alt="" id="media-educativas">
-                    </div>
-                    <div class="media-overlay-text" contenteditable="false" id="educativas_default-overlay" data-key="educativas_default-overlay"></div>
-                    <div class="edit-controls">
-                        <label>Texto sobrepuesto:</label>
-                        <input type="text" oninput="updateOverlayTextInput(this)" placeholder="Escribe un título..." style="width:100%; margin-bottom:8px; padding:4px;" value="">
-                        <button class="btn-save-text" id="btn-save-educativas_default-overlay" onclick="guardarTextoOverlayExplicit(this)" disabled>💾 Guardado</button>
-                        <label style="margin-top:8px;">Cargar Media:</label>
-                        <div class="upload-actions-row">
-                            <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-educativas', 'media-educativas')" style="flex:1;">
-                            <button class="btn-supabase-selector" onclick="abrirSelectorSupabase('container-educativas', 'media-educativas')">☁️ Supabase</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <button class="btn-add-content" onclick="addMediaBlock('dynamic-content-educativas', 'educativas')">+ Añadir bloque</button>
+            <div id="dynamic-content-educativas" class="dynamic-blocks-container" data-section="educativas"></div>
         </div>
     </div>
 
+    <!-- VISTA CICLOVIA -->
     <div id="view-ciclovia" class="view-page" data-page-index="3">
         <button class="btn-back" onclick="switchView('view-home')">← Volver</button>
         <div class="page-content-box">
@@ -1009,166 +934,56 @@
 
             <div id="subtab-propuesta" class="subtab-content active">
                 <p contenteditable="false" data-key="desc-ciclovia-propuesta">Dinamizamos el sector deportivo entregando métricas de alto impacto social que la Secretaría puede reportar como resultados propios, sin requerir inversión logística estatal.</p>
-                <div id="dynamic-content-ciclovia-propuesta" class="dynamic-blocks-container" data-section="ciclovia-propuesta">
-                    <div class="media-wrapper" data-block-id="ciclovia_propuesta_default">
-                        <button class="btn-delete-block" onclick="eliminarBloqueMedia(this)">🗑️ Eliminar bloque</button>
-                        <div class="media-container" id="container-ciclovia-propuesta">
-                            <img src="" alt="" id="media-ciclovia-propuesta">
-                        </div>
-                        <div class="media-overlay-text" contenteditable="false" id="ciclovia_propuesta_default-overlay" data-key="ciclovia_propuesta_default-overlay"></div>
-                        <div class="edit-controls">
-                            <label>Texto sobrepuesto:</label>
-                            <input type="text" oninput="updateOverlayTextInput(this)" placeholder="Escribe un título..." style="width:100%; margin-bottom:8px; padding:4px;" value="">
-                            <button class="btn-save-text" id="btn-save-ciclovia_propuesta_default-overlay" onclick="guardarTextoOverlayExplicit(this)" disabled>💾 Guardado</button>
-                            <label style="margin-top:8px;">Cargar Media:</label>
-                            <div class="upload-actions-row">
-                                <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-ciclovia-propuesta', 'media-ciclovia-propuesta')" style="flex:1;">
-                                <button class="btn-supabase-selector" onclick="abrirSelectorSupabase('container-ciclovia-propuesta', 'media-ciclovia-propuesta')">☁️ Supabase</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <button class="btn-add-content" onclick="addMediaBlock('dynamic-content-ciclovia-propuesta', 'ciclovia-propuesta')">+ Añadir bloque</button>
+                <div id="dynamic-content-ciclovia-propuesta" class="dynamic-blocks-container" data-section="ciclovia-propuesta"></div>
             </div>
 
             <div id="subtab-ubicacion" class="subtab-content">
                 <p contenteditable="false" data-key="desc-ciclovia-ubicacion">Bahía de aceleración/desaceleración de 12 metros para pre-registro QR en la Calle 49 con Autopista Suroriental y circuito sincronizado en la "U" del retorno.</p>
-                <div id="dynamic-content-ciclovia-ubicacion" class="dynamic-blocks-container" data-section="ciclovia-ubicacion">
-                    <div class="media-wrapper" data-block-id="ciclovia_ubicacion_default">
-                        <button class="btn-delete-block" onclick="eliminarBloqueMedia(this)">🗑️ Eliminar bloque</button>
-                        <div class="media-container" id="container-ciclovia-ubicacion">
-                            <img src="" alt="" id="media-ciclovia-ubicacion">
-                        </div>
-                        <div class="media-overlay-text" contenteditable="false" id="ciclovia_ubicacion_default-overlay" data-key="ciclovia_ubicacion_default-overlay"></div>
-                        <div class="edit-controls">
-                            <label>Texto sobrepuesto:</label>
-                            <input type="text" oninput="updateOverlayTextInput(this)" placeholder="Escribe un título..." style="width:100%; margin-bottom:8px; padding:4px;" value="">
-                            <button class="btn-save-text" id="btn-save-ciclovia_ubicacion_default-overlay" onclick="guardarTextoOverlayExplicit(this)" disabled>💾 Guardado</button>
-                            <label style="margin-top:8px;">Cargar Media:</label>
-                            <div class="upload-actions-row">
-                                <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-ciclovia-ubicacion', 'media-ciclovia-ubicacion')" style="flex:1;">
-                                <button class="btn-supabase-selector" onclick="abrirSelectorSupabase('container-ciclovia-ubicacion', 'media-ciclovia-ubicacion')">☁️ Supabase</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <button class="btn-add-content" onclick="addMediaBlock('dynamic-content-ciclovia-ubicacion', 'ciclovia-ubicacion')">+ Añadir bloque</button>
+                <div id="dynamic-content-ciclovia-ubicacion" class="dynamic-blocks-container" data-section="ciclovia-ubicacion"></div>
             </div>
 
             <div id="subtab-seguridad" class="subtab-content">
                 <p contenteditable="false" data-key="desc-ciclovia-seguridad">Personal uniformado con petos, comunicación por radios con auriculares cableados, supervisión técnica y criterios estrictos de seguridad biomecánica.</p>
-                <div id="dynamic-content-ciclovia-seguridad" class="dynamic-blocks-container" data-section="ciclovia-seguridad">
-                    <div class="media-wrapper" data-block-id="ciclovia_seguridad_default">
-                        <button class="btn-delete-block" onclick="eliminarBloqueMedia(this)">🗑️ Eliminar bloque</button>
-                        <div class="media-container" id="container-ciclovia-seguridad">
-                            <img src="" alt="" id="media-ciclovia-seguridad">
-                        </div>
-                        <div class="media-overlay-text" contenteditable="false" id="ciclovia_seguridad_default-overlay" data-key="ciclovia_seguridad_default-overlay"></div>
-                        <div class="edit-controls">
-                            <label>Texto sobrepuesto:</label>
-                            <input type="text" oninput="updateOverlayTextInput(this)" placeholder="Escribe un título..." style="width:100%; margin-bottom:8px; padding:4px;" value="">
-                            <button class="btn-save-text" id="btn-save-ciclovia_seguridad_default-overlay" onclick="guardarTextoOverlayExplicit(this)" disabled>💾 Guardado</button>
-                            <label style="margin-top:8px;">Cargar Media:</label>
-                            <div class="upload-actions-row">
-                                <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-ciclovia-seguridad', 'media-ciclovia-seguridad')" style="flex:1;">
-                                <button class="btn-supabase-selector" onclick="abrirSelectorSupabase('container-ciclovia-seguridad', 'media-ciclovia-seguridad')">☁️ Supabase</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <button class="btn-add-content" onclick="addMediaBlock('dynamic-content-ciclovia-seguridad', 'ciclovia-seguridad')">+ Añadir bloque</button>
+                <div id="dynamic-content-ciclovia-seguridad" class="dynamic-blocks-container" data-section="ciclovia-seguridad"></div>
             </div>
 
         </div>
     </div>
 
+    <!-- VISTA ALIADOS -->
     <div id="view-aliados" class="view-page" data-page-index="4">
         <button class="btn-back" onclick="switchView('view-home')">← Volver</button>
         <div class="page-content-box">
             <h2 contenteditable="false" data-key="title-aliados">Red de Aliados Estratégicos</h2>
             <p contenteditable="false" data-key="desc-aliados">Activaciones en colegios, ciclovías y parques (como CRP), interconectando escenarios y promoviendo torneos oficiales.</p>
             
-            <div id="dynamic-content-aliados" class="dynamic-blocks-container grid-two-columns" data-section="aliados">
-                <div class="media-wrapper" data-block-id="aliados_default">
-                    <button class="btn-delete-block" onclick="eliminarBloqueMedia(this)">🗑️ Eliminar bloque</button>
-                    <div class="media-container" id="container-aliados">
-                        <img src="" alt="" id="media-aliados">
-                    </div>
-                    <div class="media-overlay-text" contenteditable="false" id="aliados_default-overlay" data-key="aliados_default-overlay"></div>
-                    <div class="edit-controls">
-                        <label>Texto sobrepuesto:</label>
-                        <input type="text" oninput="updateOverlayTextInput(this)" placeholder="Escribe un título..." style="width:100%; margin-bottom:8px; padding:4px;" value="">
-                        <button class="btn-save-text" id="btn-save-aliados_default-overlay" onclick="guardarTextoOverlayExplicit(this)" disabled>💾 Guardado</button>
-                        <label style="margin-top:8px;">Cargar Media:</label>
-                        <div class="upload-actions-row">
-                            <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-aliados', 'media-aliados')" style="flex:1;">
-                            <button class="btn-supabase-selector" onclick="abrirSelectorSupabase('container-aliados', 'media-aliados')">☁️ Supabase</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <button class="btn-add-content" onclick="addMediaBlock('dynamic-content-aliados', 'aliados')">+ Añadir bloque</button>
+            <div id="dynamic-content-aliados" class="dynamic-blocks-container grid-two-columns" data-section="aliados"></div>
         </div>
     </div>
 
+    <!-- VISTA PATROCINADORES -->
     <div id="view-patrocinadores" class="view-page" data-page-index="5">
         <button class="btn-back" onclick="switchView('view-home')">← Volver</button>
         <div class="page-content-box">
             <h2 contenteditable="false" data-key="title-patrocinadores">Patrocinadores y Aliados</h2>
             <p contenteditable="false" data-key="desc-patrocinadores">Comerciantes locales que proporcionan bonos de descuento, regalos digitales y premios físicos para los participantes.</p>
             
-            <div id="dynamic-content-patrocinadores" class="dynamic-blocks-container grid-two-columns" data-section="patrocinadores">
-                <div class="media-wrapper" data-block-id="patrocinadores_default">
-                    <button class="btn-delete-block" onclick="eliminarBloqueMedia(this)">🗑️ Eliminar bloque</button>
-                    <div class="media-container" id="container-patrocinadores">
-                        <img src="" alt="" id="media-patrocinadores">
-                    </div>
-                    <div class="media-overlay-text" contenteditable="false" id="patrocinadores_default-overlay" data-key="patrocinadores_default-overlay"></div>
-                    <div class="edit-controls">
-                        <label>Texto sobrepuesto:</label>
-                        <input type="text" oninput="updateOverlayTextInput(this)" placeholder="Escribe un título..." style="width:100%; margin-bottom:8px; padding:4px;" value="">
-                        <button class="btn-save-text" id="btn-save-patrocinadores_default-overlay" onclick="guardarTextoOverlayExplicit(this)" disabled>💾 Guardado</button>
-                        <label style="margin-top:8px;">Cargar Media:</label>
-                        <div class="upload-actions-row">
-                            <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-patrocinadores', 'media-patrocinadores')" style="flex:1;">
-                            <button class="btn-supabase-selector" onclick="abrirSelectorSupabase('container-patrocinadores', 'media-patrocinadores')">☁️ Supabase</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <button class="btn-add-content" onclick="addMediaBlock('dynamic-content-patrocinadores', 'patrocinadores')">+ Añadir bloque</button>
+            <div id="dynamic-content-patrocinadores" class="dynamic-blocks-container grid-two-columns" data-section="patrocinadores"></div>
         </div>
     </div>
 
+    <!-- VISTA DESARROLLO -->
     <div id="view-desarrollo" class="view-page" data-page-index="6">
         <button class="btn-back" onclick="switchView('view-home')">← Volver</button>
         <div class="page-content-box">
             <h2 contenteditable="false" data-key="title-desarrollo">En Desarrollo</h2>
             <p contenteditable="false" data-key="desc-desarrollo">Nuestros progresos tecnológicos y de software, incluyendo telemetría con ESP32, aplicaciones web propias y herramientas de análisis biomecánico.</p>
             
-            <div id="dynamic-content-desarrollo" class="dynamic-blocks-container" data-section="desarrollo">
-                <div class="media-wrapper" data-block-id="desarrollo_default">
-                    <button class="btn-delete-block" onclick="eliminarBloqueMedia(this)">🗑️ Eliminar bloque</button>
-                    <div class="media-container" id="container-desarrollo">
-                        <img src="" alt="" id="media-desarrollo">
-                    </div>
-                    <div class="media-overlay-text" contenteditable="false" id="desarrollo_default-overlay" data-key="desarrollo_default-overlay"></div>
-                    <div class="edit-controls">
-                        <label>Texto sobrepuesto:</label>
-                        <input type="text" oninput="updateOverlayTextInput(this)" placeholder="Escribe un título..." style="width:100%; margin-bottom:8px; padding:4px;" value="">
-                        <button class="btn-save-text" id="btn-save-desarrollo_default-overlay" onclick="guardarTextoOverlayExplicit(this)" disabled>💾 Guardado</button>
-                        <label style="margin-top:8px;">Cargar Media:</label>
-                        <div class="upload-actions-row">
-                            <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, 'container-desarrollo', 'media-desarrollo')" style="flex:1;">
-                            <button class="btn-supabase-selector" onclick="abrirSelectorSupabase('container-desarrollo', 'media-desarrollo')">☁️ Supabase</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <button class="btn-add-content" onclick="addMediaBlock('dynamic-content-desarrollo', 'desarrollo')">+ Añadir bloque</button>
+            <div id="dynamic-content-desarrollo" class="dynamic-blocks-container" data-section="desarrollo"></div>
         </div>
     </div>
 
+    <!-- VISTA GALERIA -->
     <div id="view-galeria" class="view-page" data-page-index="7">
         <button class="btn-back" onclick="switchView('view-home')">← Volver</button>
         <div class="page-content-box">
@@ -1211,7 +1026,9 @@
 
         const dbContentSnapshot = {};
 
+        // INICIALIZACIÓN AUTOMÁTICA DE BLOQUES FIJOS (10 bloques por sección)
         window.addEventListener('DOMContentLoaded', async () => {
+            inicializarBloquesFijosEnDOM();
             initNetworkListener();
             await cargarDatosSistema();
             applyDeviceMode();
@@ -1223,6 +1040,69 @@
                 }
             }, 300000);
         });
+
+        function inicializarBloquesFijosEnDOM() {
+            const secciones = [
+                'quienes',
+                'educativas',
+                'ciclovia-propuesta',
+                'ciclovia-ubicacion',
+                'ciclovia-seguridad',
+                'aliados',
+                'patrocinadores',
+                'desarrollo'
+            ];
+
+            secciones.forEach(sec => {
+                const containerMap = {
+                    'quienes': 'dynamic-content-quienes',
+                    'educativas': 'dynamic-content-educativas',
+                    'ciclovia-propuesta': 'dynamic-content-ciclovia-propuesta',
+                    'ciclovia-ubicacion': 'dynamic-content-ciclovia-ubicacion',
+                    'ciclovia-seguridad': 'dynamic-content-ciclovia-seguridad',
+                    'aliados': 'dynamic-content-aliados',
+                    'patrocinadores': 'dynamic-content-patrocinadores',
+                    'desarrollo': 'dynamic-content-desarrollo'
+                };
+                const containerId = containerMap[sec];
+                const wrapperContainer = document.getElementById(containerId);
+                if (wrapperContainer) {
+                    wrapperContainer.innerHTML = '';
+                    for (let i = 1; i <= 10; i++) {
+                        const blockId = `${sec}_b${i}`;
+                        construirBloqueDOM(wrapperContainer, sec, blockId);
+                    }
+                }
+            });
+        }
+
+        function construirBloqueDOM(wrapperContainer, sectionKey, blockUniqueId) {
+            const uniqueMediaId = blockUniqueId;
+            const uniqueContainerId = 'container_' + blockUniqueId;
+            const overlayKey = uniqueMediaId + '-overlay';
+            const saveBtnId = 'btn-save-' + overlayKey;
+
+            const newBlock = document.createElement('div');
+            newBlock.className = 'media-wrapper empty-block'; // Inicialmente marcado como vacío hasta que cargue datos
+            newBlock.setAttribute('data-block-id', blockUniqueId);
+            newBlock.innerHTML = `
+                <div class="media-container" id="${uniqueContainerId}">
+                    <img src="" alt="" id="${uniqueMediaId}">
+                </div>
+                <div class="media-overlay-text" contenteditable="false" id="${overlayKey}" data-key="${overlayKey}"></div>
+                <div class="edit-controls">
+                    <label>Texto sobrepuesto:</label>
+                    <input type="text" oninput="updateOverlayTextInput(this)" placeholder="Escribe un título..." style="width:100%; margin-bottom:8px; padding:4px;" value="">
+                    <button class="btn-save-text" id="${saveBtnId}" onclick="guardarTextoOverlayExplicit(this)" disabled>💾 Guardado</button>
+                    <label style="margin-top:8px;">Cargar Media:</label>
+                    <div class="upload-actions-row">
+                        <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, '${uniqueContainerId}', '${uniqueMediaId}')" style="flex:1;">
+                        <button class="btn-supabase-selector" onclick="abrirSelectorSupabase('${uniqueContainerId}', '${uniqueMediaId}')">☁️ Supabase</button>
+                    </div>
+                </div>
+            `;
+            wrapperContainer.appendChild(newBlock);
+        }
 
         function initNetworkListener() {
             updateNetworkStatus();
@@ -1354,46 +1234,12 @@
             });
         }
 
-        // PROCESAMIENTO DOM UNIFICADO: Conexión estricta por ID raíz + sufijo -overlay
+        // PROCESAMIENTO DOM INTELIGENTE CON MAPEO DE COMPATIBILIDAD
         function procesarDatosEnDOM(data) {
-            let bloquesConfig = {};
             data.forEach(item => {
                 dbContentSnapshot[item.id] = item.content;
-                if (item.id === 'apex_dynamic_blocks_structure') {
-                    try { bloquesConfig = JSON.parse(item.content); } catch(e){}
-                }
             });
 
-            // 1. Reconstruir primero la estructura de bloques en el DOM
-            for (const sectionKey in bloquesConfig) {
-                const blockIds = bloquesConfig[sectionKey];
-                const containerMap = {
-                    'quienes': 'dynamic-content-quienes',
-                    'educativas': 'dynamic-content-educativas',
-                    'ciclovia-propuesta': 'dynamic-content-ciclovia-propuesta',
-                    'ciclovia-ubicacion': 'dynamic-content-ciclovia-ubicacion',
-                    'ciclovia-seguridad': 'dynamic-content-ciclovia-seguridad',
-                    'aliados': 'dynamic-content-aliados',
-                    'patrocinadores': 'dynamic-content-patrocinadores',
-                    'desarrollo': 'dynamic-content-desarrollo'
-                };
-                const containerId = containerMap[sectionKey];
-                if (containerId) {
-                    const wrapperContainer = document.getElementById(containerId);
-                    if (wrapperContainer) {
-                        wrapperContainer.innerHTML = '';
-                        blockIds.forEach(bId => {
-                            try {
-                                construirBloqueDOM(wrapperContainer, sectionKey, bId);
-                            } catch(err) {
-                                console.warn("Aviso al construir bloque:", err);
-                            }
-                        });
-                    }
-                }
-            }
-
-            // 2. Inyectar datos buscando de forma dual por data-key e id exacto
             data.forEach(item => {
                 try {
                     if (item.id.startsWith('media_')) {
@@ -1402,7 +1248,13 @@
                             targetId = 'media-logo_principal';
                         }
 
-                        const mediaEl = document.getElementById(targetId);
+                        // Compatibilidad para bloques antiguos migrados a slot 1
+                        let mediaEl = document.getElementById(targetId);
+                        if (!mediaEl && targetId.includes('_default')) {
+                            const sec = targetId.replace('_default', '');
+                            mediaEl = document.getElementById(`${sec}_b1`);
+                        }
+
                         if (mediaEl) {
                             const container = mediaEl.closest('.media-container') || mediaEl.parentElement;
                             if (container) {
@@ -1424,7 +1276,18 @@
                         const range = document.getElementById('opacityRange');
                         if (range) range.value = item.content;
                     } else {
-                        const el = document.querySelector(`[data-key="${item.id}"]`) || document.getElementById(item.id);
+                        let posiblesIds = [item.id];
+                        if (item.id.includes('_default-overlay')) {
+                            const sec = item.id.replace('_default-overlay', '');
+                            posiblesIds.push(`${sec}_b1-overlay`);
+                        }
+
+                        let el = null;
+                        for (let idBuscado of posiblesIds) {
+                            el = document.querySelector(`[data-key="${idBuscado}"]`) || document.getElementById(idBuscado);
+                            if (el) break;
+                        }
+
                         if (el) {
                             el.innerHTML = item.content;
                             const wrapper = el.closest('.media-wrapper') || el.closest('header') || el.closest('.page-content-box');
@@ -1439,6 +1302,25 @@
                     }
                 } catch(e) {
                     console.warn("Elemento omitido:", item.id);
+                }
+            });
+
+            // Actualizar visibilidad de bloques vacíos
+            actualizarVisibilidadBloques();
+        }
+
+        function actualizarVisibilidadBloques() {
+            document.querySelectorAll('.media-wrapper').forEach(wrapper => {
+                const mediaContainer = wrapper.querySelector('.media-container');
+                const overlayText = wrapper.querySelector('.media-overlay-text');
+                
+                const hasImgOrVid = mediaContainer && (mediaContainer.querySelector('img[src]') || mediaContainer.querySelector('video[src]')) && mediaContainer.querySelector('img, video').getAttribute('src') !== '';
+                const hasText = overlayText && overlayText.textContent.trim() !== '';
+
+                if (hasImgOrVid || hasText) {
+                    wrapper.classList.remove('empty-block');
+                } else {
+                    wrapper.classList.add('empty-block');
                 }
             });
         }
@@ -1461,6 +1343,7 @@
                 dbContentSnapshot[id] = content;
                 guardarCacheLocalInmediato(id, content);
                 actualizarBadgeCarga(uploadId, 'done', '');
+                actualizarVisibilidadBloques();
                 return true;
             } catch (err) {
                 console.error(err);
@@ -1514,7 +1397,7 @@
             const btnSave = wrapper.querySelector('.btn-save-text');
             
             if (overlay && input && btnSave) {
-                const key = overlay.getAttribute('data-key') || overlay.id;
+                const key = overlay.id || overlay.getAttribute('data-key');
                 const valorBase = dbContentSnapshot[key] !== undefined ? dbContentSnapshot[key] : '';
                 const valorActual = input.value.trim();
 
@@ -1538,30 +1421,19 @@
                 overlay.textContent = input.value;
             }
 
-            const key = overlay.getAttribute('data-key') || overlay.id;
-            const uploadId = 'text_' + (key || Date.now());
-            
+            const key = overlay.id || overlay.getAttribute('data-key');
+            if (!key) {
+                alert("Error: Identificador de texto no encontrado.");
+                return;
+            }
+
+            const uploadId = 'text_' + key;
             const exito = await guardarDatoSupabaseConProgreso(key, overlay.innerHTML, uploadId);
             if (exito) {
                 btn.disabled = true;
                 btn.textContent = '💾 Guardado';
             }
         };
-
-        async function guardarEstructuraBloques() {
-            const estructura = {};
-            document.querySelectorAll('.dynamic-blocks-container').forEach(container => {
-                const sectionKey = container.getAttribute('data-section');
-                const blocks = container.querySelectorAll('.media-wrapper');
-                const blockIds = [];
-                blocks.forEach(b => {
-                    const bId = b.getAttribute('data-block-id');
-                    if (bId) blockIds.push(bId);
-                });
-                estructura[sectionKey] = blockIds;
-            });
-            await guardarDatoSupabaseConProgreso('apex_dynamic_blocks_structure', JSON.stringify(estructura), 'struct_sync');
-        }
 
         window.switchSubTab = function(tabId, btn) {
             const container = btn.closest('.page-content-box');
@@ -1607,7 +1479,6 @@
                     promesas.push(guardarDatoSupabaseConProgreso(key, el.innerHTML, 'sync_all'));
                 }
             });
-            await guardarEstructuraBloques();
             await Promise.all(promesas);
         }
 
@@ -1705,6 +1576,7 @@
                 img.src = publicUrl;
                 container.appendChild(img);
             }
+            actualizarVisibilidadBloques();
         }
 
         let currentPickerContainerId = null;
@@ -1763,63 +1635,6 @@
             cerrarModalSupabase();
             alert("¡Archivo reutilizado con éxito!");
         }
-
-        // CONSTRUCCIÓN UNIFICADA: El ID raíz del bloque genera su ID de texto y botón con precisión absoluta
-        function construirBloqueDOM(wrapperContainer, sectionKey, blockUniqueId) {
-            const uniqueMediaId = blockUniqueId;
-            const uniqueContainerId = 'container_' + blockUniqueId;
-            const overlayKey = uniqueMediaId + '-overlay';
-            const saveBtnId = 'btn-save-' + overlayKey;
-
-            const newBlock = document.createElement('div');
-            newBlock.className = 'media-wrapper';
-            newBlock.setAttribute('data-block-id', blockUniqueId);
-            newBlock.innerHTML = `
-                <button class="btn-delete-block" onclick="eliminarBloqueMedia(this)">🗑️ Eliminar bloque</button>
-                <div class="media-container" id="${uniqueContainerId}">
-                    <img src="" alt="" id="${uniqueMediaId}">
-                </div>
-                <div class="media-overlay-text" contenteditable="${isEditMode ? 'true' : 'false'}" id="${overlayKey}" data-key="${overlayKey}"></div>
-                <div class="edit-controls">
-                    <label>Texto sobrepuesto:</label>
-                    <input type="text" oninput="updateOverlayTextInput(this)" placeholder="Escribe un título..." style="width:100%; margin-bottom:8px; padding:4px;" value="">
-                    <button class="btn-save-text" id="${saveBtnId}" onclick="guardarTextoOverlayExplicit(this)" disabled>💾 Guardado</button>
-                    <label style="margin-top:8px;">Cargar Media:</label>
-                    <div class="upload-actions-row">
-                        <input type="file" accept="image/*,video/*,.gif" onchange="subirMultimediaSupabase(event, '${uniqueContainerId}', '${uniqueMediaId}')" style="flex:1;">
-                        <button class="btn-supabase-selector" onclick="abrirSelectorSupabase('${uniqueContainerId}', '${uniqueMediaId}')">☁️ Supabase</button>
-                    </div>
-                </div>
-            `;
-            wrapperContainer.appendChild(newBlock);
-        }
-
-        window.addMediaBlock = function(wrapperId, sectionKey) {
-            const wrapper = document.getElementById(wrapperId);
-            if (!wrapper) return;
-            const persistentId = 'block_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
-            construirBloqueDOM(wrapper, sectionKey, persistentId);
-            guardarEstructuraBloques();
-        };
-
-        window.eliminarBloqueMedia = async function(btn) {
-            const wrapper = btn.closest('.media-wrapper');
-            if (!wrapper) return;
-            
-            if (!confirm("¿Estás seguro de eliminar este bloque multimedia?")) return;
-
-            const mediaImgOrVid = wrapper.querySelector('img, video');
-            if (mediaImgOrVid && mediaImgOrVid.id) {
-                const mediaId = mediaImgOrVid.id;
-                if (sb) {
-                    await sb.from('apex_content').delete().eq('id', 'media_' + mediaId);
-                    await sb.from('apex_content').delete().eq('id', mediaId + '-overlay');
-                }
-            }
-            wrapper.remove();
-            await guardarEstructuraBloques();
-            alert("Bloque eliminado con éxito.");
-        };
 
         async function renderizarGaleriaSupabase() {
             const container = document.getElementById('galleryContainer');
