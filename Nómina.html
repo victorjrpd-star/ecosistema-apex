@@ -9,7 +9,7 @@
   <!-- Supabase JS & Chart.js & html2canvas -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
   <style>
     :root {
@@ -92,14 +92,40 @@
     .btn-danger { background: rgba(229,9,20,0.1); border: 1px solid rgba(229,9,20,0.3); color: var(--accent); padding: 4px 6px; border-radius: 3px; font-size: 0.6rem; font-weight: 800; cursor: pointer; }
     .btn-edit { background: #08080a; border: 1px solid var(--border); color: #ffffff; padding: 4px 6px; border-radius: 3px; font-size: 0.6rem; font-weight: 800; cursor: pointer; }
 
-    #detalleModal, #facturaModal, #desgloseKpiModal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.88); backdrop-filter: blur(6px); z-index: 10000; display: none; justify-content: center; align-items: center; padding: 12px; }
+    #detalleModal, #facturaModal, #desgloseKpiModal, #gestionStaffModal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.88); backdrop-filter: blur(6px); z-index: 10000; display: none; justify-content: center; align-items: center; padding: 12px; }
     .modal-box { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 14px; width: 100%; max-width: 480px; max-height: 85vh; overflow-y: auto; }
     .invoice-box { background: #fff; color: #000; border-radius: 6px; padding: 18px; font-family: monospace; width: 100%; }
   </style>
 </head>
 <body>
 
-  <!-- MODAL DE DESGLOSE Y LIQUIDACIÓN -->
+  <!-- MODAL DE GESTIÓN DE STAFF HABILITADO / DESHABILITADO -->
+  <div id="gestionStaffModal" onclick="if(event.target === this) cerrarModalGestionStaff()">
+    <div class="modal-box">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid var(--border); padding-bottom:6px;">
+        <span style="font-size:0.78rem; font-weight:900; text-transform:uppercase; color:var(--text-main);">Gestión de Staff para Nómina</span>
+        <button onclick="cerrarModalGestionStaff()" style="background:none; border:none; color:var(--text-muted); font-size:1rem; cursor:pointer;">✕</button>
+      </div>
+      <p style="font-size:0.6rem; color:var(--text-muted); margin-bottom:8px;">Habilita o deshabilita a los usuarios para incluirlos o excluirlos de la nómina activa.</p>
+      <div id="listaGestionStaffModal" style="display:flex; flex-direction:column; gap:6px; max-height:220px; overflow-y:auto; margin-bottom:10px;">Cargando usuarios...</div>
+      <div style="border-top:1px solid var(--border); padding-top:8px; margin-top:8px;">
+        <span style="font-size:0.65rem; font-weight:800; color:#fff; display:block; margin-bottom:4px;">Añadir Nuevo Usuario al Staff</span>
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <input type="text" id="nuevoStaffNombre" class="form-control" placeholder="Nombre completo">
+          <input type="email" id="nuevoStaffEmail" class="form-control" placeholder="correo@apex.com">
+          <select id="nuevoStaffRol" class="form-control">
+            <option value="coach">Coach</option>
+            <option value="supervisor">Supervisor</option>
+            <option value="coordinador">Coordinador</option>
+            <option value="admin">Administrador</option>
+          </select>
+          <button class="btn btn-success" onclick="crearNuevoStaffDesdeModal()">+ Crear Usuario Staff</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE DESGLOSE, ASIGNACIÓN RÁPIDA (CATÁLOGO O LIBRE) Y LIQUIDACIÓN -->
   <div id="detalleModal" onclick="if(event.target === this) cerrarModalDetalle()">
     <div class="modal-box">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid var(--border); padding-bottom:6px;">
@@ -107,6 +133,36 @@
         <button onclick="cerrarModalDetalle()" style="background:none; border:none; color:var(--text-muted); font-size:1rem; cursor:pointer;">✕</button>
       </div>
       <div id="modalStaffInfoMeta" style="font-size:0.65rem; color:var(--text-muted); margin-bottom:10px;">-</div>
+
+      <!-- SECCIÓN FUSIONADA: ASIGNAR / CARGAR RÁPIDO A ESTE MIEMBRO (CATÁLOGO O LIBRE) -->
+      <div style="background:#050507; border:1px solid var(--border); border-radius:6px; padding:10px; margin-bottom:10px;">
+        <div style="font-size:0.65rem; font-weight:900; text-transform:uppercase; color:#fff; margin-bottom:6px;">➕ Registrar Movimiento / Transacción</div>
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <div style="display:flex; gap:4px;">
+            <select id="modalSelectModoAsignacion" class="form-control" style="font-size:0.7rem; width:110px;" onchange="cambiarModoAsignacionModal()">
+              <option value="catalogo">Catálogo</option>
+              <option value="libre">Libre / Otro</option>
+            </select>
+            <select id="modalSelectServicio" class="form-control" style="font-size:0.7rem; flex:1;"></select>
+          </div>
+          
+          <!-- INPUTS PARA MODO LIBRE -->
+          <div id="modalBoxLibre" style="display:none; flex-direction:column; gap:4px;">
+            <input type="text" id="modalInputConceptoLibre" class="form-control" placeholder="Concepto (Ej: Viáticos, Bono especial)" style="font-size:0.7rem;">
+            <input type="number" id="modalInputMontoLibre" class="form-control" placeholder="Monto en pesos ($)" style="font-size:0.7rem;" min="0">
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.6rem; background:#0a0a0c; padding:4px 6px; border-radius:4px; border:1px solid var(--border);">
+            <span id="modalLblNaturaleza" style="color:var(--status-ok); font-weight:800;">Servicio (Suma a favor)</span>
+            <button class="btn btn-secondary btn-small" onclick="modalToggleInvertirNaturaleza()" style="font-size:0.5rem; padding:2px 6px;">Invertir</button>
+          </div>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:4px;">
+            <input type="date" id="modalInputFecha" class="form-control" style="font-size:0.7rem;">
+            <input type="time" id="modalInputHora" class="form-control" style="font-size:0.7rem;">
+          </div>
+          <button class="btn btn-success btn-small" onclick="guardarAsignacionRapidaModal()" style="font-weight:900;">+ Registrar Movimiento en Cuenta</button>
+        </div>
+      </div>
 
       <div id="excepcionPagoBox" style="margin-bottom: 10px; background: #120708; border: 1px solid var(--accent); border-radius: 4px; padding: 8px; display: none; justify-content: space-between; align-items: center;">
         <div>
@@ -117,13 +173,13 @@
       </div>
 
       <div style="font-size:0.6rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px; font-weight:800;">Servicios pendientes de pago:</div>
-      <div id="modalClasesList" style="display:flex; flex-direction:column; gap:6px; max-height:150px; overflow-y:auto; margin-bottom:10px;">Cargando clases...</div>
+      <div id="modalClasesList" style="display:flex; flex-direction:column; gap:6px; max-height:130px; overflow-y:auto; margin-bottom:10px;">Cargando clases...</div>
       
       <div style="font-size:0.6rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px; font-weight:800;">Adelantos / Productos (Deuda del Staff):</div>
-      <div id="modalCargosList" style="display:flex; flex-direction:column; gap:6px; max-height:120px; overflow-y:auto; margin-bottom:10px;">Cargando cargos...</div>
+      <div id="modalCargosList" style="display:flex; flex-direction:column; gap:6px; max-height:100px; overflow-y:auto; margin-bottom:10px;">Cargando cargos...</div>
 
       <div class="form-group" style="margin-bottom:10px;">
-        <label style="font-size:0.6rem; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:3px;">Cuenta Propia para Descargar / Recibir Fondos</label>
+        <label style="font-size:0.6rem; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:3px;">Cuenta Propia para el Desembolso (Valida Saldo)</label>
         <select id="selectCuentaPagoLiquidacion" class="form-control"></select>
       </div>
 
@@ -173,7 +229,6 @@
     <div class="nav-dropdown-body" id="navDropdownBody">
       <button class="nav-btn active" onclick="switchNominaTab('tabResumen', '📊 Resumen & Balance', this)">📊 Resumen & Balance <span>›</span></button>
       <button class="nav-btn" onclick="switchNominaTab('tabServicios', '⚙️ Catálogo Artículos & Servicios', this)">⚙️ Catálogo Artículos & Servicios <span>›</span></button>
-      <button class="nav-btn" onclick="switchNominaTab('tabAsignar', '➕ Asignar Servicio a Staff', this)">➕ Asignar Servicio a Staff <span>›</span></button>
       <button class="nav-btn" onclick="switchNominaTab('tabHistorico', '📜 Histórico & Gráficas', this)">📜 Histórico & Gráficas <span>›</span></button>
       <button class="nav-btn" onclick="switchNominaTab('tabCuentas', '🏦 Cuentas & Auditoría Temporal', this)">🏦 Cuentas & Auditoría Temporal <span>›</span></button>
     </div>
@@ -221,7 +276,10 @@
     </div>
 
     <div class="card">
-      <div class="card-title">Staff Apex & Saldos Netos</div>
+      <div class="card-title">
+        <span>Staff Apex & Saldos Netos</span>
+        <button class="btn btn-secondary btn-small" onclick="abrirModalGestionStaff()" style="font-size:0.6rem; padding:4px 8px;">⚙️ Gestionar Staff</button>
+      </div>
       <div id="staffListContainer">Cargando staff...</div>
     </div>
   </div>
@@ -302,52 +360,7 @@
     </div>
   </div>
 
-  <!-- ================= PESTAÑA 3: ASIGNAR SERVICIO A STAFF ================= -->
-  <div id="tabAsignar" class="tab-section">
-    <div class="card">
-      <div class="card-title">Asignar Servicio o Cargar Producto a Staff</div>
-      <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:10px;">
-        <div>
-          <label style="font-size:0.65rem;">Seleccionar Miembro del Staff</label>
-          <select id="selectStaffAsignar" class="form-control" onchange="actualizarContextoStaffAsignacion()"></select>
-        </div>
-
-        <!-- CONTEXTO PREVIO DEL STAFF -->
-        <div id="boxContextoStaff" style="background:#050507; border:1px solid var(--border); border-radius:4px; padding:8px; font-size:0.65rem; display:none;">
-          <div style="font-weight:900; color:#fff; text-transform:uppercase; margin-bottom:2px;" id="ctxStaffNombre">-</div>
-          <div style="color:var(--text-muted);">Servicios pendientes: <b style="color:var(--status-ok);" id="ctxServiciosVal">$0</b> | Adelantos/Cargos: <b style="color:var(--accent);" id="ctxCargosVal">$0</b></div>
-          <div style="margin-top:2px; font-weight:800;" id="ctxNetoVal">Saldo Neto: $0</div>
-        </div>
-
-        <div>
-          <label style="font-size:0.65rem;">Seleccionar Elemento del Catálogo</label>
-          <select id="selectServicioAsignar" class="form-control" onchange="actualizarNaturalezaAsignacion()"></select>
-        </div>
-
-        <div style="background:#050507; border:1px solid var(--border); border-radius:4px; padding:6px; font-size:0.62rem; display:flex; justify-content:space-between; align-items:center;">
-          <div>
-            <span style="color:var(--text-muted); display:block; font-weight:800;">Naturaleza de la Transacción:</span>
-            <span id="lblNaturalezaAsignacion" style="color:var(--status-ok); font-weight:900;">Servicio (Suma a favor del staff)</span>
-          </div>
-          <button class="btn btn-secondary btn-small" onclick="toggleInvertirNaturaleza()" id="btnInvertirNaturaleza">Invertir</button>
-        </div>
-
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
-          <div>
-            <label style="font-size:0.65rem;">Fecha</label>
-            <input type="date" id="inputAsignarFecha" class="form-control">
-          </div>
-          <div>
-            <label style="font-size:0.65rem;">Hora (Formato 24h)</label>
-            <input type="time" id="inputAsignarHora" class="form-control" value="19:00">
-          </div>
-        </div>
-        <button class="btn btn-success" onclick="guardarAsignacionServicioStaff()" style="font-weight:900;">✓ Registrar en Cuenta</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ================= PESTAÑA 4: HISTÓRICO & GRÁFICAS & LIBRO MAYOR ================= -->
+  <!-- ================= PESTAÑA 3: HISTÓRICO & GRÁFICAS & LIBRO MAYOR ================= -->
   <div id="tabHistorico" class="tab-section">
     <div class="card">
       <div class="card-title">Filtros de Análisis Financiero</div>
@@ -390,7 +403,7 @@
     </div>
   </div>
 
-  <!-- ================= PESTAÑA 5: CUENTAS & AUDITORÍA TEMPORAL & MULTISELECCIÓN ================= -->
+  <!-- ================= PESTAÑA 4: CUENTAS & AUDITORÍA TEMPORAL & MULTISELECCIÓN ================= -->
   <div id="tabCuentas" class="tab-section">
     <div class="card">
       <div class="card-title">Auditoría Temporal & Métrica Multi-Cuenta</div>
@@ -445,6 +458,8 @@
     </div>
   </div>
 
+  <div id="toastNomina">Operación exitosa</div>
+
   <script>
     const SUPABASE_URL = 'https://fprvbvucmtdpxdihuvrw.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_xAMs8LpCwyMyoql3ohoJUQ_BIRhBQoD';
@@ -467,7 +482,7 @@
     let chartHistoricoInstance = null;
     let chartAuditoriaInstance = null;
     let excepcionesPagoStaff = new Set();
-    let naturalezaInvertidaAsignacion = false;
+    let modalNaturalezaInvertida = false;
     let cuentasSeleccionadasAuditoria = new Set(['todas']);
 
     function formatCOP(num) {
@@ -476,7 +491,6 @@
 
     async function initNomina() {
       if (!sb) return;
-      document.getElementById('inputAsignarFecha').value = new Date().toISOString().split('T')[0];
       const hoyStr = new Date().toISOString().split('T')[0];
       document.getElementById('auditoriaFechaCorte').value = hoyStr;
       await cargarDatosBase();
@@ -501,8 +515,6 @@
         renderizarGraficaHistorico();
       } else if (tabId === 'tabServicios') {
         renderizarServiciosCatalogo();
-      } else if (tabId === 'tabAsignar') {
-        poblarSelectoresAsignacion();
       } else if (tabId === 'tabCuentas') {
         AuditoriaTemporal.inicializar();
       }
@@ -569,7 +581,6 @@
       } catch (e) { cachedTransaccionesLibro = []; }
 
       renderizarServiciosCatalogo();
-      poblarSelectoresAsignacion();
     }
 
     function cambiarPeriodoMinimal(tipo) {
@@ -642,13 +653,15 @@
       if (!container) return;
 
       const { desde, hasta } = obtenerFechasFiltroPeriodo();
-      const staffList = cachedUsers.filter(u => {
-        const r = (u.role || u.profile_id || '').toLowerCase();
-        return r.includes('coach') || r.includes('supervisor') || r.includes('coordinador') || r.includes('admin');
-      });
+      
+      // MUESTRA A TODOS LOS USUARIOS QUE TENGAN EN_NOMINA ACTIVO (SIN RESTRINGIR A ROLES)
+      const staffList = cachedUsers.filter(u => u.en_nomina !== false);
 
       if (staffList.length === 0) {
-        container.innerHTML = '<span style="color:var(--text-muted); font-size:0.75rem;">No hay personal de staff registrado.</span>';
+        container.innerHTML = '<span style="color:var(--text-muted); font-size:0.75rem;">No hay personal habilitado para nómina. Usa "Gestionar Staff" para habilitar a alguien.</span>';
+        document.getElementById('kpiDebo').innerText = formatCOP(0);
+        document.getElementById('kpiMeDeben').innerText = formatCOP(0);
+        document.getElementById('kpiProyeccion').innerText = formatCOP(0);
         return;
       }
 
@@ -754,6 +767,97 @@
       proyeccionEl.style.color = proyeccionFinal >= 0 ? 'var(--status-ok)' : 'var(--accent)';
     }
 
+    // GESTIÓN DE STAFF: MUESTRA A TODOS LOS USUARIOS SIN NINGÚN FILTRO DE ROL
+    function abrirModalGestionStaff() {
+      const modal = document.getElementById('gestionStaffModal');
+      renderizarListaGestionStaff();
+      modal.style.display = 'flex';
+    }
+
+    function cerrarModalGestionStaff() {
+      document.getElementById('gestionStaffModal').style.display = 'none';
+    }
+
+    function renderizarListaGestionStaff() {
+      const cont = document.getElementById('listaGestionStaffModal');
+      if (!cont) return;
+
+      const staffList = cachedUsers;
+
+      if (staffList.length === 0) {
+        cont.innerHTML = '<span style="font-size:0.65rem; color:var(--text-muted);">No hay usuarios registrados en la base de datos.</span>';
+        return;
+      }
+
+      cont.innerHTML = staffList.map(st => {
+        const activo = st.en_nomina !== false;
+        const rolTxt = (st.role || st.profile_id || 'usuario').toUpperCase();
+        return `
+          <div style="background:#050507; border:1px solid var(--border); border-radius:4px; padding:8px; display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <div>
+              <strong style="font-size:0.75rem; color:#fff; display:block;">${st.name || st.email}</strong>
+              <span style="font-size:0.58rem; color:var(--text-muted);">${st.email} · Rol: ${rolTxt}</span>
+            </div>
+            <button class="btn btn-small" onclick="toggleActivoNominaStaff('${st.id}', ${activo})" style="background:${activo ? 'var(--status-ok)' : 'var(--accent)'}; color:${activo ? '#000' : '#fff'}; font-size:0.6rem;">
+              ${activo ? '✓ Habilitado' : '✕ Deshabilitado'}
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function toggleActivoNominaStaff(userId, estadoActual) {
+      if (!sb) return;
+      try {
+        const nuevoEstado = !estadoActual;
+        const { error } = await sb.from('apex_users').update({ en_nomina: nuevoEstado }).eq('id', userId);
+        if (error) throw error;
+        
+        const u = cachedUsers.find(x => x.id === userId);
+        if (u) u.en_nomina = nuevoEstado;
+
+        renderizarListaGestionStaff();
+        calcularNominaGeneral();
+      } catch (err) {
+        alert("Error al actualizar estatus: " + err.message);
+      }
+    }
+
+    async function crearNuevoStaffDesdeModal() {
+      const nombre = document.getElementById('nuevoStaffNombre').value.trim();
+      const email = document.getElementById('nuevoStaffEmail').value.trim();
+      const rol = document.getElementById('nuevoStaffRol').value;
+
+      if (!nombre || !email) {
+        alert("Ingresa nombre y correo electrónico.");
+        return;
+      }
+
+      try {
+        const { error } = await sb.from('apex_users').insert([{
+          name: nombre,
+          email: email,
+          role: rol,
+          profile_id: rol,
+          en_nomina: true,
+          subscription_status: 'activo',
+          is_active: true
+        }]);
+
+        if (error) throw error;
+
+        alert("¡Usuario creado con éxito!");
+        document.getElementById('nuevoStaffNombre').value = '';
+        document.getElementById('nuevoStaffEmail').value = '';
+        await cargarDatosBase();
+        renderizarListaGestionStaff();
+        calcularNominaGeneral();
+      } catch (err) {
+        alert("Error al crear usuario: " + err.message);
+      }
+    }
+
+    // MODAL DE DETALLE Y ASIGNACIÓN RÁPIDA FUSIONADA (CATÁLOGO O LIBRE)
     async function abrirModalDetalleStaff(staff, desde, hasta, infoRangoBase, precioBase, nombreServicioEstandar) {
       let infoRango = infoRangoBase;
       if (excepcionesPagoStaff.has(staff.email)) {
@@ -763,6 +867,26 @@
       staffSeleccionadoActual = { staff, desde, hasta, infoRango, precioBase, nombreServicioEstandar };
       document.getElementById('modalStaffNombre').innerText = `Liquidación: ${staff.name || staff.email}`;
       document.getElementById('modalStaffInfoMeta').innerText = `Rango: ${infoRango.nivel}`;
+
+      // Poblar selector de elementos para asignación rápida dentro del modal
+      const selServModal = document.getElementById('modalSelectServicio');
+      if (selServModal) {
+        selServModal.innerHTML = cachedServicios.length > 0
+          ? cachedServicios.map(serv => `<option value="${serv.nombre}" data-esservicio="${serv.es_servicio !== false}" data-precio="${serv.precio}">[${serv.es_servicio !== false ? 'Servicio' : 'Producto'}] ${serv.nombre} — ${formatCOP(serv.precio)}</option>`).join('')
+          : '<option value="" disabled>No hay elementos</option>';
+      }
+
+      // Reiniciar modo asignación a catálogo por defecto
+      const modoSel = document.getElementById('modalSelectModoAsignacion');
+      if (modoSel) modoSel.value = 'catalogo';
+      cambiarModoAsignacionModal();
+
+      modalNaturalezaInvertida = false;
+      actualizarTextoNaturalezaModal();
+
+      const now = new Date();
+      document.getElementById('modalInputFecha').value = now.toISOString().split('T')[0];
+      document.getElementById('modalInputHora').value = now.toTimeString().substring(0, 5);
 
       const selCta = document.getElementById('selectCuentaPagoLiquidacion');
       selCta.innerHTML = '';
@@ -793,6 +917,152 @@
 
       renderizarListasModal(clases, staff, infoRango, precioBase, nombreServicioEstandar);
       document.getElementById('detalleModal').style.display = 'flex';
+    }
+
+    function cambiarModoAsignacionModal() {
+      const modo = document.getElementById('modalSelectModoAsignacion').value;
+      const boxLibre = document.getElementById('modalBoxLibre');
+      const selServ = document.getElementById('modalSelectServicio');
+      if (modo === 'libre') {
+        boxLibre.style.display = 'flex';
+        selServ.style.display = 'none';
+      } else {
+        boxLibre.style.display = 'none';
+        selServ.style.display = 'block';
+      }
+    }
+
+    function modalToggleInvertirNaturaleza() {
+      modalNaturalezaInvertida = !modalNaturalezaInvertida;
+      actualizarTextoNaturalezaModal();
+    }
+
+    function actualizarTextoNaturalezaModal() {
+      const modo = document.getElementById('modalSelectModoAsignacion').value;
+      const lbl = document.getElementById('modalLblNaturaleza');
+      if (!lbl) return;
+
+      if (modo === 'libre') {
+        if (modalNaturalezaInvertida) {
+          lbl.innerText = 'Transacción Libre (Suma deuda al staff)';
+          lbl.style.color = 'var(--accent)';
+        } else {
+          lbl.innerText = 'Transacción Libre (Suma a favor del staff)';
+          lbl.style.color = 'var(--status-ok)';
+        }
+      } else {
+        const selServ = document.getElementById('modalSelectServicio');
+        const opt = selServ?.options[selServ.selectedIndex];
+        if (!opt) return;
+        const esServOriginal = opt.getAttribute('data-esservicio') === 'true';
+        const esServEfectivo = modalNaturalezaInvertida ? !esServOriginal : esServOriginal;
+        if (esServEfectivo) {
+          lbl.innerText = 'Servicio (Suma a favor)';
+          lbl.style.color = 'var(--status-ok)';
+        } else {
+          lbl.innerText = 'Producto / Adelanto (Suma deuda)';
+          lbl.style.color = 'var(--accent)';
+        }
+      }
+    }
+
+    // REGISTRAR MOVIMIENTO (CATÁLOGO O LIBRE) DESDE EL MODAL DE RESUMEN
+    async function guardarAsignacionRapidaModal() {
+      if (!staffSeleccionadoActual) return;
+      const emailStaff = staffSeleccionadoActual.staff.email;
+      const modo = document.getElementById('modalSelectModoAsignacion').value;
+      const fecha = document.getElementById('modalInputFecha').value;
+      const hora = document.getElementById('modalInputHora').value || '19:00';
+
+      if (!fecha) { alert("Selecciona la fecha."); return; }
+
+      try {
+        if (modo === 'libre') {
+          const concepto = document.getElementById('modalInputConceptoLibre').value.trim();
+          const monto = parseFloat(document.getElementById('modalInputMontoLibre').value);
+          if (!concepto || isNaN(monto) || monto <= 0) { alert("Ingresa un concepto y un monto válido."); return; }
+
+          // Si modalNaturalezaInvertida es true para libre, actúa como cargo/deuda; si es false, actúa como servicio a favor
+          if (!modalNaturalezaInvertida) {
+            // Suma a favor del staff (Se registra como supervisión aprobada con monto o concepto equivalente en puntos/clase o cargo directo a favor)
+            const payload = {
+              coach_email: emailStaff,
+              supervisor_email: localStorage.getItem('apex_user_email') || 'admin@apex.com',
+              session_date: fecha,
+              class_time: `${concepto} - Valor: ${formatCOP(monto)} (${hora})`,
+              coordinator_status: 'aprobado',
+              coach_points: 10,
+              supervisor_points: 2,
+              is_paid: false,
+              is_deleted: false
+            };
+            const { error } = await sb.from('apex_coach_supervisions').insert([payload]);
+            if (error) throw error;
+          } else {
+            // Suma deuda al staff (Cargo)
+            const payloadCargo = {
+              staff_email: emailStaff,
+              descripcion: concepto,
+              valor: monto,
+              is_paid: false,
+              is_deleted: false
+            };
+            const { error } = await sb.from('apex_cargos_staff').insert([payloadCargo]);
+            if (error) throw error;
+          }
+        } else {
+          const selServ = document.getElementById('modalSelectServicio');
+          const opt = selServ.options[selServ.selectedIndex];
+          if (!opt) { alert("Selecciona un elemento."); return; }
+
+          const nombreServicio = opt.value;
+          const esServOriginal = opt.getAttribute('data-esservicio') === 'true';
+          const esServEfectivo = modalNaturalezaInvertida ? !esServOriginal : esServOriginal;
+          const precioServ = parseFloat(opt.getAttribute('data-precio')) || 0;
+
+          if (esServEfectivo) {
+            const payload = {
+              coach_email: emailStaff,
+              supervisor_email: localStorage.getItem('apex_user_email') || 'admin@apex.com',
+              session_date: fecha,
+              class_time: nombreServicio + ' (' + hora + ')',
+              coordinator_status: 'aprobado',
+              coach_points: 10,
+              supervisor_points: 2,
+              is_paid: false,
+              is_deleted: false
+            };
+            const { error } = await sb.from('apex_coach_supervisions').insert([payload]);
+            if (error) throw error;
+          } else {
+            const payloadCargo = {
+              staff_email: emailStaff,
+              descripcion: nombreServicio,
+              valor: precioServ,
+              is_paid: false,
+              is_deleted: false
+            };
+            const { error } = await sb.from('apex_cargos_staff').insert([payloadCargo]);
+            if (error) throw error;
+          }
+        }
+
+        alert("¡Movimiento registrado con éxito!");
+        document.getElementById('modalInputConceptoLibre').value = '';
+        document.getElementById('modalInputMontoLibre').value = '';
+
+        await cargarDatosBase();
+        calcularNominaGeneral();
+        
+        // Refrescar modal actual
+        const { staff, desde, hasta, infoRango, precioBase, nombreServicioEstandar } = staffSeleccionadoActual;
+        const clases = cachedSupervisiones.filter(s => {
+          const esCoach = (s.coach_email || '').toLowerCase() === staff.email.toLowerCase();
+          const f = new Date(s.session_date || s.created_at);
+          return esCoach && (s.coordinator_status === 'aprobado' || s.coordinator_status === 'sancionado') && s.is_paid !== true && s.is_deleted !== true && f >= desde && f <= hasta;
+        });
+        renderizarListasModal(clases, staff, infoRango, precioBase, nombreServicioEstandar);
+      } catch (err) { alert("Error: " + err.message); }
     }
 
     function toggleHabilitacionExcepcion() {
@@ -871,12 +1141,15 @@
       document.getElementById('detalleModal').style.display = 'none';
     }
 
+    // =========================================================================
+    // VALIDACIÓN ESTRICTA DE SALDO EN CUENTA ANTES DE PAGAR NÓMINA
+    // =========================================================================
     async function marcarPeriodoPagadoYGenerarFactura() {
       if (!staffSeleccionadoActual || !sb) return;
       const { staff, desde, hasta, infoRango, precioBase, nombreServicioEstandar } = staffSeleccionadoActual;
       const cuentaId = document.getElementById('selectCuentaPagoLiquidacion').value;
 
-      if (!cuentaId) { alert("Selecciona la cuenta propia de pago/cobro."); return; }
+      if (!cuentaId) { alert("Selecciona la cuenta propia de desembolso."); return; }
 
       const idsPagados = Array.from(clasesSeleccionadasParaPago);
       const clasesAPagar = cachedSupervisiones.filter(s => idsPagados.includes(s.id));
@@ -891,14 +1164,6 @@
 
       const netoFinal = totalServicios - totalCargos;
 
-      let conteoServicios = {};
-      clasesAPagar.forEach(() => {
-        conteoServicios[nombreServicioEstandar] = (conteoServicios[nombreServicioEstandar] || 0) + 1;
-      });
-      cargosSt.forEach(c => {
-        conteoServicios[`[Adelanto] ${c.descripcion}`] = -1;
-      });
-
       try {
         const cta = cachedCuentas.find(c => c.id === cuentaId);
         const userEmailActivo = localStorage.getItem('apex_user_email') || sessionStorage.getItem('apex_user_email') || 'admin@apex.com';
@@ -908,8 +1173,9 @@
           const montoAbs = Math.abs(netoFinal);
 
           if (esEgreso) {
-            if (!cta || cta.saldo_actual < montoAbs) {
-              alert(`Saldo insuficiente en cuenta "${cta?.nombre}". Fondos: ${formatCOP(cta?.saldo_actual)}`);
+            // 🛑 VALIDACIÓN ESTRICTA: Si la cuenta no tiene suficiente saldo, rebota la transacción
+            if (!cta || parseFloat(cta.saldo_actual) < montoAbs) {
+              alert(`❌ TRANSACCIÓN REBOTADA: Saldo insuficiente en cuenta "${cta?.nombre}". Fondos disponibles: ${formatCOP(cta?.saldo_actual)}. Monto requerido: ${formatCOP(montoAbs)}.`);
               return;
             }
             await sb.from('apex_cuentas').update({ saldo_actual: parseFloat(cta.saldo_actual) - montoAbs }).eq('id', cuentaId);
@@ -937,6 +1203,14 @@
         for (let cargo of cargosSt) {
           await sb.from('apex_cargos_staff').update({ is_paid: true }).eq('id', cargo.id);
         }
+
+        let conteoServicios = {};
+        clasesAPagar.forEach(() => {
+          conteoServicios[nombreServicioEstandar] = (conteoServicios[nombreServicioEstandar] || 0) + 1;
+        });
+        cargosSt.forEach(c => {
+          conteoServicios[`[Adelanto] ${c.descripcion}`] = -1;
+        });
 
         const { data: resIns } = await sb.from('apex_nomina').insert([{
           user_email: staff.email,
@@ -1019,10 +1293,7 @@
       if (!modal || !titulo || !contenido) return;
 
       const { desde, hasta } = obtenerFechasFiltroPeriodo();
-      const staffList = cachedUsers.filter(u => {
-        const r = (u.role || u.profile_id || '').toLowerCase();
-        return r.includes('coach') || r.includes('supervisor') || r.includes('coordinador') || r.includes('admin');
-      });
+      const staffList = cachedUsers.filter(u => u.en_nomina !== false);
 
       const servicioEstandarObj = cachedServicios.find(s => s.es_clase_estandar === true) || cachedServicios[0];
       const precioBaseClase = servicioEstandarObj ? parseFloat(servicioEstandarObj.precio || 20000) : 20000;
@@ -1229,140 +1500,10 @@
       document.getElementById('valorStockActivosLbl').innerText = formatCOP(valorStockActivos);
     }
 
-    function poblarSelectoresAsignacion() {
-      const selectStaff = document.getElementById('selectStaffAsignar');
-      const selectServ = document.getElementById('selectServicioAsignar');
-      if (!selectStaff || !selectServ) return;
-
-      const staffList = cachedUsers.filter(u => {
-        const r = (u.role || u.profile_id || '').toLowerCase();
-        return r.includes('coach') || r.includes('supervisor') || r.includes('coordinador') || r.includes('admin');
-      });
-
-      selectStaff.innerHTML = staffList.length > 0 
-        ? '<option value="" disabled selected>-- Selecciona staff --</option>' + staffList.map(s => `<option value="${s.email}">${s.name || s.email}</option>`).join('')
-        : '<option value="" disabled>No hay staff</option>';
-
-      selectServ.innerHTML = cachedServicios.length > 0
-        ? '<option value="" disabled selected>-- Selecciona elemento --</option>' + cachedServicios.map(serv => `<option value="${serv.nombre}" data-esservicio="${serv.es_servicio !== false}" data-precio="${serv.precio}">[${serv.es_servicio !== false ? 'Servicio' : 'Producto'}] ${serv.nombre} — ${formatCOP(serv.precio)}</option>`).join('')
-        : '<option value="" disabled>No hay elementos</option>';
-
-      actualizarContextoStaffAsignacion();
-      actualizarNaturalezaAsignacion();
-    }
-
-    function actualizarContextoStaffAsignacion() {
-      const email = document.getElementById('selectStaffAsignar').value;
-      const box = document.getElementById('boxContextoStaff');
-      if (!email || !box) return;
-
-      const user = cachedUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
-      if (!user) { box.style.display = 'none'; return; }
-
-      const pendientesNom = cachedNominaPagos.filter(n => n.staff_email === email && n.estado === 'pendiente_pagar');
-      const saldoNom = pendientesNom.reduce((a, b) => a + parseFloat(b.monto || 0), 0);
-
-      const cargosSt = cachedCargosStaff.filter(c => (c.staff_email || '').toLowerCase() === email.toLowerCase() && !c.is_paid && !c.is_deleted);
-      const saldoCargos = cargosSt.reduce((a, b) => a + parseFloat(b.valor || 0), 0);
-
-      const neto = saldoNom - saldoCargos;
-
-      document.getElementById('ctxStaffNombre').innerText = user.name || user.email;
-      document.getElementById('ctxServiciosVal').innerText = formatCOP(saldoNom);
-      document.getElementById('ctxCargosVal').innerText = formatCOP(saldoCargos);
-
-      const netoEl = document.getElementById('ctxNetoVal');
-      netoEl.innerText = `Saldo Neto: ${formatCOP(neto)}`;
-      netoEl.style.color = neto >= 0 ? 'var(--status-ok)' : 'var(--accent)';
-      box.style.display = 'block';
-    }
-
-    function actualizarNaturalezaAsignacion() {
-      const selServ = document.getElementById('selectServicioAsignar');
-      const opt = selServ.options[selServ.selectedIndex];
-      if (!opt) return;
-      const esServ = opt.getAttribute('data-esservicio') === 'true';
-      naturalezaInvertidaAsignacion = false;
-      actualizarTextoNaturaleza(esServ);
-    }
-
-    function toggleInvertirNaturaleza() {
-      naturalezaInvertidaAsignacion = !naturalezaInvertidaAsignacion;
-      const selServ = document.getElementById('selectServicioAsignar');
-      const opt = selServ.options[selServ.selectedIndex];
-      const esServOriginal = opt ? opt.getAttribute('data-esservicio') === 'true' : true;
-      const esServEfectivo = naturalezaInvertidaAsignacion ? !esServOriginal : esServOriginal;
-      actualizarTextoNaturaleza(esServEfectivo);
-    }
-
-    function actualizarTextoNaturaleza(esServicio) {
-      const lbl = document.getElementById('lblNaturalezaAsignacion');
-      if (esServicio) {
-        lbl.innerText = 'Servicio (Suma a favor del staff)';
-        lbl.style.color = 'var(--status-ok)';
-      } else {
-        lbl.innerText = 'Producto / Adelanto (Suma deuda al staff)';
-        lbl.style.color = 'var(--accent)';
-      }
-    }
-
-    async function guardarAsignacionServicioStaff() {
-      const emailStaff = document.getElementById('selectStaffAsignar').value;
-      const nombreServicio = document.getElementById('selectServicioAsignar').value;
-      const fecha = document.getElementById('inputAsignarFecha').value;
-      const hora = document.getElementById('inputAsignarHora').value || '19:00';
-
-      const optSel = document.getElementById('selectServicioAsignar');
-      const opt = optSel.options[optSel.selectedIndex];
-      const esServicioOriginal = opt ? opt.getAttribute('data-esservicio') === 'true' : true;
-      const esServicioEfectivo = naturalezaInvertidaAsignacion ? !esServicioOriginal : esServicioOriginal;
-      const precioServ = opt ? parseFloat(opt.getAttribute('data-precio')) || 0 : 20000;
-
-      if (!emailStaff || !nombreServicio || !fecha) { alert("Completa los campos."); return; }
-
-      try {
-        if (esServicioEfectivo) {
-          const payload = {
-            coach_email: emailStaff,
-            supervisor_email: localStorage.getItem('apex_user_email') || 'admin@apex.com',
-            session_date: fecha,
-            class_time: nombreServicio + ' (' + hora + ')',
-            coordinator_status: 'aprobado',
-            coach_points: 10,
-            supervisor_points: 2,
-            is_paid: false,
-            is_deleted: false
-          };
-          const { error } = await sb.from('apex_coach_supervisions').insert([payload]);
-          if (error) throw error;
-        } else {
-          const payloadCargo = {
-            staff_email: emailStaff,
-            descripcion: nombreServicio,
-            valor: precioServ,
-            is_paid: false,
-            is_deleted: false
-          };
-          const { error } = await sb.from('apex_cargos_staff').insert([payloadCargo]);
-          if (error) throw error;
-        }
-
-        alert("¡Registrado con éxito!");
-        await cargarDatosBase();
-        calcularNominaGeneral();
-        actualizarContextoStaffAsignacion();
-        document.getElementById('selectStaffAsignar').selectedIndex = 0;
-        document.getElementById('boxContextoStaff').style.display = 'none';
-      } catch (err) { alert("Error: " + err.message); }
-    }
-
     function poblarFiltroHistoricoStaff() {
       const select = document.getElementById('filtroHistStaff');
       if (!select) return;
-      const staffList = cachedUsers.filter(u => {
-        const r = (u.role || u.profile_id || '').toLowerCase();
-        return r.includes('coach') || r.includes('supervisor') || r.includes('coordinador') || r.includes('admin');
-      });
+      const staffList = cachedUsers.filter(u => u.en_nomina !== false);
       select.innerHTML = '<option value="todos">Todo el Staff (General)</option>' + 
         staffList.map(s => `<option value="${s.email}">${s.name || s.email}</option>`).join('');
     }
@@ -1616,10 +1757,7 @@
           if (t.type === 'ingreso') facturacionIngresos += monto;
         });
 
-        const staffListGlobal = cachedUsers.filter(u => {
-          const r = (u.role || u.profile_id || '').toLowerCase();
-          return r.includes('coach') || r.includes('supervisor') || r.includes('coordinador') || r.includes('admin');
-        });
+        const staffListGlobal = cachedUsers.filter(u => u.en_nomina !== false);
 
         staffListGlobal.forEach(st => {
           const cargosSt = cachedCargosStaff.filter(c => (c.staff_email || '').toLowerCase() === st.email.toLowerCase() && !c.is_deleted && new Date(c.created_at) <= fechaCorte);
@@ -1674,10 +1812,7 @@
           });
         } else if (tipo === 'debo') {
           titulo.innerText = 'Desglose: Lo que Debo (Nómina Pendiente)';
-          const staffListGlobal = cachedUsers.filter(u => {
-            const r = (u.role || u.profile_id || '').toLowerCase();
-            return r.includes('coach') || r.includes('supervisor') || r.includes('coordinador') || r.includes('admin');
-          });
+          const staffListGlobal = cachedUsers.filter(u => u.en_nomina !== false);
           const servicioEstandarObj = cachedServicios.find(s => s.es_clase_estandar === true) || cachedServicios[0];
           const precioBase = servicioEstandarObj ? parseFloat(servicioEstandarObj.precio || 20000) : 20000;
 
@@ -1689,10 +1824,7 @@
           });
         } else if (tipo === 'medeben') {
           titulo.innerText = 'Desglose: Lo que me Deben (Adelantos)';
-          const staffListGlobal = cachedUsers.filter(u => {
-            const r = (u.role || u.profile_id || '').toLowerCase();
-            return r.includes('coach') || r.includes('supervisor') || r.includes('coordinador') || r.includes('admin');
-          });
+          const staffListGlobal = cachedUsers.filter(u => u.en_nomina !== false);
           staffListGlobal.forEach(st => {
             const cargos = cachedCargosStaff.filter(c => (c.staff_email || '').toLowerCase() === st.email.toLowerCase() && !c.is_paid && !c.is_deleted);
             let sumC = 0; cargos.forEach(c => sumC += parseFloat(c.valor || 0));
