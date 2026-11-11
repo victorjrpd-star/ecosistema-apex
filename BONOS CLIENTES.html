@@ -25,7 +25,7 @@
             background-size: cover; background-position: center; background-attachment: fixed;
             min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; align-items: center; 
             position: relative; max-width: 480px; margin: 0 auto; box-sizing: border-box;
-            padding-bottom: 90px; /* Holgura inferior para evitar que el contenido o los botones queden atrapados */
+            padding-bottom: 90px;
         }
         body::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-overlay); z-index: -1; pointer-events: none; }
         
@@ -57,13 +57,10 @@
         .countdown-timer.vencido { color: var(--status-danger); }
         .rule-notice { font-size: 0.58rem; color: var(--text-muted); line-height: 1.3; margin-top: 6px; border-top: 1px dashed var(--border); padding-top: 6px; }
 
-        /* Contenedor de galería con scroll infinito sincronizado y soporte táctil manual */
+        /* Contenedor de galería con scroll manual y soporte nativo fluido */
         .promo-scroll-container { width: 100%; overflow-x: auto; overflow-y: hidden; position: relative; margin-top: 8px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
         .promo-scroll-container::-webkit-scrollbar { display: none; }
-        .promo-track { display: flex; gap: 10px; width: max-content; animation: scrollInfinite 35s linear infinite; }
-        .promo-track.paused { animation-play-state: paused; }
-        .promo-track:hover { animation-play-state: paused; }
-        @keyframes scrollInfinite { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+        .promo-track { display: flex; gap: 10px; width: max-content; }
 
         /* Tarjeta Mini-Bono para la galería optimizada con centrado vertical */
         .mini-coupon-card { flex: 0 0 150px; height: 220px; border-radius: 6px; border: 1px solid var(--border); position: relative; overflow: hidden; background-size: cover; background-position: center; background-color: #050507; box-shadow: 0 4px 15px rgba(0,0,0,0.8); display: flex; flex-direction: column; justify-content: center; text-align: center; }
@@ -78,13 +75,13 @@
         .nav-tab-btn { flex: 1; padding: 10px; background: var(--card-bg); border: 1px solid var(--border); color: var(--text-muted); font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; border-radius: 4px; cursor: pointer; text-align: center; transition: 0.2s; }
         .nav-tab-btn.active { background: #fff; color: #000; border-color: #fff; font-weight: 900; }
 
-        /* Botón Mi Bono con parpadeo elegante y sutil */
+        /* Botón Mi Bono con parpadeo elegante constante para invitar a pulsar */
         @keyframes subtlePulse {
             0% { box-shadow: 0 0 0 0 rgba(229, 9, 20, 0.4); border-color: var(--border); }
-            50% { box-shadow: 0 0 10px 2px rgba(229, 9, 20, 0.7); border-color: var(--accent); }
+            50% { box-shadow: 0 0 12px 3px rgba(229, 9, 20, 0.8); border-color: var(--accent); }
             100% { box-shadow: 0 0 0 0 rgba(229, 9, 20, 0.4); border-color: var(--border); }
         }
-        #tabBtnBono.nav-tab-btn.active {
+        #tabBtnBono.nav-tab-btn {
             animation: subtlePulse 2.5s infinite ease-in-out;
         }
 
@@ -191,7 +188,7 @@
             <div class="card" style="text-align: left;">
                 <h3 style="font-size: 0.8rem; text-transform: uppercase; color: #fff; margin-bottom: 10px; font-weight: 900; border-bottom: 1px solid var(--border); padding-bottom: 6px;">Ecosistema Apex</h3>
                 
-                <!-- Sección de Promociones Disponibles (Galería Carrusel Infinito con Scroll Manual y Automático) -->
+                <!-- Sección de Promociones Disponibles (Galería Carrusel Infinito Bucle Real) -->
                 <div class="info-box" style="margin-bottom: 12px;">
                     <h4>Promociones Disponibles en la Red</h4>
                     <p style="margin-bottom: 8px;">Desliza o explora los beneficios activos:</p>
@@ -230,7 +227,9 @@
         let countdownInterval = null;
         let globalSettings = { logo: '', bg: '', adminPass: 'admin' };
         let deferredPrompt = null;
-        let resumeScrollTimeout = null;
+        let autoScrollInterval = null;
+        let isUserInteracting = false;
+        let userInteractionTimeout = null;
 
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
@@ -357,34 +356,63 @@
                 `;
             }).join('');
 
-            // Duplicar tarjetas para efecto de carrusel infinito sin saltos
-            galleryEl.innerHTML = cardsHtml + cardsHtml;
-            inicializarInteraccionManualCarrusel();
+            // Cuadruplicar tarjetas para permitir un loop infinito perfecto sin saltos visuales
+            galleryEl.innerHTML = cardsHtml + cardsHtml + cardsHtml + cardsHtml;
+            
+            // Posicionar al centro exacto del track para permitir scroll fluido en ambos sentidos
+            let wrapper = document.getElementById('promoScrollWrapper');
+            if (wrapper) {
+                wrapper.scrollLeft = wrapper.scrollWidth / 3;
+            }
+
+            iniciarControlCarruselInfinito();
         }
 
-        function inicializarInteraccionManualCarrusel() {
+        function iniciarControlCarruselInfinito() {
             let wrapper = document.getElementById('promoScrollWrapper');
-            let track = document.getElementById('publicPromosGallery');
-            if(!wrapper || !track) return;
+            if(!wrapper) return;
 
-            let pausarAnimacion = () => {
-                track.classList.add('paused');
-                if(resumeScrollTimeout) clearTimeout(resumeScrollTimeout);
+            if(autoScrollInterval) clearInterval(autoScrollInterval);
+
+            // Movimiento automático suave y constante
+            autoScrollInterval = setInterval(() => {
+                if(!isUserInteracting) {
+                    wrapper.scrollLeft += 1;
+                    verificarYReiniciarBucleScroll(wrapper);
+                }
+            }, 25);
+
+            // Detección de interacción manual táctil o de mouse
+            let pausarInteraccion = () => {
+                isUserInteracting = true;
+                if(userInteractionTimeout) clearTimeout(userInteractionTimeout);
             };
 
-            let reanudarAnimacionDespues = () => {
-                if(resumeScrollTimeout) clearTimeout(resumeScrollTimeout);
-                resumeScrollTimeout = setTimeout(() => {
-                    track.classList.remove('paused');
-                }, 3000); // Vuelve a su movimiento natural a los 3 segundos de dejar de manipular
+            let reanudarInteraccion = () => {
+                if(userInteractionTimeout) clearTimeout(userInteractionTimeout);
+                userInteractionTimeout = setTimeout(() => {
+                    isUserInteracting = false;
+                }, 2500); // Retoma el automático 2.5s después de soltar
             };
 
-            wrapper.addEventListener('mousedown', pausarAnimacion);
-            wrapper.addEventListener('touchstart', pausarAnimacion, {passive: true});
+            wrapper.onscroll = () => {
+                verificarYReiniciarBucleScroll(wrapper);
+            };
 
-            wrapper.addEventListener('mouseup', reanudarAnimacionDespues);
-            wrapper.addEventListener('touchend', reanudarAnimacionDespues);
-            wrapper.addEventListener('mouseleave', reanudarAnimacionDespues);
+            wrapper.addEventListener('mousedown', pausarInteraccion);
+            wrapper.addEventListener('touchstart', pausarInteraccion, {passive: true});
+            wrapper.addEventListener('mouseup', reanudarInteraccion);
+            wrapper.addEventListener('touchend', reanudarInteraccion);
+            wrapper.addEventListener('mouseleave', reanudarInteraccion);
+        }
+
+        function verificarYReiniciarBucleScroll(wrapper) {
+            let thirdWidth = wrapper.scrollWidth / 3;
+            if (wrapper.scrollLeft >= thirdWidth * 2) {
+                wrapper.scrollLeft -= thirdWidth;
+            } else if (wrapper.scrollLeft <= 10) {
+                wrapper.scrollLeft += thirdWidth;
+            }
         }
 
         async function selectWeightedPromoForClient(phone) {
@@ -470,7 +498,6 @@
                 return;
             }
 
-            // Validar si el número ya existe con otro nombre (Evitar fraudes revelando información)
             if (allCoupons && allCoupons.length > 0) {
                 let registeredName = allCoupons[0].beneficiary.trim().toLowerCase();
                 let enteredName = name.toLowerCase();
@@ -570,13 +597,13 @@
             document.getElementById('prevPhone').innerText = `PIN / TEL: ${coupon.phone}`;
             document.getElementById('prevExpiry').innerText = `Expira: ${coupon.expiry || 'N/A'}`;
 
-            let waMsgBono = encodeURIComponent(`¡Hola! Soy ${coupon.beneficiary} (Tel: ${coupon.phone}). Me comunico por mi beneficio "${coupon.promo_title}" obtenido en el Reto Apex / Apex Boxing con ${storeName}. ¡Quiero hacerlo válido!`);
+            let waMsgBono = encodeURIComponent(`¡Hola! Soy ${coupon.beneficiary}, mi PIN es ${coupon.phone}. Vengo por mi beneficio de ${coupon.promo_title} otorgado por el Reto Apex. ¡Quiero redimirlo!`);
             let cleanStorePhone = storePhone.replace(/\D/g, '');
             if(!cleanStorePhone.startsWith('57') && cleanStorePhone.length === 10) cleanStorePhone = '57' + cleanStorePhone;
             document.getElementById('whatsappStoreBtn').href = `https://wa.me/${cleanStorePhone}?text=${waMsgBono}`;
             document.getElementById('whatsappStoreBtn').innerText = `Contactar a ${storeName}`;
 
-            let waMsgEscuela = encodeURIComponent(`¡Hola! Soy ${coupon.beneficiary} (Tel: ${coupon.phone}). Participé en el Reto Apex y quiero solicitar información sobre la escuela de boxeo Apex Boxing Escuela de Strikers para empezar a entrenar.`);
+            let waMsgEscuela = encodeURIComponent(`¡Hola! Soy ${coupon.beneficiary} (Tel: ${coupon.phone}). Participé en el Reto Apex y quiero solicitar información sobre la escuela de boxeo Apex Boxing para empezar a entrenar.`);
             document.getElementById('whatsappEscuelaBtn').href = `https://wa.me/3137748937?text=${waMsgEscuela}`;
 
             renderizarHistorialPasado(allCoupons, coupon.id);
