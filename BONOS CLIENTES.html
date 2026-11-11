@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Apex Boxing // Beneficios Reto Apex</title>
+    <!-- Librerías de Supabase y html2canvas -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root { 
+            --bg: #000000;
+            --card-bg: #0a0a0c;
+            --border: #1a1a1e;
+            --accent: #e50914;
+            --text-main: #f5f5f7;
+            --text-muted: #73737a;
+            --status-ok: #ffffff;
+            --status-danger: #e50914;
+            --bg-overlay: rgba(0, 0, 0, 0.92); 
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { 
+            background: var(--bg); color: var(--text-main); padding: 12px; 
+            background-size: cover; background-position: center; background-attachment: fixed;
+            min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; align-items: center; 
+            position: relative; max-width: 480px; margin: 0 auto; box-sizing: border-box;
+        }
+        body::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-overlay); z-index: -1; pointer-events: none; }
+        
+        .header-brand { text-align: center; margin-top: 20px; margin-bottom: 12px; position: relative; z-index: 1; }
+        .brand-title { font-size: 1.15rem; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; color: #fff; }
+        .brand-title span { color: var(--accent); }
+        .brand-subtitle-sec { font-size: 0.6rem; font-weight: 800; text-transform: uppercase; letter-spacing: 3px; color: var(--text-muted); margin-top: 2px; display: block; }
+        .brand-subtitle-main { font-size: 0.72rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px; color: #fff; margin-top: 4px; display: block; }
+
+        .card { background: var(--card-bg); border: 1px solid var(--border); padding: 16px; border-radius: 6px; width: 100%; box-shadow: 0 4px 20px rgba(0,0,0,0.9); position: relative; z-index: 1; margin-bottom: 15px; }
+        
+        input, select, textarea { width: 100%; padding: 10px; margin: 6px 0; background: #000; color: #fff; border: 1px solid var(--border); border-radius: 4px; font-family: inherit; font-size: 0.78rem; outline: none; }
+        input:focus { border-color: var(--accent); }
+
+        button { width: 100%; padding: 10px; margin: 6px 0; background: #121216; color: #fff; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; font-size: 0.68rem; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; transition: 0.2s; }
+        button:hover { background: #1a1a1e; border-color: #fff; }
+        
+        .btn-apex { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 900; }
+        .btn-apex:hover { background: #b80710; border-color: #b80710; }
+
+        .btn-link-action { display: block; text-align: center; padding: 10px; margin-top: 6px; border-radius: 4px; font-size: 0.68rem; background: #121216; color: #fff; border: 1px solid var(--border); text-decoration: none; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; transition: 0.2s; }
+        .btn-link-action:hover { background: #1a1a1e; border-color: #fff; }
+
+        .coupon-box { position: relative; background-size: cover; background-position: center; border: 1px solid var(--border); text-align: center; margin-top: 8px; border-radius: 6px; width: 260px; height: 460px; margin-left: auto; margin-right: auto; color: #fff; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.9); background-color: #050507; }
+        .coupon-overlay { background: rgba(0,0,0,0.88); width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-between; padding: 20px 12px; box-sizing: border-box; text-shadow: 0 2px 5px rgba(0,0,0,0.9); }
+        
+        .countdown-container { background: #050507; border: 1px solid var(--border); padding: 10px; border-radius: 4px; margin-top: 10px; margin-bottom: 10px; text-align: center; }
+        .countdown-timer { font-size: 0.95rem; font-weight: 900; color: var(--accent); letter-spacing: 1px; margin-top: 4px; }
+        .countdown-timer.vencido { color: var(--status-danger); }
+        .rule-notice { font-size: 0.58rem; color: var(--text-muted); line-height: 1.3; margin-top: 6px; border-top: 1px dashed var(--border); padding-top: 6px; }
+
+        /* Contenedor de galería con scroll infinito sincronizado */
+        .promo-scroll-container { width: 100%; overflow: hidden; position: relative; margin-top: 8px; mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent); -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent); }
+        .promo-track { display: flex; gap: 10px; width: max-content; animation: scrollInfinite 30s linear infinite; }
+        .promo-track:hover { animation-play-state: paused; }
+        @keyframes scrollInfinite { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+        /* Tarjeta Mini-Bono para la galería */
+        .mini-coupon-card { flex: 0 0 150px; height: 220px; border-radius: 6px; border: 1px solid var(--border); position: relative; overflow: hidden; background-size: cover; background-position: center; background-color: #050507; box-shadow: 0 4px 15px rgba(0,0,0,0.8); display: flex; flex-direction: column; justify-content: space-between; text-align: center; }
+        .mini-coupon-overlay { background: rgba(0,0,0,0.84); width: 100%; height: 100%; padding: 10px 8px; display: flex; flex-direction: column; justify-content: space-between; }
+
+        /* Historial de bonos pasados */
+        .history-list { margin-top: 10px; max-height: 140px; overflow-y: auto; text-align: left; }
+        .history-item { background: #050507; border: 1px solid var(--border); padding: 8px; border-radius: 4px; margin-bottom: 6px; font-size: 0.62rem; display: flex; justify-content: space-between; align-items: center; }
+
+        .bottom-nav { display: flex; gap: 6px; width: 100%; margin-top: auto; position: relative; z-index: 10; padding-bottom: 5px; }
+        .nav-tab-btn { flex: 1; padding: 10px; background: var(--card-bg); border: 1px solid var(--border); color: var(--text-muted); font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; border-radius: 4px; cursor: pointer; text-align: center; transition: 0.2s; }
+        .nav-tab-btn.active { background: #fff; color: #000; border-color: #fff; font-weight: 900; }
+
+        .view-section { display: none; width: 100%; }
+        .view-section.active { display: block; }
+
+        .info-box { background: #050507; border: 1px solid var(--border); padding: 12px; border-radius: 4px; font-size: 0.72rem; line-height: 1.4; color: #aaa; margin-bottom: 8px; text-align: left; }
+        .info-box h4 { color: #fff; text-transform: uppercase; font-size: 0.75rem; margin-bottom: 4px; letter-spacing: 0.5px; font-weight: 900; }
+
+        .hidden { display: none !important; }
+        #toast { position: fixed; bottom: 50px; left: 50%; transform: translateX(-50%) translateY(100px); background: #fff; color: #000; padding: 8px 16px; border-radius: 4px; font-weight: 900; font-size: 0.68rem; letter-spacing: 1px; transition: transform 0.3s ease; z-index: 10000; text-transform: uppercase; }
+        #toast.show { transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+
+    <div class="header-brand">
+        <img id="globalAppLogo" src="" alt="" style="width: 48px; height: 48px; object-fit: cover; border-radius: 50%; border: 1px solid var(--border); display: none; margin: 0 auto 6px auto;">
+        <div class="brand-title">Apex Boxing</div>
+        <span class="brand-subtitle-sec">Escuela de Strikers</span>
+        <span class="brand-subtitle-main">Beneficios Reto Apex</span>
+    </div>
+
+    <!-- CONTENEDOR DE PANTALLAS / MULTIVENTANA -->
+    <div style="width: 100%; flex: 1; display: flex; flex-direction: column; justify-content: center;">
+
+        <!-- ================= PANTALLA 1: MI BONO ================= -->
+        <div id="pantallaBono" class="view-section active">
+            
+            <!-- VISTA 1A: REGISTRO / ACCESO -->
+            <div id="loginView" class="card">
+                <h3 style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; font-weight: 900;">Portal de Participante</h3>
+                <p style="font-size: 0.65rem; color: var(--text-muted); margin-bottom: 12px;">Ingresa tus datos para generar o consultar tu beneficio del evento.</p>
+                
+                <input type="text" id="clientNameInput" placeholder="Nombre Completo" autocomplete="off">
+                <input type="tel" id="clientPhoneInput" placeholder="Número de Teléfono (10 dígitos)" maxlength="10" autocomplete="off">
+                
+                <button class="btn-apex" onclick="procesarAccesoCliente()">Generar / Consultar Mi Bono</button>
+            </div>
+
+            <!-- VISTA 1B: PANEL ACTIVO DEL BONO -->
+            <div id="dashboardView" class="card hidden">
+                <h3 id="welcomeMsg" style="font-size: 0.75rem; text-transform: uppercase; color: #fff; margin-top: 0; margin-bottom: 6px; font-weight: 900;"></h3>
+                
+                <button id="installBtn" class="btn-secundario hidden" onclick="instalarAccesoDirecto()" style="font-size: 0.62rem; padding: 8px;">Añadir a Pantalla de Inicio</button>
+
+                <!-- Cuenta regresiva y regla de negocio dinámica -->
+                <div class="countdown-container">
+                    <small style="font-size: 0.52rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800; display: block;">Estado del beneficio:</small>
+                    <div id="timerDisplay" class="countdown-timer">00d 00h 00m 00s</div>
+                    <div class="rule-notice">¡Hola! Recuerda que solo puedes tener un beneficio activo a la vez. En cuanto este bono sea redimido o se venza, podrás solicitar uno nuevo y descubrir una nueva sorpresa en la red. ¡Aprovéchalo al máximo!</div>
+                </div>
+
+                <!-- Tarjeta 9:16 dinámica generada al vuelo -->
+                <div id="couponCard" class="coupon-box">
+                    <div class="coupon-overlay">
+                        <div>
+                            <span style="background:#fff; color:#000; font-size:8px; padding:2px 5px; font-weight:900;">APEX BOXING // STRIKERS</span>
+                            <p style="margin:6px 0 2px 0; font-size:0.6rem; color:#ccc; font-style:italic;">Beneficio oficial Reto Apex.</p>
+                        </div>
+                        <div>
+                            <h3 id="prevTitle" style="margin:4px 0; font-size:0.8rem; color:#fff; text-transform:uppercase; font-weight:900;"></h3>
+                            <h1 id="prevClient" style="margin:6px 0; font-size:1.5rem; font-weight:900; color:#fff; line-height:1.1; word-break: break-word;"></h1>
+                            <p id="prevTerms" style="margin:6px 0; font-size:0.6rem; color:#aaa; line-height:1.2;"></p>
+                        </div>
+                        <div style="border-top: 1px solid rgba(255,255,255,0.2); padding-top:6px;">
+                            <p id="prevPhone" style="margin:2px 0; color:#fff; font-weight:bold; font-size:0.68rem;"></p>
+                            <p id="prevExpiry" style="margin:2px 0; font-size:0.52rem; color:#777;"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="downloadCard()" style="margin-top:10px;">Obtener Mi Premio</button>
+                
+                <!-- Botón de WhatsApp redirigido al aliado comercial de la tienda del bono -->
+                <a id="whatsappStoreBtn" href="#" target="_blank" class="btn-link-action" style="background:#0f2b18; border-color:#22c55e; color:#22c55e;">
+                    💬 Contactar Tienda Aliada (Bono)
+                </a>
+
+                <!-- Botón de WhatsApp para información de la Escuela de Boxeo -->
+                <a id="whatsappEscuelaBtn" href="#" target="_blank" class="btn-link-action">
+                    Información Escuela de Boxeo
+                </a>
+
+                <!-- Historial de bonos pasados (vencidos o redimidos) -->
+                <div id="historySection" class="hidden" style="margin-top: 12px; border-top: 1px solid var(--border); padding-top: 8px;">
+                    <small style="font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800; display: block; margin-bottom: 4px;">Historial de beneficios anteriores:</small>
+                    <div id="historyList" class="history-list"></div>
+                </div>
+
+                <button onclick="cerrarSesionCliente()" class="btn-secundario" style="margin-top: 8px; font-size: 0.62rem; padding: 8px;">Salir / Cambiar número</button>
+            </div>
+
+        </div>
+
+        <!-- ================= PANTALLA 2: ECOSISTEMA APEX Y PROMOCIONES ================= -->
+        <div id="pantallaExplorar" class="view-section">
+            <div class="card" style="text-align: left;">
+                <h3 style="font-size: 0.8rem; text-transform: uppercase; color: #fff; margin-bottom: 10px; font-weight: 900; border-bottom: 1px solid var(--border); padding-bottom: 6px;">Ecosistema Apex</h3>
+                
+                <!-- Sección de Promociones Disponibles (Galería Mini-Bonos Carrusel Infinito) -->
+                <div class="info-box" style="margin-bottom: 12px;">
+                    <h4>Promociones Disponibles en la Red</h4>
+                    <p style="margin-bottom: 8px;">Desliza o explora los beneficios activos como mini-bonos:</p>
+                    
+                    <div class="promo-scroll-container">
+                        <div id="publicPromosGallery" class="promo-track">
+                            <span style="font-size: 0.6rem; color: var(--text-muted); padding: 10px;">Cargando promociones...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <h4>Apex Boxing // Escuela de Strikers</h4>
+                    <p>Somos un centro especializado en boxeo y kickboxing recreativo en Cali, enfocados en técnica de golpeo, acondicionamiento físico, movilidad y disciplina de combate con estándares profesionales.</p>
+                </div>
+
+                <div class="info-box">
+                    <h4>¿Qué es el Reto Apex?</h4>
+                    <p>Es nuestra activación deportiva interactiva en espacios públicos, diseñada con fines recreativos y para descubrir talentos, evaluando reflejos, potencia y resistencia. Al participar, accedes a beneficios y patrocinios exclusivos con nuestros aliados comerciales.</p>
+                </div>
+
+                <button class="btn-secundario" onclick="cambiarVistaTab('pantallaBono')" style="margin-top: 6px;">← Volver a mi Bono</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- MENÚ INFERIOR MULTIVENTANA -->
+    <div class="bottom-nav">
+        <button id="tabBtnBono" class="nav-tab-btn active" onclick="cambiarVistaTab('pantallaBono')">Mi Bono</button>
+        <button id="tabBtnExplorar" class="nav-tab-btn" onclick="cambiarVistaTab('pantallaExplorar')">Promociones & Apex</button>
+    </div>
+
+    <div id="toast">Notificación</div>
+
+    <script>
+        const SUPABASE_URL = "https://fprvbvucmtdpxdihuvrw.supabase.co";
+        const SUPABASE_ANON_KEY = "sb_publishable_xAMs8LpCwyMyoql3ohoJUQ_BIRhBQoD";
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let currentActiveCoupon = null;
+        let countdownInterval = null;
+        let globalSettings = { logo: '', bg: '', adminPass: 'admin' };
+        let deferredPrompt = null;
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            let btn = document.getElementById('installBtn');
+            if(btn) btn.classList.remove('hidden');
+        });
+
+        function instalarAccesoDirecto() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    deferredPrompt = null;
+                });
+            } else {
+                alert('Para añadir a la pantalla de inicio, usa el menú de opciones de tu navegador y selecciona "Agregar a la pantalla principal".');
+            }
+        }
+
+        function cambiarVistaTab(vistaId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(vistaId).classList.add('active');
+            
+            if(vistaId === 'pantallaBono') {
+                document.getElementById('tabBtnBono').classList.add('active');
+            } else {
+                document.getElementById('tabBtnExplorar').classList.add('active');
+                cargarGaleriaPromocionesPublicas();
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function showToast(msg) {
+            let t = document.getElementById('toast');
+            t.innerText = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2500);
+        }
+
+        async function loadGlobalAssets() {
+            try {
+                let { data: stores } = await supabaseClient.from('stores').select('*');
+                let setStore = (stores || []).find(s => s.name && s.name.trim().toLowerCase() === 'settings_global');
+                if(setStore && setStore.terms) {
+                    try { globalSettings = JSON.parse(setStore.terms); } catch(e){}
+                }
+                applyGlobalAssets();
+                cargarGaleriaPromocionesPublicas();
+            } catch(e) {
+                console.error("Error cargando personalización:", e);
+            }
+        }
+
+        function applyGlobalAssets() {
+            let logoEl = document.getElementById('globalAppLogo');
+            if(globalSettings.logo) {
+                logoEl.src = globalSettings.logo;
+                logoEl.style.display = 'block';
+            } else {
+                logoEl.style.display = 'none';
+            }
+
+            if(globalSettings.bg) {
+                document.body.style.backgroundImage = `url('${globalSettings.bg}')`;
+            } else {
+                document.body.style.backgroundImage = 'none';
+            }
+        }
+
+        async function cargarGaleriaPromocionesPublicas() {
+            let galleryEl = document.getElementById('publicPromosGallery');
+            if(!galleryEl) return;
+
+            let { data: promos, error } = await supabaseClient.from('promos').select('*');
+            if(error || !promos || promos.length === 0) {
+                galleryEl.innerHTML = '<span style="font-size: 0.6rem; color: var(--text-muted); padding: 10px;">No hay promociones registradas en este momento.</span>';
+                return;
+            }
+
+            let now = new Date();
+            let today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+            let cardsHtml = promos.map(p => {
+                let isActive = true;
+                let statusBadge = '<span style="font-size:0.48rem; color:#00ff88; font-weight:800; background:rgba(0,255,136,0.15); padding:2px 4px; border-radius:3px;">🟢 VIGENTE</span>';
+
+                if (p.status === 'suspended') {
+                    isActive = false;
+                    statusBadge = '<span style="font-size:0.48rem; color:#ff4444; font-weight:800; background:rgba(255,68,68,0.15); padding:2px 4px; border-radius:3px;">🔴 SUSPENDIDA</span>';
+                } else if (p.start_date) {
+                    let startD = new Date(p.start_date + 'T00:00:00');
+                    if (today < startD) {
+                        isActive = false;
+                        statusBadge = `<span style="font-size:0.48rem; color:#ffcc00; font-weight:800; background:rgba(255,204,0,0.15); padding:2px 4px; border-radius:3px;">⏳ INICIA: ${p.start_date}</span>`;
+                    }
+                }
+
+                if (isActive && p.end_date) {
+                    let endD = new Date(p.end_date + 'T23:59:59');
+                    if (now > endD) {
+                        isActive = false;
+                        statusBadge = `<span style="font-size:0.48rem; color:#73737a; font-weight:800; background:rgba(115,115,122,0.15); padding:2px 4px; border-radius:3px;">⚫ VENCIDA</span>`;
+                    }
+                }
+
+                let bgStyle = p.bg_image ? `background-image: url('${p.bg_image}');` : '';
+
+                return `
+                    <div class="mini-coupon-card" style="${bgStyle}">
+                        <div class="mini-coupon-overlay">
+                            <div>
+                                <span style="background:#fff; color:#000; font-size:6px; padding:1px 4px; font-weight:900;">APEX BOXING</span>
+                                <h5 style="font-size: 0.65rem; font-weight: 900; color: #fff; text-transform: uppercase; margin-top: 4px; line-height: 1.1;">${p.title}</h5>
+                            </div>
+                            <div>
+                                <p style="font-size: 0.52rem; color: #ccc; line-height: 1.2; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${p.terms || 'Beneficio exclusivo.'}</p>
+                                ${statusBadge}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Duplicar tarjetas para efecto de carrusel infinito sin saltos
+            galleryEl.innerHTML = cardsHtml + cardsHtml;
+        }
+
+        async function selectWeightedPromoForClient(phone) {
+            let { data: stores } = await supabaseClient.from('stores').select('*');
+            let { data: promos } = await supabaseClient.from('promos').select('*');
+            let { data: userCoupons } = await supabaseClient.from('coupons').select('promo_id').eq('phone', phone);
+
+            let usedPromoIds = (userCoupons || []).map(u => u.promo_id);
+
+            let activeStores = (stores || []).filter(s => s.name && s.name.trim().toLowerCase() !== 'admin' && s.name.trim().toLowerCase() !== 'settings_global' && s.status !== 'suspended' && s.tier !== 'manual' && s.tier !== 'colaborador');
+            
+            let now = new Date();
+            let today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+            let activePromos = (promos || []).filter(p => {
+                if (p.status === 'suspended') return false;
+                if (usedPromoIds.includes(p.id)) return false;
+
+                if (p.start_date) {
+                    let startD = new Date(p.start_date + 'T00:00:00');
+                    if (today < startD) return false;
+                }
+                if (p.end_date) {
+                    let endD = new Date(p.end_date + 'T23:59:59');
+                    if (now > endD) return false;
+                }
+                return true;
+            });
+
+            if(activePromos.length === 0) {
+                activePromos = (promos || []).filter(p => {
+                    if (p.status === 'suspended') return false;
+                    if (p.end_date) {
+                        let endD = new Date(p.end_date + 'T23:59:59');
+                        if (now > endD) return false;
+                    }
+                    return true;
+                });
+            }
+
+            if(activePromos.length === 0) return null;
+            if(activeStores.length === 0) return activePromos[0];
+
+            let pool = [];
+            activeStores.forEach(s => {
+                let weight = 1;
+                if(s.tier === 'gratis') weight = 0.5;
+                if(s.tier === 'pro') weight = 2;
+                if(s.tier === 'elite') weight = 3;
+                let sPromos = activePromos.filter(p => p.store_id === s.id);
+                sPromos.forEach(p => {
+                    let times = weight >= 1 ? weight : (Math.random() < weight ? 1 : 0);
+                    for(let i = 0; i < times; i++) { pool.push(p); }
+                });
+            });
+
+            if(pool.length === 0) return activePromos[0];
+            return pool[Math.floor(Math.random() * pool.length)];
+        }
+
+        async function procesarAccesoCliente() {
+            let name = document.getElementById('clientNameInput').value.trim();
+            let phone = document.getElementById('clientPhoneInput').value.trim();
+
+            if(!phone || !name) { 
+                showToast('Ingresa tu nombre y número de teléfono'); 
+                return; 
+            }
+
+            let phoneRegex = /^\d{10}$/;
+            if (!phoneRegex.test(phone)) {
+                alert('Por favor ingrese un número de teléfono válido de 10 dígitos.');
+                return;
+            }
+
+            let { data: allCoupons, error } = await supabaseClient
+                .from('coupons')
+                .select('*')
+                .eq('phone', phone);
+
+            if(error) {
+                showToast('Error de conexión con la base de datos');
+                return;
+            }
+
+            // Validar si el número ya existe con otro nombre (Evitar fraudes revelando información)
+            if (allCoupons && allCoupons.length > 0) {
+                let registeredName = allCoupons[0].beneficiary.trim().toLowerCase();
+                let enteredName = name.toLowerCase();
+
+                let cleanReg = registeredName.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, ' ');
+                let cleanEnt = enteredName.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, ' ');
+
+                if (cleanReg !== cleanEnt) {
+                    alert('Este número de teléfono ya se encuentra registrado a nombre de otro usuario, por favor verifica tus datos e intenta nuevamente.');
+                    return;
+                }
+            }
+
+            let activeCoupon = (allCoupons || []).find(u => u.status === 'activo');
+
+            if(activeCoupon) {
+                let now = new Date();
+                let isExpired = false;
+                if(activeCoupon.expiry && activeCoupon.expiry !== 'Sin caducidad') {
+                    if(new Date(activeCoupon.expiry + 'T23:59:59') < now) isExpired = true;
+                }
+
+                if(!isExpired) {
+                    currentActiveCoupon = activeCoupon;
+                    showToast('Bono activo recuperado');
+                    mostrarPanelBono(currentActiveCoupon, allCoupons);
+                    return;
+                } else {
+                    await supabaseClient.from('coupons').update({ status: 'vencido' }).eq('id', activeCoupon.id);
+                    activeCoupon.status = 'vencido';
+                }
+            }
+
+            let targetPromo = await selectWeightedPromoForClient(phone);
+            if(!targetPromo) {
+                alert('En este momento no hay campañas activas o disponibles en el sistema para ti.');
+                return;
+            }
+
+            let nuevoBono = {
+                beneficiary: name,
+                phone: phone,
+                expiry: targetPromo.end_date || 'Sin caducidad',
+                terms: targetPromo.terms || 'Válido en establecimientos participantes.',
+                promo_id: targetPromo.id,
+                promo_title: targetPromo.title,
+                season: targetPromo.season || '2026-10',
+                store_id: targetPromo.store_id,
+                created_by: 'Auto-Registro QR',
+                status: 'activo'
+            };
+
+            let { error: insertErr } = await supabaseClient.from('coupons').insert([nuevoBono]);
+            if(insertErr) {
+                alert('Error al registrar tu bono: ' + insertErr.message);
+                return;
+            }
+
+            let { data: refreshedCoupons } = await supabaseClient.from('coupons').select('*').eq('phone', phone);
+
+            currentActiveCoupon = nuevoBono;
+            showToast('¡Nuevo bono generado con éxito!');
+            mostrarPanelBono(currentActiveCoupon, refreshedCoupons || allCoupons);
+        }
+
+        async function mostrarPanelBono(coupon, allCoupons) {
+            document.getElementById('loginView').classList.add('hidden');
+            document.getElementById('dashboardView').classList.remove('hidden');
+            document.getElementById('welcomeMsg').innerText = `Participante: ${coupon.beneficiary}`;
+
+            let { data: promos } = await supabaseClient.from('promos').select('*').eq('id', coupon.promo_id);
+            let promoData = promos && promos.length > 0 ? promos[0] : null;
+
+            let storePhone = "3137748937";
+            let storeName = "Aliado Comercial Apex";
+
+            if(promoData && promoData.store_id) {
+                let { data: stores } = await supabaseClient.from('stores').select('*').eq('id', promoData.store_id);
+                if(stores && stores.length > 0) {
+                    if(stores[0].phone) storePhone = stores[0].phone;
+                    if(stores[0].name) storeName = stores[0].name;
+                }
+            }
+
+            let cardBox = document.getElementById('couponCard');
+            if(promoData && promoData.bg_image) {
+                cardBox.style.backgroundImage = `url('${promoData.bg_image}')`;
+            } else if(globalSettings.bg) {
+                cardBox.style.backgroundImage = `url('${globalSettings.bg}')`;
+            } else {
+                cardBox.style.backgroundImage = 'none';
+            }
+
+            document.getElementById('prevTitle').innerText = coupon.promo_title || 'Promoción Apex';
+            document.getElementById('prevClient').innerText = coupon.beneficiary;
+            document.getElementById('prevTerms').innerText = coupon.terms || 'Válido en establecimientos participantes.';
+            document.getElementById('prevPhone').innerText = `PIN / TEL: ${coupon.phone}`;
+            document.getElementById('prevExpiry').innerText = `Expira: ${coupon.expiry || 'N/A'}`;
+
+            let waMsgBono = encodeURIComponent(`Hola, soy ${coupon.beneficiary} (Tel: ${coupon.phone}) y quiero hacer válido o consultar sobre mi beneficio "${coupon.promo_title}" otorgado por ${storeName}.`);
+            let cleanStorePhone = storePhone.replace(/\D/g, '');
+            if(!cleanStorePhone.startsWith('57') && cleanStorePhone.length === 10) cleanStorePhone = '57' + cleanStorePhone;
+            document.getElementById('whatsappStoreBtn').href = `https://wa.me/${cleanStorePhone}?text=${waMsgBono}`;
+            document.getElementById('whatsappStoreBtn').innerText = `Contactar a ${storeName}`;
+
+            let waMsgEscuela = encodeURIComponent(`Hola, soy ${coupon.beneficiary} (Tel: ${coupon.phone}). Acabo de participar en el Reto Apex y quiero solicitar información sobre la escuela de boxeo Apex Boxing Escuela de Strikers para empezar a entrenar.`);
+            document.getElementById('whatsappEscuelaBtn').href = `https://wa.me/3137748937?text=${waMsgEscuela}`;
+
+            renderizarHistorialPasado(allCoupons, coupon.id);
+            iniciarCuentaRegresiva(coupon.expiry);
+        }
+
+        function renderizarHistorialPasado(allCoupons, currentCouponId) {
+            let historySection = document.getElementById('historySection');
+            let historyList = document.getElementById('historyList');
+            
+            let pastCoupons = (allCoupons || []).filter(u => u.id !== currentCouponId && (u.status === 'redimido' || u.status === 'vencido'));
+
+            if(pastCoupons.length === 0) {
+                historySection.classList.add('hidden');
+                return;
+            }
+
+            historyList.innerHTML = pastCoupons.map(p => {
+                let statusLabel = p.status === 'redimido' ? '<span style="color:#22c55e">Redimido</span>' : '<span style="color:#e50914">Vencido</span>';
+                return `
+                    <div class="history-item">
+                        <div>
+                            <b>${p.promo_title}</b><br>
+                            <small style="color:var(--text-muted);">Exp: ${p.expiry}</small>
+                        </div>
+                        <div>${statusLabel}</div>
+                    </div>
+                `;
+            }).join('');
+
+            historySection.classList.remove('hidden');
+        }
+
+        function iniciarCuentaRegresiva(expiryStr) {
+            if(countdownInterval) clearInterval(countdownInterval);
+
+            let timerEl = document.getElementById('timerDisplay');
+            timerEl.classList.remove('vencido');
+
+            if(!expiryStr || expiryStr === 'Sin caducidad') {
+                timerEl.innerText = "Vigencia permanente";
+                return;
+            }
+
+            let expiryDate = new Date(expiryStr + 'T23:59:59');
+
+            countdownInterval = setInterval(() => {
+                let now = new Date();
+                let distance = expiryDate - now;
+
+                if (distance < 0) {
+                    clearInterval(countdownInterval);
+                    timerEl.innerText = "BENEFICIO VENCIDO";
+                    timerEl.classList.add('vencido');
+                    return;
+                }
+
+                let days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                let hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                let minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                let seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                timerEl.innerText = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+            }, 1000);
+        }
+
+        function downloadCard() {
+            let card = document.getElementById('couponCard');
+            html2canvas(card, { scale: 2, useCORS: true }).then(canvas => {
+                let link = document.createElement('a');
+                link.download = `Bono_Apex_${currentActiveCoupon ? currentActiveCoupon.beneficiary : 'Card'}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+
+        function cerrarSesionCliente() {
+            if(countdownInterval) clearInterval(countdownInterval);
+            currentActiveCoupon = null;
+            document.getElementById('dashboardView').classList.add('hidden');
+            document.getElementById('loginView').classList.remove('hidden');
+            document.getElementById('clientNameInput').value = '';
+            document.getElementById('clientPhoneInput').value = '';
+        }
+
+        loadGlobalAssets();
+    </script>
+</body>
+</html>
