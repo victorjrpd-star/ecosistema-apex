@@ -25,6 +25,7 @@
             background-size: cover; background-position: center; background-attachment: fixed;
             min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; align-items: center; 
             position: relative; max-width: 480px; margin: 0 auto; box-sizing: border-box;
+            padding-bottom: 90px; /* Holgura inferior para evitar que el contenido o los botones queden atrapados */
         }
         body::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-overlay); z-index: -1; pointer-events: none; }
         
@@ -56,23 +57,36 @@
         .countdown-timer.vencido { color: var(--status-danger); }
         .rule-notice { font-size: 0.58rem; color: var(--text-muted); line-height: 1.3; margin-top: 6px; border-top: 1px dashed var(--border); padding-top: 6px; }
 
-        /* Contenedor de galería con scroll infinito sincronizado */
-        .promo-scroll-container { width: 100%; overflow: hidden; position: relative; margin-top: 8px; mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent); -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent); }
-        .promo-track { display: flex; gap: 10px; width: max-content; animation: scrollInfinite 30s linear infinite; }
+        /* Contenedor de galería con scroll infinito sincronizado y soporte táctil manual */
+        .promo-scroll-container { width: 100%; overflow-x: auto; overflow-y: hidden; position: relative; margin-top: 8px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+        .promo-scroll-container::-webkit-scrollbar { display: none; }
+        .promo-track { display: flex; gap: 10px; width: max-content; animation: scrollInfinite 35s linear infinite; }
+        .promo-track.paused { animation-play-state: paused; }
         .promo-track:hover { animation-play-state: paused; }
         @keyframes scrollInfinite { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
-        /* Tarjeta Mini-Bono para la galería */
-        .mini-coupon-card { flex: 0 0 150px; height: 220px; border-radius: 6px; border: 1px solid var(--border); position: relative; overflow: hidden; background-size: cover; background-position: center; background-color: #050507; box-shadow: 0 4px 15px rgba(0,0,0,0.8); display: flex; flex-direction: column; justify-content: space-between; text-align: center; }
-        .mini-coupon-overlay { background: rgba(0,0,0,0.84); width: 100%; height: 100%; padding: 10px 8px; display: flex; flex-direction: column; justify-content: space-between; }
+        /* Tarjeta Mini-Bono para la galería optimizada con centrado vertical */
+        .mini-coupon-card { flex: 0 0 150px; height: 220px; border-radius: 6px; border: 1px solid var(--border); position: relative; overflow: hidden; background-size: cover; background-position: center; background-color: #050507; box-shadow: 0 4px 15px rgba(0,0,0,0.8); display: flex; flex-direction: column; justify-content: center; text-align: center; }
+        .mini-coupon-overlay { background: rgba(0,0,0,0.84); width: 100%; height: 100%; padding: 12px 10px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
 
         /* Historial de bonos pasados */
         .history-list { margin-top: 10px; max-height: 140px; overflow-y: auto; text-align: left; }
         .history-item { background: #050507; border: 1px solid var(--border); padding: 8px; border-radius: 4px; margin-bottom: 6px; font-size: 0.62rem; display: flex; justify-content: space-between; align-items: center; }
 
-        .bottom-nav { display: flex; gap: 6px; width: 100%; margin-top: auto; position: relative; z-index: 10; padding-bottom: 5px; }
+        /* Navegación superior reorganizada */
+        .top-nav-menu { display: flex; gap: 6px; width: 100%; margin-bottom: 12px; position: relative; z-index: 10; }
         .nav-tab-btn { flex: 1; padding: 10px; background: var(--card-bg); border: 1px solid var(--border); color: var(--text-muted); font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; border-radius: 4px; cursor: pointer; text-align: center; transition: 0.2s; }
         .nav-tab-btn.active { background: #fff; color: #000; border-color: #fff; font-weight: 900; }
+
+        /* Botón Mi Bono con parpadeo elegante y sutil */
+        @keyframes subtlePulse {
+            0% { box-shadow: 0 0 0 0 rgba(229, 9, 20, 0.4); border-color: var(--border); }
+            50% { box-shadow: 0 0 10px 2px rgba(229, 9, 20, 0.7); border-color: var(--accent); }
+            100% { box-shadow: 0 0 0 0 rgba(229, 9, 20, 0.4); border-color: var(--border); }
+        }
+        #tabBtnBono.nav-tab-btn.active {
+            animation: subtlePulse 2.5s infinite ease-in-out;
+        }
 
         .view-section { display: none; width: 100%; }
         .view-section.active { display: block; }
@@ -94,11 +108,17 @@
         <span class="brand-subtitle-main">Beneficios Reto Apex</span>
     </div>
 
+    <!-- MENÚ SUPERIOR MULTIVENTANA REORGANIZADO -->
+    <div class="top-nav-menu">
+        <button id="tabBtnExplorar" class="nav-tab-btn active" onclick="cambiarVistaTab('pantallaExplorar')">Promociones & Apex</button>
+        <button id="tabBtnBono" class="nav-tab-btn" onclick="cambiarVistaTab('pantallaBono')">Mi Bono</button>
+    </div>
+
     <!-- CONTENEDOR DE PANTALLAS / MULTIVENTANA -->
     <div style="width: 100%; flex: 1; display: flex; flex-direction: column; justify-content: center;">
 
         <!-- ================= PANTALLA 1: MI BONO ================= -->
-        <div id="pantallaBono" class="view-section active">
+        <div id="pantallaBono" class="view-section">
             
             <!-- VISTA 1A: REGISTRO / ACCESO -->
             <div id="loginView" class="card">
@@ -143,7 +163,7 @@
                     </div>
                 </div>
 
-                <button onclick="downloadCard()" style="margin-top:10px;">Obtener Mi Premio</button>
+                <button class="btn-apex" onclick="downloadCard()" style="margin-top:10px;">Descargar / Guardar Mi Bono</button>
                 
                 <!-- Botón de WhatsApp redirigido al aliado comercial de la tienda del bono -->
                 <a id="whatsappStoreBtn" href="#" target="_blank" class="btn-link-action" style="background:#0f2b18; border-color:#22c55e; color:#22c55e;">
@@ -166,17 +186,17 @@
 
         </div>
 
-        <!-- ================= PANTALLA 2: ECOSISTEMA APEX Y PROMOCIONES ================= -->
-        <div id="pantallaExplorar" class="view-section">
+        <!-- ================= PANTALLA 2: ECOSISTEMA APEX Y PROMOCIONES (VISTA INICIAL) ================= -->
+        <div id="pantallaExplorar" class="view-section active">
             <div class="card" style="text-align: left;">
                 <h3 style="font-size: 0.8rem; text-transform: uppercase; color: #fff; margin-bottom: 10px; font-weight: 900; border-bottom: 1px solid var(--border); padding-bottom: 6px;">Ecosistema Apex</h3>
                 
-                <!-- Sección de Promociones Disponibles (Galería Mini-Bonos Carrusel Infinito) -->
+                <!-- Sección de Promociones Disponibles (Galería Carrusel Infinito con Scroll Manual y Automático) -->
                 <div class="info-box" style="margin-bottom: 12px;">
                     <h4>Promociones Disponibles en la Red</h4>
-                    <p style="margin-bottom: 8px;">Desliza o explora los beneficios activos como mini-bonos:</p>
+                    <p style="margin-bottom: 8px;">Desliza o explora los beneficios activos:</p>
                     
-                    <div class="promo-scroll-container">
+                    <div class="promo-scroll-container" id="promoScrollWrapper">
                         <div id="publicPromosGallery" class="promo-track">
                             <span style="font-size: 0.6rem; color: var(--text-muted); padding: 10px;">Cargando promociones...</span>
                         </div>
@@ -193,16 +213,10 @@
                     <p>Es nuestra activación deportiva interactiva en espacios públicos, diseñada con fines recreativos y para descubrir talentos, evaluando reflejos, potencia y resistencia. Al participar, accedes a beneficios y patrocinios exclusivos con nuestros aliados comerciales.</p>
                 </div>
 
-                <button class="btn-secundario" onclick="cambiarVistaTab('pantallaBono')" style="margin-top: 6px;">← Volver a mi Bono</button>
+                <button class="btn-secundario" onclick="cambiarVistaTab('pantallaBono')" style="margin-top: 6px;">Ir a Mi Bono</button>
             </div>
         </div>
 
-    </div>
-
-    <!-- MENÚ INFERIOR MULTIVENTANA -->
-    <div class="bottom-nav">
-        <button id="tabBtnBono" class="nav-tab-btn active" onclick="cambiarVistaTab('pantallaBono')">Mi Bono</button>
-        <button id="tabBtnExplorar" class="nav-tab-btn" onclick="cambiarVistaTab('pantallaExplorar')">Promociones & Apex</button>
     </div>
 
     <div id="toast">Notificación</div>
@@ -216,6 +230,7 @@
         let countdownInterval = null;
         let globalSettings = { logo: '', bg: '', adminPass: 'admin' };
         let deferredPrompt = null;
+        let resumeScrollTimeout = null;
 
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
@@ -329,10 +344,12 @@
                         <div class="mini-coupon-overlay">
                             <div>
                                 <span style="background:#fff; color:#000; font-size:6px; padding:1px 4px; font-weight:900;">APEX BOXING</span>
-                                <h5 style="font-size: 0.65rem; font-weight: 900; color: #fff; text-transform: uppercase; margin-top: 4px; line-height: 1.1;">${p.title}</h5>
+                                <h5 style="font-size: 0.68rem; font-weight: 900; color: #fff; text-transform: uppercase; margin: 4px 0; line-height: 1.1;">${p.title}</h5>
                             </div>
-                            <div>
-                                <p style="font-size: 0.52rem; color: #ccc; line-height: 1.2; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${p.terms || 'Beneficio exclusivo.'}</p>
+                            <div style="margin: 4px 0;">
+                                <p style="font-size: 0.54rem; color: #ccc; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">${p.terms || 'Beneficio exclusivo.'}</p>
+                            </div>
+                            <div style="margin-top: 4px;">
                                 ${statusBadge}
                             </div>
                         </div>
@@ -342,6 +359,32 @@
 
             // Duplicar tarjetas para efecto de carrusel infinito sin saltos
             galleryEl.innerHTML = cardsHtml + cardsHtml;
+            inicializarInteraccionManualCarrusel();
+        }
+
+        function inicializarInteraccionManualCarrusel() {
+            let wrapper = document.getElementById('promoScrollWrapper');
+            let track = document.getElementById('publicPromosGallery');
+            if(!wrapper || !track) return;
+
+            let pausarAnimacion = () => {
+                track.classList.add('paused');
+                if(resumeScrollTimeout) clearTimeout(resumeScrollTimeout);
+            };
+
+            let reanudarAnimacionDespues = () => {
+                if(resumeScrollTimeout) clearTimeout(resumeScrollTimeout);
+                resumeScrollTimeout = setTimeout(() => {
+                    track.classList.remove('paused');
+                }, 3000); // Vuelve a su movimiento natural a los 3 segundos de dejar de manipular
+            };
+
+            wrapper.addEventListener('mousedown', pausarAnimacion);
+            wrapper.addEventListener('touchstart', pausarAnimacion, {passive: true});
+
+            wrapper.addEventListener('mouseup', reanudarAnimacionDespues);
+            wrapper.addEventListener('touchend', reanudarAnimacionDespues);
+            wrapper.addEventListener('mouseleave', reanudarAnimacionDespues);
         }
 
         async function selectWeightedPromoForClient(phone) {
@@ -474,7 +517,7 @@
                 terms: targetPromo.terms || 'Válido en establecimientos participantes.',
                 promo_id: targetPromo.id,
                 promo_title: targetPromo.title,
-                season: targetPromo.season || '2026-10',
+                season: targetPromo.season || '2026-11',
                 store_id: targetPromo.store_id,
                 created_by: 'Auto-Registro QR',
                 status: 'activo'
@@ -527,13 +570,13 @@
             document.getElementById('prevPhone').innerText = `PIN / TEL: ${coupon.phone}`;
             document.getElementById('prevExpiry').innerText = `Expira: ${coupon.expiry || 'N/A'}`;
 
-            let waMsgBono = encodeURIComponent(`Hola, soy ${coupon.beneficiary} (Tel: ${coupon.phone}) y quiero hacer válido o consultar sobre mi beneficio "${coupon.promo_title}" otorgado por ${storeName}.`);
+            let waMsgBono = encodeURIComponent(`¡Hola! Soy ${coupon.beneficiary} (Tel: ${coupon.phone}). Me comunico por mi beneficio "${coupon.promo_title}" obtenido en el Reto Apex / Apex Boxing con ${storeName}. ¡Quiero hacerlo válido!`);
             let cleanStorePhone = storePhone.replace(/\D/g, '');
             if(!cleanStorePhone.startsWith('57') && cleanStorePhone.length === 10) cleanStorePhone = '57' + cleanStorePhone;
             document.getElementById('whatsappStoreBtn').href = `https://wa.me/${cleanStorePhone}?text=${waMsgBono}`;
             document.getElementById('whatsappStoreBtn').innerText = `Contactar a ${storeName}`;
 
-            let waMsgEscuela = encodeURIComponent(`Hola, soy ${coupon.beneficiary} (Tel: ${coupon.phone}). Acabo de participar en el Reto Apex y quiero solicitar información sobre la escuela de boxeo Apex Boxing Escuela de Strikers para empezar a entrenar.`);
+            let waMsgEscuela = encodeURIComponent(`¡Hola! Soy ${coupon.beneficiary} (Tel: ${coupon.phone}). Participé en el Reto Apex y quiero solicitar información sobre la escuela de boxeo Apex Boxing Escuela de Strikers para empezar a entrenar.`);
             document.getElementById('whatsappEscuelaBtn').href = `https://wa.me/3137748937?text=${waMsgEscuela}`;
 
             renderizarHistorialPasado(allCoupons, coupon.id);
