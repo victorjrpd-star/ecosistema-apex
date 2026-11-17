@@ -914,6 +914,7 @@
         nominaCache = resNom.data || [];
 
         poblarSelectsCuentasPropias();
+        poblarSelectsProductosModal();
         poblarSelectsCategorias();
         poblarSelectsTercerosCaja();
         poblarFiltrosHistorial();
@@ -950,6 +951,15 @@
           sel.innerHTML += `<option value="${c.id}">${c.nombre} (${formatCOP(c.saldo_actual)})</option>`;
         });
         sel.value = valActual;
+      });
+    }
+
+    function poblarSelectsProductosModal() {
+      const sel = document.getElementById('modalSelectProductoTienda');
+      if (!sel) return;
+      sel.innerHTML = '<option value="">-- Seleccionar producto / membresía --</option>';
+      productosCache.forEach(p => {
+        sel.innerHTML += `<option value="${p.id}" data-precio="${p.precio}" data-nombre="${p.nombre}" data-categoria="${p.categoria || 'Mensualidad'}">${p.nombre} (${formatCOP(p.precio)})</option>`;
       });
     }
 
@@ -1751,9 +1761,8 @@
         poblarSelectsCuentasPropias();
         this.renderizarCatalogoModal();
 
-        const monto = parseFloat(pagoCoachSeleccionado.amount) || 0;
         document.getElementById('modalCoachDetalle').innerText = `Striker: ${pagoCoachSeleccionado.user_email}`;
-        document.getElementById('modalCoachMontoReal').value = monto;
+        document.getElementById('modalCoachMontoReal').value = 0; // Monto en 0 por defecto para evitar errores
         document.getElementById('modalSelectedProductoId').value = '';
         document.getElementById('modalCoachFechaPago').value = new Date().toISOString().split('T')[0];
 
@@ -1792,6 +1801,7 @@
         document.getElementById('modalSelectedProductoId').value = idProd;
         document.getElementById('modalCoachMontoReal').value = precio;
         
+        // Resaltar visualmente la tarjeta seleccionada
         document.querySelectorAll('#modalCatalogoProductosGrid .product-card').forEach(c => c.style.borderColor = 'var(--border)');
         event.currentTarget.style.borderColor = 'var(--status-ok)';
       },
@@ -1802,13 +1812,23 @@
         const montoReal = parseFloat(document.getElementById('modalCoachMontoReal').value) || 0;
         const fechaPagoVal = document.getElementById('modalCoachFechaPago').value;
         const prodId = document.getElementById('modalSelectedProductoId').value;
-        const optProd = productosCache.find(p => p.id === prodId);
         const cajeroEmail = (localStorage.getItem('apex_user_email') || sessionStorage.getItem('apex_user_email') || 'contabilidad@apex.com');
         
+        if (!prodId) {
+          alert("Debes seleccionar obligatoriamente una membresía o producto del catálogo visual.");
+          return;
+        }
+        if (montoReal <= 0) {
+          alert("El monto debe ser mayor a 0.");
+          return;
+        }
         if (!ctaId) {
           alert("Por favor selecciona una cuenta destino propia.");
           return;
         }
+
+        const optProd = productosCache.find(p => p.id === prodId);
+        const nombreProducto = optProd ? optProd.nombre : 'Membresía General';
 
         const cta = cuentasCache.find(c => c.id === ctaId);
         if (!cta) {
@@ -1816,21 +1836,31 @@
           return;
         }
 
-        const categoriaProd = optProd ? (optProd.categoria || 'Mensualidad') : 'Mensualidad';
+        const categoriaProd = optProd ? optProd.categoria : 'Mensualidad';
         const catObj = categoriasCache.find(c => c.nombre.toLowerCase().includes('membresía')) || categoriasCache[0];
 
         try {
+          // Actualizar saldo de cuenta
           await sb.from('apex_cuentas').update({ saldo_actual: parseFloat(cta.saldo_actual) + montoReal }).eq('id', ctaId);
+          
+          // Registrar en libro mayor con detalle específico del producto
           await sb.from('apex_transacciones_libro_mayor').insert([{
             type: 'ingreso',
             category: 'Membresías Sala',
             categoria_id: catObj ? catObj.id : null,
             amount: montoReal,
             account_id: ctaId,
-            description: `Membresía sala: ${pagoCoachSeleccionado.user_email} | Fecha Real de Pago: ${fechaPagoVal || new Date().toISOString().split('T')[0]}`,
+            description: `Producto: ${nombreProducto} | Striker: ${pagoCoachSeleccionado.user_email} | Fecha Real de Pago: ${fechaPagoVal || new Date().toISOString().split('T')[0]}`,
             registered_by: cajeroEmail,
             created_at: fechaPagoVal ? new Date(fechaPagoVal + 'T12:00:00').toISOString() : new Date().toISOString()
           }]);
+
+          // Descontar inventario si aplica (Insumo o Equipo)
+          if (optProd && (optProd.categoria === 'Insumo' || optProd.categoria === 'Equipo')) {
+            const stockActual = parseInt(optProd.stock ?? 0, 10);
+            const nuevoStock = Math.max(0, stockActual - 1);
+            await sb.from('apex_productos').update({ stock: nuevoStock }).eq('id', optProd.id);
+          }
 
           await sb.from('apex_payments').update({ accounting_status: 'redimido' }).eq('id', pagoCoachSeleccionado.id);
 
@@ -1861,7 +1891,7 @@
           await sb.from('apex_notifications').insert({
             user_email: pagoCoachSeleccionado.user_email,
             title: '¡Membresía Facturada!',
-            message: `Tu pago ha sido validado y facturado. Tu membresía está activa hasta el ${expDateLegible}.`,
+            message: `Tu pago (${nombreProducto}) ha sido validado y facturado. Activa hasta el ${expDateLegible}.`,
             type: 'membresia'
           });
 
@@ -2373,6 +2403,15 @@
             fechaRealPago = partes[1].trim();
           }
 
+          // Extraer nombre de usuario si hay correo en la descripción
+          let nombreUsuario = '';
+          for (const u of registeredUsersCache) {
+            if (u.email && descLimpia.toLowerCase().includes(u.email.toLowerCase())) {
+              nombreUsuario = u.name || u.email;
+              break;
+            }
+          }
+
           cont.innerHTML += `
             <div style="background:var(--card-sub); border:1px solid var(--border); border-radius:6px; padding:10px; margin-top:6px;">
               <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px;">
@@ -2380,7 +2419,8 @@
                   <strong style="color:#fff; font-size:0.75rem; text-transform:uppercase;">${t.category || 'Transacción'}</strong>
                   <div style="font-size:0.62rem; color:var(--text-muted); margin-top:2px;">
                     <div><strong>Cuenta:</strong> ${nombreCuenta}</div>
-                    <div><strong>Nota/Detalle:</strong> ${descLimpia}</div>
+                    <div><strong>Cliente / Usuario:</strong> <span style="color:#fff; font-weight:bold;">${nombreUsuario || 'General / Tercero'}</span></div>
+                    <div><strong>Detalle / Producto:</strong> ${descLimpia}</div>
                     <div><strong>Responsable:</strong> <span style="color:var(--status-info);">${t.registered_by || 'Sistema'}</span></div>
                     <div><strong>Fecha Real de Pago:</strong> <span style="color:var(--status-warn);">${fechaRealPago}</span></div>
                     <div><strong>Fecha de Registro:</strong> ${fechaRegistro}</div>
@@ -2388,7 +2428,10 @@
                 </div>
                 <div style="text-align:right;">
                   <div style="font-weight:900; color:${color}; font-size:0.85rem;">${signo}${formatCOP(t.amount)}</div>
-                  <button class="btn-secondary" style="font-size:0.5rem; padding:2px 6px; margin-top:4px; color:var(--accent);" onclick="HistorialAdmin.reversar('${t.id}')">Anular</button>
+                  <div style="display:flex; gap:3px; margin-top:4px; justify-content:flex-end;">
+                    <button class="btn-secondary" style="font-size:0.5rem; padding:2px 5px; color:var(--status-info);" onclick="HistorialAdmin.abrirEditar('${t.id}')">Editar</button>
+                    <button class="btn-secondary" style="font-size:0.5rem; padding:2px 5px; color:var(--accent);" onclick="HistorialAdmin.reversar('${t.id}')">Eliminar</button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -2415,7 +2458,7 @@
       },
 
       reversar: async function(transId) {
-        if (!confirm("¿Anular transacción?")) return;
+        if (!confirm("¿Estás seguro de eliminar/anular esta transacción? Se revertirá su impacto en la cuenta.")) return;
         const t = transaccionesCache.find(x => x.id === transId);
         if (!t) return;
 
@@ -2431,6 +2474,52 @@
           await cargarDatosGlobales();
         } catch (err) {
           alert("Error: " + err.message);
+        }
+      },
+
+      abrirEditar: function(transId) {
+        const t = transaccionesCache.find(x => x.id === transId);
+        if (!t) return;
+        document.getElementById('editTransId').value = t.id;
+        document.getElementById('editTransMonto').value = t.amount;
+        document.getElementById('editTransDesc').value = t.description || '';
+        document.getElementById('modalEditarTransaccion').style.display = 'flex';
+      },
+
+      guardarEdicion: async function() {
+        const transId = document.getElementById('editTransId').value;
+        const nuevoMonto = parseFloat(document.getElementById('editTransMonto').value) || 0;
+        const nuevaDesc = document.getElementById('editTransDesc').value.trim();
+
+        const t = transaccionesCache.find(x => x.id === transId);
+        if (!t) return;
+
+        if (nuevoMonto <= 0) {
+          alert("El monto debe ser mayor a 0.");
+          return;
+        }
+
+        try {
+          // Ajustar diferencia en la cuenta si el monto cambió
+          const diff = nuevoMonto - parseFloat(t.amount);
+          if (diff !== 0 && t.account_id) {
+            const cta = cuentasCache.find(c => c.id === t.account_id);
+            if (cta) {
+              const ajusteSaldo = t.type === 'ingreso' ? cta.saldo_actual + diff : cta.saldo_actual - diff;
+              await sb.from('apex_cuentas').update({ saldo_actual: ajusteSaldo }).eq('id', t.account_id);
+            }
+          }
+
+          await sb.from('apex_transacciones_libro_mayor').update({
+            amount: nuevoMonto,
+            description: nuevaDesc
+          }).eq('id', transId);
+
+          document.getElementById('modalEditarTransaccion').style.display = 'none';
+          alert("Transacción actualizada con éxito.");
+          await cargarDatosGlobales();
+        } catch (err) {
+          alert("Error al actualizar: " + err.message);
         }
       }
     };
@@ -2461,5 +2550,26 @@
 
     window.onload = init;
   </script>
+
+  <!-- MODAL EDITAR TRANSACCIÓN EN HISTORIAL -->
+  <div id="modalEditarTransaccion" class="modal-overlay">
+    <div style="background:var(--card-bg); border:1px solid var(--border); border-radius:6px; padding:16px; width:100%; max-width:340px;">
+      <div style="font-weight:900; font-size:0.8rem; color:#fff; text-transform:uppercase; margin-bottom:8px;">Editar Transacción</div>
+      <input type="hidden" id="editTransId">
+      <div class="form-group">
+        <label>Monto ($)</label>
+        <input type="number" id="editTransMonto" class="form-control" min="0" required>
+      </div>
+      <div class="form-group">
+        <label>Descripción / Detalle</label>
+        <input type="text" id="editTransDesc" class="form-control" required>
+      </div>
+      <div style="display:flex; gap:6px; margin-top:12px;">
+        <button class="btn" onclick="HistorialAdmin.guardarEdicion()">Guardar Cambios</button>
+        <button class="btn-secondary" onclick="document.getElementById('modalEditarTransaccion').style.display='none'">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
