@@ -50,7 +50,7 @@
     .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-bottom: 10px; }
     .card-title { font-size: 0.7rem; font-weight: 900; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
 
-    .form-group { margin-bottom: 8px; }
+    .form-group { margin-bottom: 8px; position: relative; }
     label { display: block; font-size: 0.62rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted); margin-bottom: 3px; }
     .form-control { width: 100%; padding: 8px; background: var(--card-sub); border: 1px solid var(--border); color: #fff; border-radius: 4px; font-weight: 600; outline: none; font-size: 0.78rem; color-scheme: dark; }
     .form-control:focus { border-color: var(--accent); }
@@ -91,6 +91,14 @@
     }
     .inflow-meta { font-size: 0.6rem; color: var(--text-muted); margin-top: 2px; }
 
+    .suggestions-box {
+      position: absolute; top: calc(100% + 2px); left: 0; right: 0; background: #111114;
+      border: 1px solid var(--border); border-radius: 5px; max-height: 220px; overflow-y: auto;
+      z-index: 50; display: none; box-shadow: 0 8px 24px rgba(0,0,0,0.8);
+    }
+    .suggestion-item { padding: 8px 10px; border-bottom: 1px solid var(--border); cursor: pointer; font-size: 0.75rem; display: flex; align-items: center; gap: 8px; }
+    .suggestion-item:hover { background: #18181c; }
+
     .modal-overlay {
       display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(0,0,0,0.9); backdrop-filter: blur(2px); z-index: 100;
@@ -105,7 +113,7 @@
 <body>
 
   <div class="header">
-    <div class="title">Apex <span>Inventario Global</span></div>
+    <div class="title">Apex <span>Inventario Global & Sala</span></div>
     <div style="display:flex; align-items:center; gap:6px;">
       <span id="lblCajeroActivo" style="font-size:0.55rem; color:var(--text-muted); background:var(--card-sub); padding:3px 6px; border:1px solid var(--border); border-radius:4px;">Cajero: No autenticado</span>
       <div class="badge-role" id="lblEstadoCaja">Caja Cerrada</div>
@@ -244,6 +252,7 @@
             <select id="cartTipoOperacion" class="form-control" onchange="CajaOperacion.cambioOperacion()">
               <option value="venta">Venta / Ingreso</option>
               <option value="compra">Compra / Egreso</option>
+              <option value="cuadre">Cuadre / Ajuste Caja</option>
               <option value="prestamo_otorgado">Préstamo Otorgado (Deudor)</option>
               <option value="prestamo_recibido">Préstamo Recibido (Acreedor)</option>
             </select>
@@ -270,12 +279,33 @@
           <select id="cartCuentaTransaccion" class="form-control"></select>
         </div>
 
+        <!-- MODO CUADRE LIBRE -->
+        <div id="wrapCuadreLibre" style="display:none; margin-bottom:6px;">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:6px;">
+            <div>
+              <label>Tipo Cuadre</label>
+              <select id="cuadreTipoDir" class="form-control">
+                <option value="ingreso">Ingreso de Dinero (Suma)</option>
+                <option value="egreso">Egreso de Dinero (Resta)</option>
+              </select>
+            </div>
+            <div>
+              <label>Monto Libre ($ COP)</label>
+              <input type="number" id="cuadreMonto" class="form-control" min="0" value="0">
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label>Descripción del Cuadre / Ajuste</label>
+            <input type="text" id="cuadreNota" class="form-control" placeholder="Ej: Ajuste por efectivo sobrante o faltante...">
+          </div>
+        </div>
+
         <div class="form-group" style="margin-bottom:6px;" id="wrapMontoPrestamo" style="display:none;">
           <label>Monto del Préstamo ($ COP)</label>
           <input type="number" id="cartMontoPrestamo" class="form-control" min="0" value="0">
         </div>
 
-        <div class="form-group" style="margin-bottom:6px;">
+        <div class="form-group" style="margin-bottom:6px;" id="wrapCartTercero">
           <label id="lblCartCliente">Tercero (Cliente / Proveedor / Staff)</label>
           <select id="cartSelectTercero" class="form-control">
             <option value="">-- Seleccionar tercero --</option>
@@ -355,14 +385,65 @@
     </div>
   </div>
 
-  <!-- ================= 3. BANDEJA REPORTES DE SALA (COACH) ================= -->
+  <!-- ================= 3. SALA & MEMBRESÍAS UNIFICADAS ================= -->
   <div id="tabBandejaCoach" class="tab-section">
-    <div class="card">
-      <div class="card-title">
-        <span>Pagos en Sala</span>
-        <span id="lblCoachPendientesTxt" style="color: var(--status-ok); font-size: 0.6rem;">0 Pendientes</span>
+    <!-- SUB-NAVEGACIÓN DE SALA -->
+    <div class="sub-nav" style="margin-bottom: 10px;">
+      <button class="nav-btn active" onclick="switchSalaSubTab('subRevCoach', this)">📥 Revisión Sala <span id="badgeCoachCount" class="nav-badge" style="display:none;">0</span></button>
+      <button class="nav-btn" onclick="switchSalaSubTab('subGenMem', this)">➕ Reportar Membresía</button>
+    </div>
+
+    <!-- SUBTAB 1: REVISIÓN DE PAGOS EN SALA -->
+    <div id="subRevCoach" class="sala-subtab">
+      <div class="card">
+        <div class="card-title">
+          <span>Pagos en Sala</span>
+          <span id="lblCoachPendientesTxt" style="color: var(--status-ok); font-size: 0.6rem;">0 Pendientes</span>
+        </div>
+        <div id="listaMembresiasPendientes">Cargando...</div>
       </div>
-      <div id="listaMembresiasPendientes">Cargando...</div>
+    </div>
+
+    <!-- SUBTAB 2: HABILITACIÓN Y REPORTE DE MEMBRESÍAS -->
+    <div id="subGenMem" class="sala-subtab" style="display:none;">
+      <div class="card">
+        <div class="card-title">Habilitación y Control de Pago</div>
+        <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 12px;">Buscador predictivo de Strikers. Otorga 3 días de gracia y envía la evidencia al contador.</div>
+
+        <div class="form-group">
+          <label>Striker (Correo o Nombre)</label>
+          <input type="text" id="studentEmailSearch" placeholder="Escribe para buscar..." class="form-control" autocomplete="off" oninput="ApexMembresiasApp.buscar(this.value)">
+          <div class="suggestions-box" id="suggestionsBox"></div>
+        </div>
+
+        <div id="strikerCard" style="background:var(--card-sub); border:1px solid var(--border); border-radius:6px; padding:10px; margin-top:8px; display:none;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <strong id="strikerName" style="color:#fff; font-size:0.8rem; display:block;">-</strong>
+              <span id="strikerEmailTxt" style="font-size:0.6rem; color:var(--text-muted);">-</span>
+            </div>
+            <span id="strikerStatusBadge" style="font-size:0.6rem; font-weight:800; padding:2px 6px; border-radius:3px;">-</span>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 10px;">
+          <label>Nota Opcional para el Contador</label>
+          <input type="text" id="coachNoteInput" placeholder="Ej: Pago realizado por transferencia..." class="form-control" autocomplete="off">
+        </div>
+
+        <div class="form-group">
+          <label>Evidencia del Comprobante</label>
+          <div style="display: flex; gap: 8px;">
+            <button type="button" class="btn-secondary" style="flex: 1;" onclick="document.getElementById('evidenceGalleryInput').click()">📁 Seleccionar Archivo</button>
+            <button type="button" class="btn-secondary" style="width: 52px; font-size: 1.1rem;" onclick="document.getElementById('evidenceCameraInput').click()" title="Tomar foto">📷</button>
+          </div>
+          <input type="file" id="evidenceGalleryInput" accept="image/*" style="display: none;" onchange="ApexMembresiasApp.manejarArchivoSeleccionado(this)">
+          <input type="file" id="evidenceCameraInput" accept="image/*" capture="environment" style="display: none;" onchange="ApexMembresiasApp.manejarArchivoSeleccionado(this)">
+          <div id="fileSelectedIndicator" style="font-size: 0.65rem; color: var(--status-ok); margin-top: 5px; display: none;"></div>
+        </div>
+
+        <button class="btn" id="btnSubmitMembership" disabled onclick="ApexMembresiasApp.procesar()" style="background:var(--status-ok); color:#000;">Adjunta Evidencia Para Habilitar</button>
+      </div>
     </div>
   </div>
 
@@ -568,8 +649,9 @@
       </div>
 
       <div class="form-group">
-        <label>Seleccionar Membresía / Producto (Precarga)</label>
-        <select id="modalSelectProductoTienda" class="form-control" onchange="BandejaCoach.seleccionarProductoTienda()"></select>
+        <label>Seleccionar Membresía / Producto (Catálogo Visual)</label>
+        <input type="hidden" id="modalSelectedProductoId">
+        <div id="modalCatalogoProductosGrid" style="display:grid; grid-template-columns:repeat(2, 1fr); gap:6px; max-height:160px; overflow-y:auto; background:var(--card-sub); padding:6px; border-radius:4px; border:1px solid var(--border);"></div>
       </div>
 
       <div class="form-group">
@@ -728,7 +810,10 @@
     let carrito = [];
     let pagoCoachSeleccionado = null;
     let cajaActiva = null;
-    let staffSeleccionadoNomina = null;
+    let registeredUsersCache = [];
+    let selectedStriker = null;
+    let archivoEvidenciaActual = null;
+    let currentAgentEmail = 'coach@apexboxing.com';
 
     function formatCOP(num) {
       return '$' + Math.round(num || 0).toLocaleString('es-CO');
@@ -746,11 +831,19 @@
       }
     };
 
+    window.switchSalaSubTab = function(subId, btn) {
+      document.querySelectorAll('.sala-subtab').forEach(s => s.style.display = 'none');
+      document.querySelectorAll('#tabBandejaCoach .sub-nav .nav-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(subId).style.display = 'block';
+      btn.classList.add('active');
+    };
+
     async function init() {
       await cargarDatosGlobales();
       await sincronizarStaffComoTerceros();
 
       const userEmail = localStorage.getItem('apex_user_email') || sessionStorage.getItem('apex_user_email') || 'cajero@apex.com';
+      currentAgentEmail = userEmail;
       document.getElementById('lblCajeroActivo').innerText = `Cajero: ${userEmail}`;
 
       if (sb) {
@@ -807,6 +900,7 @@
         cuentasCache = resCta.data || [];
         productosCache = resProd.data || [];
         pagosPendientesCache = resPag.data || [];
+        registeredUsersCache = resUsr.data || [];
         
         const usuariosTotales = resUsr.data || [];
         staffCache = usuariosTotales.filter(u => {
@@ -820,7 +914,6 @@
         nominaCache = resNom.data || [];
 
         poblarSelectsCuentasPropias();
-        poblarSelectsProductosModal();
         poblarSelectsCategorias();
         poblarSelectsTercerosCaja();
         poblarFiltrosHistorial();
@@ -857,15 +950,6 @@
           sel.innerHTML += `<option value="${c.id}">${c.nombre} (${formatCOP(c.saldo_actual)})</option>`;
         });
         sel.value = valActual;
-      });
-    }
-
-    function poblarSelectsProductosModal() {
-      const sel = document.getElementById('modalSelectProductoTienda');
-      if (!sel) return;
-      sel.innerHTML = '<option value="">-- Seleccionar producto / membresía --</option>';
-      productosCache.forEach(p => {
-        sel.innerHTML += `<option value="${p.id}" data-precio="${p.precio}" data-nombre="${p.nombre}" data-categoria="${p.categoria || 'Mensualidad'}">${p.nombre} (${formatCOP(p.precio)})</option>`;
       });
     }
 
@@ -1155,24 +1239,40 @@
         const tipoOp = document.getElementById('cartTipoOperacion').value;
         const wrapPago = document.getElementById('wrapCartPago');
         const wrapMontoPrestamo = document.getElementById('wrapMontoPrestamo');
+        const wrapCuadreLibre = document.getElementById('wrapCuadreLibre');
+        const wrapCartTercero = document.getElementById('wrapCartTercero');
         const boxTitle = document.getElementById('cartBoxTitle');
         const btnCobrar = document.getElementById('btnCartCobrar');
 
         if (tipoOp === 'compra') {
           wrapPago.style.display = 'none';
           wrapMontoPrestamo.style.display = 'none';
+          wrapCuadreLibre.style.display = 'none';
+          wrapCartTercero.style.display = 'block';
           boxTitle.innerText = '🛒 Carrito Rápido (Compra / Egreso)';
           btnCobrar.innerText = 'Registrar Compra / Egreso';
           btnCobrar.style.background = 'var(--accent)';
+        } else if (tipoOp === 'cuadre') {
+          wrapPago.style.display = 'none';
+          wrapMontoPrestamo.style.display = 'none';
+          wrapCuadreLibre.style.display = 'block';
+          wrapCartTercero.style.display = 'none';
+          boxTitle.innerText = '⚖️ Cuadre / Ajuste Directo de Caja';
+          btnCobrar.innerText = 'Registrar Cuadre Contable';
+          btnCobrar.style.background = 'var(--status-info)';
         } else if (tipoOp === 'prestamo_otorgado' || tipoOp === 'prestamo_recibido') {
           wrapPago.style.display = 'none';
           wrapMontoPrestamo.style.display = 'block';
+          wrapCuadreLibre.style.display = 'none';
+          wrapCartTercero.style.display = 'block';
           boxTitle.innerText = '🤝 Registro de Préstamo / Deuda';
           btnCobrar.innerText = 'Registrar Préstamo';
           btnCobrar.style.background = 'var(--status-info)';
         } else {
           wrapPago.style.display = 'block';
           wrapMontoPrestamo.style.display = 'none';
+          wrapCuadreLibre.style.display = 'none';
+          wrapCartTercero.style.display = 'block';
           boxTitle.innerText = '🛒 Carrito Rápido (Venta)';
           btnCobrar.innerText = 'Registrar Venta';
           btnCobrar.style.background = 'var(--accent)';
@@ -1223,15 +1323,10 @@
         if (!cajaActiva) { alert("Caja cerrada."); return; }
         
         const tipoOperacion = document.getElementById('cartTipoOperacion').value;
-        const tercero = document.getElementById('cartSelectTercero').value;
         const cuentaTransaccionId = document.getElementById('cartCuentaTransaccion').value;
         const categoriaId = document.getElementById('cartSelectCategoria').value;
         const cajeroEmail = cajaActiva.cajeroEmail;
 
-        if (!tercero) {
-          alert("Debes seleccionar un Tercero obligatorio.");
-          return;
-        }
         if (!cuentaTransaccionId) {
           alert("Selecciona la cuenta propia.");
           return;
@@ -1245,6 +1340,53 @@
         const catObj = categoriasCache.find(c => c.id === categoriaId);
 
         try {
+          // GESTIÓN DE CUADRE / AJUSTE LIBRE DE CAJA
+          if (tipoOperacion === 'cuadre') {
+            const cuadreDir = document.getElementById('cuadreTipoDir').value;
+            const montoCuadre = parseFloat(document.getElementById('cuadreMonto').value) || 0;
+            const notaCuadre = document.getElementById('cuadreNota').value.trim() || 'Ajuste / Cuadre de Caja';
+
+            if (montoCuadre <= 0) { alert("Ingresa un monto válido para el cuadre."); return; }
+
+            if (cuadreDir === 'egreso' && ctaTrans.saldo_actual < montoCuadre) {
+              alert(`Saldo insuficiente en cuenta "${ctaTrans.nombre}". Fondos disponibles: ${formatCOP(ctaTrans.saldo_actual)}`);
+              return;
+            }
+
+            const nuevoSaldoCta = cuadreDir === 'ingreso' 
+              ? parseFloat(ctaTrans.saldo_actual) + montoCuadre 
+              : parseFloat(ctaTrans.saldo_actual) - montoCuadre;
+
+            await sb.from('apex_cuentas').update({ saldo_actual: nuevoSaldoCta }).eq('id', cuentaTransaccionId);
+
+            await sb.from('apex_transacciones_libro_mayor').insert([{
+              type: cuadreDir,
+              category: catObj ? catObj.nombre : 'Cuadre de Caja',
+              categoria_id: categoriaId,
+              amount: montoCuadre,
+              account_id: cuentaTransaccionId,
+              description: notaCuadre,
+              registered_by: cajeroEmail
+            }]);
+
+            if (cuentaTransaccionId === cajaActiva.cuentaId) {
+              if (cuadreDir === 'ingreso') cajaActiva.efectivoRecaudado += montoCuadre;
+              else cajaActiva.efectivoRecaudado -= montoCuadre;
+            }
+
+            alert("¡Cuadre / Ajuste registrado con éxito!");
+            document.getElementById('cuadreMonto').value = 0;
+            document.getElementById('cuadreNota').value = '';
+            await cargarDatosGlobales();
+            return;
+          }
+
+          const tercero = document.getElementById('cartSelectTercero').value;
+          if (!tercero && tipoOperacion !== 'prestamo_otorgado' && tipoOperacion !== 'prestamo_recibido') {
+            alert("Debes seleccionar un Tercero obligatorio.");
+            return;
+          }
+
           if (tipoOperacion === 'prestamo_otorgado' || tipoOperacion === 'prestamo_recibido') {
             const montoPrestamo = parseFloat(document.getElementById('cartMontoPrestamo').value) || 0;
             if (montoPrestamo <= 0) {
@@ -1606,13 +1748,13 @@
         pagoCoachSeleccionado = pagosPendientesCache.find(p => p.id === pagoId);
         if (!pagoCoachSeleccionado) return;
 
-        poblarSelectsProductosModal();
         poblarSelectsCuentasPropias();
+        this.renderizarCatalogoModal();
 
         const monto = parseFloat(pagoCoachSeleccionado.amount) || 0;
         document.getElementById('modalCoachDetalle').innerText = `Striker: ${pagoCoachSeleccionado.user_email}`;
         document.getElementById('modalCoachMontoReal').value = monto;
-        document.getElementById('modalSelectProductoTienda').value = '';
+        document.getElementById('modalSelectedProductoId').value = '';
         document.getElementById('modalCoachFechaPago').value = new Date().toISOString().split('T')[0];
 
         const imgWrap = document.getElementById('modalComprobanteWrap');
@@ -1627,13 +1769,31 @@
         document.getElementById('modalRevisionCoach').style.display = 'flex';
       },
 
-      seleccionarProductoTienda: function() {
-        const sel = document.getElementById('modalSelectProductoTienda');
-        const opt = sel.options[sel.selectedIndex];
-        if (!opt || !opt.value) return;
+      renderizarCatalogoModal: function() {
+        const grid = document.getElementById('modalCatalogoProductosGrid');
+        if (!grid) return;
+        if (productosCache.length === 0) {
+          grid.innerHTML = '<span style="color:var(--text-muted); font-size:0.6rem; grid-column:1/-1; text-align:center;">Sin productos.</span>';
+          return;
+        }
+        grid.innerHTML = '';
+        productosCache.forEach(prod => {
+          const bgImg = prod.imagen_url || 'https://images.unsplash.com/photo-1517649763962-0c6232660102?w=300';
+          grid.innerHTML += `
+            <div class="product-card" style="height:85px; background-image: url('${bgImg}'); cursor:pointer;" onclick="BandejaCoach.seleccionarProductoCard('${prod.id}', ${prod.precio})">
+              <div class="product-title" style="font-size:0.6rem;">${prod.nombre}</div>
+              <div class="product-price" style="font-size:0.65rem;">${formatCOP(prod.precio)}</div>
+            </div>
+          `;
+        });
+      },
 
-        const precio = parseFloat(opt.getAttribute('data-precio')) || 0;
+      seleccionarProductoCard: function(idProd, precio) {
+        document.getElementById('modalSelectedProductoId').value = idProd;
         document.getElementById('modalCoachMontoReal').value = precio;
+        
+        document.querySelectorAll('#modalCatalogoProductosGrid .product-card').forEach(c => c.style.borderColor = 'var(--border)');
+        event.currentTarget.style.borderColor = 'var(--status-ok)';
       },
 
       confirmarFacturacion: async function() {
@@ -1641,8 +1801,8 @@
         const ctaId = document.getElementById('modalCoachCuenta').value;
         const montoReal = parseFloat(document.getElementById('modalCoachMontoReal').value) || 0;
         const fechaPagoVal = document.getElementById('modalCoachFechaPago').value;
-        const selProd = document.getElementById('modalSelectProductoTienda');
-        const optProd = selProd.options[selProd.selectedIndex];
+        const prodId = document.getElementById('modalSelectedProductoId').value;
+        const optProd = productosCache.find(p => p.id === prodId);
         const cajeroEmail = (localStorage.getItem('apex_user_email') || sessionStorage.getItem('apex_user_email') || 'contabilidad@apex.com');
         
         if (!ctaId) {
@@ -1656,7 +1816,7 @@
           return;
         }
 
-        const categoriaProd = optProd ? optProd.getAttribute('data-categoria') : 'Mensualidad';
+        const categoriaProd = optProd ? (optProd.categoria || 'Mensualidad') : 'Mensualidad';
         const catObj = categoriasCache.find(c => c.nombre.toLowerCase().includes('membresía')) || categoriasCache[0];
 
         try {
@@ -1667,8 +1827,9 @@
             categoria_id: catObj ? catObj.id : null,
             amount: montoReal,
             account_id: ctaId,
-            description: `Membresía sala: ${pagoCoachSeleccionado.user_email}`,
-            registered_by: cajeroEmail
+            description: `Membresía sala: ${pagoCoachSeleccionado.user_email} | Fecha Real de Pago: ${fechaPagoVal || new Date().toISOString().split('T')[0]}`,
+            registered_by: cajeroEmail,
+            created_at: fechaPagoVal ? new Date(fechaPagoVal + 'T12:00:00').toISOString() : new Date().toISOString()
           }]);
 
           await sb.from('apex_payments').update({ accounting_status: 'redimido' }).eq('id', pagoCoachSeleccionado.id);
@@ -1735,6 +1896,97 @@
           await cargarDatosGlobales();
         } catch (err) {
           alert("Error al rechazar: " + err.message);
+        }
+      }
+    };
+
+    const ApexMembresiasApp = {
+      buscar: function(q) {
+        const box = document.getElementById('suggestionsBox');
+        box.innerHTML = '';
+        if (!q) { box.style.display = 'none'; return; }
+        const matches = registeredUsersCache.filter(u => (u.email||'').toLowerCase().includes(q.toLowerCase()) || (u.name||'').toLowerCase().includes(q.toLowerCase()));
+        if (matches.length === 0) {
+          box.innerHTML = '<div style="padding:10px; font-size:0.75rem; color:#777;">Sin coincidencias</div>';
+          box.style.display = 'block';
+          return;
+        }
+        matches.forEach(u => {
+          const item = document.createElement('div');
+          item.className = 'suggestion-item';
+          item.innerHTML = `<div><strong>${u.name || 'Striker'}</strong><br><span style="font-size:0.7rem; color:#777;">${u.email}</span></div>`;
+          item.onclick = () => {
+            selectedStriker = u;
+            document.getElementById('studentEmailSearch').value = u.email;
+            box.style.display = 'none';
+            document.getElementById('strikerName').innerText = u.name || 'Striker';
+            document.getElementById('strikerEmailTxt').innerText = u.email;
+            document.getElementById('strikerCard').style.display = 'block';
+            ApexMembresiasApp.validarEvidencia();
+          };
+          box.appendChild(item);
+        });
+        box.style.display = 'block';
+      },
+
+      manejarArchivoSeleccionado: function(input) {
+        if (input.files && input.files[0]) {
+          archivoEvidenciaActual = input.files[0];
+          const indicator = document.getElementById('fileSelectedIndicator');
+          indicator.textContent = `✓ Archivo listo: ${archivoEvidenciaActual.name}`;
+          indicator.style.display = 'block';
+          this.validarEvidencia();
+        }
+      },
+
+      validarEvidencia: function() {
+        const btn = document.getElementById('btnSubmitMembership');
+        btn.disabled = !(selectedStriker && archivoEvidenciaActual);
+      },
+
+      procesar: async function() {
+        if (!selectedStriker || !archivoEvidenciaActual) return;
+        const coachNote = document.getElementById('coachNoteInput').value.trim();
+        const btn = document.getElementById('btnSubmitMembership');
+        btn.disabled = true;
+        btn.textContent = "Subiendo evidencia...";
+
+        try {
+          const path = `comprobantes/${Date.now()}_${selectedStriker.email}.${archivoEvidenciaActual.name.split('.').pop()}`;
+          await sb.storage.from('comprobantes').upload(path, archivoEvidenciaActual);
+          const url = sb.storage.from('comprobantes').getPublicUrl(path).data.publicUrl;
+
+          const expGracia = new Date();
+          expGracia.setDate(expGracia.getDate() + 3);
+
+          await sb.from('apex_users').update({ 
+            subscription_status: 'activo',
+            is_active: true,
+            subscription_expires_at: expGracia.toISOString()
+          }).eq('email', selectedStriker.email);
+
+          await sb.from('apex_payments').insert({
+            user_email: selectedStriker.email,
+            coach_email: currentAgentEmail,
+            coach_note: coachNote || null,
+            amount: 120000,
+            receipt_urls: [url],
+            accounting_status: 'pendiente_contabilidad'
+          });
+
+          alert('¡Evidencia enviada con éxito! 3 días de gracia otorgados.');
+          selectedStriker = null;
+          archivoEvidenciaActual = null;
+          document.getElementById('studentEmailSearch').value = '';
+          document.getElementById('coachNoteInput').value = '';
+          document.getElementById('strikerCard').style.display = 'none';
+          document.getElementById('fileSelectedIndicator').style.display = 'none';
+          this.validarEvidencia();
+          await cargarDatosGlobales();
+        } catch(e) {
+          alert('Error: ' + e.message);
+          this.validarEvidencia();
+          btn.textContent = "Adjunta Evidencia Para Habilitar";
         }
       }
     };
@@ -2111,7 +2363,15 @@
           const signo = t.type === 'ingreso' ? '+' : '-';
           const ctaObj = cuentasCache.find(c => c.id === t.account_id);
           const nombreCuenta = ctaObj ? `${ctaObj.nombre} (${ctaObj.tipo})` : 'Cuenta General';
-          const fechaFormateada = new Date(t.created_at || Date.now()).toLocaleString('es-CO');
+          const fechaRegistro = new Date(t.created_at || Date.now()).toLocaleString('es-CO');
+          
+          let fechaRealPago = 'No especificada';
+          let descLimpia = t.description || 'Sin nota';
+          if (descLimpia.includes('Fecha Real de Pago:')) {
+            const partes = descLimpia.split('| Fecha Real de Pago:');
+            descLimpia = partes[0].trim();
+            fechaRealPago = partes[1].trim();
+          }
 
           cont.innerHTML += `
             <div style="background:var(--card-sub); border:1px solid var(--border); border-radius:6px; padding:10px; margin-top:6px;">
@@ -2120,9 +2380,10 @@
                   <strong style="color:#fff; font-size:0.75rem; text-transform:uppercase;">${t.category || 'Transacción'}</strong>
                   <div style="font-size:0.62rem; color:var(--text-muted); margin-top:2px;">
                     <div><strong>Cuenta:</strong> ${nombreCuenta}</div>
-                    <div><strong>Nota/Detalle:</strong> ${t.description || 'Sin nota'}</div>
+                    <div><strong>Nota/Detalle:</strong> ${descLimpia}</div>
                     <div><strong>Responsable:</strong> <span style="color:var(--status-info);">${t.registered_by || 'Sistema'}</span></div>
-                    <div><strong>Fecha:</strong> ${fechaFormateada}</div>
+                    <div><strong>Fecha Real de Pago:</strong> <span style="color:var(--status-warn);">${fechaRealPago}</span></div>
+                    <div><strong>Fecha de Registro:</strong> ${fechaRegistro}</div>
                   </div>
                 </div>
                 <div style="text-align:right;">
